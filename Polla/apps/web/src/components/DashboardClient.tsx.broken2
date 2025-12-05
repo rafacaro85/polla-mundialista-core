@@ -1,0 +1,364 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAppStore } from '@/store/useAppStore';
+import api from '@/lib/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Header } from './ui/Header';
+import DateFilter from './DateFilter';
+import MatchCard from './MatchCard';
+import { LeagueSelector } from './LeagueSelector';
+import { LeagueSettings } from './LeagueSettings';
+import { GroupStageView } from './GroupStageView';
+import { BracketView } from './BracketView';
+import { BonusView } from './BonusView';
+import MatchInfoSheet from './MatchInfoSheet';
+
+interface Match {
+  id: string;
+  homeTeam: string;
+  homeFlag: string;
+  awayTeam: string;
+  awayFlag: string;
+  dateStr: string;
+  status: 'SCHEDULED' | 'FINISHED' | 'LIVE';
+  date: string;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  userPrediction?: Prediction;
+  phase?: string;
+  group?: string;
+  homeTeamPlaceholder?: string;
+  awayTeamPlaceholder?: string;
+}
+
+interface DateOption {
+  label: string;
+  value: string;
+}
+
+interface Prediction {
+  homeScorePrediction?: number | null;
+  awayScorePrediction?: number | null;
+  pointsEarned?: number | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
+}
+
+interface RankingUser {
+  position: number;
+  id: string;
+  nickname: string;
+  avatarUrl?: string;
+  totalPoints: number;
+}
+
+interface League {
+  id: string;
+  name: string;
+  code: string;
+  isAdmin: boolean;
+  maxParticipants?: number;
+  participantCount?: number;
+}
+
+// --- HELPER DE BANDERAS ---
+const getFlag = (teamName: string) => {
+  const flags: { [key: string]: string } = {
+    'Colombia': 'https://flagcdn.com/h80/co.png',
+    'Argentina': 'https://flagcdn.com/h80/ar.png',
+    'Brasil': 'https://flagcdn.com/h80/br.png',
+    'Francia': 'https://flagcdn.com/h80/fr.png',
+    'España': 'https://flagcdn.com/h80/es.png',
+    'Alemania': 'https://flagcdn.com/h80/de.png',
+    'USA': 'https://flagcdn.com/h80/us.png',
+    'México': 'https://flagcdn.com/h80/mx.png',
+    'Inglaterra': 'https://flagcdn.com/h80/gb-eng.png',
+    'Italia': 'https://flagcdn.com/h80/it.png',
+    'Portugal': 'https://flagcdn.com/h80/pt.png',
+    'Uruguay': 'https://flagcdn.com/h80/uy.png',
+  };
+  return flags[teamName] || 'https://flagcdn.com/h80/un.png';
+};
+
+export const DashboardClient: React.FC = () => {
+  // --- ZUSTAND STORE ---
+  const { user, selectedLeagueId, syncUserFromServer } = useAppStore();
+
+  // --- ESTADO LOCAL (solo UI) ---
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [dates, setDates] = useState<DateOption[]>([]);
+  const [ranking, setRanking] = useState<RankingUser[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
+  const [infoMatch, setInfoMatch] = useState<Match | null>(null);
+
+  // Función para recargar ligas
+  const fetchLeagues = useCallback(async () => {
+    try {
+      const { data } = await api.get('/leagues/my');
+      setLeagues(data);
+    } catch (error) {
+      console.error('Error cargando ligas', error);
+    }
+  }, []);
+
+  // 🔥 FIX: Cargar datos iniciales (partidos Y predicciones)
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoadingMatches(true);
+        await syncUserFromServer();
+
+        // 🔥 CRITICAL: Cargar AMBOS partidos Y predicciones en paralelo
+        const [matchesRes, predictionsRes] = await Promise.all([
+          api.get('/matches'),
+          api.get('/predictions/me')
+        ]);
+
+        const matchesData = matchesRes.data;
+        const predictionsData = predictionsRes.data;
+
+        const processedMatches = matchesData.map((m: any) => {
+          const date = new Date(m.date);
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+
+          let dateStr = 'upcoming';
+          if (date.toDateString() === today.toDateString()) dateStr = 'today';
+          else if (date.toDateString() === tomorrow.toDateString()) dateStr = 'tomorrow';
+          else dateStr = date.toLocaleDateString('es-ES', { weekday: 'long' });
+
+          // 🔥 CRITICAL: Buscar la predicción del usuario para este partido
+          const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
+
+        } : undefined,
+          userH: userPrediction?.homeScore?.toString() || '',
+          userA: userPrediction?.awayScore?.toString() || '',
+          points: userPrediction?.points || 0
+          };
+    });
+
+  setMatches(processedMatches);
+  const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.dateStr)))
+    .map(ds => ({ label: ds === 'today' ? 'HOY' : ds === 'tomorrow' ? 'MAÑANA' : ds.toUpperCase(), value: ds }));
+  setDates(uniqueDates);
+  if (uniqueDates.length > 0) setSelectedDate(uniqueDates[0].value);
+} catch (error) {
+  console.error('Error cargando datos', error);
+} finally {
+  setLoadingMatches(false);
+}
+    };
+loadData();
+  }, [syncUserFromServer]);
+
+// Cargar ranking según liga seleccionada
+useEffect(() => {
+  const loadRanking = async () => {
+    try {
+      let url = '/leagues/global/ranking';
+      if (selectedLeagueId && selectedLeagueId !== 'global') {
+        url = `/leagues/${selectedLeagueId}/ranking`;
+      }
+      const { data } = await api.get(url);
+      setRanking(data);
+    } catch (error) {
+      console.error('Error cargando ranking', error);
+    }
+  };
+  loadRanking();
+}, [selectedLeagueId]);
+
+const filteredMatches = matches.filter(m => m.dateStr === selectedDate);
+
+const handlePredictionChange = useCallback(async (matchId: string, homeScore: any, awayScore: any) => {
+  try {
+    console.log(`💾 Guardando predicción para partido ${matchId}: ${homeScore} - ${awayScore}`);
+
+    await api.post('/predictions', {
+      matchId,
+      homeScore: parseInt(homeScore),
+      awayScore: parseInt(awayScore)
+    });
+
+    console.log(`✅ Predicción guardada exitosamente`);
+
+    setMatches(prevMatches =>
+      prevMatches.map(m =>
+        m.id === matchId
+          ? {
+            ...m,
+            prediction: { homeScore: parseInt(homeScore), awayScore: parseInt(awayScore), points: 0 },
+            userH: homeScore.toString(),
+            userA: awayScore.toString()
+          }
+          : m
+      )
+    );
+  } catch (error) {
+    console.error('❌ Error guardando predicción:', error);
+  }
+}, []);
+
+return (
+  <div className="min-h-screen bg-obsidian text-white">
+    <Header userName={user?.nickname || user?.fullName || 'Viajero'} />
+    <main className="mx-auto w-full max-w-7xl flex-1 p-4">
+      <div className="mb-6 rounded-xl bg-carbon border border-slate-700 p-6 text-white shadow-lg">
+        <h2 className="text-2xl font-bold font-russo text-signal">Hola, {user?.nickname || user?.fullName || 'Viajero'}!</h2>
+        <p className="opacity-90 text-tactical">Bienvenido al torneo.</p>
+      </div>
+      <Tabs defaultValue="game" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="game">JUEGO</TabsTrigger>
+          <TabsTrigger value="ranking">RANKING</TabsTrigger>
+          <TabsTrigger value="bracket">SIMULADOR</TabsTrigger>
+          <TabsTrigger value="bonus">BONUS</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="game" className="mt-4">
+          <DateFilter
+            dates={dates}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
+
+          <div className="w-full max-w-[448px] md:max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 pb-20">
+            {loadingMatches ? (
+              <p className="col-span-full text-center text-tactical py-8">Cargando partidos...</p>
+            ) : filteredMatches && filteredMatches.length > 0 ? (
+              filteredMatches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onOpenInfo={() => setInfoMatch(match)}
+                  onSavePrediction={handlePredictionChange}
+                />
+              ))
+            ) : (
+              <p className="col-span-full text-center text-tactical py-8">No hay partidos para esta fecha.</p>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ranking">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex-1">
+              <LeagueSelector
+                leagues={leagues}
+                onLeaguesUpdate={fetchLeagues}
+              />
+            </div>
+            <LeagueSettings
+              league={leagues.find(l => l.id === selectedLeagueId)}
+              onUpdate={fetchLeagues}
+            />
+          </div>
+          <h3 className="text-xl font-bold mb-4 font-russo text-signal">Tabla de Posiciones</h3>
+
+          <div className="rounded-xl bg-carbon border border-slate-700 overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-black/30 text-tactical text-xs uppercase">
+                <tr>
+                  <th className="p-3 text-center">#</th>
+                  <th className="p-3">Usuario</th>
+                  <th className="p-3 text-right">Pts</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/50">
+                {ranking.map((user) => (
+                  <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-3 text-center font-bold">
+                      {user.position === 1 && <span className="text-2xl">🥇</span>}
+                      {user.position === 2 && <span className="text-2xl">🥈</span>}
+                      {user.position === 3 && <span className="text-2xl">🥉</span>}
+                      {user.position > 3 && <span className="text-slate-400">#{user.position}</span>}
+                    </td>
+                    <td className="p-3 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-slate-600 overflow-hidden relative">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.nickname} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-signal text-obsidian font-bold">
+                            {user.nickname.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-semibold text-white">{user.nickname}</span>
+                    </td>
+                    <td className="p-3 text-right font-russo text-signal text-lg">
+                      {user.totalPoints}
+                    </td>
+                  </tr>
+                ))}
+                {ranking.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="p-8 text-center text-tactical">
+                      No hay datos de ranking aún.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="bracket">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold font-russo text-signal mb-2">Simulador del Torneo</h3>
+            <p className="text-tactical text-sm mb-4">Visualiza el camino a la copa.</p>
+
+            <div className="flex gap-2 mb-6 bg-carbon border border-slate-700 rounded-lg p-1">
+              <button
+                onClick={() => setSimulatorPhase('groups')}
+                className={`flex-1 py-2 px-4 rounded-md font-russo text-sm transition-all ${simulatorPhase === 'groups'
+                  ? 'bg-signal text-obsidian'
+                  : 'text-tactical hover:text-white'
+                  }`}
+              >
+                FASE DE GRUPOS
+              </button>
+              <button
+                onClick={() => setSimulatorPhase('knockout')}
+                className={`flex-1 py-2 px-4 rounded-md font-russo text-sm transition-all ${simulatorPhase === 'knockout'
+                  ? 'bg-signal text-obsidian'
+                  : 'text-tactical hover:text-white'
+                  }`}
+              >
+                FASE FINAL
+              </button>
+            </div>
+
+            {simulatorPhase === 'groups' ? (
+              <GroupStageView matches={matches} />
+            ) : (
+              <BracketView matches={matches} />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="bonus" className="mt-6">
+          <BonusView />
+        </TabsContent>
+      </Tabs>
+      <div className="fixed bottom-6 right-6">
+        <Button className="rounded-full p-4 shadow-lg" size="icon" asChild>
+          <Link href="/leagues/join">
+            <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
+          </Link>
+        </Button>
+      </div>
+    </main>
+
+    {/* H2H Info Sheet */}
+    <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
+  </div>
+);
+};

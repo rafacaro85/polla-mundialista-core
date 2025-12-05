@@ -1,0 +1,73 @@
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { BonusService } from './bonus.service';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { SaveAnswerDto } from './dto/save-answer.dto';
+import { GradeQuestionDto } from './dto/grade-question.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+
+@Controller('bonus')
+@UseGuards(JwtAuthGuard)
+export class BonusController {
+    constructor(private readonly bonusService: BonusService) { }
+
+    // Admin: Crear pregunta
+    @Post('questions')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN', 'SUPER_ADMIN')
+    async createQuestion(@Body() dto: CreateQuestionDto) {
+        return this.bonusService.createQuestion(dto);
+    }
+
+    // Listar preguntas activas (usuario)
+    @Get('questions')
+    async getActiveQuestions() {
+        return this.bonusService.getActiveQuestions();
+    }
+
+    // Admin: Listar todas las preguntas
+    @Get('questions/all')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN', 'SUPER_ADMIN')
+    async getAllQuestions() {
+        return this.bonusService.getAllQuestions();
+    }
+
+    // Usuario: Guardar respuesta
+    @Post('answer')
+    async saveAnswer(@Request() req: any, @Body() dto: SaveAnswerDto) {
+        return this.bonusService.saveAnswer(req.user.id, dto);
+    }
+
+    // Usuario: Obtener mis respuestas
+    @Get('my-answers')
+    async getMyAnswers(@Request() req: any) {
+        return this.bonusService.getUserAnswers(req.user.id);
+    }
+
+    // Admin: Calificar pregunta
+    @Post('grade/:id')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN', 'SUPER_ADMIN')
+    async gradeQuestion(@Param('id') questionId: string, @Body() dto: GradeQuestionDto) {
+        return this.bonusService.gradeQuestion(questionId, dto);
+    }
+
+    // Admin: Eliminar pregunta
+    @Delete('questions/:id')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN', 'SUPER_ADMIN')
+    async deleteQuestion(@Param('id') questionId: string) {
+        await this.bonusService.deleteQuestion(questionId);
+        return { message: 'Pregunta eliminada exitosamente' };
+    }
+
+    // Admin: Editar pregunta
+    @Put('questions/:id')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN', 'SUPER_ADMIN')
+    async updateQuestion(@Param('id') questionId: string, @Body() dto: CreateQuestionDto) {
+        return this.bonusService.updateQuestion(questionId, dto);
+    }
+}

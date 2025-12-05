@@ -1,0 +1,6 @@
+export declare enum UserRole {
+    SUPER_ADMIN = "SUPER_ADMIN",
+    ADMIN = "ADMIN",
+    LEAGUE_MANAGER = "LEAGUE_MANAGER",
+    PLAYER = "PLAYER"
+}

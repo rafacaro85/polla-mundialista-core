@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Russo+One&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --obsidian: #0F172A;
+    --carbon: #1E293B;
+    --signal: #00E676;
+    --tactical: #94A3B8;
+
+    /* Shadcn UI Variables */
+    --popover: #1E293B;
+    --popover-foreground: #ffffff;
+    --border: #334155;
+    --radius: 0.75rem;
+  }
+
+  body {
+    background-color: var(--obsidian);
+    color: white;
+  }
+
+  h1,
+  h2,
+  h3,
+  .score-board,
+  .rank-num {
+    font-family: var(--font-russo);
+    @apply uppercase;
+  }
+}

@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { Info } from 'lucide-react';
+
+/* ======================================================
+   MATCHCARD - DISEÑO NIKE STYLE
+   - Mantiene diseño visual exacto
+   - Footer muestra resultado y puntos ganados
+   ====================================================== */
+
+// HELPER 1: FORMATEO DE FECHA
+const formatMatchDate = (isoDate: string) => {
+  try {
+    const d = new Date(isoDate);
+    return new Intl.DateTimeFormat('es-CO', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(d).toUpperCase();
+  } catch {
+    return 'FECHA TBD';
+  }
+};
+
+// HELPER 2: OBTENER BANDERA POR CÓDIGO FIFA
+const getFlagUrl = (teamCode: any, providedFlag: any) => {
+  if (providedFlag) return providedFlag;
+  if (!teamCode || teamCode === 'TBD' || teamCode === 'LOC' || teamCode === 'VIS') {
+    return 'https://flagcdn.com/w40/un.png';
+  }
+
+  const code = teamCode.toLowerCase();
+  const flagMap: any = {
+    COL: 'co', ARG: 'ar', BRA: 'br', USA: 'us', ESP: 'es', FRA: 'fr',
+    GER: 'de', JPN: 'jp', ENG: 'gb-eng', POR: 'pt', URU: 'uy', MEX: 'mx',
+    CAN: 'ca', MAR: 'ma', SEN: 'sn', NED: 'nl', ECU: 'ec', QAT: 'qa',
+    IRN: 'ir', WAL: 'gb-wls', SAU: 'sa', DEN: 'dk', TUN: 'tn', AUS: 'au',
+    POL: 'pl', CRO: 'hr', BEL: 'be', SUI: 'ch', CMR: 'cm', SRB: 'rs',
+    KOR: 'kr', GHA: 'gh', CRC: 'cr'
+  };
+
+  return `https://flagcdn.com/w40/${flagMap[teamCode.toUpperCase()] || code}.png`;
+};
+
+// HELPER 3: CONVERTIR NOMBRE A CÓDIGO FIFA
+const getTeamCode = (teamName: any) => {
+  if (!teamName) return 'TBD';
+  if (teamName.length === 3 && teamName === teamName.toUpperCase()) return teamName;
+
+  const nameToCode: any = {
+    'Colombia': 'COL', 'Argentina': 'ARG', 'Brazil': 'BRA', 'Brasil': 'BRA',
+    'United States': 'USA', 'USA': 'USA', 'Spain': 'ESP', 'España': 'ESP',
+    'France': 'FRA', 'Francia': 'FRA', 'Germany': 'GER', 'Alemania': 'GER',
+    'Japan': 'JPN', 'Japón': 'JPN', 'England': 'ENG', 'Inglaterra': 'ENG',
+    'Portugal': 'POR', 'Uruguay': 'URU', 'Mexico': 'MEX', 'México': 'MEX',
+    'Canada': 'CAN', 'Canadá': 'CAN', 'Morocco': 'MAR', 'Marruecos': 'MAR',
+    'Senegal': 'SEN', 'Netherlands': 'NED', 'Países Bajos': 'NED', 'Holanda': 'NED',
+    'Ecuador': 'ECU', 'Qatar': 'QAT', 'Iran': 'IRN', 'Irán': 'IRN',
+    'Wales': 'WAL', 'Gales': 'WAL', 'Saudi Arabia': 'SAU', 'Arabia Saudita': 'SAU',
+    'Denmark': 'DEN', 'Dinamarca': 'DEN', 'Tunisia': 'TUN', 'Túnez': 'TUN',
+    'Australia': 'AUS', 'Poland': 'POL', 'Polonia': 'POL', 'Croatia': 'CRO', 'Croacia': 'CRO',
+    'Belgium': 'BEL', 'Bélgica': 'BEL', 'Switzerland': 'SUI', 'Suiza': 'SUI',
+    'Cameroon': 'CMR', 'Camerún': 'CMR', 'Serbia': 'SRB', 'South Korea': 'KOR', 'Corea del Sur': 'KOR',
+    'Ghana': 'GHA', 'Costa Rica': 'CRC', 'Italy': 'ITA', 'Italia': 'ITA',
+    'Chile': 'CHI', 'Peru': 'PER', 'Perú': 'PER', 'Paraguay': 'PAR',
+    'Venezuela': 'VEN', 'Bolivia': 'BOL'
+  };
+
+  const code = nameToCode[teamName] || nameToCode[teamName.trim()];
+  return code ? code : teamName.substring(0, 3).toUpperCase();
+};
+
+export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) {
+  // 1. EXTRAER DATOS DEL PARTIDO
+  const homeTeamName = match.homeTeam?.code || match.home || 'LOC';
+  const awayTeamName = match.awayTeam?.code || match.away || 'VIS';
+
+  const homeCode = getTeamCode(homeTeamName);
+  const awayCode = getTeamCode(awayTeamName);
+
+  const homeFlagUrl = getFlagUrl(homeCode, match.homeTeam?.flag || match.homeFlag);
+  const awayFlagUrl = getFlagUrl(awayCode, match.awayTeam?.flag || match.awayFlag);
+
+  const groupName = match.group || 'A';
+  const dateDisplay = match.dateText || match.date || formatMatchDate(match.datetime || new Date().toISOString());
+  const isLive = match.status === 'LIVE';
+  const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
+
+  // 2. ESTADO LOCAL PARA INPUTS
+  const initialHome = match.prediction?.homeScore?.toString() || match.userH || '';
+  const initialAway = match.prediction?.awayScore?.toString() || match.userA || '';
+  const [homeScore, setHomeScore] = useState(initialHome);
+  const [awayScore, setAwayScore] = useState(initialAway);
+
+  const handleInputChange = (value: any, setter: any) => {
+    const cleaned = value.replace(/\D/g, '').slice(0, 2);
+    setter(cleaned);
+  };
+
+  const handleBlur = () => {
+    if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
+      onSavePrediction(match.id, homeScore, awayScore);
+    }
+  };
+
+  // 3. LÓGICA DE PUNTOS Y COLORES
+  const points = match.prediction?.points ?? match.points ?? 0;
+  const hasWon = points > 0;
+
+  const inputBorderColor = isFinished
+    ? (hasWon ? '#00E676' : '#FF1744')
+    : '#475569';
+
+  const finalScore = `${match.scoreH ?? 0} - ${match.scoreA ?? 0}`;
+  const resultColor = hasWon ? '#00E676' : '#FF1744';
+
+  // 4. ESTILOS BLINDADOS (CSS-IN-JS)
+  const STYLES = {
+    wrapper: {
+      display: 'flex',
+      justifyContent: 'center',
+      width: '100%',
+      marginBottom: '16px',
+    },
+    card: {
+      backgroundColor: '#1E293B',
+      borderRadius: '16px',
+      border: '1px solid #334155',
+      overflow: 'hidden',
+      width: '100%',
+      maxWidth: '340px',
+      boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      position: 'relative' as const
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      padding: '12px 16px 0 16px',
+    },
+    infoBtn: {
+      color: '#94A3B8',
+      cursor: 'pointer',
+      padding: '4px'
+    },
+    metaData: {
+      textAlign: 'right' as const,
+      fontSize: '10px',
+      fontWeight: 'bold',
+      letterSpacing: '1px',
+      lineHeight: '1.4'
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1.2fr 1fr',
+      alignItems: 'center',
+      padding: '10px 12px 20px 12px',
+    },
+    teamCol: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '6px',
+    },
+    teamCode: {
+      fontFamily: 'sans-serif',
+      fontWeight: '900',
+      fontSize: '22px',
+      color: '#F8FAFC',
+      textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+    },
+    flag: {
+      height: '24px',
+      width: 'auto',
+      borderRadius: '3px',
+      boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+      objectFit: 'cover' as const
+    },
+    inputs: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '8px',
+      flexDirection: 'column' as const,
+    },
+    inputRow: {
+      display: 'flex',
+      gap: '8px',
+      alignItems: 'center',
+    },
+    inputBox: {
+      width: '40px',
+      height: '40px',
+      backgroundColor: '#0F172A',
+      border: `2px solid ${inputBorderColor}`,
+      borderRadius: '8px',
+      color: 'white',
+      textAlign: 'center' as const,
+      fontSize: '18px',
+      fontWeight: 'bold',
+      outline: 'none',
+    },
+    liveIndicator: {
+      fontSize: '9px',
+      color: '#FF1744',
+      fontWeight: 'bold',
+      letterSpacing: '1px',
+      marginTop: '4px',
+    },
+    footerBar: {
+      width: '100%',
+      backgroundColor: resultColor,
+      color: '#0F172A',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '4px 0',
+      marginTop: 'auto',
+      minHeight: '34px'
+    },
+    scoreText: {
+      fontSize: '13px',
+      fontWeight: '900',
+      lineHeight: '1',
+      marginBottom: '2px',
+      letterSpacing: '1px'
+    },
+    pointsText: {
+      fontSize: '10px',
+      fontWeight: '800',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.5px',
+      opacity: 0.85
+    }
+  };
+
+  return (
+    <div style={STYLES.wrapper}>
+      <div style={STYLES.card}>
+
+        {/* HEADER */}
+        <div style={STYLES.header}>
+          <div style={STYLES.infoBtn} onClick={(e) => { e.stopPropagation(); onOpenInfo?.(); }}>
+            <Info size={18} />
+          </div>
+          <div style={STYLES.metaData}>
+            <div style={{ color: '#00E676' }}>GRUPO {groupName}</div>
+            <div style={{ color: '#94A3B8' }}>
+              {isLive ? `${match.minute || '0'}'` : dateDisplay}
+            </div>
+          </div>
+        </div>
+
+        {/* ZONA DE JUEGO */}
+        <div style={STYLES.grid}>
+
+          {/* Local */}
+          <div style={STYLES.teamCol}>
+            <span style={STYLES.teamCode}>{homeCode}</span>
+            <img
+              src={homeFlagUrl}
+              alt={homeCode}
+              style={STYLES.flag}
+              onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
+            />
+          </div>
+
+          {/* Marcador / Inputs */}
+          <div style={STYLES.inputs}>
+            {isLive ? (
+              <>
+                <span style={{ fontSize: '32px', color: '#00E676', fontWeight: 'bold', letterSpacing: '-1px' }}>
+                  {match.scoreH || 0}-{match.scoreA || 0}
+                </span>
+                <div style={STYLES.liveIndicator}>
+                  🔴 EN VIVO
+                </div>
+              </>
+            ) : (
+              <div style={STYLES.inputRow}>
+                <input
+                  type="tel"
+                  maxLength={2}
+                  value={homeScore}
+                  onChange={(e) => handleInputChange(e.target.value, setHomeScore)}
+                  onBlur={handleBlur}
+                  readOnly={isFinished}
+                  style={STYLES.inputBox}
+                />
+                <span style={{ color: '#64748B', fontWeight: 'bold' }}>-</span>
+                <input
+                  type="tel"
+                  maxLength={2}
+                  value={awayScore}
+                  onChange={(e) => handleInputChange(e.target.value, setAwayScore)}
+                  onBlur={handleBlur}
+                  readOnly={isFinished}
+                  style={STYLES.inputBox}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Visitante */}
+          <div style={STYLES.teamCol}>
+            <span style={STYLES.teamCode}>{awayCode}</span>
+            <img
+              src={awayFlagUrl}
+              alt={awayCode}
+              style={STYLES.flag}
+              onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
+            />
+          </div>
+        </div>
+
+        {/* BARRA RESULTADO (Solo si terminó) - MUESTRA RESULTADO Y PUNTOS */}
+        {isFinished && (
+          <div style={STYLES.footerBar}>
+            {/* Arriba: Marcador */}
+            <div style={STYLES.scoreText}>
+              {match.scoreH} - {match.scoreA}
+            </div>
+
+            {/* Abajo: Puntos obtenidos */}
+            <div style={STYLES.pointsText}>
+              {hasWon ? `+${points} PTS` : '0 PTS'}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}

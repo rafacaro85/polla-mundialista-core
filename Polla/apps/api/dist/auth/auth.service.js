@@ -68,7 +68,7 @@ let AuthService = class AuthService {
             throw new common_1.NotFoundException('User not found');
         }
         if (!user.password) {
-            throw new common_1.UnauthorizedException('This account was created with Google. Please use "Continue with Google" to sign in.');
+            throw new common_1.UnauthorizedException('This account was created with Google. Please use "Continue with Google" to sign in, or register with the same email to add a password.');
         }
         if (!await bcrypt.compare(pass, user.password)) {
             throw new common_1.UnauthorizedException('Invalid credentials');
@@ -95,7 +95,35 @@ let AuthService = class AuthService {
     async register(registerDto) {
         const existingUser = await this.usersService.findByEmail(registerDto.email);
         if (existingUser) {
-            throw new common_1.ConflictException('Email already registered');
+            if (existingUser.password) {
+                throw new common_1.ConflictException('Email already registered. Please login instead.');
+            }
+            console.log('🔄 [Register] Usuario de Google encontrado. Agregando contraseña...');
+            console.log(`   Email: ${existingUser.email}`);
+            console.log(`   ID: ${existingUser.id}`);
+            const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            const updatedUser = await this.usersService.update(existingUser, {
+                password: hashedPassword,
+                verificationCode,
+                isVerified: false,
+                fullName: registerDto.name || existingUser.fullName,
+                phoneNumber: registerDto.phoneNumber || existingUser.phoneNumber
+            });
+            console.log('📧 [MOCK EMAIL SERVICE] ------------------------------------------------');
+            console.log(`   To: ${registerDto.email}`);
+            console.log(`   Subject: Password added to your account - Verify your email`);
+            console.log(`   Code: ${verificationCode}`);
+            console.log(`   Message: You've added password login to your Google account.`);
+            console.log('----------------------------------------------------------------------');
+            if (registerDto.phoneNumber) {
+                console.log('📱 [MOCK SMS SERVICE] --------------------------------------------------');
+                console.log(`   To: ${registerDto.phoneNumber}`);
+                console.log(`   Message: Your verification code is: ${verificationCode}`);
+                console.log('----------------------------------------------------------------------');
+            }
+            const { password, ...result } = updatedUser;
+            return result;
         }
         const hashedPassword = await bcrypt.hash(registerDto.password, 10);
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();

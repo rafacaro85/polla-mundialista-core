@@ -30,7 +30,7 @@ export class AuthService {
 
     // Check if user registered with Google and has no password
     if (!user.password) {
-      throw new UnauthorizedException('This account was created with Google. Please use "Continue with Google" to sign in.');
+      throw new UnauthorizedException('This account was created with Google. Please use "Continue with Google" to sign in, or register with the same email to add a password.');
     }
 
     if (!await bcrypt.compare(pass, user.password)) {
@@ -61,10 +61,52 @@ export class AuthService {
 
   async register(registerDto: RegisterDto): Promise<User> {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
+
+    // OPCIÓN B: Si el usuario existe y fue creado con Google (sin contraseña), agregar contraseña
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      // Si el usuario ya tiene contraseña, es un registro duplicado
+      if (existingUser.password) {
+        throw new ConflictException('Email already registered. Please login instead.');
+      }
+
+      // Usuario existe pero sin contraseña (creado con Google)
+      console.log('🔄 [Register] Usuario de Google encontrado. Agregando contraseña...');
+      console.log(`   Email: ${existingUser.email}`);
+      console.log(`   ID: ${existingUser.id}`);
+
+      const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Actualizar usuario con contraseña y código de verificación
+      const updatedUser = await this.usersService.update(existingUser, {
+        password: hashedPassword,
+        verificationCode,
+        isVerified: false, // Requiere verificación para el método de contraseña
+        fullName: registerDto.name || existingUser.fullName, // Actualizar nombre si se proporciona
+        phoneNumber: registerDto.phoneNumber || existingUser.phoneNumber
+      });
+
+      // MOCK EMAIL SERVICE
+      console.log('📧 [MOCK EMAIL SERVICE] ------------------------------------------------');
+      console.log(`   To: ${registerDto.email}`);
+      console.log(`   Subject: Password added to your account - Verify your email`);
+      console.log(`   Code: ${verificationCode}`);
+      console.log(`   Message: You've added password login to your Google account.`);
+      console.log('----------------------------------------------------------------------');
+
+      // MOCK SMS SERVICE (Si hay teléfono)
+      if (registerDto.phoneNumber) {
+        console.log('📱 [MOCK SMS SERVICE] --------------------------------------------------');
+        console.log(`   To: ${registerDto.phoneNumber}`);
+        console.log(`   Message: Your verification code is: ${verificationCode}`);
+        console.log('----------------------------------------------------------------------');
+      }
+
+      const { password, ...result } = updatedUser;
+      return result as User;
     }
 
+    // Usuario no existe, crear uno nuevo
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 

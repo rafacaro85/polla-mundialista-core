@@ -8,5 +8,5 @@ export declare class MatchSyncService {
     private readonly scoringService;
     private readonly logger;
     constructor(httpService: HttpService, matchesRepository: Repository<Match>, scoringService: ScoringService);
-    syncLiveMatches(): any;
+    syncLiveMatches(): Promise<void>;
 }

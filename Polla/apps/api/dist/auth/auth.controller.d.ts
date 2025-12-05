@@ -7,18 +7,53 @@ export declare class AuthController {
     private readonly authService;
     private readonly usersService;
     constructor(authService: AuthService, usersService: UsersService);
-    googleAuth(req: any): any;
+    googleAuth(req: any): Promise<void>;
     googleAuthRedirect(req: {
         user: User;
-    }, res: Response): unknown;
-    register(body: RegisterDto): unknown;
+    }, res: Response): Promise<void>;
+    register(body: RegisterDto): Promise<User>;
     login(loginDto: LoginDto, req: {
         user: User;
-    }): unknown;
-    forgotPassword(body: ForgotPasswordDto): unknown;
-    verify(body: VerifyEmailDto): unknown;
+    }): Promise<{
+        access_token: string;
+        user: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: import("../database/enums/user-role.enum").UserRole;
+            avatarUrl: string | undefined;
+        };
+    }>;
+    forgotPassword(body: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
+    verify(body: VerifyEmailDto): Promise<{
+        access_token: string;
+        user: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: import("../database/enums/user-role.enum").UserRole;
+            avatarUrl: string | undefined;
+        };
+    }>;
     getProfile(req: {
         user: User;
-    }): unknown;
-    logout(res: Response): unknown;
+    }): Promise<{
+        id: string;
+        email: string;
+        googleId?: string;
+        fullName: string;
+        nickname: string;
+        role: import("../database/enums/user-role.enum").UserRole;
+        avatarUrl?: string;
+        phoneNumber?: string;
+        isVerified: boolean;
+        verificationCode?: string | null;
+        createdAt: Date;
+        predictions: import("../database/entities/prediction.entity").Prediction[];
+        accessCodesUsed: import("../database/entities/access-code.entity").AccessCode[];
+        leagueParticipants: import("../database/entities/league-participant.entity").LeagueParticipant[];
+    }>;
+    logout(res: Response): Promise<Response<any, Record<string, any>>>;
 }

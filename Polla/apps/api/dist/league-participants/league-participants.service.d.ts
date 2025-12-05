@@ -18,5 +18,8 @@ export declare class LeagueParticipantsService {
         message: string;
         isBlocked: boolean;
     }>;
-    assignTriviaPoints(leagueId: string, userId: string, points: number, requesterId: string, requesterRole: string): unknown;
+    assignTriviaPoints(leagueId: string, userId: string, points: number, requesterId: string, requesterRole: string): Promise<{
+        message: string;
+        totalTriviaPoints: number;
+    }>;
 }

@@ -1,8 +1,8 @@
 import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
-declare const JwtStrategy_base: new (...args: [opt: any] | [opt: any]) => InstanceType<typeof Strategy> & {
-    validate(...args: any[]): unknown | Promise<unknown>;
+declare const JwtStrategy_base: new (...args: [opt: import("passport-jwt").StrategyOptionsWithRequest] | [opt: import("passport-jwt").StrategyOptionsWithoutRequest]) => Strategy & {
+    validate(...args: any[]): unknown;
 };
 export declare class JwtStrategy extends JwtStrategy_base {
     private readonly configService;
@@ -11,6 +11,6 @@ export declare class JwtStrategy extends JwtStrategy_base {
     validate(payload: {
         sub: string;
         email: string;
-    }): unknown;
+    }): Promise<import("../../database/entities/user.entity").User>;
 }
 export {};

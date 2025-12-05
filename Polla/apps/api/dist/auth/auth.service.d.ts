@@ -8,15 +8,44 @@ export declare class AuthService {
     constructor(usersService: UsersService, jwtService: JwtService);
     validateUser(email: string, pass: string): Promise<User | null>;
     validateUserWithExceptions(email: string, pass: string): Promise<User>;
-    login(user: User): unknown;
+    login(user: User): Promise<{
+        access_token: string;
+        user: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: import("../database/enums/user-role.enum").UserRole;
+            avatarUrl: string | undefined;
+        };
+    }>;
     register(registerDto: RegisterDto): Promise<User>;
-    verifyEmail(verifyEmailDto: VerifyEmailDto): unknown;
-    forgotPassword(forgotPasswordDto: ForgotPasswordDto): unknown;
+    verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<{
+        access_token: string;
+        user: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: import("../database/enums/user-role.enum").UserRole;
+            avatarUrl: string | undefined;
+        };
+    }>;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
     validateGoogleUser(profile: {
         email: string;
         firstName: string;
         lastName: string;
         picture: string;
     }): Promise<User>;
-    googleLogin(user: User): unknown;
+    googleLogin(user: User): Promise<{
+        access_token: string;
+        user: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: import("../database/enums/user-role.enum").UserRole;
+            avatarUrl: string | undefined;
+        };
+    }>;
 }

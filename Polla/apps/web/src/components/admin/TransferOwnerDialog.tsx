@@ -280,7 +280,7 @@ export function TransferOwnerDialog({ league, open, onOpenChange, onSuccess }: T
             alignItems: 'center',
             gap: '8px',
             opacity: selectedUserId ? 1 : 0.5,
-            pointerEvents: selectedUserId ? 'auto' : 'none'
+            pointerEvents: (selectedUserId ? 'auto' : 'none') as 'auto' | 'none'
         }
     };
 

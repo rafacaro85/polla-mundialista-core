@@ -5,4 +5,8 @@ export declare class CreateLeagueDto {
     maxParticipants: number;
     accessCodePrefix: string;
     packageType: string;
+    brandingLogoUrl?: string;
+    prizeImageUrl?: string;
+    prizeDetails?: string;
+    welcomeMessage?: string;
 }

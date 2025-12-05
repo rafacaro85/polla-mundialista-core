@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, X, Users, Copy, Loader2 } from 'lucide-react';
+import { Save, X, Users, Copy, Loader2, Image, Gift, MessageSquare } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -18,6 +18,10 @@ interface League {
     };
     participantCount?: number;
     maxParticipants?: number;
+    brandingLogoUrl?: string;
+    prizeImageUrl?: string;
+    prizeDetails?: string;
+    welcomeMessage?: string;
 }
 
 interface EditLeagueDialogProps {
@@ -40,7 +44,11 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
         admin: '',
         members: 0,
         capacity: 0,
-        type: 'private'
+        type: 'private',
+        brandingLogoUrl: '',
+        prizeImageUrl: '',
+        prizeDetails: '',
+        welcomeMessage: ''
     });
 
     useEffect(() => {
@@ -51,16 +59,42 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
                 admin: league.creator?.nickname || league.admin || '',
                 members: league.participantCount || league.members || 0,
                 capacity: league.maxParticipants || league.capacity || 20,
-                type: league.type || 'private'
+                type: league.type || 'private',
+                brandingLogoUrl: league.brandingLogoUrl || '',
+                prizeImageUrl: league.prizeImageUrl || '',
+                prizeDetails: league.prizeDetails || '',
+                welcomeMessage: league.welcomeMessage || ''
             });
         }
     }, [league, open]);
 
     if (!open || !league) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileUpload = async (file: File, field: string) => {
+        try {
+            setLoading(true);
+            const uploadData = new FormData();
+            uploadData.append('file', file);
+
+            const response = await api.post('/upload', uploadData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            setFormData(prev => ({ ...prev, [field]: response.data.url }));
+            toast.success('Imagen subida correctamente');
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            toast.error('Error al subir la imagen');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async () => {
@@ -71,7 +105,13 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
 
         setLoading(true);
         try {
-            await api.patch(`/leagues/${league.id}`, { name: formData.name });
+            await api.patch(`/leagues/${league.id}`, {
+                name: formData.name,
+                brandingLogoUrl: formData.brandingLogoUrl,
+                prizeImageUrl: formData.prizeImageUrl,
+                prizeDetails: formData.prizeDetails,
+                welcomeMessage: formData.welcomeMessage
+            });
             toast.success(`Liga actualizada a "${formData.name}"`);
             onSuccess();
             onOpenChange(false);
@@ -104,7 +144,7 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
         card: {
             backgroundColor: '#1E293B', // Carbon
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: '500px',
             borderRadius: '24px',
             border: '1px solid #334155',
             boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
@@ -152,7 +192,8 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
             color: '#00E676',
             fontSize: '28px',
             fontFamily: "'Russo One', sans-serif",
-            boxShadow: '0 0 15px rgba(0, 230, 118, 0.2)'
+            boxShadow: '0 0 15px rgba(0, 230, 118, 0.2)',
+            overflow: 'hidden'
         },
         leagueInfo: {
             flex: 1
@@ -221,7 +262,10 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
             color: '#94A3B8',
             fontWeight: 'bold',
             textTransform: 'uppercase' as const,
-            letterSpacing: '1px'
+            letterSpacing: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
         },
         input: {
             width: '100%',
@@ -234,6 +278,50 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
             fontWeight: 'bold',
             outline: 'none',
             transition: 'border-color 0.2s'
+        },
+        textarea: {
+            width: '100%',
+            backgroundColor: '#0F172A',
+            border: '1px solid #334155',
+            borderRadius: '12px',
+            padding: '14px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '500',
+            outline: 'none',
+            fontFamily: 'sans-serif',
+            minHeight: '80px',
+            resize: 'vertical' as const
+        },
+        fileLabel: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#0F172A',
+            border: '1px dashed #334155',
+            borderRadius: '12px',
+            padding: '12px 20px',
+            color: '#94A3B8',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            width: '100%',
+            justifyContent: 'center'
+        },
+        fileInput: {
+            display: 'none'
+        },
+        previewBox: {
+            marginTop: '8px',
+            width: '100%',
+            height: '120px',
+            backgroundColor: '#0F172A',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: '1px solid #334155'
         },
 
         // FOOTER
@@ -276,7 +364,7 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
 
     return (
         <div style={STYLES.overlay}>
-            <div style={STYLES.card}>
+            <div style={STYLES.card} className="no-scrollbar">
 
                 {/* 1. HEADER TIPO TARJETA */}
                 <div style={STYLES.headerBanner}>
@@ -285,7 +373,11 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
                     </button>
 
                     <div style={STYLES.leagueIcon}>
-                        {formData.name.charAt(0).toUpperCase()}
+                        {formData.brandingLogoUrl ? (
+                            <img src={formData.brandingLogoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            formData.name.charAt(0).toUpperCase()
+                        )}
                     </div>
 
                     <div style={STYLES.leagueInfo}>
@@ -308,14 +400,14 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
                     </div>
                 </div>
 
-                {/* 2. FORMULARIO EDICIÓN (Sin botones extra) */}
+                {/* 2. FORMULARIO EDICIÓN */}
                 <div style={STYLES.body}>
 
                     <div style={{ textAlign: 'center', color: 'white', fontSize: '16px', fontFamily: "'Russo One', sans-serif", textTransform: 'uppercase' }}>
                         EDITAR LIGA
                     </div>
                     <div style={{ textAlign: 'center', color: '#94A3B8', fontSize: '12px', marginTop: '-16px', marginBottom: '8px' }}>
-                        Cambia el nombre de la liga
+                        Personaliza los detalles y el branding
                     </div>
 
                     <div style={STYLES.inputGroup}>
@@ -328,6 +420,63 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
                             style={STYLES.input}
                             onFocus={(e) => e.target.style.borderColor = '#00E676'}
                             onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        />
+                    </div>
+
+                    {/* Branding Logo */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Image size={14} /> Logo de la Empresa / Liga</label>
+                        <label style={STYLES.fileLabel}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={STYLES.fileInput}
+                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
+                            />
+                            {formData.brandingLogoUrl ? 'Cambiar Logo' : 'Subir Logo'}
+                        </label>
+                    </div>
+
+                    {/* Premio Imagen */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Gift size={14} /> Imagen del Premio</label>
+                        <label style={STYLES.fileLabel}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={STYLES.fileInput}
+                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
+                            />
+                            {formData.prizeImageUrl ? 'Cambiar Imagen' : 'Subir Imagen del Premio'}
+                        </label>
+                        {formData.prizeImageUrl && (
+                            <div style={STYLES.previewBox}>
+                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover' }} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Premio Detalles */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Gift size={14} /> Descripción del Premio</label>
+                        <textarea
+                            name="prizeDetails"
+                            value={formData.prizeDetails}
+                            onChange={handleChange}
+                            placeholder="Ej: Camiseta oficial autografiada..."
+                            style={STYLES.textarea}
+                        />
+                    </div>
+
+                    {/* Mensaje Bienvenida */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
+                        <textarea
+                            name="welcomeMessage"
+                            value={formData.welcomeMessage}
+                            onChange={handleChange}
+                            placeholder="Mensaje para los participantes..."
+                            style={STYLES.textarea}
                         />
                     </div>
 

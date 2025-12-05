@@ -1,12 +1,18 @@
 import React from 'react';
 
+interface DateFilterProps {
+  dates: string[];
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+}
+
 /* =============================================================================
    COMPONENTE DATEFILTER "BLINDADO"
    - Estilos directos para forzar el look "Tactical" (Nike/Cyberpunk).
    - Scroll horizontal oculto pero funcional.
    ============================================================================= */
 
-export default function DateFilter({ dates = [], selectedDate, onSelectDate }) {
+export default function DateFilter({ dates = [], selectedDate, onSelectDate }: DateFilterProps) {
 
   // ESTILOS MAESTROS
   const STYLES = {
@@ -14,16 +20,16 @@ export default function DateFilter({ dates = [], selectedDate, onSelectDate }) {
     scrollContainer: {
       display: 'flex',
       width: '100%',
-      overflowX: 'auto',
+      overflowX: 'auto' as const,
       padding: '12px 16px', // Espacio para que se vea la sombra
       gap: '12px',
-      scrollbarWidth: 'none', // Firefox
+      scrollbarWidth: 'none' as const, // Firefox
       msOverflowStyle: 'none', // IE
       alignItems: 'center',
       background: 'rgba(15, 23, 42, 0.6)', // Un fondo sutil Obsidian
       backdropFilter: 'blur(4px)',
       borderBottom: '1px solid #1E293B',
-      position: 'sticky',
+      position: 'sticky' as const,
       top: '0',
       zIndex: 20
     },
@@ -34,13 +40,13 @@ export default function DateFilter({ dates = [], selectedDate, onSelectDate }) {
       borderRadius: '12px', // Bordes redondeados modernos (no full)
       fontSize: '11px',
       fontWeight: 'bold',
-      textTransform: 'uppercase',
+      textTransform: 'uppercase' as const,
       letterSpacing: '1px',
       cursor: 'pointer',
       transition: 'all 0.2s ease',
       border: '1px solid',
       outline: 'none',
-      whiteSpace: 'nowrap'
+      whiteSpace: 'nowrap' as const
     },
     // Estado ACTIVO (El seleccionado)
     active: {
@@ -66,7 +72,7 @@ export default function DateFilter({ dates = [], selectedDate, onSelectDate }) {
   const safeDates = Array.isArray(dates) ? dates : [];
 
   return (
-    <div style={STYLES.scrollContainer} className="no-scrollbar">
+    <div style={STYLES.scrollContainer as React.CSSProperties} className="no-scrollbar">
       {/* Inyección de estilo para ocultar barra en Chrome/Safari */}
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

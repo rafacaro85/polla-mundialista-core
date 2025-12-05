@@ -79,9 +79,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const [leagueName, setLeagueName] = useState('');
     const [selectedPlan, setSelectedPlan] = useState('pro'); // Por defecto el Pro
     const [loading, setLoading] = useState(false);
+    const [createdLeagueId, setCreatedLeagueId] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
     const [createdLeagueName, setCreatedLeagueName] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [processingPayment, setProcessingPayment] = useState(false);
 
     const handleCreate = async () => {
         if (!leagueName.trim()) {
@@ -103,6 +105,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
             setCreatedCode(response.data.accessCodePrefix);
             setCreatedLeagueName(leagueName.trim());
+            setCreatedLeagueId(response.data.id);
             toast.success('¡Liga creada exitosamente!');
             await onLeagueCreated();
         } catch (error: any) {
@@ -122,13 +125,36 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         }
     };
 
-    const handleWhatsAppPayment = () => {
-        if (!createdCode || !createdLeagueName) return;
+    const handleWhatsAppPayment = async () => {
+        if (!createdCode || !createdLeagueName || !createdLeagueId) return;
 
         const plan = PLANS.find(p => p.id === selectedPlan);
-        const text = `Hola, acabo de crear la liga "${createdLeagueName}" (Código: ${createdCode}) con el plan ${plan?.name}. Adjunto mi comprobante de pago.`;
-        const url = `https://wa.me/573105973421?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+        if (!plan) return;
+
+        setProcessingPayment(true);
+        try {
+            // 1. Create Transaction
+            const priceNumber = parseInt(plan.price.replace(/\D/g, '')) || 0;
+
+            const response = await api.post('/transactions', {
+                packageType: plan.id,
+                amount: priceNumber,
+                leagueId: createdLeagueId
+            });
+
+            const { referenceCode } = response.data;
+
+            // 2. Redirect to WhatsApp
+            const text = `Hola, quiero activar el plan ${plan.name} para la liga "${createdLeagueName}" (Ref: ${referenceCode}). Adjunto mi comprobante de pago.`;
+            const url = `https://wa.me/573105973421?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+
+        } catch (error) {
+            console.error("Error creating transaction:", error);
+            toast.error("Error al iniciar el pago. Intenta nuevamente.");
+        } finally {
+            setProcessingPayment(false);
+        }
     };
 
     const handleClose = () => {
@@ -136,6 +162,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         setLeagueName('');
         setCreatedCode(null);
         setCreatedLeagueName(null);
+        setCreatedLeagueId(null);
         setCopied(false);
         setSelectedPlan('pro');
     };
@@ -528,9 +555,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                             </p>
                                             <button
                                                 onClick={handleWhatsAppPayment}
-                                                style={STYLES.whatsappBtn}
+                                                style={{ ...STYLES.whatsappBtn, opacity: processingPayment ? 0.7 : 1, cursor: processingPayment ? 'wait' : 'pointer' }}
+                                                disabled={processingPayment}
                                             >
-                                                <Shield size={18} /> Enviar Comprobante
+                                                {processingPayment ? <Loader2 className="animate-spin" size={18} /> : <Shield size={18} />}
+                                                {processingPayment ? 'Procesando...' : 'Enviar Comprobante'}
                                             </button>
                                         </div>
                                     )}

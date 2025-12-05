@@ -60,21 +60,17 @@ export class LeaguesService {
 
       const savedLeague = await this.leaguesRepository.save(league);
 
-      // Create Transaction
-      // Assuming 'starter' is free (0 amount) and others have prices. 
-      // Ideally prices should be fetched from a catalog.
-      // For now, we set 0 for starter and a placeholder for others or handle in frontend.
-      // Since the prompt asked to create a transaction:
-      const amount = packageType === 'starter' ? 0 : 0; // Placeholder, logic should be refined
-      const status = packageType === 'starter' ? TransactionStatus.PAID : TransactionStatus.PENDING;
-
-      await this.transactionsService.createTransaction(
-        creator,
-        amount,
-        packageType,
-        savedLeague,
-        status
-      );
+      // Create Transaction only for FREE plans (starter)
+      // Paid plans will have their transaction created via the frontend payment flow
+      if (packageType === 'starter') {
+        await this.transactionsService.createTransaction(
+          creator,
+          0,
+          packageType,
+          savedLeague.id,
+          TransactionStatus.PAID
+        );
+      }
 
 
       // Automatically add the creator as a participant

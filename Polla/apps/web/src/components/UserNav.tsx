@@ -262,21 +262,13 @@ export function UserNav() {
           />
 
           {isAdmin && (
-            <>
-              <MenuItem
-                icon={Shield}
-                label="WAR ROOM 👮‍♂️"
-                onClick={handleSuperAdmin}
-                isSpecial
-                hasArrow
-              />
-              <MenuItem
-                icon={Settings}
-                label="Panel Admin"
-                onClick={handleAdmin}
-                hasArrow
-              />
-            </>
+            <MenuItem
+              icon={Shield}
+              label="Panel de Control"
+              onClick={handleSuperAdmin}
+              isSpecial
+              hasArrow
+            />
           )}
 
           <div style={STYLES.divider} />
@@ -292,4 +284,4 @@ export function UserNav() {
       )}
     </div>
   );
-};
+}

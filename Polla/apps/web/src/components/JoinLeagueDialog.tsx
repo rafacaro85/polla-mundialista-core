@@ -12,9 +12,10 @@ import PrizeCard from './PrizeCard';
 
 interface JoinLeagueDialogProps {
     onLeagueJoined: () => void;
+    children?: React.ReactNode;
 }
 
-export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoined }) => {
+export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoined, children }) => {
     const [open, setOpen] = useState(false);
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
@@ -58,10 +59,12 @@ export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoin
     return (
         <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setPreviewData(null); setCode(''); } }}>
             <DialogTrigger asChild>
-                <Button className="bg-carbon border border-slate-600 hover:bg-carbon/80 text-white font-bold">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Unirse
-                </Button>
+                {children || (
+                    <Button className="bg-carbon border border-slate-600 hover:bg-carbon/80 text-white font-bold">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Unirse
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="bg-carbon border-slate-700 text-white max-w-md">
                 <DialogHeader>

@@ -18,6 +18,10 @@ class CreateLeagueDto {
     maxParticipants;
     accessCodePrefix;
     packageType;
+    brandingLogoUrl;
+    prizeImageUrl;
+    prizeDetails;
+    welcomeMessage;
 }
 exports.CreateLeagueDto = CreateLeagueDto;
 __decorate([
@@ -46,4 +50,24 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateLeagueDto.prototype, "packageType", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLeagueDto.prototype, "brandingLogoUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLeagueDto.prototype, "prizeImageUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLeagueDto.prototype, "prizeDetails", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLeagueDto.prototype, "welcomeMessage", void 0);
 //# sourceMappingURL=create-league.dto.js.map

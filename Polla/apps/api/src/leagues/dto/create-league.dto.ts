@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsInt, Min, Max, IsOptional } from 'class-validator';
 import { LeagueType } from '../../database/enums/league-type.enum';
 
 export class CreateLeagueDto {
@@ -23,6 +23,19 @@ export class CreateLeagueDto {
   @IsNotEmpty()
   packageType: string;
 
-  // maxUsers is already defined, but ensuring it matches the plan
-}
+  @IsString()
+  @IsOptional()
+  brandingLogoUrl?: string;
 
+  @IsString()
+  @IsOptional()
+  prizeImageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  prizeDetails?: string;
+
+  @IsString()
+  @IsOptional()
+  welcomeMessage?: string;
+}

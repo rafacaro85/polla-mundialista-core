@@ -98,26 +98,6 @@ export function UsersTable() {
             paddingBottom: '100px',
             fontFamily: 'sans-serif'
         },
-        searchBox: {
-            position: 'relative',
-            marginBottom: '16px'
-        },
-        searchInput: {
-            width: '100%',
-            padding: '12px 16px 12px 44px',
-            backgroundColor: '#1E293B', // Carbon
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            color: 'white',
-            outline: 'none',
-            fontSize: '14px'
-        },
-        searchIcon: {
-            position: 'absolute' as const,
-            left: '14px',
-            top: '14px',
-            color: '#94A3B8'
-        },
         // TARJETA USUARIO
         card: {
             backgroundColor: '#1E293B',
@@ -225,12 +205,14 @@ export function UsersTable() {
         <div style={STYLES.container}>
 
             {/* BUSCADOR */}
-            <div style={STYLES.searchBox}>
-                <Search size={18} style={STYLES.searchIcon} />
+            <div className="relative mb-4">
+                <div className="absolute left-3 top-3 text-slate-400 flex items-center justify-center">
+                    <Search size={18} />
+                </div>
                 <input
                     type="text"
                     placeholder="Buscar por nombre o correo..."
-                    style={STYLES.searchInput}
+                    className="w-full py-3 pl-11 pr-4 bg-[#1E293B] border border-[#334155] rounded-xl text-white outline-none text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />

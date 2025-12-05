@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const transactions_service_1 = require("./transactions.service");
 const transaction_entity_1 = require("../database/entities/transaction.entity");
+const league_entity_1 = require("../database/entities/league.entity");
 const transactions_controller_1 = require("./transactions.controller");
 const pdf_module_1 = require("../common/pdf/pdf.module");
 let TransactionsModule = class TransactionsModule {
@@ -19,7 +20,7 @@ exports.TransactionsModule = TransactionsModule;
 exports.TransactionsModule = TransactionsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([transaction_entity_1.Transaction]),
+            typeorm_1.TypeOrmModule.forFeature([transaction_entity_1.Transaction, league_entity_1.League]),
             pdf_module_1.PdfModule,
         ],
         controllers: [transactions_controller_1.TransactionsController],

@@ -48,23 +48,6 @@ interface Prediction {
   awayScore?: number | null;
 }
 
-interface RankingUser {
-  position: number;
-  id: string;
-  nickname: string;
-  avatarUrl?: string;
-  totalPoints: number;
-}
-
-interface League {
-  id: string;
-  name: string;
-  code: string;
-  isAdmin: boolean;
-  maxParticipants?: number;
-  participantCount?: number;
-}
-
 const getFlag = (teamName: string) => {
   const flags: { [key: string]: string } = {
     'Colombia': 'https://flagcdn.com/h80/co.png',
@@ -89,31 +72,17 @@ export const DashboardClient: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
   const [dates, setDates] = useState<string[]>([]);
-  const [ranking, setRanking] = useState<RankingUser[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
-  const [leagues, setLeagues] = useState<League[]>([]);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
   const [infoMatch, setInfoMatch] = useState<Match | null>(null);
   const [activeTab, setActiveTab] = useState<'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>('game');
   const [currentLeague, setCurrentLeague] = useState<any>(null);
-
-  const fetchLeagues = useCallback(async () => {
-    try {
-      const { data } = await api.get('/leagues/my');
-      setLeagues(data);
-    } catch (error) {
-      console.error('Error cargando ligas', error);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchCurrentLeague = async () => {
       if (selectedLeagueId && selectedLeagueId !== 'global') {
         try {
           const { data } = await api.get(`/leagues/${selectedLeagueId}/metadata`);
-          // Metadata returns { league: ..., availableSlots: ... }
-          // We need to ensure the league object has branding fields.
-          // The getMetadata endpoint returns the league entity, which should have them.
           setCurrentLeague(data.league);
         } catch (error) {
           console.error('Error fetching league metadata', error);
@@ -177,8 +146,8 @@ export const DashboardClient: React.FC = () => {
 
         setMatches(processedMatches);
         const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate)));
-        setDates(uniqueDates);
-        if (uniqueDates.length > 0) setSelectedDate(uniqueDates[0]);
+        setDates(uniqueDates as string[]);
+        if (uniqueDates.length > 0) setSelectedDate(uniqueDates[0] as string);
       } catch (error) {
         console.error('Error cargando datos', error);
       } finally {
@@ -187,22 +156,6 @@ export const DashboardClient: React.FC = () => {
     };
     loadData();
   }, [syncUserFromServer]);
-
-  useEffect(() => {
-    const loadRanking = async () => {
-      try {
-        let url = '/leagues/global/ranking';
-        if (selectedLeagueId && selectedLeagueId !== 'global') {
-          url = `/leagues/${selectedLeagueId}/ranking`;
-        }
-        const { data } = await api.get(url);
-        setRanking(data);
-      } catch (error) {
-        console.error('Error cargando ranking', error);
-      }
-    };
-    loadRanking();
-  }, [selectedLeagueId]);
 
   const filteredMatches = useMemo(() =>
     matches.filter(m => m.displayDate === selectedDate),
@@ -258,7 +211,7 @@ export const DashboardClient: React.FC = () => {
                 </div>
               )}
               <DateFilter dates={dates} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-              <div className="w-full max-w-[448px] md:max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 pb-20">
+              <div>
                 {loadingMatches ? (
                   <p className="col-span-full text-center text-tactical py-8">Cargando partidos...</p>
                 ) : filteredMatches && filteredMatches.length > 0 ? (
@@ -277,31 +230,7 @@ export const DashboardClient: React.FC = () => {
           )}
 
           {activeTab === 'ranking' && (
-            <RankingView
-              ranking={ranking}
-              leagues={leagues}
-              selectedLeagueId={selectedLeagueId || 'global'}
-              onLeagueChange={(id) => {
-                // Logic to change league in store would go here, 
-                // but for now we just refetch. Ideally useAppStore should expose setLeague
-                // Assuming useAppStore has a way to set selectedLeagueId, or we just fetch directly.
-                // Since selectedLeagueId comes from store, we might need an action.
-                // For now, let's assume we can just update the local state or store if available.
-                // The original code used LeagueSelector which updated the store.
-                // We need to check if we can update the store.
-                // Let's look at useAppStore usage.
-                // const { user, selectedLeagueId, syncUserFromServer } = useAppStore();
-                // It seems we need an action to set selectedLeagueId.
-                // Let's assume for now we just pass the id and let the component handle it if we had the setter.
-                // But wait, the original code used LeagueSelector.
-                // Let's check LeagueSelector implementation if needed, but for now let's just pass a dummy function or fix it later.
-                // Actually, let's just pass the fetchLeagues as a placeholder if we can't set it yet.
-                // Wait, I should probably check useAppStore to see if I can set the league.
-                // But to save time, I will just pass a console log for now and we can refine it.
-                console.log('Change league to', id);
-              }}
-              currentUserId={user?.id}
-            />
+            <RankingView />
           )}
 
           {activeTab === 'bracket' && (

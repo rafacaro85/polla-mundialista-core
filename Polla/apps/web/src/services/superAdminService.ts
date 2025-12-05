@@ -51,6 +51,16 @@ export const superAdminService = {
         link.remove();
     },
 
+    createTransaction: async (data: { packageType: string, amount: number, leagueId: string }) => {
+        const response = await axios.post(`${API_URL}/api/transactions`, data, getHeaders());
+        return response.data;
+    },
+
+    approveTransaction: async (id: string) => {
+        const response = await axios.patch(`${API_URL}/api/transactions/${id}/approve`, {}, getHeaders());
+        return response.data;
+    },
+
     // --- SYSTEM SETTINGS ---
     getSettings: async () => {
         const response = await axios.get(`${API_URL}/api/system-settings`, getHeaders());

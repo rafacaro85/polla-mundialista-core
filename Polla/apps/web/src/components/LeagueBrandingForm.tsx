@@ -36,7 +36,6 @@ const STYLES = {
         marginBottom: '20px'
     },
     label: {
-        display: 'block',
         color: '#94A3B8',
         fontSize: '11px',
         fontWeight: 'bold',

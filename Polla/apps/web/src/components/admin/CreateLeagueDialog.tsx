@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Trophy, Users, Save, X, Loader2, Lock, Globe, Crown } from 'lucide-react';
+import { Trophy, Users, Save, X, Loader2, Lock, Globe, Crown, Image, Gift, MessageSquare } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -18,16 +18,24 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
         type: string;
         maxParticipants: number | string;
         accessCodePrefix: string;
+        brandingLogoUrl: string;
+        prizeImageUrl: string;
+        prizeDetails: string;
+        welcomeMessage: string;
     }>({
         name: '',
         type: 'LIBRE', // LIBRE (Public), VIP
         maxParticipants: 50,
-        accessCodePrefix: ''
+        accessCodePrefix: '',
+        brandingLogoUrl: '',
+        prizeImageUrl: '',
+        prizeDetails: '',
+        welcomeMessage: ''
     });
 
     if (!open) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -48,6 +56,28 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         return code;
+    };
+
+    const handleFileUpload = async (file: File, field: string) => {
+        try {
+            setLoading(true);
+            const uploadData = new FormData();
+            uploadData.append('file', file);
+
+            const response = await api.post('/upload', uploadData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            setFormData(prev => ({ ...prev, [field]: response.data.url }));
+            toast.success('Imagen subida correctamente');
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            toast.error('Error al subir la imagen');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async () => {
@@ -73,7 +103,8 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             // Generate a code if not present (though we send it)
             const payload = {
                 ...formData,
-                accessCodePrefix: generateCode()
+                accessCodePrefix: generateCode(),
+                packageType: 'custom'
             };
 
             await api.post('/leagues', payload);
@@ -81,7 +112,16 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             onSuccess();
             onOpenChange(false);
             // Reset form
-            setFormData({ name: '', type: 'LIBRE', maxParticipants: 50, accessCodePrefix: '' });
+            setFormData({
+                name: '',
+                type: 'LIBRE',
+                maxParticipants: 50,
+                accessCodePrefix: '',
+                brandingLogoUrl: '',
+                prizeImageUrl: '',
+                prizeDetails: '',
+                welcomeMessage: ''
+            });
         } catch (error: any) {
             console.error(error);
             toast.error(error.response?.data?.message || 'No se pudo crear la liga');
@@ -106,7 +146,8 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
         card: {
             backgroundColor: '#1E293B', // Carbon
             width: '100%',
-            maxWidth: '500px',
+            maxWidth: '600px',
+            maxHeight: '90vh',
             borderRadius: '24px',
             border: '1px solid #334155',
             boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
@@ -165,7 +206,8 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             padding: '24px',
             display: 'flex',
             flexDirection: 'column' as const,
-            gap: '24px'
+            gap: '24px',
+            overflowY: 'auto' as const
         },
 
         // INPUTS
@@ -179,7 +221,10 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             fontWeight: 'bold',
             color: '#94A3B8',
             textTransform: 'uppercase' as const,
-            letterSpacing: '1px'
+            letterSpacing: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
         },
         inputWrapper: {
             position: 'relative' as const,
@@ -198,16 +243,60 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             outline: 'none',
             fontFamily: 'sans-serif'
         },
+        textarea: {
+            width: '100%',
+            backgroundColor: '#0F172A',
+            border: '1px solid #334155',
+            borderRadius: '12px',
+            padding: '14px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '500',
+            outline: 'none',
+            fontFamily: 'sans-serif',
+            minHeight: '80px',
+            resize: 'vertical' as const
+        },
         inputIcon: {
             position: 'absolute' as const,
             right: '16px',
             color: '#64748B'
         },
+        fileInput: {
+            display: 'none'
+        },
+        fileLabel: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#0F172A',
+            border: '1px dashed #334155',
+            borderRadius: '12px',
+            padding: '12px 20px',
+            color: '#94A3B8',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            width: '100%',
+            justifyContent: 'center'
+        },
+        previewBox: {
+            marginTop: '8px',
+            width: '100%',
+            height: '120px',
+            backgroundColor: '#0F172A',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: '1px solid #334155'
+        },
 
         // TYPE SELECTOR
         typeGrid: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '12px'
         },
         typeCard: (isActive: boolean) => ({
@@ -290,7 +379,7 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
                 </div>
 
                 {/* 2. BODY */}
-                <div style={STYLES.body}>
+                <div style={STYLES.body} className="no-scrollbar">
 
                     {/* Nombre */}
                     <div style={STYLES.inputGroup}>
@@ -309,6 +398,68 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
                         </div>
                     </div>
 
+                    {/* Branding Logo */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Image size={14} /> Logo de la Empresa / Liga</label>
+                        <label style={STYLES.fileLabel}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={STYLES.fileInput}
+                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
+                            />
+                            {formData.brandingLogoUrl ? 'Cambiar Logo' : 'Subir Logo'}
+                        </label>
+                        {formData.brandingLogoUrl && (
+                            <div style={STYLES.previewBox}>
+                                <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Premio Imagen */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Gift size={14} /> Imagen del Premio</label>
+                        <label style={STYLES.fileLabel}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={STYLES.fileInput}
+                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
+                            />
+                            {formData.prizeImageUrl ? 'Cambiar Imagen' : 'Subir Imagen del Premio'}
+                        </label>
+                        {formData.prizeImageUrl && (
+                            <div style={STYLES.previewBox}>
+                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover' }} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Premio Detalles */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><Gift size={14} /> Descripción del Premio</label>
+                        <textarea
+                            name="prizeDetails"
+                            value={formData.prizeDetails}
+                            onChange={handleChange}
+                            placeholder="Ej: Camiseta oficial autografiada..."
+                            style={STYLES.textarea}
+                        />
+                    </div>
+
+                    {/* Mensaje Bienvenida */}
+                    <div style={STYLES.inputGroup}>
+                        <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
+                        <textarea
+                            name="welcomeMessage"
+                            value={formData.welcomeMessage}
+                            onChange={handleChange}
+                            placeholder="Mensaje para los participantes..."
+                            style={STYLES.textarea}
+                        />
+                    </div>
+
                     {/* Tipo de Liga */}
                     <div style={STYLES.inputGroup}>
                         <label style={STYLES.label}>Tipo de Liga</label>
@@ -320,7 +471,6 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
                                 <Globe size={24} style={STYLES.typeIcon(formData.type === 'LIBRE')} />
                                 <span style={STYLES.typeTitle(formData.type === 'LIBRE')}>Pública</span>
                             </div>
-                            {/* Private option removed as it's not supported by backend enum yet */}
                             <div
                                 style={STYLES.typeCard(formData.type === 'VIP')}
                                 onClick={() => handleTypeSelect('VIP')}

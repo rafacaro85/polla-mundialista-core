@@ -26,6 +26,10 @@ interface League {
         avatarUrl?: string;
     };
     participantCount: number;
+    brandingLogoUrl?: string;
+    prizeImageUrl?: string;
+    prizeDetails?: string;
+    welcomeMessage?: string;
 }
 
 export function LeaguesTable() {

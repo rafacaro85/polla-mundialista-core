@@ -1,7 +1,10 @@
-import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Res, NotFoundException, UseGuards, Request } from '@nestjs/common';
 import { Response } from 'express';
 import { TransactionsService } from './transactions.service';
 import { PdfService } from '../common/pdf/pdf.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -10,11 +13,32 @@ export class TransactionsController {
         private readonly pdfService: PdfService,
     ) { }
 
+    @UseGuards(JwtAuthGuard)
+    @Post()
+    async createTransaction(@Request() req: any, @Body() body: { packageType: string, amount: number, leagueId: string }) {
+        return this.transactionsService.createTransaction(
+            req.user,
+            body.amount,
+            body.packageType,
+            body.leagueId
+        );
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Patch(':id/approve')
+    async approveTransaction(@Param('id') id: string) {
+        return this.transactionsService.approveTransaction(id);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
     @Get()
     async getAllTransactions() {
         return this.transactionsService.findAll();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id/voucher')
     async downloadVoucher(@Param('id') id: string, @Res() res: any) {
         const transaction = await this.transactionsService.findOne(id);

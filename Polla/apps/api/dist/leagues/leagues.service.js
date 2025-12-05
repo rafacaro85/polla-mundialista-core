@@ -60,9 +60,9 @@ let LeaguesService = class LeaguesService {
                 isPaid: packageType !== 'starter',
             });
             const savedLeague = await this.leaguesRepository.save(league);
-            const amount = packageType === 'starter' ? 0 : 0;
-            const status = packageType === 'starter' ? transaction_status_enum_1.TransactionStatus.PAID : transaction_status_enum_1.TransactionStatus.PENDING;
-            await this.transactionsService.createTransaction(creator, amount, packageType, savedLeague, status);
+            if (packageType === 'starter') {
+                await this.transactionsService.createTransaction(creator, 0, packageType, savedLeague.id, transaction_status_enum_1.TransactionStatus.PAID);
+            }
             const participant = this.leagueParticipantsRepository.create({
                 user: creator,
                 league: savedLeague,

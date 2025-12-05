@@ -28,7 +28,12 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.password || !await bcrypt.compare(pass, user.password)) {
+    // Check if user registered with Google and has no password
+    if (!user.password) {
+      throw new UnauthorizedException('This account was created with Google. Please use "Continue with Google" to sign in.');
+    }
+
+    if (!await bcrypt.compare(pass, user.password)) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

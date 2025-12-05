@@ -181,12 +181,12 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
     // TARJETA DE FORMULARIO
     card: {
       width: '100%',
-      maxWidth: '380px',
+      maxWidth: '420px',
       backgroundColor: 'rgba(30, 41, 59, 0.7)', // Carbon transparente
       backdropFilter: 'blur(12px)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
       borderRadius: '24px',
-      padding: '32px 24px',
+      padding: '32px 28px',
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
       zIndex: 10,
       position: 'relative' as const
@@ -207,7 +207,8 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
     // INPUTS
     inputGroup: {
       position: 'relative' as const,
-      marginBottom: '16px'
+      marginBottom: '16px',
+      width: '100%'
     },
     inputIcon: {
       position: 'absolute' as const,
@@ -226,6 +227,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       fontSize: '14px',
       outline: 'none',
       transition: 'border-color 0.2s',
+      boxSizing: 'border-box' as const
     },
     // BOTÓN PRIMARIO (NEON)
     primaryBtn: {
@@ -245,7 +247,8 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       alignItems: 'center',
       gap: '8px',
       boxShadow: '0 0 20px rgba(0, 230, 118, 0.3)',
-      transition: 'transform 0.2s'
+      transition: 'transform 0.2s',
+      boxSizing: 'border-box' as const
     },
     // BOTÓN GOOGLE
     googleBtn: {
@@ -262,7 +265,8 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       justifyContent: 'center',
       alignItems: 'center',
       gap: '10px',
-      marginBottom: '24px'
+      marginBottom: '24px',
+      boxSizing: 'border-box' as const
     },
     divider: {
       display: 'flex',

@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SaveBracketDto = void 0;
 const class_validator_1 = require("class-validator");
@@ -19,7 +20,7 @@ exports.SaveBracketDto = SaveBracketDto;
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsObject)(),
-    __metadata("design:type", Object)
+    __metadata("design:type", typeof (_a = typeof Record !== "undefined" && Record) === "function" ? _a : Object)
 ], SaveBracketDto.prototype, "picks", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),

@@ -6,20 +6,15 @@ export declare class BracketsController {
     constructor(bracketsService: BracketsService);
     saveBracket(req: Request & {
         user: any;
-    }, dto: SaveBracketDto): Promise<import("../database/entities/user-bracket.entity").UserBracket>;
+    }, dto: SaveBracketDto): unknown;
     getMyBracket(req: Request & {
         user: any;
-    }): Promise<import("../database/entities/user-bracket.entity").UserBracket | null>;
+    }): unknown;
     getMyBracketForLeague(req: Request & {
         user: any;
-    }, leagueId: string): Promise<import("../database/entities/user-bracket.entity").UserBracket | null>;
+    }, leagueId: string): unknown;
     clearMyBracket(req: Request & {
         user: any;
-    }): Promise<{
-        success: boolean;
-        message: string;
-    }>;
-    recalculatePoints(): Promise<{
-        message: string;
-    }>;
+    }): unknown;
+    recalculatePoints(): unknown;
 }

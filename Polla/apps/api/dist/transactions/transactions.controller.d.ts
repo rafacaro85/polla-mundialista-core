@@ -8,8 +8,8 @@ export declare class TransactionsController {
         packageType: string;
         amount: number;
         leagueId: string;
-    }): Promise<import("../database/entities/transaction.entity").Transaction>;
-    approveTransaction(id: string): Promise<import("../database/entities/transaction.entity").Transaction>;
-    getAllTransactions(): Promise<import("../database/entities/transaction.entity").Transaction[]>;
-    downloadVoucher(id: string, res: any): Promise<void>;
+    }): unknown;
+    approveTransaction(id: string): unknown;
+    getAllTransactions(): unknown;
+    downloadVoucher(id: string, res: any): any;
 }

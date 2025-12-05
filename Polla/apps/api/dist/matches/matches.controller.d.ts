@@ -13,7 +13,7 @@ export declare class MatchesController {
         externalId?: number;
         stadium?: string;
         leagueId?: number;
-    }): Promise<Match>;
+    }): unknown;
     updateMatch(id: string, body: {
         status?: string;
         homeScore?: number | null;
@@ -28,20 +28,12 @@ export declare class MatchesController {
         bracketId?: number;
         nextMatchId?: string;
         isLocked?: boolean;
-    }): Promise<Match>;
-    forceSync(): Promise<{
-        message: string;
-    }>;
+    }): unknown;
+    forceSync(): unknown;
     finishMatch(id: string, body: {
         homeScore: number;
         awayScore: number;
-    }): Promise<Match>;
-    seedKnockoutMatches(): Promise<{
-        message: string;
-        created: number;
-    }>;
-    resetKnockoutMatches(): Promise<{
-        message: string;
-        reset: number;
-    }>;
+    }): unknown;
+    seedKnockoutMatches(): unknown;
+    resetKnockoutMatches(): unknown;
 }

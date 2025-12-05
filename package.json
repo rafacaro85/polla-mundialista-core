@@ -5,5 +5,8 @@
   "workspaces": [
     "Polla",
     "Polla/apps/*"
-  ]
+  ],
+  "devDependencies": {
+    "nx": "^22.1.3"
+  }
 }

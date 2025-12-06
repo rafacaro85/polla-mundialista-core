@@ -32,6 +32,7 @@
     "seed:qatar-full": "ts-node -r tsconfig-paths/register src/database/seeds/qatar-full.seeder.ts",
     "seed:bracket-playable": "ts-node -r tsconfig-paths/register src/database/seeds/bracket-playable.seeder.ts",
     "seed:complete": "ts-node -r tsconfig-paths/register src/database/seeds/complete-tournament.seeder.ts",
+    "seed:wc2026": "ts-node -r tsconfig-paths/register src/database/seeds/world-cup-2026-matches.seeder.ts",
     "seed:reset-knockout": "npx ts-node src/reset-knockout-full.ts",
     "typeorm": "typeorm-ts-node-commonjs",
     "typeorm:migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",

@@ -54,6 +54,9 @@ export class Match {
   @Column({ default: false })
   isLocked: boolean;
 
+  @Column({ nullable: true })
+  stadium: string;
+
   @OneToMany(() => Prediction, prediction => prediction.match)
   predictions: Prediction[];
 }

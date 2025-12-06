@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, User, ArrowRight, Chrome, Eye, EyeOff, AlertCircle, CheckCircle, Phone } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { signInWithGoogle } from '@/lib/auth.utils';
 
 /* =============================================================================
    COMPONENTE: PANTALLA DE ACCESO (LOGIN / REGISTER / FORGOT / VERIFY)

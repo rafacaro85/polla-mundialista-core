@@ -1,30 +1,71 @@
-# Backend Environment Variables
+# 🔧 Variables de Entorno - Backend (Railway)
 
-## Required Variables
+## ⚠️ CRÍTICAS - Sin estas la app NO funcionará
 
-### Database Configuration
-DB_HOST=localhost
+### Google OAuth (OBLIGATORIO)
+```env
+GOOGLE_CLIENT_ID=tu-google-client-id-aqui
+GOOGLE_SECRET=tu-google-client-secret-aqui
+GOOGLE_CALLBACK_URL=https://tu-backend.railway.app/api/auth/google/redirect
+```
+
+### Frontend URL (OBLIGATORIO)
+```env
+FRONTEND_URL=https://tu-app.vercel.app
+```
+
+### Database (OBLIGATORIO)
+```env
+DB_HOST=tu-db-host
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=tu-password
 DB_DATABASE=polla_db
+```
 
-### JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
+### JWT (OBLIGATORIO)
+```env
+JWT_SECRET=un-secreto-super-seguro-cambialo-en-produccion
+```
 
-### Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/redirect
+## 📝 Ejemplo completo para Railway
 
-### Frontend URL (for OAuth redirects)
-FRONTEND_URL=http://localhost:3001
+```env
+# Google OAuth
+GOOGLE_CLIENT_ID=123456789-abcdefg.apps.googleusercontent.com
+GOOGLE_SECRET=GOCSPX-abcdefghijklmnop
+GOOGLE_CALLBACK_URL=https://polla-mundialista-core-production.up.railway.app/api/auth/google/redirect
 
-## Production Example
+# Frontend
+FRONTEND_URL=https://polla-mundialista-core-4hjkbuatz-rafaels-projects-10ecd374.vercel.app
 
-### Railway/Production
-FRONTEND_URL=https://your-app.vercel.app
-GOOGLE_CALLBACK_URL=https://your-api.railway.app/api/auth/google/redirect
+# Database (Railway PostgreSQL)
+DB_HOST=postgres.railway.internal
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=tu-password-de-railway
+DB_DATABASE=railway
 
-### Port (Railway sets this automatically)
+# JWT
+JWT_SECRET=change-this-to-a-random-secret-in-production
+
+# Port (Railway lo configura automáticamente)
 PORT=3000
+```
+
+## 🚀 Cómo configurar en Railway
+
+1. Ve a tu proyecto en Railway
+2. Click en tu servicio de API
+3. Variables tab
+4. Add Variable
+5. Pega cada variable con su valor
+6. Deploy
+
+## ✅ Verificación
+
+Después de configurar, verifica en los logs de Railway que veas:
+```
+✅ Global prefix configured: /api
+🚀 Server running on port: [PUERTO]
+```

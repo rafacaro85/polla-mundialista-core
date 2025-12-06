@@ -27,7 +27,9 @@ export class AuthController {
     // Limpiar cualquier cookie de sesión anterior
     res.clearCookie('connect.sid');
 
-    return res.redirect(`http://localhost:3001/auth/success?token=${token.access_token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    console.log('🔄 Redirigiendo a frontend:', `${frontendUrl}/auth/success`);
+    return res.redirect(`${frontendUrl}/auth/success?token=${token.access_token}`);
   }
 
   @Post('register')

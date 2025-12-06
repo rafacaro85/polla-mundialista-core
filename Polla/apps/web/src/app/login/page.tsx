@@ -526,9 +526,8 @@ export default function LoginPage() {
     localStorage.clear();
     sessionStorage.clear();
 
-    // Agregar timestamp para forzar nueva autenticación
-    const timestamp = Date.now();
-    window.location.href = `/auth/google?t=${timestamp}`;
+    // Usar la función signInWithGoogle que tiene la URL correcta del backend
+    signInWithGoogle();
   };
 
   return <LoginScreen onGoogleLogin={handleGoogleLogin} />;

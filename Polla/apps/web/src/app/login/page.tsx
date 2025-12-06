@@ -528,7 +528,7 @@ export default function LoginPage() {
 
     // Agregar timestamp para forzar nueva autenticación
     const timestamp = Date.now();
-    window.location.href = `http://localhost:3000/api/auth/google?t=${timestamp}`;
+    window.location.href = `/auth/google?t=${timestamp}`;
   };
 
   return <LoginScreen onGoogleLogin={handleGoogleLogin} />;

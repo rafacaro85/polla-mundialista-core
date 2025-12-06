@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Log para debuggear en producción (aparecerá en la consola del navegador)
+console.log('🌍 API URL CONFIGURADA:', API_URL);
+
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: API_URL,
   withCredentials: true,
 });
 

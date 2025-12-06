@@ -14,7 +14,10 @@ function SuccessLogic() {
       console.log('Token guardado:', token);
 
       // Obtener datos del usuario incluyendo el rol
-      fetch('http://localhost:3000/auth/profile', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      console.log('🔍 Obteniendo perfil de usuario desde:', `${API_URL}/auth/profile`);
+
+      fetch(`${API_URL}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

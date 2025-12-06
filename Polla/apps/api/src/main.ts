@@ -30,6 +30,7 @@ async function bootstrap() {
   logger.log(`🚀 Server running on port: ${port}`);
   logger.log(`🚀 Application is accessible at: http://0.0.0.0:${port}/api`);
   logger.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`🔗 Railway URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`);
 }
 
 bootstrap();

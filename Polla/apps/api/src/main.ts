@@ -10,13 +10,21 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   logger.log('✅ Global prefix configured: /api');
 
-  // 2. CORS (Permisivo para evitar bloqueos iniciales)
+  // 2. CORS (Configuración explícita)
   app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: [
+      'https://polla-mundialista-core-web.vercel.app',
+      'http://localhost:3000',
+      /\.vercel\.app$/,
+    ],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
-  logger.log('✅ CORS enabled for all origins');
+  logger.log('✅ CORS enabled with explicit configuration');
 
   // 3. PUERTO DINÁMICO (LA CLAVE)
   // Si Railway nos da un puerto, lo usamos. Si no, 3000 (local).

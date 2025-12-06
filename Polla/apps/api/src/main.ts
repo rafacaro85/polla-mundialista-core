@@ -8,6 +8,7 @@ async function bootstrap() {
 
   // 1. Prefijo Global (Vital para el frontend)
   app.setGlobalPrefix('api');
+  logger.log('✅ Global prefix configured: /api');
 
   // 2. CORS (Permisivo para evitar bloqueos iniciales)
   app.enableCors({
@@ -15,6 +16,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+  logger.log('✅ CORS enabled for all origins');
 
   // 3. PUERTO DINÁMICO (LA CLAVE)
   // Si Railway nos da un puerto, lo usamos. Si no, 3000 (local).
@@ -27,6 +29,7 @@ async function bootstrap() {
 
   logger.log(`🚀 Server running on port: ${port}`);
   logger.log(`🚀 Application is accessible at: http://0.0.0.0:${port}/api`);
+  logger.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
 }
 
 bootstrap();

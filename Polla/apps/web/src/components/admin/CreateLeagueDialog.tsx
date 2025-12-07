@@ -370,7 +370,7 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
                         <Trophy size={20} />
                     </div>
                     <div style={STYLES.titleBox}>
-                        <div style={STYLES.title}>Crear Nueva Liga</div>
+                        <div style={STYLES.title}>Crear Nueva Polla</div>
                         <div style={STYLES.subtitle}>Configura los detalles de la competencia</div>
                     </div>
                     <button onClick={() => onOpenChange(false)} style={STYLES.closeBtn}>

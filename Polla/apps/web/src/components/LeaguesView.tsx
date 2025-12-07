@@ -185,7 +185,7 @@ export const LeaguesView = () => {
             {/* 1. HEADER SECCIÓN */}
             <div style={STYLES.header}>
                 <div>
-                    <h2 style={STYLES.title}>Mis Ligas</h2>
+                    <h2 style={STYLES.title}>Mis Pollas</h2>
                     <p style={STYLES.subtitle}>GESTIONA TUS TORNEOS PRIVADOS</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>

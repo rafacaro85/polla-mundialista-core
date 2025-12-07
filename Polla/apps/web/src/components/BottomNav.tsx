@@ -31,7 +31,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                 >
                     {activeTab === 'leagues' && <div className="absolute -top-3 w-8 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
                     <Users size={22} strokeWidth={activeTab === 'leagues' ? 2.5 : 2} />
-                    <span className="text-[9px] font-black tracking-widest uppercase">Ligas</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase">Pollas</span>
                 </button>
 
                 {/* 3. RANKING */}

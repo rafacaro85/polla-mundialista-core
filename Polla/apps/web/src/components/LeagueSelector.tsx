@@ -25,7 +25,7 @@ export const LeagueSelector: React.FC<LeagueSelectorProps> = ({
     // 🔥 Consumir store directamente
     const { selectedLeagueId, setSelectedLeague } = useAppStore();
 
-    console.log('LeagueSelector - Ligas recibidas:', leagues);
+    console.log('LeagueSelector - Pollas recibidas:', leagues);
     console.log('LeagueSelector - Liga seleccionada:', selectedLeagueId);
 
     return (

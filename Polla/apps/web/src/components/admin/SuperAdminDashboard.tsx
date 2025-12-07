@@ -270,7 +270,7 @@ export default function SuperAdminDashboard() {
 
     const KPI_DATA_REAL = [
         { title: "Ingresos Totales", value: formatCompact(stats.kpis.totalIncome), label: "COP", icon: Banknote, color: "#00E676" },
-        { title: "Ligas Activas", value: stats.kpis.activeLeagues, label: "Torneos", icon: Trophy, color: "#FACC15" },
+        { title: "Pollas Activas", value: stats.kpis.activeLeagues, label: "Torneos", icon: Trophy, color: "#FACC15" },
         { title: "Usuarios Totales", value: formatCompact(stats.kpis.totalUsers), label: "Jugadores", icon: Users, color: "#38BDF8" },
         { title: "Ventas Hoy", value: formatCurrency(stats.kpis.todaySales), label: "COP", icon: TrendingUp, color: "#00E676", isSpecial: true }
     ];
@@ -315,7 +315,7 @@ export default function SuperAdminDashboard() {
                 {[
                     { id: 'dashboard', label: 'Resumen', icon: <LayoutDashboard size={14} /> },
                     { id: 'users', label: 'Usuarios', icon: <Eye size={14} /> },
-                    { id: 'leagues', label: 'Ligas', icon: <Trophy size={14} /> },
+                    { id: 'leagues', label: 'Pollas', icon: <Trophy size={14} /> },
                     { id: 'matches', label: 'Partidos', icon: <Shield size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },

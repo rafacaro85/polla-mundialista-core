@@ -457,7 +457,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                     <Trophy size={24} />
                                 </div>
                                 <div>
-                                    <div style={STYLES.titleText}>{createdCode ? '¡Liga Creada!' : 'Nueva Liga'}</div>
+                                    <div style={STYLES.titleText}>{createdCode ? '¡Polla Creada!' : 'Nueva Polla'}</div>
                                     <div style={STYLES.subtitleText}>{createdCode ? 'Tu torneo está listo' : 'Configura tu torneo privado'}</div>
                                 </div>
                             </div>

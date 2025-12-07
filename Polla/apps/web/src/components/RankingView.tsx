@@ -216,7 +216,7 @@ export const RankingView = () => {
         return { color: '#64748B', icon: <span style={{ fontSize: '14px' }}>{rank}</span> };
     };
 
-    // Cargar Ligas
+    // Cargar Pollas
     useEffect(() => {
         const fetchLeagues = async () => {
             try {

@@ -111,16 +111,13 @@ export const DashboardClient: React.FC = () => {
 
         const processedMatches = matchesData.map((m: any) => {
           const date = new Date(m.date);
-          const today = new Date();
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
 
-          let dateStr = 'upcoming';
-          if (date.toDateString() === today.toDateString()) dateStr = 'today';
-          else if (date.toDateString() === tomorrow.toDateString()) dateStr = 'tomorrow';
-          else dateStr = date.toLocaleDateString('es-ES', { weekday: 'long' });
-
-          const displayDate = dateStr === 'today' ? 'HOY' : dateStr === 'tomorrow' ? 'MAÑANA' : dateStr.toUpperCase();
+          const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+          const month = monthNames[date.getMonth()];
+          const day = date.getDate();
+          const dateStr = `${month} ${day}`;
+          const displayDate = dateStr;
 
           const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
 

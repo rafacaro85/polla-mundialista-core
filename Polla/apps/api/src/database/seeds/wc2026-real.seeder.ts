@@ -55,10 +55,10 @@ function getFlag(team: string): string {
 const REAL_MATCHES = [
     // Jueves, 11 de junio 2026
     { date: '2026-06-11T19:00:00Z', home: 'México', away: 'Sudáfrica', group: 'A', stadium: 'Estadio Ciudad de México' },
-    { date: '2026-06-12T02:00:00Z', home: 'República de Corea', away: 'Dinamarca', group: 'A', stadium: 'Estadio Guadalajara' },
+    { date: '2026-06-12T02:00:00Z', home: 'República de Corea', away: 'TBD', group: 'A', stadium: 'Estadio Guadalajara' },
 
     // Viernes, 12 de junio 2026
-    { date: '2026-06-12T19:00:00Z', home: 'Canadá', away: 'Italia', group: 'B', stadium: 'Toronto Stadium' },
+    { date: '2026-06-12T19:00:00Z', home: 'Canadá', away: 'TBD', group: 'B', stadium: 'Toronto Stadium' },
     { date: '2026-06-13T01:00:00Z', home: 'Estados Unidos', away: 'Paraguay', group: 'D', stadium: 'Los Angeles Stadium' },
 
     // Sábado, 13 de junio 2026
@@ -92,8 +92,8 @@ const REAL_MATCHES = [
     { date: '2026-06-18T02:00:00Z', home: 'Uzbekistán', away: 'Colombia', group: 'K', stadium: 'Estadio Ciudad de México' },
 
     // Jueves, 18 de junio 2026
-    { date: '2026-06-18T16:00:00Z', home: 'Dinamarca', away: 'Sudáfrica', group: 'A', stadium: 'Atlanta Stadium' },
-    { date: '2026-06-18T19:00:00Z', home: 'Suiza', away: 'Italia', group: 'B', stadium: 'Los Angeles Stadium' },
+    { date: '2026-06-18T16:00:00Z', home: 'TBD', away: 'Sudáfrica', group: 'A', stadium: 'Atlanta Stadium' },
+    { date: '2026-06-18T19:00:00Z', home: 'Suiza', away: 'TBD', group: 'B', stadium: 'Los Angeles Stadium' },
     { date: '2026-06-18T22:00:00Z', home: 'Canadá', away: 'Catar', group: 'B', stadium: 'BC Place Vancouver' },
     { date: '2026-06-19T01:00:00Z', home: 'México', away: 'República de Corea', group: 'A', stadium: 'Estadio Guadalajara' },
 
@@ -129,10 +129,10 @@ const REAL_MATCHES = [
 
     // Miércoles, 24 de junio 2026
     { date: '2026-06-24T19:00:00Z', home: 'Suiza', away: 'Canadá', group: 'B', stadium: 'BC Place Vancouver' },
-    { date: '2026-06-24T19:00:00Z', home: 'Italia', away: 'Catar', group: 'B', stadium: 'Seattle Stadium' },
+    { date: '2026-06-24T19:00:00Z', home: 'TBD', away: 'Catar', group: 'B', stadium: 'Seattle Stadium' },
     { date: '2026-06-24T22:00:00Z', home: 'Brasil', away: 'Escocia', group: 'C', stadium: 'Miami Stadium' },
     { date: '2026-06-24T22:00:00Z', home: 'Marruecos', away: 'Haití', group: 'C', stadium: 'Atlanta Stadium' },
-    { date: '2026-06-25T01:00:00Z', home: 'Dinamarca', away: 'México', group: 'A', stadium: 'Estadio Ciudad de México' },
+    { date: '2026-06-25T01:00:00Z', home: 'TBD', away: 'México', group: 'A', stadium: 'Estadio Ciudad de México' },
     { date: '2026-06-25T01:00:00Z', home: 'Sudáfrica', away: 'República de Corea', group: 'A', stadium: 'Estadio Monterrey' },
 
     // Jueves, 25 de junio 2026

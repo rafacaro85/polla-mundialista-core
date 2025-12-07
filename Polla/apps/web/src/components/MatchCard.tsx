@@ -82,7 +82,17 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const awayFlagUrl = getFlagUrl(awayCode, match.awayTeam?.flag || match.awayFlag);
 
   const groupName = match.group || 'A';
-  const dateDisplay = match.dateText || match.date || formatMatchDate(match.datetime || new Date().toISOString());
+  const stadium = match.stadium || 'Estadio TBD';
+
+  // Formatear hora en zona horaria de Colombia (UTC-5)
+  const matchDate = new Date(match.date);
+  const timeDisplay = matchDate.toLocaleTimeString('es-CO', {
+    timeZone: 'America/Bogota',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+
   const isLive = match.status === 'LIVE';
   const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
 

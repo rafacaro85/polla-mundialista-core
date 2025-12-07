@@ -25,14 +25,14 @@ export class TransactionsController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles('SUPER_ADMIN', 'ADMIN')
     @Patch(':id/approve')
     async approveTransaction(@Param('id') id: string) {
         return this.transactionsService.approveTransaction(id);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles('SUPER_ADMIN', 'ADMIN')
     @Get()
     async getAllTransactions() {
         return this.transactionsService.findAll();

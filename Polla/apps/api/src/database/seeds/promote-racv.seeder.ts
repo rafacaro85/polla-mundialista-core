@@ -50,12 +50,12 @@ async function promoteToAdmin() {
 
         console.log(`✅ Usuario encontrado: ${user.fullName} (${user.email})`);
 
-        if (user.role === UserRole.ADMIN) {
-            console.log('✅ El usuario ya es ADMIN');
+        if (user.role === UserRole.SUPER_ADMIN) {
+            console.log('✅ El usuario ya es SUPER_ADMIN');
         } else {
-            user.role = UserRole.ADMIN;
+            user.role = UserRole.SUPER_ADMIN;
             await userRepository.save(user);
-            console.log('🎉 ¡Usuario promovido a ADMIN exitosamente!');
+            console.log('🎉 ¡Usuario promovido a SUPER_ADMIN exitosamente!');
         }
 
         console.log('\n' + '='.repeat(60));

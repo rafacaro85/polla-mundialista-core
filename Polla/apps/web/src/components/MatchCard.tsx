@@ -259,8 +259,11 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
           </div>
           <div style={STYLES.metaData}>
             <div style={{ color: '#00E676' }}>GRUPO {groupName}</div>
-            <div style={{ color: '#94A3B8' }}>
-              {isLive ? `${match.minute || '0'}'` : dateDisplay}
+            <div style={{ color: isLive ? '#FF1744' : '#94A3B8', fontWeight: isLive ? 'bold' : 'normal' }}>
+              {isLive ? `🔴 EN VIVO ${match.minute || '0'}'` : timeDisplay}
+            </div>
+            <div style={{ color: '#64748B', fontSize: '9px', marginTop: '2px' }}>
+              {stadium}
             </div>
           </div>
         </div>

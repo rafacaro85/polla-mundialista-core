@@ -20,6 +20,7 @@ import { BottomNav } from './BottomNav';
 
 import { LeaguesView } from './LeaguesView';
 import { RankingView } from './RankingView';
+import { toast } from 'sonner';
 
 interface Match {
   id: string;
@@ -171,6 +172,10 @@ export const DashboardClient: React.FC = () => {
       });
 
       console.log(`✅ Predicción guardada exitosamente`);
+      toast.success('✅ Guardado con éxito', {
+        description: `${homeScore} - ${awayScore}`,
+        duration: 2000,
+      });
 
       setMatches(prevMatches =>
         prevMatches.map(m =>
@@ -186,6 +191,10 @@ export const DashboardClient: React.FC = () => {
       );
     } catch (error) {
       console.error('❌ Error guardando predicción:', error);
+      toast.error('❌ Error al guardar', {
+        description: 'Inténtalo de nuevo',
+        duration: 3000,
+      });
     }
   }, []);
 

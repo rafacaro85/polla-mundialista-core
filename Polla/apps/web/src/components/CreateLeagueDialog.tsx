@@ -548,6 +548,33 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         {copied ? '¡Copiado!' : 'Copiar Código'}
                                     </button>
 
+                                    <button
+                                        onClick={() => {
+                                            const appUrl = window.location.origin;
+                                            const message = `¡Únete a mi Polla Mundialista 2026! 🏆\n\n` +
+                                                `Polla: ${createdLeagueName}\n` +
+                                                `Código: ${createdCode}\n\n` +
+                                                `Regístrate aquí: ${appUrl}/login`;
+                                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                                            window.open(whatsappUrl, '_blank');
+                                        }}
+                                        style={{
+                                            ...STYLES.cancelBtn,
+                                            width: '100%',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            backgroundColor: '#25D366',
+                                            color: '#0F172A',
+                                            borderColor: '#25D366',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        <Shield size={16} />
+                                        Compartir por WhatsApp
+                                    </button>
+
                                     {selectedPlan !== 'starter' && (
                                         <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
                                             <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '8px' }}>

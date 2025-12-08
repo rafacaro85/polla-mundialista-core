@@ -241,7 +241,7 @@ export class LeaguesService {
       .leftJoin('user.predictions', 'prediction')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
       .leftJoin('user_bonus_answers', 'bonusAnswer', 'bonusAnswer.userId = user.id')
-      .leftJoin('league_participants', 'lp', 'lp.userId = user.id AND lp.leagueId = :leagueId', { leagueId })
+      .leftJoin('league_participants', 'lp', 'lp.user_id = user.id AND lp.league_id = :leagueId', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')

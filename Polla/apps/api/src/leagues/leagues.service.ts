@@ -100,7 +100,7 @@ export class LeaguesService {
   async getMetadata(leagueId: string): Promise<{ league: League; availableSlots: number }> {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
-      relations: ['participants', 'participants.user', 'creator'],
+      relations: ['participants', 'participants.user'],
     });
 
     if (!league) {

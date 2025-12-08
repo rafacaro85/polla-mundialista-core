@@ -17,7 +17,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 import LeagueBrandingForm from '@/components/LeagueBrandingForm';
-
+import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 interface Participant {
     user: {
         id: string;
@@ -584,7 +584,10 @@ export function LeagueSettings({ league, onUpdate, trigger }: { league?: League;
                                 </div>
                             </div>
                         </div>
-
+                        {/* 5. PREGUNTAS BONUS */}
+                        {currentLeague.isAdmin && (
+                            <LeagueBonusQuestions leagueId={currentLeague.id} />
+                        )}
                         {/* 5. GESTIÓN DE PARTICIPANTES */}
                         <div style={STYLES.sectionCard}>
                             <div style={STYLES.sectionTitle}>

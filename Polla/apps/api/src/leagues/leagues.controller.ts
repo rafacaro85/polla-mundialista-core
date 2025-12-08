@@ -66,11 +66,6 @@ export class LeaguesController {
     return this.leaguesService.getMetadata(leagueId);
   }
 
-  @Get(':id')
-  async getLeagueDetails(@Param('id') leagueId: string) {
-    return this.leaguesService.getLeagueDetails(leagueId);
-  }
-
   @Get('preview/:code')
   async previewLeague(@Param('code') code: string) {
     return this.leaguesService.getLeagueByCode(code);
@@ -214,6 +209,12 @@ export class LeaguesController {
       requesterId,
       userPayload.role,
     );
+  }
+
+  // Get league details with participants (must be at the end to avoid conflicts)
+  @Get(':id')
+  async getLeagueDetails(@Param('id') leagueId: string) {
+    return this.leaguesService.getLeagueDetails(leagueId);
   }
 
   @Post('join')

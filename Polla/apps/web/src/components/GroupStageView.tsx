@@ -57,16 +57,16 @@ interface GroupStageViewProps {
 }
 
 /* =============================================================================
-   COMPONENTE: GROUPS VIEW (TABLA DE POSICIONES)
+   COMPONENTE: GROUPS VIEW (TABLA DE POSICIONES COMPLETA)
    ============================================================================= */
 export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
 
     const COLORS = {
         bg: '#0F172A',
         card: '#1E293B',
-        signal: '#00E676', // Verde Neón
+        signal: '#00E676',
         text: '#F8FAFC',
-        dim: '#64748B',    // Gris apagado
+        dim: '#64748B',
         border: '#334155'
     };
 
@@ -96,13 +96,11 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             letterSpacing: '2px',
             textTransform: 'uppercase' as const
         },
-        // Grid de Grupos
         grid: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', // Responsivo automático
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '16px'
         },
-        // Tarjeta de Grupo
         groupCard: {
             backgroundColor: COLORS.card,
             borderRadius: '16px',
@@ -131,9 +129,9 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         th: {
             textAlign: 'center' as const,
             color: COLORS.dim,
-            fontSize: '10px',
+            fontSize: '9px',
             fontWeight: 'bold',
-            padding: '8px 4px',
+            padding: '8px 2px',
             borderBottom: `1px solid ${COLORS.border}50`
         },
         row: {
@@ -143,24 +141,26 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         },
         cell: {
             textAlign: 'center' as const,
-            fontSize: '12px',
+            fontSize: '11px',
             color: COLORS.dim,
-            fontWeight: '500'
+            fontWeight: '500',
+            padding: '0 2px'
         },
         teamCell: {
             textAlign: 'left' as const,
             paddingLeft: '12px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '8px',
             height: '44px',
             color: 'white',
             fontWeight: 'bold',
-            fontFamily: "'Russo One', sans-serif", // Nombres en fuente deportiva
-            letterSpacing: '0.5px'
+            fontFamily: "'Russo One', sans-serif",
+            letterSpacing: '0.5px',
+            fontSize: '11px'
         },
         flag: {
-            width: '20px',
+            width: '18px',
             height: 'auto',
             borderRadius: '2px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
@@ -168,9 +168,8 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         points: {
             color: 'white',
             fontWeight: '900',
-            fontSize: '14px'
+            fontSize: '13px'
         },
-        // Indicador de Clasificación
         qualifiedIndicator: {
             position: 'absolute' as const,
             left: 0,
@@ -182,12 +181,10 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         }
     };
 
-    // LÓGICA DE CÁLCULO DE POSICIONES
     const groups = useMemo(() => {
         const teamStats: { [key: string]: TeamStats } = {};
         const groupTeams: { [key: string]: Set<string> } = {};
 
-        // Inicializar stats si es necesario
         const initTeam = (code: string, group: string) => {
             if (!teamStats[code]) {
                 teamStats[code] = { code, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
@@ -199,8 +196,7 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         };
 
         matches.forEach(match => {
-            // Filtrar solo fase de grupos
-            if (match.phase !== 'group' && !match.group) return; // Asumimos que si tiene grupo es de fase de grupos
+            if (match.phase !== 'group' && !match.group) return;
 
             const groupName = match.group || 'Desconocido';
             const homeCode = typeof match.homeTeam === 'object' ? match.homeTeam.code : match.homeTeam;
@@ -209,11 +205,9 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             initTeam(homeCode, groupName);
             initTeam(awayCode, groupName);
 
-            // Determinar marcador (Real o Predicción)
             let homeScore = match.homeScore;
             let awayScore = match.awayScore;
 
-            // Si no hay resultado oficial, usar predicción para simulación
             if (homeScore === null || homeScore === undefined) {
                 if (match.prediction && match.prediction.homeScore !== null && match.prediction.homeScore !== undefined) {
                     homeScore = match.prediction.homeScore;
@@ -221,7 +215,6 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
                 }
             }
 
-            // Si tenemos un marcador válido (real o predicho), actualizar stats
             if (homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
                 const h = teamStats[homeCode];
                 const a = teamStats[awayCode];
@@ -252,11 +245,9 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             }
         });
 
-        // Convertir a array y ordenar
         const result: GroupData[] = Object.keys(groupTeams).sort().map(groupName => {
             const teams = Array.from(groupTeams[groupName]).map(code => teamStats[code]);
 
-            // Ordenar: Puntos > DG > GF
             teams.sort((a, b) => {
                 if (b.pts !== a.pts) return b.pts - a.pts;
                 if (b.dg !== a.dg) return b.dg - a.dg;
@@ -274,8 +265,6 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
 
     return (
         <div style={STYLES.container}>
-
-            {/* 1. HEADER */}
             <div style={STYLES.header}>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
                     <Calculator size={24} color={COLORS.signal} />
@@ -284,31 +273,31 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
                 <p style={STYLES.subtitle}>Fase de Grupos</p>
             </div>
 
-            {/* 2. GRID DE GRUPOS */}
             <div style={STYLES.grid}>
                 {groups.length > 0 ? (
                     groups.map((group, idx) => (
                         <div key={idx} style={STYLES.groupCard}>
-
-                            {/* Header del Grupo */}
                             <div style={STYLES.groupHeader}>
                                 <span style={STYLES.groupTitle}>{group.name}</span>
                                 <ChevronRight size={16} color={COLORS.dim} />
                             </div>
 
-                            {/* Tabla */}
                             <table style={STYLES.table}>
                                 <thead>
                                     <tr>
                                         <th style={{ ...STYLES.th, textAlign: 'left', paddingLeft: '16px' }}>EQUIPO</th>
                                         <th style={STYLES.th}>PJ</th>
+                                        <th style={STYLES.th}>G</th>
+                                        <th style={STYLES.th}>E</th>
+                                        <th style={STYLES.th}>P</th>
+                                        <th style={STYLES.th}>GF</th>
+                                        <th style={STYLES.th}>GC</th>
                                         <th style={STYLES.th}>DG</th>
                                         <th style={STYLES.th}>PTS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {group.teams.map((team, i) => {
-                                        // Los 2 primeros clasifican (Verde)
                                         const isQualified = i < 2;
 
                                         return (
@@ -317,17 +306,19 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
                                                 backgroundColor: isQualified ? 'rgba(0, 230, 118, 0.03)' : 'transparent'
                                             }}>
                                                 <td style={STYLES.teamCell}>
-                                                    {/* Línea Verde clasificatoria */}
                                                     {isQualified && <div style={STYLES.qualifiedIndicator} />}
-
                                                     <span style={{ color: COLORS.dim, fontSize: '10px', width: '10px' }}>
                                                         {team.pos}
                                                     </span>
                                                     <img src={getFlagUrl(team.code)} alt={team.code} style={STYLES.flag} />
                                                     <span>{team.code}</span>
                                                 </td>
-
                                                 <td style={STYLES.cell}>{team.pj}</td>
+                                                <td style={STYLES.cell}>{team.pg}</td>
+                                                <td style={STYLES.cell}>{team.pe}</td>
+                                                <td style={STYLES.cell}>{team.pp}</td>
+                                                <td style={STYLES.cell}>{team.gf}</td>
+                                                <td style={STYLES.cell}>{team.gc}</td>
                                                 <td style={STYLES.cell}>{team.dg > 0 ? `+${team.dg}` : team.dg}</td>
                                                 <td style={{ ...STYLES.cell, ...STYLES.points }}>
                                                     {team.pts}

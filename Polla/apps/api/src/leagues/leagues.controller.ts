@@ -66,6 +66,11 @@ export class LeaguesController {
     return this.leaguesService.getMetadata(leagueId);
   }
 
+  @Get(':id')
+  async getLeagueDetails(@Param('id') leagueId: string) {
+    return this.leaguesService.getLeagueDetails(leagueId);
+  }
+
   @Get('preview/:code')
   async previewLeague(@Param('code') code: string) {
     return this.leaguesService.getLeagueByCode(code);

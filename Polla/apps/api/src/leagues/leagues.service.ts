@@ -113,6 +113,41 @@ export class LeaguesService {
     return { league, availableSlots: Math.max(0, availableSlots) };
   }
 
+  async getLeagueDetails(leagueId: string) {
+    const league = await this.leaguesRepository.findOne({
+      where: { id: leagueId },
+      relations: ['participants', 'participants.user', 'creator'],
+    });
+
+    if (!league) {
+      throw new NotFoundException(`League with ID ${leagueId} not found.`);
+    }
+
+    // Map participants to include user info
+    const participants = league.participants.map(p => ({
+      id: p.id,
+      userId: p.user.id,
+      nickname: p.user.nickname || p.user.fullName,
+      fullName: p.user.fullName,
+      avatarUrl: p.user.avatarUrl,
+      isAdmin: p.isAdmin,
+      isBlocked: p.isBlocked,
+      triviaPoints: p.triviaPoints || 0,
+    }));
+
+    return {
+      id: league.id,
+      name: league.name,
+      accessCodePrefix: league.accessCodePrefix,
+      maxParticipants: league.maxParticipants,
+      creatorId: league.creator.id,
+      creatorName: league.creator.nickname || league.creator.fullName,
+      participants,
+      participantCount: participants.length,
+      availableSlots: Math.max(0, league.maxParticipants - participants.length),
+    };
+  }
+
   async getLeagueByCode(code: string) {
     const league = await this.leaguesRepository.findOne({
       where: { accessCodePrefix: code },

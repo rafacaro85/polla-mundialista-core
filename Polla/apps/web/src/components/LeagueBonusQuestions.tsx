@@ -22,7 +22,7 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
-    const [newQuestion, setNewQuestion] = useState({ text: '', points: 5 });
+    const [newQuestion, setNewQuestion] = useState({ text: '', points: '' as any });
 
     useEffect(() => {
         loadQuestions();
@@ -48,7 +48,8 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
             return;
         }
 
-        if (newQuestion.points < 1 || newQuestion.points > 100) {
+        const points = parseInt(newQuestion.points as any);
+        if (!points || points < 1 || points > 100) {
             toast.error('Los puntos deben estar entre 1 y 100');
             return;
         }
@@ -56,12 +57,12 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
         try {
             await api.post('/bonus/questions', {
                 text: newQuestion.text,
-                points: newQuestion.points,
+                points: points,
                 leagueId: leagueId,
                 isActive: true
             });
             toast.success('Pregunta creada exitosamente');
-            setNewQuestion({ text: '', points: 5 });
+            setNewQuestion({ text: '', points: '' as any });
             setCreating(false);
             loadQuestions();
         } catch (error) {

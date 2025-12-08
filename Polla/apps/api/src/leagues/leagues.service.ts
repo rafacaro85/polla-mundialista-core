@@ -170,35 +170,63 @@ export class LeaguesService {
   }
 
   async getGlobalRanking() {
+    // Primero obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND bracket.leagueId IS NULL')
-      .leftJoin('user_bonus_answers', 'bonusAnswer', 'bonusAnswer.userId = user.id')
-      .leftJoin('bonus_questions', 'bonusQuestion', 'bonusQuestion.id = bonusAnswer.questionId AND bonusQuestion.leagueId IS NULL')
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')
       .addSelect('user.avatarUrl', 'avatarUrl')
       .addSelect('COALESCE(SUM(prediction.points), 0)', 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
-      .addSelect('COALESCE(SUM(CASE WHEN bonusQuestion.id IS NOT NULL THEN bonusAnswer.pointsEarned ELSE 0 END), 0)', 'bonusPoints')
-      .addSelect('COALESCE(SUM(prediction.points), 0) + COALESCE(MAX(bracket.points), 0) + COALESCE(SUM(CASE WHEN bonusQuestion.id IS NOT NULL THEN bonusAnswer.pointsEarned ELSE 0 END), 0)', 'totalPoints')
       .groupBy('user.id')
       .addGroupBy('user.nickname')
       .addGroupBy('user.fullName')
       .addGroupBy('user.avatarUrl')
-      .orderBy('"totalPoints"', 'DESC')
       .getRawMany();
 
-    return ranking.map((user, index) => ({
+    // Calcular bonus points por separado para evitar duplicación
+    const bonusPointsQuery = await this.userRepository.query(`
+    SELECT 
+      u.id as "userId",
+      COALESCE(SUM(uba.points_earned), 0) as "bonusPoints"
+    FROM users u
+    LEFT JOIN user_bonus_answers uba ON uba.user_id = u.id
+    LEFT JOIN bonus_questions bq ON bq.id = uba.question_id AND bq.league_id IS NULL
+    WHERE bq.id IS NOT NULL OR uba.id IS NULL
+    GROUP BY u.id
+  `);
+
+    const bonusPointsMap = new Map(
+      bonusPointsQuery.map((row: any) => [row.userId, Number(row.bonusPoints)])
+    );
+
+    // Combinar resultados
+    const finalRanking = ranking.map(user => {
+      const predictionPoints = Number(user.predictionPoints);
+      const bracketPoints = Number(user.bracketPoints);
+      const bonusPoints = bonusPointsMap.get(user.id) || 0;
+      const totalPoints = predictionPoints + bracketPoints + bonusPoints;
+
+      return {
+        id: user.id,
+        nickname: user.nickname || user.fullName.split(' ')[0],
+        avatarUrl: user.avatarUrl,
+        predictionPoints,
+        bracketPoints,
+        bonusPoints,
+        totalPoints,
+      };
+    });
+
+    // Ordenar por puntos totales
+    finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // Asignar posiciones
+    return finalRanking.map((user, index) => ({
       position: index + 1,
-      id: user.id,
-      nickname: user.nickname || user.fullName.split(' ')[0],
-      avatarUrl: user.avatarUrl,
-      predictionPoints: Number(user.predictionPoints),
-      bracketPoints: Number(user.bracketPoints),
-      bonusPoints: Number(user.bonusPoints),
-      totalPoints: Number(user.totalPoints),
+      ...user,
     }));
   }
 
@@ -237,12 +265,10 @@ export class LeaguesService {
       return [];
     }
 
-    // Calcular ranking solo para esos usuarios
+    // Obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
-      .leftJoin('user_bonus_answers', 'bonusAnswer', 'bonusAnswer.userId = user.id')
-      .leftJoin('bonus_questions', 'bonusQuestion', 'bonusQuestion.id = bonusAnswer.questionId AND bonusQuestion.leagueId = :leagueId', { leagueId })
       .leftJoin('league_participants', 'lp', 'lp.user_id = user.id AND lp.league_id = :leagueId', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
@@ -250,27 +276,57 @@ export class LeaguesService {
       .addSelect('user.avatarUrl', 'avatarUrl')
       .addSelect('COALESCE(SUM(prediction.points), 0)', 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
-      .addSelect('COALESCE(SUM(CASE WHEN bonusQuestion.id IS NOT NULL THEN bonusAnswer.pointsEarned ELSE 0 END), 0)', 'bonusPoints')
       .addSelect('COALESCE(MAX(lp.trivia_points), 0)', 'triviaPoints')
-      .addSelect('COALESCE(SUM(prediction.points), 0) + COALESCE(MAX(bracket.points), 0) + COALESCE(SUM(CASE WHEN bonusQuestion.id IS NOT NULL THEN bonusAnswer.pointsEarned ELSE 0 END), 0) + COALESCE(MAX(lp.trivia_points), 0)', 'totalPoints')
       .where('user.id IN (:...userIds)', { userIds })
       .groupBy('user.id')
       .addGroupBy('user.nickname')
       .addGroupBy('user.fullName')
-      .addSelect('user.avatarUrl', 'avatarUrl')
-      .orderBy('"totalPoints"', 'DESC')
+      .addGroupBy('user.avatarUrl')
       .getRawMany();
 
-    return ranking.map((user, index) => ({
+    // Calcular bonus points por separado para esta liga específica
+    const bonusPointsQuery = await this.userRepository.query(`
+    SELECT 
+      u.id as "userId",
+      COALESCE(SUM(uba.points_earned), 0) as "bonusPoints"
+    FROM users u
+    LEFT JOIN user_bonus_answers uba ON uba.user_id = u.id
+    LEFT JOIN bonus_questions bq ON bq.id = uba.question_id AND bq.league_id = $1
+    WHERE (bq.id IS NOT NULL OR uba.id IS NULL) AND u.id = ANY($2)
+    GROUP BY u.id
+  `, [leagueId, userIds]);
+
+    const bonusPointsMap = new Map(
+      bonusPointsQuery.map((row: any) => [row.userId, Number(row.bonusPoints)])
+    );
+
+    // Combinar resultados
+    const finalRanking = ranking.map(user => {
+      const predictionPoints = Number(user.predictionPoints);
+      const bracketPoints = Number(user.bracketPoints);
+      const triviaPoints = Number(user.triviaPoints);
+      const bonusPoints = bonusPointsMap.get(user.id) || 0;
+      const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
+
+      return {
+        id: user.id,
+        nickname: user.nickname || user.fullName.split(' ')[0],
+        avatarUrl: user.avatarUrl,
+        predictionPoints,
+        bracketPoints,
+        bonusPoints,
+        triviaPoints,
+        totalPoints,
+      };
+    });
+
+    // Ordenar por puntos totales
+    finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // Asignar posiciones
+    return finalRanking.map((user, index) => ({
       position: index + 1,
-      id: user.id,
-      nickname: user.nickname || user.fullName.split(' ')[0],
-      avatarUrl: user.avatarUrl,
-      predictionPoints: Number(user.predictionPoints),
-      bracketPoints: Number(user.bracketPoints),
-      bonusPoints: Number(user.bonusPoints),
-      triviaPoints: Number(user.triviaPoints),
-      totalPoints: Number(user.totalPoints),
+      ...user,
     }));
   }
 

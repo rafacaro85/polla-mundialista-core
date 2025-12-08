@@ -49,4 +49,19 @@ export class DebugController {
             }))
         };
     }
+
+    @Get('reset-bonus-points')
+    async resetBonusPoints() {
+        // Reset all bonus answer points to 0
+        const result = await this.userBonusAnswerRepository
+            .createQueryBuilder()
+            .update()
+            .set({ pointsEarned: 0 })
+            .execute();
+
+        return {
+            message: 'All bonus points reset to 0',
+            affectedRows: result.affected
+        };
+    }
 }

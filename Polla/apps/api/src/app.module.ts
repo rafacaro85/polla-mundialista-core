@@ -15,6 +15,7 @@ import { BonusModule } from './bonus/bonus.module';
 import { StandingsModule } from './standings/standings.module';
 import { TournamentModule } from './tournament/tournament.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { DebugModule } from './debug/debug.module';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -89,6 +90,7 @@ import { APP_GUARD } from '@nestjs/core';
     TransactionsModule,
     SystemSettingsModule,
     UploadModule,
+    DebugModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

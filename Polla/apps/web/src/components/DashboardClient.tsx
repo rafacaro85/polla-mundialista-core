@@ -321,21 +321,20 @@ export const DashboardClient: React.FC = () => {
           activeTab === 'bracket' && (
             <div className="h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
               {/* Selector Fase Bracket */}
-              <div className="flex justify-center mb-6 bg-[#1E293B] p-1 rounded-xl w-fit mx-auto border border-[#334155]">
+              <div className="flex mb-4 bg-[#1E293B] p-1 rounded-xl w-full border border-[#334155]">
                 <button
                   onClick={() => setSimulatorPhase('groups')}
-                  className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[#00E676] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
                 >
                   Fase de Grupos
                 </button>
                 <button
                   onClick={() => setSimulatorPhase('knockout')}
-                  className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[#00E676] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
                 >
                   Fase Final
                 </button>
               </div>
-
               <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
                 {simulatorPhase === 'groups' ? (
                   <GroupStageView matches={matches} />

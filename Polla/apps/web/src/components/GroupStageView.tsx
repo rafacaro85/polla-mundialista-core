@@ -197,6 +197,8 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
 
         matches.forEach(match => {
             if (match.phase !== 'group' && !match.group) return;
+            // Solo procesar paridos finalizados
+            if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return;
 
             const groupName = match.group || 'Desconocido';
             const homeCode = typeof match.homeTeam === 'object' ? match.homeTeam.code : match.homeTeam;

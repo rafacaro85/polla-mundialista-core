@@ -110,6 +110,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const handleBlur = () => {
     if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
       onSavePrediction(match.id, homeScore, awayScore);
+    } else if (homeScore === '' && awayScore === '' && onSavePrediction) {
+      // Trigger delete if both are empty
+      onSavePrediction(match.id, null, null);
     }
   };
 

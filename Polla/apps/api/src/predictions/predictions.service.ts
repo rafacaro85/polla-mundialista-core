@@ -71,4 +71,29 @@ export class PredictionsService {
             relations: ['match'],
         });
     }
+
+    async removePrediction(userId: string, matchId: string) {
+        const match = await this.matchesRepository.findOne({ where: { id: matchId } });
+        if (!match) {
+            throw new NotFoundException('Match not found');
+        }
+
+        // Check if match has started
+        if (match.date < new Date()) {
+            throw new BadRequestException('Cannot delete prediction for a match that has already started');
+        }
+
+        const prediction = await this.predictionsRepository.findOne({
+            where: {
+                user: { id: userId },
+                match: { id: matchId },
+            },
+        });
+
+        if (prediction) {
+            await this.predictionsRepository.remove(prediction);
+        }
+
+        return { message: 'Prediction deleted' };
+    }
 }

@@ -162,6 +162,29 @@ export const DashboardClient: React.FC = () => {
 
   const handlePredictionChange = useCallback(async (matchId: string, homeScore: any, awayScore: any) => {
     try {
+      // CASO BORRAR: Si ambos son null (enviado desde MatchCard cuando están vacíos)
+      if (homeScore === null && awayScore === null) {
+        console.log(`🗑️ Eliminando predicción para partido ${matchId}`);
+        await api.delete(`/predictions/${matchId}`);
+
+        toast.success('🗑️ Predicción eliminada');
+
+        setMatches(prevMatches =>
+          prevMatches.map(m =>
+            m.id === matchId
+              ? {
+                ...m,
+                prediction: null,
+                userH: undefined,
+                userA: undefined
+              }
+              : m
+          )
+        );
+        return;
+      }
+
+      // CASO GUARDAR:
       console.log(`💾 Guardando predicción para partido ${matchId}: ${homeScore} - ${awayScore}`);
 
       await api.post('/predictions', {
@@ -190,13 +213,13 @@ export const DashboardClient: React.FC = () => {
         )
       );
     } catch (error) {
-      console.error('❌ Error guardando predicción:', error);
-      toast.error('❌ Error al guardar', {
+      console.error('❌ Error gestionando predicción:', error);
+      toast.error('❌ Error al guardar/eliminar', {
         description: 'Inténtalo de nuevo',
         duration: 3000,
       });
     }
-  }, []);
+  }, [selectedLeagueId]);
 
   return (
     <div className="min-h-screen bg-obsidian text-white pb-24">

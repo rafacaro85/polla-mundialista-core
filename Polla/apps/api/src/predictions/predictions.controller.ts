@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Delete, Param } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -24,5 +24,11 @@ export class PredictionsController {
     @Get('me')
     async getMyPredictions(@Request() req: any) {
         return this.predictionsService.findAllByUser(req.user.id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete(':matchId')
+    async deletePrediction(@Request() req: any, @Param('matchId') matchId: string) {
+        return this.predictionsService.removePrediction(req.user.id, matchId);
     }
 }

@@ -235,18 +235,26 @@ export function LeagueSettings({ league, onUpdate, trigger }: { league?: League;
                         <Tabs defaultValue="editar" className="flex-1 flex flex-col">
 
                             <div className="px-6 pt-4 bg-[#1E293B]">
-                                <TabsList className="bg-[#0F172A] w-full border border-slate-700 p-1 h-auto grid grid-cols-4">
-                                    <TabsTrigger value="editar" className="text-xs font-bold uppercase data-[state=active]:bg-emerald-500 data-[state=active]:text-white h-9">
-                                        <Edit className="w-3 h-3 mr-2" /> Editar
+                                <TabsList className="flex bg-[#0F172A] p-1 rounded-full border border-slate-700 w-full mb-2 shadow-inner">
+                                    <TabsTrigger value="editar"
+                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                    >
+                                        <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
                                     </TabsTrigger>
-                                    <TabsTrigger value="plan" className="text-xs font-bold uppercase data-[state=active]:bg-emerald-500 data-[state=active]:text-white h-9">
-                                        <Gem className="w-3 h-3 mr-2" /> Plan
+                                    <TabsTrigger value="plan"
+                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                    >
+                                        <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
                                     </TabsTrigger>
-                                    <TabsTrigger value="bonus" className="text-xs font-bold uppercase data-[state=active]:bg-emerald-500 data-[state=active]:text-white h-9">
-                                        <Trophy className="w-3 h-3 mr-2" /> Bonus
+                                    <TabsTrigger value="bonus"
+                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                    >
+                                        <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
                                     </TabsTrigger>
-                                    <TabsTrigger value="usuarios" className="text-xs font-bold uppercase data-[state=active]:bg-emerald-500 data-[state=active]:text-white h-9">
-                                        <Users className="w-3 h-3 mr-2" /> Usuarios
+                                    <TabsTrigger value="usuarios"
+                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                    >
+                                        <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
                                     </TabsTrigger>
                                 </TabsList>
                             </div>

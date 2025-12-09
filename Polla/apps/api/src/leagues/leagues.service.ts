@@ -114,7 +114,7 @@ export class LeaguesService {
     return { league, availableSlots: Math.max(0, availableSlots) };
   }
 
-  async getLeagueDetails(leagueId: string) {
+  async getLeagueDetails(leagueId: string, userId?: string) {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
       relations: ['participants', 'participants.user', 'creator'],
@@ -122,6 +122,14 @@ export class LeaguesService {
 
     if (!league) {
       throw new NotFoundException(`League with ID ${leagueId} not found.`);
+    }
+
+    // Check if user is blocked
+    if (userId) {
+      const requester = league.participants.find(p => p.user.id === userId);
+      if (requester?.isBlocked) {
+        throw new ForbiddenException('Has sido bloqueado de esta liga por el administrador.');
+      }
     }
 
     // Map participants to include user info
@@ -254,7 +262,9 @@ export class LeaguesService {
       relations: ['user'],
     });
 
-    const userIds = participants.map(p => p.user.id);
+    const userIds = participants
+      .filter(p => !p.isBlocked)
+      .map(p => p.user.id);
 
     if (userIds.length === 0) {
       return [];
@@ -468,6 +478,15 @@ export class LeaguesService {
       console.error(`❌ [deleteLeague] Permiso denegado.`);
       throw new ForbiddenException('No tienes permisos para eliminar esta liga');
     }
+
+    const manager = this.leaguesRepository.manager;
+    // Borrar dependencias manualmente en orden correcto
+    await manager.query(`DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`, [leagueId]);
+    await manager.query(`DELETE FROM bonus_questions WHERE league_id = $1`, [leagueId]);
+    await manager.query(`DELETE FROM user_brackets WHERE league_id = $1`, [leagueId]);
+    await manager.query(`DELETE FROM league_participants WHERE league_id = $1`, [leagueId]);
+    // Transactions (Optional, if exists)
+    await manager.query(`DELETE FROM transactions WHERE league_id = $1`, [leagueId]);
 
     await this.leaguesRepository.remove(league);
     return { message: 'Liga eliminada correctamente' };

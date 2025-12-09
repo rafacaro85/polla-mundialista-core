@@ -222,8 +222,9 @@ export class LeaguesController {
 
   // Get league details with participants (must be at the end to avoid conflicts)
   @Get(':id')
-  async getLeagueDetails(@Param('id') leagueId: string) {
-    return this.leaguesService.getLeagueDetails(leagueId);
+  async getLeagueDetails(@Param('id') leagueId: string, @Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.leaguesService.getLeagueDetails(leagueId, userId);
   }
 
   @Post('join')

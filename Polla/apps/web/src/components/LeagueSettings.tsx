@@ -53,7 +53,7 @@ interface League {
     welcomeMessage?: string;
 }
 
-export function LeagueSettings({ league, onUpdate, trigger }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode }) {
+export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode; mode?: 'modal' | 'page' }) {
     const { user } = useAppStore();
     const { toast } = useToast();
 
@@ -69,10 +69,10 @@ export function LeagueSettings({ league, onUpdate, trigger }: { league?: League;
     const [selectedUser, setSelectedUser] = useState<{ id: string, name: string, avatar?: string } | null>(null);
 
     useEffect(() => {
-        if (open && league && league.id !== 'global') {
+        if ((open || mode === 'page') && league && league.id !== 'global') {
             loadLeagueData();
         }
-    }, [open, league?.id]);
+    }, [open, league?.id, mode]);
 
     if (!league || league.id === 'global') return null;
 

@@ -481,14 +481,14 @@ export class LeaguesService {
 
     const manager = this.leaguesRepository.manager;
     try {
-      // Borrar dependencias manualmente en orden correcto
-      await manager.query(`DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`, [leagueId]);
-      await manager.query(`DELETE FROM bonus_questions WHERE league_id = $1`, [leagueId]);
-      await manager.query(`DELETE FROM user_brackets WHERE league_id = $1`, [leagueId]);
-      await manager.query(`DELETE FROM access_codes WHERE league_id = $1`, [leagueId]);
-      await manager.query(`DELETE FROM league_participants WHERE league_id = $1`, [leagueId]);
+      // Borrar dependencias manualmente en orden correcto (usando nombres de columna camelCase como en Entities)
+      await manager.query(`DELETE FROM user_bonus_answers WHERE "questionId" IN (SELECT id FROM bonus_questions WHERE "leagueId" = $1)`, [leagueId]);
+      await manager.query(`DELETE FROM bonus_questions WHERE "leagueId" = $1`, [leagueId]);
+      await manager.query(`DELETE FROM user_brackets WHERE "leagueId" = $1`, [leagueId]);
+      await manager.query(`DELETE FROM access_codes WHERE "leagueId" = $1`, [leagueId]);
+      await manager.query(`DELETE FROM league_participants WHERE "leagueId" = $1`, [leagueId]);
       // Transactions (Optional, if exists)
-      await manager.query(`DELETE FROM transactions WHERE league_id = $1`, [leagueId]);
+      await manager.query(`DELETE FROM transactions WHERE "leagueId" = $1`, [leagueId]);
 
       await this.leaguesRepository.delete({ id: leagueId }); // Use delete instead of remove to be more direct
       return { message: 'Liga eliminada correctamente' };

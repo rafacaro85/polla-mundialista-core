@@ -261,6 +261,14 @@ export function UserNav() {
             hasArrow
           />
 
+          <MenuItem
+            icon={Settings}
+            label="Panel Admin Pollas"
+            onClick={() => router.push('/leagues-admin')}
+            hasArrow
+            isSpecial
+          />
+
           {isAdmin && (
             <MenuItem
               icon={Shield}

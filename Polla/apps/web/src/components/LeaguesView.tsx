@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Shield, Users, ArrowRight, Settings } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
@@ -23,7 +24,7 @@ interface League {
    COMPONENTE: LEAGUES VIEW (ESTILO TACTICAL)
    ============================================================================= */
 export const LeaguesView = () => {
-    // --- LOGICA ---
+    const router = useRouter();
     const { user } = useAppStore();
     const [leagues, setLeagues] = React.useState<League[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -240,23 +241,19 @@ export const LeaguesView = () => {
                             </div>
                         </div>
 
-                        {/* Botón de Acción */}
                         <div>
                             {league.isAdmin ? (
-                                <LeagueSettings
-                                    league={league}
-                                    onUpdate={fetchLeagues}
-                                    trigger={
-                                        <button style={{
-                                            ...STYLES.actionBtn,
-                                            backgroundColor: '#00E676',
-                                            color: '#0F172A',
-                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                        }}>
-                                            Gestionar
-                                        </button>
-                                    }
-                                />
+                                <button
+                                    onClick={() => router.push(`/league-admin/${league.id}`)}
+                                    style={{
+                                        ...STYLES.actionBtn,
+                                        backgroundColor: '#00E676',
+                                        color: '#0F172A',
+                                        boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                    }}
+                                >
+                                    Gestionar
+                                </button>
                             ) : (
                                 <LeagueSettings
                                     league={league}
@@ -280,13 +277,15 @@ export const LeaguesView = () => {
             </div>
 
             {/* Empty State (Opcional, si no hay ligas) */}
-            {!loading && leagues.length === 0 && (
-                <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.5 }}>
-                    <Shield size={48} style={{ margin: '0 auto 16px', color: '#334155' }} />
-                    <p style={{ color: '#94A3B8', fontSize: '12px' }}>No perteneces a ninguna liga aún.</p>
-                </div>
-            )}
+            {
+                !loading && leagues.length === 0 && (
+                    <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.5 }}>
+                        <Shield size={48} style={{ margin: '0 auto 16px', color: '#334155' }} />
+                        <p style={{ color: '#94A3B8', fontSize: '12px' }}>No perteneces a ninguna liga aún.</p>
+                    </div>
+                )
+            }
 
-        </div>
+        </div >
     );
 };

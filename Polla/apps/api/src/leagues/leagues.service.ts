@@ -484,6 +484,7 @@ export class LeaguesService {
     await manager.query(`DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`, [leagueId]);
     await manager.query(`DELETE FROM bonus_questions WHERE league_id = $1`, [leagueId]);
     await manager.query(`DELETE FROM user_brackets WHERE league_id = $1`, [leagueId]);
+    await manager.query(`DELETE FROM access_codes WHERE league_id = $1`, [leagueId]);
     await manager.query(`DELETE FROM league_participants WHERE league_id = $1`, [leagueId]);
     // Transactions (Optional, if exists)
     await manager.query(`DELETE FROM transactions WHERE league_id = $1`, [leagueId]);

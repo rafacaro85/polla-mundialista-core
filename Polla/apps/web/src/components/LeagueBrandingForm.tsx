@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Save, Image, Gift, MessageSquare, AlertCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
     leagueId: string;
@@ -115,11 +115,9 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }:
     const handleSubmit = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            // Assuming endpoint PATCH /api/leagues/:id exists and accepts these fields
-            await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/leagues/${leagueId}`, formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+
+            // Usar api instance (base URL y token ya configurados)
+            await api.patch(`/leagues/${leagueId}`, formData);
             alert('Configuración guardada correctamente');
             if (onSuccess) onSuccess();
         } catch (error) {
@@ -136,11 +134,9 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }:
             const uploadData = new FormData();
             uploadData.append('file', file);
 
-            const token = localStorage.getItem('token');
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/upload`, uploadData, {
+            const response = await api.post('/upload', uploadData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`
                 }
             });
 

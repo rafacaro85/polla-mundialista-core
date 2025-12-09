@@ -5,6 +5,7 @@ import { League } from '../database/entities/league.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { Match } from '../database/entities/match.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -282,8 +283,8 @@ export class LeaguesService {
 
     // Calcular Total Goles Mundial (Real) para TieBreaker
     const { totalGoals } = await this.leaguesRepository.manager
-      .createQueryBuilder('matches', 'm')
-      .select('SUM(m.score_h + m.score_a)', 'totalGoals')
+      .createQueryBuilder(Match, 'm')
+      .select('SUM(m.homeScore + m.awayScore)', 'totalGoals')
       .where("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawOne();
     const realGoals = Number(totalGoals || 0);

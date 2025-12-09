@@ -499,6 +499,44 @@ export class LeaguesService {
     return league;
   }
 
+  async getParticipantDetails(leagueId: string, requesterId: string, targetUserId: string) {
+    const requester = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: requesterId } }
+    });
+
+    if (!requester?.isAdmin) {
+      throw new ForbiddenException('Solo el administrador de la liga puede ver los detalles.');
+    }
+
+    // Predicciones
+    const predictions = await this.userRepository.manager.query(`
+      SELECT 
+        p.id, p.home_score as "homeScore", p.away_score as "awayScore", p.points,
+        m.date, m.status, 
+        m.score_h as "matchScoreH", m.score_a as "matchScoreA",
+        t1.name as "homeTeam", t1.flag_url as "homeFlag",
+        t2.name as "awayTeam", t2.flag_url as "awayFlag"
+      FROM predictions p
+      JOIN matches m ON m.id = p.match_id
+      LEFT JOIN teams t1 ON t1.id = m.home_team_id
+      LEFT JOIN teams t2 ON t2.id = m.away_team_id
+      WHERE p.user_id = $1
+      ORDER BY m.date DESC
+    `, [targetUserId]);
+
+    // Bonus
+    const bonusAnswers = await this.userRepository.manager.query(`
+      SELECT 
+        uba.id, uba.answer, uba.points_earned as "pointsEarned", 
+        bq.text as "questionText", bq.points as "maxPoints", bq.correct_answer as "correctAnswer"
+      FROM user_bonus_answers uba
+      JOIN bonus_questions bq ON bq.id = uba.question_id
+      WHERE uba.user_id = $1 AND (bq.league_id = $2 OR bq.league_id IS NULL)
+    `, [targetUserId, leagueId]);
+
+    return { predictions, bonusAnswers };
+  }
+
   async getLeagueVoucher(leagueId: string): Promise<Buffer> {
     const transaction = await this.transactionsService.findByLeagueId(leagueId);
 

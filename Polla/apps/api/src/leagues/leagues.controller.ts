@@ -211,6 +211,15 @@ export class LeaguesController {
     );
   }
 
+  @Get(':id/participants/:userId/details')
+  async getParticipantDetails(
+    @Param('id') leagueId: string,
+    @Param('userId') targetUserId: string,
+    @Req() req: any
+  ) {
+    return this.leaguesService.getParticipantDetails(leagueId, req.user.id, targetUserId);
+  }
+
   // Get league details with participants (must be at the end to avoid conflicts)
   @Get(':id')
   async getLeagueDetails(@Param('id') leagueId: string) {

@@ -197,52 +197,47 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
 
         matches.forEach(match => {
             if (match.phase !== 'group' && !match.group) return;
-            // Solo procesar paridos finalizados
-            if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return;
 
             const groupName = match.group || 'Desconocido';
             const homeCode = typeof match.homeTeam === 'object' ? match.homeTeam.code : match.homeTeam;
             const awayCode = typeof match.awayTeam === 'object' ? match.awayTeam.code : match.awayTeam;
 
+            // 1. Siempre inicializar equipos para que aparezcan en la tabla (aunque sea con 0)
             initTeam(homeCode, groupName);
             initTeam(awayCode, groupName);
 
-            let homeScore = match.homeScore;
-            let awayScore = match.awayScore;
+            // 2. Solo calcular puntos si el partido FINALIZÓ
+            if (match.status === 'FINISHED' || match.status === 'COMPLETED') {
+                let homeScore = match.homeScore;
+                let awayScore = match.awayScore;
 
-            if (homeScore === null || homeScore === undefined) {
-                if (match.prediction && match.prediction.homeScore !== null && match.prediction.homeScore !== undefined) {
-                    homeScore = match.prediction.homeScore;
-                    awayScore = match.prediction.awayScore;
-                }
-            }
+                if (homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+                    const h = teamStats[homeCode];
+                    const a = teamStats[awayCode];
 
-            if (homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
-                const h = teamStats[homeCode];
-                const a = teamStats[awayCode];
+                    h.pj++;
+                    a.pj++;
+                    h.gf += homeScore;
+                    a.gf += awayScore;
+                    h.gc += awayScore;
+                    a.gc += homeScore;
+                    h.dg = h.gf - h.gc;
+                    a.dg = a.gf - a.gc;
 
-                h.pj++;
-                a.pj++;
-                h.gf += homeScore;
-                a.gf += awayScore;
-                h.gc += awayScore;
-                a.gc += homeScore;
-                h.dg = h.gf - h.gc;
-                a.dg = a.gf - a.gc;
-
-                if (homeScore > awayScore) {
-                    h.pg++;
-                    h.pts += 3;
-                    a.pp++;
-                } else if (homeScore < awayScore) {
-                    a.pg++;
-                    a.pts += 3;
-                    h.pp++;
-                } else {
-                    h.pe++;
-                    h.pts += 1;
-                    a.pe++;
-                    a.pts += 1;
+                    if (homeScore > awayScore) {
+                        h.pg++;
+                        h.pts += 3;
+                        a.pp++;
+                    } else if (homeScore < awayScore) {
+                        a.pg++;
+                        a.pts += 3;
+                        h.pp++;
+                    } else {
+                        h.pe++;
+                        h.pts += 1;
+                        a.pe++;
+                        a.pts += 1;
+                    }
                 }
             }
         });

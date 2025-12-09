@@ -73,7 +73,13 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
   const safeDates = Array.isArray(dates) ? dates : [];
 
   return (
-    <div style={STYLES.scrollContainer as React.CSSProperties} className="no-scrollbar">
+    <div
+      style={STYLES.scrollContainer as React.CSSProperties}
+      className="no-scrollbar"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
       {/* Inyección de estilo para ocultar barra en Chrome/Safari */}
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

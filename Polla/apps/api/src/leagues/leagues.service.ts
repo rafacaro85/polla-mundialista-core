@@ -121,8 +121,11 @@ export class LeaguesService {
     });
 
     if (!league) {
+      console.log(`[DEBUG] League ${leagueId} not found`);
       throw new NotFoundException(`League with ID ${leagueId} not found.`);
     }
+
+    console.log(`[DEBUG] League Details ${leagueId}: Found ${league.participants?.length || 0} participants`);
 
     // Check if user is blocked
     if (userId) {
@@ -264,11 +267,16 @@ export class LeaguesService {
       relations: ['user'],
     });
 
+    console.log(`[DEBUG] Ranking League ${leagueId}: Found ${participants.length} participants`);
+
     const userIds = participants
       .filter(p => !p.isBlocked)
       .map(p => p.user.id);
 
+    console.log(`[DEBUG] User IDs: ${userIds.join(', ')}`);
+
     if (userIds.length === 0) {
+      console.log(`[DEBUG] No active participants found.`);
       return [];
     }
 
@@ -283,9 +291,9 @@ export class LeaguesService {
     // Obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
-      .leftJoin('prediction.match', 'm_pred') // Join con match para filtrar por status
+      .leftJoin('prediction.match', 'm_pred')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
-      .leftJoin('league_participants', 'lp', 'lp.user_id = user.id AND lp.league_id = :leagueId', { leagueId })
+      .leftJoin('user.leagueParticipants', 'lp', 'lp.league = :leagueId', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')

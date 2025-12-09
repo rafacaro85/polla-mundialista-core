@@ -324,6 +324,30 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 rounded-xl p-5 border border-emerald-500/30">
+                                    <h3 className="text-emerald-400 font-bold uppercase text-sm mb-2 flex items-center gap-2">
+                                        <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
+                                    </h3>
+                                    <p className="text-xs text-slate-300 mb-4">
+                                        Solicita una ampliación de tu plan actual para invitar a más amigos.
+                                    </p>
+                                    <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                                        onClick={() => {
+                                            const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
+                                            window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                        }}
+                                    >
+                                        Solicitar Ampliación de Cupo
+                                    </Button>
+                                </div>
+                                {currentLeague.isPaid && (
+                                    <Button variant="outline" className="w-full border-slate-700 text-slate-400 hover:text-white"
+                                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/leagues/${currentLeague.id}/voucher`, '_blank')}
+                                    >
+                                        <Copy className="w-3 h-3 mr-2" /> Descargar Comprobante de Pago
+                                    </Button>
+                                )}
                             </TabsContent>
 
                             {/* --- BONUS --- */}

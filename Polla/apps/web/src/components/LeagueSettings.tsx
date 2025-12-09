@@ -233,20 +233,24 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                     <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div>
                 ) : currentLeague ? (
                     <div className="flex-1 overflow-hidden flex flex-col">
-                        <Tabs defaultValue="editar" className="flex-1 flex flex-col">
+                        <Tabs defaultValue={currentLeague?.isAdmin ? 'editar' : 'usuarios'} className="flex-1 flex flex-col">
 
                             <div className="px-6 pt-4 bg-[#1E293B]">
                                 <TabsList className="flex bg-[#0F172A] p-1 rounded-full border border-slate-700 w-full mb-2 shadow-inner">
-                                    <TabsTrigger value="editar"
-                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                    >
-                                        <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
-                                    </TabsTrigger>
-                                    <TabsTrigger value="plan"
-                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                    >
-                                        <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
-                                    </TabsTrigger>
+                                    {currentLeague?.isAdmin && (
+                                        <>
+                                            <TabsTrigger value="editar"
+                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                            >
+                                                <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
+                                            </TabsTrigger>
+                                            <TabsTrigger value="plan"
+                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                            >
+                                                <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
+                                            </TabsTrigger>
+                                        </>
+                                    )}
                                     <TabsTrigger value="bonus"
                                         className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
                                     >
@@ -380,9 +384,11 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
                                 {/* --- PESTAÑA BONUS --- */}
                                 <TabsContent value="bonus" className="mt-0 space-y-8">
-                                    <div className="space-y-4">
-                                        <LeagueBonusQuestions leagueId={currentLeague.id} />
-                                    </div>
+                                    {currentLeague?.isAdmin && (
+                                        <div className="space-y-4">
+                                            <LeagueBonusQuestions leagueId={currentLeague.id} />
+                                        </div>
+                                    )}
 
                                     <div className="border-t border-slate-700 pt-6">
                                         <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
@@ -439,7 +445,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                 </div>
 
                                                 {/* Acciones solo si soy admin y no soy yo mismo */}
-                                                {p.user.id !== user?.id && (
+                                                {currentLeague?.isAdmin && p.user.id !== user?.id && (
                                                     <div className="flex items-center gap-1">
                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
                                                             title="Ver Detalle"

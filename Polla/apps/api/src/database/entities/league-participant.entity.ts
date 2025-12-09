@@ -37,4 +37,7 @@ export class LeagueParticipant {
 
   @Column({ name: 'trivia_points', type: 'int', default: 0 })
   triviaPoints: number;
+
+  @Column({ name: 'tie_breaker_guess', type: 'int', nullable: true })
+  tieBreakerGuess: number;
 }

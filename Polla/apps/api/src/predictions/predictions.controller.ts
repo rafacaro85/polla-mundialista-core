@@ -13,7 +13,7 @@ export class PredictionsController {
     async upsertPrediction(@Request() req: any, @Body() body: CreatePredictionDto) {
         try {
             console.log('Upserting prediction for user:', req.user.id, 'match:', body.matchId);
-            return await this.predictionsService.upsertPrediction(req.user.id, body.matchId, body.homeScore, body.awayScore, body.leagueId);
+            return await this.predictionsService.upsertPrediction(req.user.id, body.matchId, body.homeScore, body.awayScore, body.leagueId, body.isJoker);
         } catch (error) {
             console.error('Error upserting prediction:', error);
             throw error; // Let NestJS handle known exceptions, or wrap unknown ones

@@ -209,7 +209,8 @@ export const RankingView = () => {
         }
     };
 
-    const getRankStyle = (rank: number) => {
+    const getRankStyle = (rank: number, isLast: boolean) => {
+        if (isLast) return { color: '#EF5350', icon: <span style={{ fontSize: '20px' }} title="Cuchara de Palo">🥄</span> };
         if (rank === 1) return { color: COLORS.gold, icon: <Trophy size={18} fill={COLORS.gold} /> };
         if (rank === 2) return { color: '#E2E8F0', icon: <Trophy size={16} fill="#94A3B8" /> };
         if (rank === 3) return { color: COLORS.bronze, icon: <Trophy size={16} fill={COLORS.bronze} /> };
@@ -343,8 +344,9 @@ export const RankingView = () => {
                     {loading ? (
                         <div className="p-8 text-center text-slate-400">Cargando ranking...</div>
                     ) : currentRanking.length > 0 ? (
-                        currentRanking.map((user) => {
-                            const rankStyle = getRankStyle(user.rank);
+                        currentRanking.map((user, index) => {
+                            const isLast = index === currentRanking.length - 1 && currentRanking.length > 1;
+                            const rankStyle = getRankStyle(user.rank, isLast);
                             const isUserStyle = user.isUser ? STYLES.userRow : {};
 
                             return (

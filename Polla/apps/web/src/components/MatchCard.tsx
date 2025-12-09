@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Star } from 'lucide-react';
 
 /* ======================================================
    MATCHCARD - DISEÑO NIKE STYLE
@@ -101,6 +101,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const initialAway = match.prediction?.awayScore?.toString() || match.userA || '';
   const [homeScore, setHomeScore] = useState(initialHome);
   const [awayScore, setAwayScore] = useState(initialAway);
+  // Estado local Joker
+  const [isJoker, setIsJoker] = useState(match.prediction?.isJoker || (match.prediction as any)?.isJoker || (match.isJoker) || false);
 
   const handleInputChange = (value: any, setter: any) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 2);
@@ -109,10 +111,20 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
   const handleBlur = () => {
     if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
-      onSavePrediction(match.id, homeScore, awayScore);
+      onSavePrediction(match.id, homeScore, awayScore, isJoker);
     } else if (homeScore === '' && awayScore === '' && onSavePrediction) {
-      // Trigger delete if both are empty
       onSavePrediction(match.id, null, null);
+    }
+  };
+
+  const toggleJoker = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isFinished) return;
+    const newState = !isJoker;
+    setIsJoker(newState);
+    // Guardar el cambio del joker inmediatamente si hay marcador
+    if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
+      onSavePrediction(match.id, homeScore, awayScore, newState);
     }
   };
 
@@ -124,8 +136,35 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     ? (hasWon ? '#00E676' : '#FF1744')
     : '#475569';
 
-  const finalScore = `${match.scoreH ?? 0} - ${match.scoreA ?? 0}`;
   const resultColor = hasWon ? '#00E676' : '#FF1744';
+
+  // Calculo Desglose Simplificado (Frontend Visual)
+  const getBreakdown = () => {
+    if (!isFinished || points === 0) return '';
+    const h = match.scoreH;
+    const a = match.scoreA;
+    const pH = match.prediction?.homeScore;
+    const pA = match.prediction?.awayScore;
+
+    // Si no tenemos todos los datos, retornamos vacío
+    if (h == null || a == null || pH == null || pA == null) return '';
+
+    let parts = [];
+    // Exacto
+    if (h === pH && a === pA) parts.push('Exacto +3');
+    // Ganador
+    else if (Math.sign(h - a) === Math.sign(pH - pA)) parts.push('Resultado +2');
+
+    // Goles
+    if (h === pH) parts.push('Gol L +1');
+    if (a === pA) parts.push('Gol V +1');
+
+    // Joker
+    if (match.prediction?.isJoker || isJoker) parts.push('Joker x2');
+
+    return `(${parts.join(', ')})`;
+  };
+  const breakdownText = getBreakdown();
 
   // 4. ESTILOS BLINDADOS (CSS-IN-JS)
   const STYLES = {
@@ -231,12 +270,12 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       flexDirection: 'column' as const,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '4px 0',
+      padding: '6px 0',
       marginTop: 'auto',
-      minHeight: '34px'
+      minHeight: '40px'
     },
     scoreText: {
-      fontSize: '13px',
+      fontSize: '14px',
       fontWeight: '900',
       lineHeight: '1',
       marginBottom: '2px',
@@ -247,7 +286,24 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       fontWeight: '800',
       textTransform: 'uppercase' as const,
       letterSpacing: '0.5px',
-      opacity: 0.85
+      opacity: 0.9
+    },
+    jokerBtn: {
+      marginTop: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      padding: '5px 10px',
+      borderRadius: '12px',
+      backgroundColor: isJoker ? '#FFD700' : 'rgba(255, 255, 255, 0.05)',
+      border: isJoker ? '1px solid #FFD700' : '1px solid #334155',
+      color: isJoker ? '#0F172A' : '#64748B',
+      fontSize: '10px',
+      fontWeight: 'bold',
+      cursor: isFinished ? 'default' : 'pointer',
+      transition: 'all 0.2s',
+      textTransform: 'uppercase' as const,
+      boxShadow: isJoker ? '0 0 10px rgba(255, 215, 0, 0.4)' : 'none'
     }
   };
 
@@ -297,27 +353,43 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 </div>
               </>
             ) : (
-              <div style={STYLES.inputRow}>
-                <input
-                  type="tel"
-                  maxLength={2}
-                  value={homeScore}
-                  onChange={(e) => handleInputChange(e.target.value, setHomeScore)}
-                  onBlur={handleBlur}
-                  readOnly={isFinished}
-                  style={STYLES.inputBox}
-                />
-                <span style={{ color: '#64748B', fontWeight: 'bold' }}>-</span>
-                <input
-                  type="tel"
-                  maxLength={2}
-                  value={awayScore}
-                  onChange={(e) => handleInputChange(e.target.value, setAwayScore)}
-                  onBlur={handleBlur}
-                  readOnly={isFinished}
-                  style={STYLES.inputBox}
-                />
-              </div>
+              <>
+                <div style={STYLES.inputRow}>
+                  <input
+                    type="tel"
+                    maxLength={2}
+                    value={homeScore}
+                    onChange={(e) => handleInputChange(e.target.value, setHomeScore)}
+                    onBlur={handleBlur}
+                    readOnly={isFinished}
+                    style={STYLES.inputBox}
+                  />
+                  <span style={{ color: '#64748B', fontWeight: 'bold' }}>-</span>
+                  <input
+                    type="tel"
+                    maxLength={2}
+                    value={awayScore}
+                    onChange={(e) => handleInputChange(e.target.value, setAwayScore)}
+                    onBlur={handleBlur}
+                    readOnly={isFinished}
+                    style={STYLES.inputBox}
+                  />
+                </div>
+
+                {/* JOKER BUTTON */}
+                {!isFinished ? (
+                  <button style={STYLES.jokerBtn} onClick={toggleJoker} title="Usar Comodín (x2 Puntos)">
+                    <Star size={12} fill={isJoker ? "#0F172A" : "none"} strokeWidth={isJoker ? 0 : 2} />
+                    {isJoker ? 'COMODÍN ACTIVO' : 'COMODÍN'}
+                  </button>
+                ) : (
+                  isJoker && (
+                    <div style={{ ...STYLES.jokerBtn, cursor: 'default', opacity: 1 }}>
+                      <Star size={12} fill="#0F172A" strokeWidth={0} /> x2
+                    </div>
+                  )
+                )}
+              </>
             )}
           </div>
 
@@ -343,7 +415,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
             {/* Abajo: Puntos obtenidos */}
             <div style={STYLES.pointsText}>
-              {hasWon ? `+${points} PTS` : '0 PTS'}
+              {hasWon ? `+${points} PTS` : '0 PTS'} <span style={{ marginLeft: '4px', opacity: 0.7, fontWeight: 'normal', textTransform: 'none', fontSize: '9px' }}>{breakdownText}</span>
             </div>
           </div>
         )}

@@ -42,6 +42,11 @@ export class ScoringService {
       points += 3;
     }
 
+    // 4. Comodín (Joker) - Doble Puntuación
+    if (prediction.isJoker) {
+      points *= 2;
+    }
+
     return points;
   }
 

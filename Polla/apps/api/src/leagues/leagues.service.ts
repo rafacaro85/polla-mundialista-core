@@ -270,6 +270,14 @@ export class LeaguesService {
       return [];
     }
 
+    // Calcular Total Goles Mundial (Real) para TieBreaker
+    const { totalGoals } = await this.leaguesRepository.manager
+      .createQueryBuilder('matches', 'm')
+      .select('SUM(m.score_h + m.score_a)', 'totalGoals')
+      .where("m.status IN ('FINISHED', 'COMPLETED')")
+      .getRawOne();
+    const realGoals = Number(totalGoals || 0);
+
     // Obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
@@ -282,6 +290,7 @@ export class LeaguesService {
       .addSelect('COALESCE(SUM(prediction.points), 0)', 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
       .addSelect('COALESCE(MAX(lp.trivia_points), 0)', 'triviaPoints')
+      .addSelect('MAX(lp.tie_breaker_guess)', 'tieBreakerGuess')
       .where('user.id IN (:...userIds)', { userIds })
       .groupBy('user.id')
       .addGroupBy('user.nickname')
@@ -305,6 +314,7 @@ export class LeaguesService {
       const triviaPoints = Number(user.triviaPoints);
       const bonusPoints = Number(bonusResult?.bonusPoints || 0);
       const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
+      const tieBreakerGuess = user.tieBreakerGuess !== null ? Number(user.tieBreakerGuess) : null;
 
       return {
         id: user.id,
@@ -315,11 +325,19 @@ export class LeaguesService {
         bonusPoints,
         triviaPoints,
         totalPoints,
+        tieBreakerGuess,
+        tieBreakerDiff: tieBreakerGuess !== null ? Math.abs(tieBreakerGuess - realGoals) : Infinity
       };
     }));
 
-    // Ordenar por puntos totales
-    finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);
+    // Ordenar por puntos totales DESC, luego por TieBreaker Diff ASC
+    finalRanking.sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints;
+      }
+      // Empate -> Usar TieBreaker
+      return a.tieBreakerDiff - b.tieBreakerDiff;
+    });
 
     // Asignar posiciones
     return finalRanking.map((user, index) => ({

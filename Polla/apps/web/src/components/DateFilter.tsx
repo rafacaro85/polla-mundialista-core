@@ -1,9 +1,10 @@
+```
 import React from 'react';
 
 interface DateFilterProps {
   dates: string[];
   selectedDate: string;
-  onSelectDate: (date: string) => void;
+  onSelect: (date: string) => void;
 }
 
 /* =============================================================================
@@ -12,7 +13,7 @@ interface DateFilterProps {
    - Scroll horizontal oculto pero funcional.
    ============================================================================= */
 
-export default function DateFilter({ dates = [], selectedDate, onSelectDate }: DateFilterProps) {
+export default function DateFilter({ dates = [], selectedDate, onSelect }: DateFilterProps) {
 
   // ESTILOS MAESTROS
   const STYLES = {
@@ -31,7 +32,8 @@ export default function DateFilter({ dates = [], selectedDate, onSelectDate }: D
       borderBottom: '1px solid #1E293B',
       position: 'sticky' as const,
       top: '0',
-      zIndex: 20
+      zIndex: 20,
+      whiteSpace: 'nowrap' as const // Forzar que no haga wrap
     },
     // Estilo Base del Botón
     button: {
@@ -75,8 +77,8 @@ export default function DateFilter({ dates = [], selectedDate, onSelectDate }: D
     <div style={STYLES.scrollContainer as React.CSSProperties} className="no-scrollbar">
       {/* Inyección de estilo para ocultar barra en Chrome/Safari */}
       <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-      `}</style>
+  .no - scrollbar:: -webkit - scrollbar { display: none; }
+`}</style>
 
       {safeDates.map((date) => {
         const isActive = selectedDate === date;

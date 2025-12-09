@@ -17,7 +17,7 @@ export class PredictionsService {
         private leagueParticipantRepository: Repository<LeagueParticipant>,
     ) { }
 
-    async upsertPrediction(userId: string, matchId: string, homeScore: number, awayScore: number, leagueId?: string): Promise<Prediction> {
+    async upsertPrediction(userId: string, matchId: string, homeScore: number, awayScore: number, leagueId?: string, isJoker?: boolean): Promise<Prediction> {
         // 1. Check if user is blocked in the league (if leagueId is provided)
         if (leagueId) {
             const participant = await this.leagueParticipantRepository.findOne({
@@ -43,6 +43,23 @@ export class PredictionsService {
             throw new BadRequestException('Cannot predict on a match that has already started');
         }
 
+        // JOKER LOGIC: Only one joker per phase allowed
+        if (isJoker) {
+            const existingJoker = await this.predictionsRepository.findOne({
+                where: {
+                    user: { id: userId },
+                    isJoker: true,
+                    match: { phase: match.phase }
+                },
+                relations: ['match']
+            });
+
+            if (existingJoker && existingJoker.match.id !== matchId) {
+                existingJoker.isJoker = false;
+                await this.predictionsRepository.save(existingJoker);
+            }
+        }
+
         let prediction = await this.predictionsRepository.findOne({
             where: {
                 user: { id: userId },
@@ -53,12 +70,14 @@ export class PredictionsService {
         if (prediction) {
             prediction.homeScore = homeScore;
             prediction.awayScore = awayScore;
+            if (isJoker !== undefined) prediction.isJoker = isJoker;
         } else {
             prediction = this.predictionsRepository.create({
                 user: { id: userId } as User,
                 match: { id: matchId } as Match,
                 homeScore,
                 awayScore,
+                isJoker: isJoker || false
             });
         }
 

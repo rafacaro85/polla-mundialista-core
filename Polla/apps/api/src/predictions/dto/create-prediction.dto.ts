@@ -15,4 +15,7 @@ export class CreatePredictionDto {
     @IsString()
     @IsOptional()
     leagueId?: string;
+
+    @IsOptional()
+    isJoker?: boolean;
 }

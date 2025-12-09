@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -206,9 +207,9 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
                     </h2>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <button onClick={() => router.push('/')} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
+                        <Link href="/" className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
                             Regresar
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

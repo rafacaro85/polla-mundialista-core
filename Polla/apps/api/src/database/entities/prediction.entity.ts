@@ -21,4 +21,7 @@ export class Prediction {
 
   @Column({ default: 0 })
   points: number;
+
+  @Column({ default: false })
+  isJoker: boolean;
 }

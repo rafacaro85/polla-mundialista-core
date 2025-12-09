@@ -227,13 +227,70 @@ export const DashboardClient: React.FC = () => {
     }
   }, [selectedLeagueId]);
 
-  // ...
+  // --- SWIPE NAVIGATION LOGIC ---
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+  const tabs: ('game' | 'leagues' | 'ranking' | 'bracket' | 'bonus')[] = ['game', 'leagues', 'ranking', 'bracket', 'bonus'];
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe || isRightSwipe) {
+      const currentIndex = tabs.indexOf(activeTab);
+      if (isLeftSwipe) {
+        // Swipe Left -> Next Tab
+        if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1]);
+      } else {
+        // Swipe Right -> Prev Tab
+        if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1]);
+      }
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full touch-pan-y"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <Header userName={user?.nickname || 'Invitado'} />
+
+      <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
+
+        {/* VISTAS */}
+        {activeTab === 'leagues' && (
+          <LeaguesView />
+        )}
+
+        {activeTab === 'ranking' && (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+            <RankingView />
+          </div>
+        )}
+
+        {activeTab === 'game' && (
+          <div className="animate-in fade-in slide-in-from-left-4 duration-300">
 
             <div className="mb-4">
               <DateFilter
                 dates={dates}
                 selectedDate={selectedDate}
-                onSelect={setSelectedDate} 
+                onSelect={setSelectedDate}
               />
             </div>
 
@@ -260,63 +317,63 @@ export const DashboardClient: React.FC = () => {
           </div >
         )}
 
-{
-  activeTab === 'bracket' && (
-    <div className="h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-      {/* Selector Fase Bracket */}
-      <div className="flex justify-center mb-6 bg-[#1E293B] p-1 rounded-xl w-fit mx-auto border border-[#334155]">
-        <button
-          onClick={() => setSimulatorPhase('groups')}
-          className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
-        >
-          Fase de Grupos
-        </button>
-        <button
-          onClick={() => setSimulatorPhase('knockout')}
-          className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
-        >
-          Fase Final
-        </button>
-      </div>
+        {
+          activeTab === 'bracket' && (
+            <div className="h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+              {/* Selector Fase Bracket */}
+              <div className="flex justify-center mb-6 bg-[#1E293B] p-1 rounded-xl w-fit mx-auto border border-[#334155]">
+                <button
+                  onClick={() => setSimulatorPhase('groups')}
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Fase de Grupos
+                </button>
+                <button
+                  onClick={() => setSimulatorPhase('knockout')}
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[#00E676] text-[#0F172A] shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Fase Final
+                </button>
+              </div>
 
-      <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
-        {simulatorPhase === 'groups' ? (
-          <GroupStageView matches={matches} />
-        ) : (
-          <BracketView
-            matches={matches.map(m => ({
-              ...m,
-              homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
-              awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
-              homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
-              awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
-            }))}
-            leagueId={selectedLeagueId}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
+              <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
+                {simulatorPhase === 'groups' ? (
+                  <GroupStageView matches={matches} />
+                ) : (
+                  <BracketView
+                    matches={matches.map(m => ({
+                      ...m,
+                      homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
+                      awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
+                      homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
+                      awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
+                    }))}
+                    leagueId={selectedLeagueId}
+                  />
+                )}
+              </div>
+            </div>
+          )
+        }
 
-{
-  activeTab === 'bonus' && (
-    <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <BonusView />
-    </div>
-  )
-}
+        {
+          activeTab === 'bonus' && (
+            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <BonusView />
+            </div>
+          )
+        }
       </main >
 
-  { activeTab === 'leagues' && (
-    <div className="fixed bottom-24 right-6 z-40">
-      <Button className="rounded-full p-4 shadow-lg bg-[#00E676] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
-        <Link href="/leagues/join">
-          <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
-        </Link>
-      </Button>
-    </div>
-  )}
+      {activeTab === 'leagues' && (
+        <div className="fixed bottom-24 right-6 z-40">
+          <Button className="rounded-full p-4 shadow-lg bg-[#00E676] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
+            <Link href="/leagues/join">
+              <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 

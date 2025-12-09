@@ -1,4 +1,3 @@
-```
 import React from 'react';
 
 interface DateFilterProps {
@@ -77,8 +76,8 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
     <div style={STYLES.scrollContainer as React.CSSProperties} className="no-scrollbar">
       {/* Inyección de estilo para ocultar barra en Chrome/Safari */}
       <style>{`
-  .no - scrollbar:: -webkit - scrollbar { display: none; }
-`}</style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
 
       {safeDates.map((date) => {
         const isActive = selectedDate === date;
@@ -92,7 +91,7 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
         return (
           <button
             key={date}
-            onClick={() => onSelectDate && onSelectDate(date)}
+            onClick={() => onSelect && onSelect(date)}
             style={buttonStyle}
             // Eventos para hover simple (opcional en JS puro)
             onMouseEnter={(e) => {

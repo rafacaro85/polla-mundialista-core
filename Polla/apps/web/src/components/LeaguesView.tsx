@@ -192,7 +192,7 @@ export const LeaguesView = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                     <CreateLeagueDialog onLeagueCreated={fetchLeagues}>
                         <button style={STYLES.createButton}>
-                            + Crear Liga
+                            + CREAR POLLA
                         </button>
                     </CreateLeagueDialog>
                     <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
@@ -205,7 +205,7 @@ export const LeaguesView = () => {
                             fontSize: '9px',
                             padding: '6px 12px'
                         }}>
-                            Unirse con Código
+                            UNIRSE CON CÓDIGO
                         </button>
                     </JoinLeagueDialog>
                 </div>

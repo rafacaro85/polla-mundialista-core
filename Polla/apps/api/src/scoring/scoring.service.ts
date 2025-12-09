@@ -24,32 +24,25 @@ export class ScoringService {
     const predictedHomeScore = prediction.homeScore;
     const predictedAwayScore = prediction.awayScore;
 
-    // Rule 1: Acertar el resultado exacto (ej. 2-1) = 5 puntos
+    // 1. Puntos por Goles Individuales (1 punto por cada equipo acertado)
+    if (actualHomeScore === predictedHomeScore) points += 1;
+    if (actualAwayScore === predictedAwayScore) points += 1;
+
+    // 2. Puntos por Resultado (Ganador o Empate) (2 puntos)
+    const actualSign = Math.sign(actualHomeScore - actualAwayScore);
+    const predictedSign = Math.sign(predictedHomeScore - predictedAwayScore);
+    if (actualSign === predictedSign) {
+      points += 2;
+    }
+
+    // 3. Puntos por Marcador Exacto (3 puntos adicionales)
+    // Nota: Si aciertas marcador exacto, implícitamente aciertas resultado y goles individuales.
+    // Total posible: 1 + 1 + 2 + 3 = 7 puntos.
     if (actualHomeScore === predictedHomeScore && actualAwayScore === predictedAwayScore) {
-      points += 5;
+      points += 3;
     }
 
-    // Rule 2: Acertar ganador (o empate) y diferencia de goles (ej. Argentina gana 2-0, predigo 3-1. Gana Argentina por 2 goles) = 3 puntos
-    // Check if the winner is correct (or it's a draw)
-    const actualWinner = Math.sign(actualHomeScore - actualAwayScore);
-    const predictedWinner = Math.sign(predictedHomeScore - predictedAwayScore);
-
-    if (actualWinner === predictedWinner) {
-      // Check if the goal difference is correct
-      if (Math.abs(actualHomeScore - actualAwayScore) === Math.abs(predictedHomeScore - predictedAwayScore)) {
-        if (points < 5) { // Only award if exact score wasn't already awarded
-          points += 3;
-        }
-      } else {
-        // Rule 3: Acertar ganador (o empate) sin diferencia de goles = 1 punto
-        if (points < 3) { // Only award if rule 1 or 2 wasn't already awarded
-          points += 1;
-        }
-      }
-    }
-
-    // Ensure points don't exceed 5 if multiple rules somehow apply incorrectly
-    return Math.min(points, 5);
+    return points;
   }
 
   async calculatePointsForMatch(matchId: string): Promise<void> {

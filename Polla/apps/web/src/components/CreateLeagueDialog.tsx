@@ -106,7 +106,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             setCreatedCode(response.data.accessCodePrefix);
             setCreatedLeagueName(leagueName.trim());
             setCreatedLeagueId(response.data.id);
-            toast.success('¡Liga creada exitosamente!');
+            toast.success('¡Polla creada exitosamente!');
             await onLeagueCreated();
         } catch (error: any) {
             console.error('Error creando liga:', error);
@@ -473,7 +473,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 <>
                                     {/* Input Nombre */}
                                     <div style={STYLES.inputSection}>
-                                        <label style={STYLES.label}>Nombre de la Liga</label>
+                                        <label style={STYLES.label}>Nombre de la Polla</label>
                                         <input
                                             type="text"
                                             placeholder="Ej: Oficina 2026"
@@ -613,7 +613,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                     }}
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} strokeWidth={3} />}
-                                    {loading ? 'CREANDO...' : 'CREAR LIGA'}
+                                    {loading ? 'CREANDO...' : 'CREAR POLLA'}
                                 </button>
                             </div>
                         )}

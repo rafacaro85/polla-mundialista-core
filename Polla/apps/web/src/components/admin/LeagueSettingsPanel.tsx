@@ -128,7 +128,7 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
         try {
             await api.delete(`/leagues/${currentLeague.id}`);
             toast({ title: 'Liga eliminada', description: 'La liga ha sido eliminada.' });
-            router.push('/dashboard');
+            router.push('/');
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Error al eliminar la liga';
             toast({ title: 'Error', description: msg, variant: 'destructive' });
@@ -174,7 +174,7 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
         try {
             await api.patch(`/leagues/${currentLeague.id}/transfer-owner`, { newAdminId: newOwnerId });
             toast({ title: 'Propiedad transferida', description: 'Has cedido la administración.' });
-            router.push('/dashboard');
+            router.push('/');
         } catch (error) {
             toast({ title: 'Error', variant: 'destructive' });
         } finally {
@@ -206,8 +206,8 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
                     </h2>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <button onClick={() => router.push('/dashboard')} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
-                            Volver al Dashboard
+                        <button onClick={() => router.push('/')} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
+                            Regresar
                         </button>
                     </div>
                 </div>

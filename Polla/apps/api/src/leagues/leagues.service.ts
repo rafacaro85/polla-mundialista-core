@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { League } from '../database/entities/league.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -186,39 +187,33 @@ export class LeaguesService {
       .addGroupBy('user.avatarUrl')
       .getRawMany();
 
-    // Calcular bonus points por separado para evitar duplicación
-    const bonusPointsQuery = await this.userRepository.query(`
-    SELECT 
-      u.id as "userId",
-      COALESCE(SUM(uba.points_earned), 0) as "bonusPoints"
-    FROM users u
-    LEFT JOIN user_bonus_answers uba ON uba.user_id = u.id
-    LEFT JOIN bonus_questions bq ON bq.id = uba.question_id AND bq.league_id IS NULL
-    WHERE bq.id IS NOT NULL OR uba.id IS NULL
-    GROUP BY u.id
-  `);
+    // Calcular bonus points por separado para CADA usuario usando QueryBuilder de Entidad
+    // Esto asegura que los nombres de columnas se mapeen correctamente (camelCase vs snake_case)
+    const finalRanking = await Promise.all(ranking.map(async (user) => {
+      // Obtener bonus points solo de preguntas globales (sin leagueId)
+      const bonusResult = await this.userRepository.manager
+        .createQueryBuilder(UserBonusAnswer, 'uba')
+        .leftJoin('uba.question', 'bq')
+        .select('SUM(uba.pointsEarned)', 'bonusPoints')
+        .where('uba.userId = :userId', { userId: user.id })
+        .andWhere('bq.leagueId IS NULL')
+        .getRawOne();
 
-    const bonusPointsMap = new Map(
-      bonusPointsQuery.map((row: any) => [row.userId, Number(row.bonusPoints)])
-    );
-
-    // Combinar resultados
-    const finalRanking = ranking.map(user => {
       const predictionPoints = Number(user.predictionPoints);
       const bracketPoints = Number(user.bracketPoints);
-      const bonusPoints = Number(bonusPointsMap.get(user.id) || 0);
+      const bonusPoints = Number(bonusResult?.bonusPoints || 0);
       const totalPoints = predictionPoints + bracketPoints + bonusPoints;
 
       return {
         id: user.id,
-        nickname: user.nickname || user.fullName.split(' ')[0],
+        nickname: user.nickname || user.fullName?.split(' ')[0] || 'Usuario',
         avatarUrl: user.avatarUrl,
         predictionPoints,
         bracketPoints,
         bonusPoints,
         totalPoints,
       };
-    });
+    }));
 
     // Ordenar por puntos totales
     finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);
@@ -284,33 +279,26 @@ export class LeaguesService {
       .addGroupBy('user.avatarUrl')
       .getRawMany();
 
-    // Calcular bonus points por separado para esta liga específica
-    const bonusPointsQuery = await this.userRepository.query(`
-    SELECT 
-      u.id as "userId",
-      COALESCE(SUM(uba.points_earned), 0) as "bonusPoints"
-    FROM users u
-    LEFT JOIN user_bonus_answers uba ON uba.user_id = u.id
-    LEFT JOIN bonus_questions bq ON bq.id = uba.question_id AND bq.league_id = $1
-    WHERE (bq.id IS NOT NULL OR uba.id IS NULL) AND u.id = ANY($2)
-    GROUP BY u.id
-  `, [leagueId, userIds]);
+    // Calcular bonus points por separado usando QueryBuilder de Entidad
+    const finalRanking = await Promise.all(ranking.map(async (user) => {
+      // Obtener bonus points solo de preguntas de esta liga
+      const bonusResult = await this.userRepository.manager
+        .createQueryBuilder(UserBonusAnswer, 'uba')
+        .leftJoin('uba.question', 'bq')
+        .select('SUM(uba.pointsEarned)', 'bonusPoints')
+        .where('uba.userId = :userId', { userId: user.id })
+        .andWhere('bq.leagueId = :leagueId', { leagueId })
+        .getRawOne();
 
-    const bonusPointsMap = new Map(
-      bonusPointsQuery.map((row: any) => [row.userId, Number(row.bonusPoints)])
-    );
-
-    // Combinar resultados
-    const finalRanking = ranking.map(user => {
       const predictionPoints = Number(user.predictionPoints);
       const bracketPoints = Number(user.bracketPoints);
       const triviaPoints = Number(user.triviaPoints);
-      const bonusPoints = Number(bonusPointsMap.get(user.id) || 0);
+      const bonusPoints = Number(bonusResult?.bonusPoints || 0);
       const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
 
       return {
         id: user.id,
-        nickname: user.nickname || user.fullName.split(' ')[0],
+        nickname: user.nickname || user.fullName?.split(' ')[0] || 'Usuario',
         avatarUrl: user.avatarUrl,
         predictionPoints,
         bracketPoints,
@@ -318,7 +306,7 @@ export class LeaguesService {
         triviaPoints,
         totalPoints,
       };
-    });
+    }));
 
     // Ordenar por puntos totales
     finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);

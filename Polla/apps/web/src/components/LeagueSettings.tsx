@@ -140,8 +140,9 @@ export function LeagueSettings({ league, onUpdate, trigger }: { league?: League;
             toast({ title: 'Liga eliminada', description: 'La liga ha sido eliminada.' });
             setOpen(false);
             if (onUpdate) onUpdate();
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Error al eliminar la liga';
+            toast({ title: 'Error', description: msg, variant: 'destructive' });
         } finally {
             setLoading(false);
         }

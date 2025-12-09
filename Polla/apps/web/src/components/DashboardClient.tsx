@@ -230,7 +230,7 @@ export const DashboardClient: React.FC = () => {
         <div className="w-full">
           {activeTab === 'game' && (
             <div className="mt-4">
-              {currentLeague && (currentLeague.prizeImageUrl || currentLeague.prizeDetails) && (
+              {currentLeague && (currentLeague.prizeImageUrl || currentLeague.prizeDetails || currentLeague.brandingLogoUrl) && (
                 <div className="mb-6 max-w-md mx-auto">
                   <PrizeCard
                     imageUrl={currentLeague.prizeImageUrl}

@@ -480,17 +480,26 @@ export class LeaguesService {
     }
 
     const manager = this.leaguesRepository.manager;
-    // Borrar dependencias manualmente en orden correcto
-    await manager.query(`DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`, [leagueId]);
-    await manager.query(`DELETE FROM bonus_questions WHERE league_id = $1`, [leagueId]);
-    await manager.query(`DELETE FROM user_brackets WHERE league_id = $1`, [leagueId]);
-    await manager.query(`DELETE FROM access_codes WHERE league_id = $1`, [leagueId]);
-    await manager.query(`DELETE FROM league_participants WHERE league_id = $1`, [leagueId]);
-    // Transactions (Optional, if exists)
-    await manager.query(`DELETE FROM transactions WHERE league_id = $1`, [leagueId]);
+    try {
+      // Borrar dependencias manualmente en orden correcto
+      await manager.query(`DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`, [leagueId]);
+      await manager.query(`DELETE FROM bonus_questions WHERE league_id = $1`, [leagueId]);
+      await manager.query(`DELETE FROM user_brackets WHERE league_id = $1`, [leagueId]);
+      await manager.query(`DELETE FROM access_codes WHERE league_id = $1`, [leagueId]);
+      await manager.query(`DELETE FROM league_participants WHERE league_id = $1`, [leagueId]);
+      // Transactions (Optional, if exists)
+      await manager.query(`DELETE FROM transactions WHERE league_id = $1`, [leagueId]);
 
-    await this.leaguesRepository.remove(league);
-    return { message: 'Liga eliminada correctamente' };
+      await this.leaguesRepository.delete({ id: leagueId }); // Use delete instead of remove to be more direct
+      return { message: 'Liga eliminada correctamente' };
+    } catch (error: any) {
+      console.error('❌ Error deleting league:', error);
+      if (error.code === '23503') { // ForeignKeyViolation
+        throw new BadRequestException(`No se puede eliminar: Esta liga tiene datos vinculados en la tabla '${error.table || 'desconocida'}'. Detalle: ${error.detail || error.message}`);
+      }
+      // Lanzar como BadRequest para que el mensaje llegue al cliente en producción
+      throw new BadRequestException(`Error DB al eliminar liga: ${error.message} - Code: ${error.code}`);
+    }
   }
 
   async toggleBlockStatus(leagueId: string, userId: string, userRole: string) {

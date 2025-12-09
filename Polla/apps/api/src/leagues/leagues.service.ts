@@ -180,14 +180,16 @@ export class LeaguesService {
 
   async getGlobalRanking() {
     // Primero obtener puntos de predicciones y brackets
+    // Primero obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
+      .leftJoin('prediction.match', 'match')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND bracket.leagueId IS NULL')
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')
       .addSelect('user.avatarUrl', 'avatarUrl')
-      .addSelect('COALESCE(SUM(prediction.points), 0)', 'predictionPoints')
+      .addSelect("COALESCE(SUM(CASE WHEN match.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0)", 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
       .groupBy('user.id')
       .addGroupBy('user.nickname')
@@ -281,13 +283,15 @@ export class LeaguesService {
     // Obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
+      .leftJoin('prediction.match', 'match') // Join con match para filtrar por status
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
       .leftJoin('league_participants', 'lp', 'lp.user_id = user.id AND lp.league_id = :leagueId', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')
       .addSelect('user.avatarUrl', 'avatarUrl')
-      .addSelect('COALESCE(SUM(prediction.points), 0)', 'predictionPoints')
+      // Sumar puntos SOLO si el partido está finalizado
+      .addSelect("COALESCE(SUM(CASE WHEN match.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0)", 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
       .addSelect('COALESCE(MAX(lp.trivia_points), 0)', 'triviaPoints')
       .addSelect('MAX(lp.tie_breaker_guess)', 'tieBreakerGuess')

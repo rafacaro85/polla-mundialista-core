@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import api from '@/lib/api';
 // Asumo que Header y Sidebar existen o se usan en Layout.
 // Si no, improviso un header simple o uso el layout global dashboard
@@ -42,9 +43,9 @@ export default function LeaguesAdminListPage() {
                     <Settings className="text-emerald-500" />
                     <h1 className="font-bold font-russo text-lg">PANEL ADMIN POLLAS</h1>
                 </div>
-                <button onClick={() => router.push('/dashboard')} className="text-xs text-slate-400 hover:text-white">
-                    Volver al Dashboard
-                </button>
+                <Link href="/" className="text-xs font-bold text-emerald-500 hover:text-emerald-400 uppercase tracking-widest underline">
+                    Regresar
+                </Link>
             </div>
 
             <div className="p-4 max-w-md mx-auto space-y-4">

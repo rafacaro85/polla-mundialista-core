@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Loader2, Calendar, Trophy, CheckCircle2, XCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface UserPredictionsDialogProps {
     leagueId: string;
@@ -58,7 +57,7 @@ export function UserPredictionsDialog({ leagueId, userId, userName, userAvatar, 
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     {loading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
@@ -135,7 +134,7 @@ export function UserPredictionsDialog({ leagueId, userId, userName, userAvatar, 
                     ) : (
                         <div className="text-center py-12 text-slate-500">No se encontraron datos.</div>
                     )}
-                </ScrollArea>
+                </div>
             </DialogContent>
         </Dialog>
     );

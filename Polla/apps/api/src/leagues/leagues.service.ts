@@ -206,7 +206,7 @@ export class LeaguesService {
     const finalRanking = ranking.map(user => {
       const predictionPoints = Number(user.predictionPoints);
       const bracketPoints = Number(user.bracketPoints);
-      const bonusPoints = bonusPointsMap.get(user.id) || 0;
+      const bonusPoints = Number(bonusPointsMap.get(user.id) || 0);
       const totalPoints = predictionPoints + bracketPoints + bonusPoints;
 
       return {
@@ -305,7 +305,7 @@ export class LeaguesService {
       const predictionPoints = Number(user.predictionPoints);
       const bracketPoints = Number(user.bracketPoints);
       const triviaPoints = Number(user.triviaPoints);
-      const bonusPoints = bonusPointsMap.get(user.id) || 0;
+      const bonusPoints = Number(bonusPointsMap.get(user.id) || 0);
       const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
 
       return {

@@ -85,6 +85,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const [copied, setCopied] = useState(false);
     const [processingPayment, setProcessingPayment] = useState(false);
 
+    const [isEnterprise, setIsEnterprise] = useState(false);
+    const [companyName, setCompanyName] = useState('');
+
     const handleCreate = async () => {
         if (!leagueName.trim()) {
             toast.error('Por favor ingresa un nombre para la liga');
@@ -100,7 +103,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 name: leagueName.trim(),
                 type: 'LIBRE',
                 maxParticipants: plan.members,
-                packageType: selectedPlan
+                packageType: selectedPlan,
+                isEnterprise,
+                companyName: isEnterprise ? companyName : undefined
             });
 
             setCreatedCode(response.data.accessCodePrefix);
@@ -160,6 +165,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const handleClose = () => {
         setOpen(false);
         setLeagueName('');
+        setIsEnterprise(false);
+        setCompanyName('');
         setCreatedCode(null);
         setCreatedLeagueName(null);
         setCreatedLeagueId(null);
@@ -485,6 +492,32 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                             autoFocus
                                             disabled={loading}
                                         />
+                                    </div>
+
+                                    {/* Enterprise Checkbox */}
+                                    <div style={{ ...STYLES.inputSection, marginTop: 16, marginBottom: 16 }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'white', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Russo One", sans-serif' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isEnterprise}
+                                                onChange={(e) => setIsEnterprise(e.target.checked)}
+                                                style={{ width: '20px', height: '20px', accentColor: '#00E676', cursor: 'pointer' }}
+                                            />
+                                            ACTIVAR MODO EMPRESA
+                                        </label>
+
+                                        {isEnterprise && (
+                                            <div style={{ marginTop: '12px' }} className="animate-in fade-in slide-in-from-top-2">
+                                                <label style={STYLES.label}>Nombre de la Empresa</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Ej: Ferretería La Troncal"
+                                                    value={companyName}
+                                                    onChange={(e) => setCompanyName(e.target.value)}
+                                                    style={{ ...STYLES.input, fontSize: '14px', padding: '12px' }}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Selector de Planes */}

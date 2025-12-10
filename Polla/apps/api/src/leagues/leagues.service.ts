@@ -32,7 +32,7 @@ export class LeaguesService {
 
   async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {
     try {
-      const { name, type, maxParticipants, accessCodePrefix, packageType } = createLeagueDto;
+      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName } = createLeagueDto;
 
       // Validate maxUsers based on packageType
       // This is a basic validation, you might want to move this to a config or constant
@@ -61,6 +61,8 @@ export class LeaguesService {
         creator,
         accessCodePrefix: code,
         isPaid: packageType !== 'starter', // Assuming starter is free
+        isEnterprise: !!isEnterprise,
+        companyName: companyName,
       });
 
       const savedLeague = await this.leaguesRepository.save(league);
@@ -424,6 +426,15 @@ export class LeaguesService {
     if (updateLeagueDto.prizeImageUrl !== undefined) league.prizeImageUrl = updateLeagueDto.prizeImageUrl;
     if (updateLeagueDto.prizeDetails !== undefined) league.prizeDetails = updateLeagueDto.prizeDetails;
     if (updateLeagueDto.welcomeMessage !== undefined) league.welcomeMessage = updateLeagueDto.welcomeMessage;
+    if (updateLeagueDto.isEnterprise !== undefined) league.isEnterprise = updateLeagueDto.isEnterprise;
+    if (updateLeagueDto.companyName !== undefined) league.companyName = updateLeagueDto.companyName;
+    if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
+    if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
+
+    if (updateLeagueDto.isEnterprise !== undefined) league.isEnterprise = updateLeagueDto.isEnterprise;
+    if (updateLeagueDto.companyName !== undefined) league.companyName = updateLeagueDto.companyName;
+    if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
+    if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
 
     const updatedLeague = await this.leaguesRepository.save(league);
 

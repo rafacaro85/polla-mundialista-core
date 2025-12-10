@@ -253,7 +253,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             <TabsTrigger value="analytics"
                                                 className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
                                             >
-                                                <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Reportes
+                                                <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Analítica
                                             </TabsTrigger>
                                         </>
                                     )}
@@ -480,10 +480,10 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                         ))}
                                     </div>
                                 </TabsContent>
+                                <TabsContent value="analytics" className="mt-0 space-y-4">
+                                    <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                </TabsContent>
                             </div>
-                            <TabsContent value="analytics" className="mt-0">
-                                <LeagueAnalyticsPanel leagueId={currentLeague.id} />
-                            </TabsContent>
                         </Tabs>
                     </div>
                 ) : null}

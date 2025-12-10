@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import LeagueThemeProvider from './LeagueThemeProvider';
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Header } from './ui/Header';
@@ -230,118 +231,123 @@ export const DashboardClient: React.FC = () => {
 
 
   return (
-    <div
-      className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
+    <LeagueThemeProvider
+      primaryColor={currentLeague?.brandColorPrimary}
+      secondaryColor={currentLeague?.brandColorSecondary}
     >
-      <Header userName={user?.nickname || 'Invitado'} />
+      <div
+        className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
+      >
+        <Header userName={user?.nickname || 'Invitado'} />
 
-      <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
+        <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
 
-        {/* VISTAS */}
+          {/* VISTAS */}
+          {activeTab === 'leagues' && (
+            <LeaguesView />
+          )}
+
+          {activeTab === 'ranking' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <RankingView />
+            </div>
+          )}
+
+          {activeTab === 'game' && (
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+
+              <div className="mb-4">
+                <DateFilter
+                  dates={dates}
+                  selectedDate={selectedDate}
+                  onSelect={setSelectedDate}
+                />
+              </div>
+
+              <div className="flex flex-col gap-4 pb-4">
+                {loadingMatches ? (
+                  <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
+                ) : matches.filter(m => m.displayDate === selectedDate).length === 0 ? (
+                  <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
+                ) : (
+                  matches
+                    .filter(m => m.displayDate === selectedDate)
+                    .map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        showInputs={true}
+                        onSavePrediction={handlePredictionChange}
+                        onInfoClick={() => setInfoMatch(match)}
+                        isGlobal={selectedLeagueId === 'global'}
+                      />
+                    ))
+                )}
+              </div>
+            </div >
+          )}
+
+          {
+            activeTab === 'bracket' && (
+              <div className="h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                {/* Selector Fase Bracket */}
+                <div className="flex mb-4 bg-[#1E293B] p-1 rounded-xl w-full border border-[#334155]">
+                  <button
+                    onClick={() => setSimulatorPhase('groups')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[var(--brand-primary,#00E676)] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Fase de Grupos
+                  </button>
+                  <button
+                    onClick={() => setSimulatorPhase('knockout')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[var(--brand-primary,#00E676)] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Fase Final
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
+                  {simulatorPhase === 'groups' ? (
+                    <GroupStageView matches={matches} />
+                  ) : (
+                    <BracketView
+                      matches={matches.map(m => ({
+                        ...m,
+                        homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
+                        awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
+                        homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
+                        awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
+                      }))}
+                      leagueId={selectedLeagueId}
+                    />
+                  )}
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab === 'bonus' && (
+              <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <BonusView />
+              </div>
+            )
+          }
+        </main >
+
         {activeTab === 'leagues' && (
-          <LeaguesView />
-        )}
-
-        {activeTab === 'ranking' && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            <RankingView />
+          <div className="fixed bottom-24 right-6 z-40">
+            <Button className="rounded-full p-4 shadow-lg bg-[var(--brand-primary,#00E676)] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
+              <Link href="/leagues/join">
+                <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
+              </Link>
+            </Button>
           </div>
         )}
 
-        {activeTab === 'game' && (
-          <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-            <div className="mb-4">
-              <DateFilter
-                dates={dates}
-                selectedDate={selectedDate}
-                onSelect={setSelectedDate}
-              />
-            </div>
-
-            <div className="flex flex-col gap-4 pb-4">
-              {loadingMatches ? (
-                <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
-              ) : matches.filter(m => m.displayDate === selectedDate).length === 0 ? (
-                <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
-              ) : (
-                matches
-                  .filter(m => m.displayDate === selectedDate)
-                  .map((match) => (
-                    <MatchCard
-                      key={match.id}
-                      match={match}
-                      showInputs={true}
-                      onSavePrediction={handlePredictionChange}
-                      onInfoClick={() => setInfoMatch(match)}
-                      isGlobal={selectedLeagueId === 'global'}
-                    />
-                  ))
-              )}
-            </div>
-          </div >
-        )}
-
-        {
-          activeTab === 'bracket' && (
-            <div className="h-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
-              {/* Selector Fase Bracket */}
-              <div className="flex mb-4 bg-[#1E293B] p-1 rounded-xl w-full border border-[#334155]">
-                <button
-                  onClick={() => setSimulatorPhase('groups')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'groups' ? 'bg-[#00E676] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
-                >
-                  Fase de Grupos
-                </button>
-                <button
-                  onClick={() => setSimulatorPhase('knockout')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${simulatorPhase === 'knockout' ? 'bg-[#00E676] text-[#0F172A] shadow-md' : 'text-slate-400 hover:text-white'}`}
-                >
-                  Fase Final
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto pb-10 custom-scrollbar">
-                {simulatorPhase === 'groups' ? (
-                  <GroupStageView matches={matches} />
-                ) : (
-                  <BracketView
-                    matches={matches.map(m => ({
-                      ...m,
-                      homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
-                      awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
-                      homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
-                      awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
-                    }))}
-                    leagueId={selectedLeagueId}
-                  />
-                )}
-              </div>
-            </div>
-          )
-        }
-
-        {
-          activeTab === 'bonus' && (
-            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <BonusView />
-            </div>
-          )
-        }
-      </main >
-
-      {activeTab === 'leagues' && (
-        <div className="fixed bottom-24 right-6 z-40">
-          <Button className="rounded-full p-4 shadow-lg bg-[#00E676] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
-            <Link href="/leagues/join">
-              <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
-    </div >
+        <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
+      </div >
+    </LeagueThemeProvider>
   );
 };

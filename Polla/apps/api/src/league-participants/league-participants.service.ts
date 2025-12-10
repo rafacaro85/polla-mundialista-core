@@ -21,7 +21,7 @@ export class LeagueParticipantsService {
     private dataSource: DataSource,
   ) { }
 
-  async joinLeague(userId: string, code: string): Promise<LeagueParticipant> {
+  async joinLeague(userId: string, code: string, department?: string): Promise<LeagueParticipant> {
     console.log('joinLeague - userId:', userId, 'code:', code);
 
     try {
@@ -59,6 +59,7 @@ export class LeagueParticipantsService {
         user: user,
         league: league,
         isAdmin: false,
+        department: department,
       });
 
       const savedParticipant = await this.leagueParticipantRepository.save(leagueParticipant);

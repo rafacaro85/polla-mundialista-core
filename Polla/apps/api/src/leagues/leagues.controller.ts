@@ -247,6 +247,6 @@ export class LeaguesController {
     if (!userId) {
       throw new InternalServerErrorException('User ID not found in request after authentication.');
     }
-    return this.leagueParticipantsService.joinLeague(userId, joinLeagueDto.code);
+    return this.leagueParticipantsService.joinLeague(userId, joinLeagueDto.code, joinLeagueDto.department);
   }
 }

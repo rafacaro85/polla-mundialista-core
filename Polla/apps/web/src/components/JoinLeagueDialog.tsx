@@ -20,6 +20,7 @@ export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoin
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [previewData, setPreviewData] = useState<any>(null);
+    const [department, setDepartment] = useState('');
 
     const handleVerify = async () => {
         if (!code.trim()) return;
@@ -27,6 +28,7 @@ export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoin
         try {
             const { data } = await api.get(`/leagues/preview/${code.trim().toUpperCase()}`);
             setPreviewData(data);
+            setDepartment('');
         } catch (error) {
             setPreviewData(null);
             toast.error('Liga no encontrada');
@@ -43,7 +45,10 @@ export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoin
 
         setLoading(true);
         try {
-            await api.post('/leagues/join', { code: code.trim().toUpperCase() });
+            await api.post('/leagues/join', {
+                code: code.trim().toUpperCase(),
+                department: department.trim()
+            });
             toast.success('¡Te has unido a la liga!');
             await onLeagueJoined();
             setOpen(false);
@@ -130,6 +135,18 @@ export const JoinLeagueDialog: React.FC<JoinLeagueDialogProps> = ({ onLeagueJoin
                                         imageUrl={previewData.prizeImageUrl}
                                         description={previewData.prizeDetails}
                                         logoUrl={previewData.brandingLogoUrl}
+                                    />
+                                </div>
+                            )}
+
+                            {previewData.isEnterprise && (
+                                <div className="mb-4 text-left">
+                                    <Label className="text-xs text-slate-400 font-bold uppercase mb-2 block">Departamento / Área ({previewData.companyName || 'Empresa'})</Label>
+                                    <Input
+                                        value={department}
+                                        onChange={(e) => setDepartment(e.target.value)}
+                                        placeholder="Ej. Ventas, IT, Admin..."
+                                        className="bg-[#0F172A] border border-[#334155] rounded-xl text-white"
                                     />
                                 </div>
                             )}

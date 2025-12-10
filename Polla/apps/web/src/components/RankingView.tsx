@@ -343,7 +343,11 @@ export const RankingView = () => {
                 {selectedLeagueId !== 'global' && (
                     <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
                         <button
-                            onClick={() => setIsTieBreakerOpen(true)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('[DEBUG] Opening Tie Breaker Dialog');
+                                setIsTieBreakerOpen(true);
+                            }}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '8px',
                                 padding: '10px 20px', borderRadius: '12px',
@@ -353,7 +357,8 @@ export const RankingView = () => {
                                 color: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#94A3B8' : '#FACC15',
                                 boxShadow: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? 'none' : '0 0 15px rgba(250, 204, 21, 0.2)',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                zIndex: 100 // Elevamos Z-Index del botón
                             }}
                         >
                             <Calculator size={16} />

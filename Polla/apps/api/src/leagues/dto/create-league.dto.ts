@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum, IsInt, Min, Max, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsInt, Min, Max, IsOptional, IsBoolean, IsHexColor } from 'class-validator';
 import { LeagueType } from '../../database/enums/league-type.enum';
 
 export class CreateLeagueDto {
@@ -12,12 +12,12 @@ export class CreateLeagueDto {
 
   @IsInt()
   @Min(1)
-  @Max(1000) // Assuming a reasonable max, adjust as needed
+  @Max(10000)
   maxParticipants: number;
 
   @IsString()
-  @IsNotEmpty()
-  accessCodePrefix: string; // For VIP leagues
+  @IsOptional()
+  accessCodePrefix?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -38,4 +38,21 @@ export class CreateLeagueDto {
   @IsString()
   @IsOptional()
   welcomeMessage?: string;
+
+  // --- ENTERPRISE ---
+  @IsBoolean()
+  @IsOptional()
+  isEnterprise?: boolean;
+
+  @IsString()
+  @IsOptional()
+  companyName?: string;
+
+  @IsHexColor()
+  @IsOptional()
+  brandColorPrimary?: string;
+
+  @IsHexColor()
+  @IsOptional()
+  brandColorSecondary?: string;
 }

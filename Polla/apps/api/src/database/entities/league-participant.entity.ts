@@ -40,4 +40,7 @@ export class LeagueParticipant {
 
   @Column({ name: 'tie_breaker_guess', type: 'int', nullable: true })
   tieBreakerGuess: number;
+
+  @Column({ nullable: true })
+  department?: string;
 }

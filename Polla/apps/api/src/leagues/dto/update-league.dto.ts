@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsHexColor } from 'class-validator';
 
 export class UpdateLeagueDto {
     @IsString()
@@ -24,4 +24,21 @@ export class UpdateLeagueDto {
     @IsString()
     @IsOptional()
     welcomeMessage?: string;
+
+    // --- ENTERPRISE ---
+    @IsBoolean()
+    @IsOptional()
+    isEnterprise?: boolean;
+
+    @IsString()
+    @IsOptional()
+    companyName?: string;
+
+    @IsHexColor()
+    @IsOptional()
+    brandColorPrimary?: string;
+
+    @IsHexColor()
+    @IsOptional()
+    brandColorSecondary?: string;
 }

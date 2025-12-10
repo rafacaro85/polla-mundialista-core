@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Save, Image, Gift, MessageSquare, AlertCircle } from 'lucide-react';
+import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase } from 'lucide-react';
 import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
@@ -11,6 +11,10 @@ interface LeagueBrandingFormProps {
         prizeImageUrl?: string;
         prizeDetails?: string;
         welcomeMessage?: string;
+        isEnterprise?: boolean;
+        companyName?: string;
+        brandColorPrimary?: string;
+        brandColorSecondary?: string;
     };
     onSuccess?: () => void;
 }
@@ -104,11 +108,15 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }:
         brandingLogoUrl: initialData.brandingLogoUrl || '',
         prizeImageUrl: initialData.prizeImageUrl || '',
         prizeDetails: initialData.prizeDetails || '',
-        welcomeMessage: initialData.welcomeMessage || ''
+        welcomeMessage: initialData.welcomeMessage || '',
+        isEnterprise: initialData.isEnterprise || false,
+        companyName: initialData.companyName || '',
+        brandColorPrimary: initialData.brandColorPrimary || '#00E676',
+        brandColorSecondary: initialData.brandColorSecondary || '#1E293B'
     });
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (field: string, value: string) => {
+    const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -215,6 +223,67 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }:
                     onFocus={(e) => e.target.style.borderColor = '#00E676'}
                     onBlur={(e) => e.target.style.borderColor = '#334155'}
                 />
+            </div>
+
+            {/* SECCIÓN ENTERPRISE */}
+            <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '20px' }}>
+                <div style={STYLES.title}>
+                    <Briefcase size={20} /> Branding Corporativo
+                </div>
+
+                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input
+                        type="checkbox"
+                        checked={!!formData.isEnterprise}
+                        onChange={(e) => handleChange('isEnterprise', e.target.checked)}
+                        style={{ width: '20px', height: '20px', accentColor: '#00E676', cursor: 'pointer' }}
+                    />
+                    <label style={{ ...STYLES.label, marginBottom: 0, cursor: 'pointer' }} onClick={() => handleChange('isEnterprise', !formData.isEnterprise)}>
+                        Activar Funciones Enterprise
+                    </label>
+                </div>
+
+                {formData.isEnterprise && (
+                    <div style={{ paddingLeft: '10px', borderLeft: '2px solid #00E676', marginLeft: '9px' }}>
+                        <div style={STYLES.fieldGroup}>
+                            <label style={STYLES.label}>Nombre de la Empresa</label>
+                            <input
+                                type="text"
+                                value={formData.companyName || ''}
+                                onChange={(e) => handleChange('companyName', e.target.value)}
+                                style={STYLES.input}
+                                placeholder="Ej. TechCorp Solutions"
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '20px' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={STYLES.label}>Color Primario</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type="color"
+                                        value={formData.brandColorPrimary || '#00E676'}
+                                        onChange={(e) => handleChange('brandColorPrimary', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                    />
+                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorPrimary}</span>
+                                </div>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={STYLES.label}>Color Secundario</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type="color"
+                                        value={formData.brandColorSecondary || '#1E293B'}
+                                        onChange={(e) => handleChange('brandColorSecondary', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                    />
+                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorSecondary}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <button

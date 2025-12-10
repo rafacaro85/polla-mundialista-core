@@ -68,6 +68,20 @@ export class League {
   @Column({ name: 'welcome_message', type: 'text', nullable: true })
   welcomeMessage?: string;
 
+  // --- ENTERPRISE FEATURES ---
+
+  @Column({ name: 'is_enterprise', default: false })
+  isEnterprise: boolean;
+
+  @Column({ name: 'company_name', nullable: true })
+  companyName: string;
+
+  @Column({ name: 'brand_color_primary', default: '#00E676' })
+  brandColorPrimary: string;
+
+  @Column({ name: 'brand_color_secondary', default: '#1E293B' })
+  brandColorSecondary: string;
+
   @OneToMany(() => LeagueParticipant, participant => participant.league)
   participants: LeagueParticipant[];
 

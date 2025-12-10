@@ -23,6 +23,7 @@ import LeagueBrandingForm from '@/components/LeagueBrandingForm';
 import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
+import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
 
 interface Participant {
     user: {
@@ -248,6 +249,11 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                 className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
                                             >
                                                 <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
+                                            </TabsTrigger>
+                                            <TabsTrigger value="analytics"
+                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
+                                            >
+                                                <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Reportes
                                             </TabsTrigger>
                                         </>
                                     )}
@@ -475,6 +481,9 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                     </div>
                                 </TabsContent>
                             </div>
+                            <TabsContent value="analytics" className="mt-0">
+                                <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                            </TabsContent>
                         </Tabs>
                     </div>
                 ) : null}

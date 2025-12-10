@@ -233,6 +233,34 @@ export class LeaguesController {
     return this.leaguesService.getParticipantDetails(leagueId, req.user.id, targetUserId);
   }
 
+  @Get(':id/analytics')
+  async getAnalytics(@Param('id') leagueId: string) {
+    return this.leaguesService.getAnalyticsSummary(leagueId);
+  }
+
+  @Get(':id/export')
+  async exportLeagueData(@Param('id') leagueId: string, @Res() res: any) {
+    const participants = await this.leaguesService.exportParticipants(leagueId);
+
+    const headers = ['Nombre', 'Email', 'Departamento', 'Puntos', 'Ranking', 'Puntos Trivia'];
+    const rows = participants.map(p => [
+      p.user.fullName || p.user.nickname,
+      p.user.email,
+      p.department || 'N/A',
+      p.totalPoints,
+      p.currentRank || '',
+      p.triviaPoints
+    ].map(field => `"${String(field || '').replace(/"/g, '""')}"`).join(','));
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n'); // Add BOM for Excel
+
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename=league-export.csv`,
+    });
+    res.send(csvContent);
+  }
+
   // Get league details with participants (must be at the end to avoid conflicts)
   @Get(':id')
   async getLeagueDetails(@Param('id') leagueId: string, @Req() req: any) {

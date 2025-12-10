@@ -6,6 +6,7 @@ import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { Match } from '../database/entities/match.entity';
+import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -23,6 +24,8 @@ export class LeaguesService {
     private leagueParticipantsRepository: Repository<LeagueParticipant>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Prediction)
+    private predictionRepository: Repository<Prediction>,
     private transactionsService: TransactionsService,
     private pdfService: PdfService,
   ) { }
@@ -623,5 +626,58 @@ export class LeaguesService {
 
     participant.tieBreakerGuess = guess;
     return this.leagueParticipantsRepository.save(participant);
+  }
+  async getAnalyticsSummary(leagueId: string) {
+    const totalParticipants = await this.leagueParticipantsRepository.count({ where: { league: { id: leagueId } } });
+
+    // Active: Users with at least one prediction
+    const activeResult = await this.leagueParticipantsRepository.createQueryBuilder('lp')
+      .select('COUNT(DISTINCT lp.user_id)', 'count')
+      .innerJoin('predictions', 'p', 'p.user_id = lp.user_id')
+      .where('lp.league_id = :leagueId', { leagueId })
+      .getRawOne();
+
+    const activeCount = parseInt(activeResult?.count || '0');
+
+    // Average Points
+    const avgResult = await this.leagueParticipantsRepository.createQueryBuilder('lp')
+      .select('AVG(lp.total_points)', 'avg')
+      .where('lp.league_id = :leagueId', { leagueId })
+      .getRawOne();
+
+    // Department Ranking
+    const deptRanking = await this.leagueParticipantsRepository.createQueryBuilder('lp')
+      .select('lp.department', 'department')
+      .addSelect('AVG(lp.total_points)', 'avgPoints')
+      .addSelect('COUNT(lp.id)', 'members')
+      .where('lp.league_id = :leagueId', { leagueId })
+      .andWhere('lp.department IS NOT NULL')
+      .andWhere("lp.department != ''")
+      .groupBy('lp.department')
+      .orderBy('AVG(lp.total_points)', 'DESC')
+      .addOrderBy('COUNT(lp.id)', 'DESC')
+      .getRawMany();
+
+    return {
+      totalParticipants,
+      activeParticipants: activeCount,
+      zombieParticipants: Math.max(0, totalParticipants - activeCount),
+      averagePoints: parseFloat(avgResult?.avg || '0').toFixed(1),
+      departmentRanking: deptRanking.map(d => ({
+        department: d.department,
+        avgPoints: parseFloat(d.avgpoint || d.avgPoints || '0').toFixed(1), // Handle lowercase default alias
+        members: parseInt(d.members || '0')
+      }))
+    };
+  }
+
+  async exportParticipants(leagueId: string) {
+    return this.leagueParticipantsRepository.find({
+      where: { league: { id: leagueId } },
+      relations: ['user'],
+      order: {
+        totalPoints: 'DESC'
+      }
+    });
   }
 }

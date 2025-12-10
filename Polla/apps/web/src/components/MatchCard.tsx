@@ -153,7 +153,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     // Exacto
     if (h === pH && a === pA) parts.push('Exacto +3');
     // Ganador
-    else if (Math.sign(h - a) === Math.sign(pH - pA)) parts.push('Resultado +2');
+    if (Math.sign(h - a) === Math.sign(pH - pA)) parts.push('Resultado +2');
 
     // Goles
     if (h === pH) parts.push('Gol L +1');

@@ -346,15 +346,17 @@ export const RankingView = () => {
                             onClick={() => setIsTieBreakerOpen(true)}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '8px',
-                                padding: '8px 16px', borderRadius: '8px',
-                                backgroundColor: '#1E293B', border: '1px solid #334155',
+                                padding: '10px 20px', borderRadius: '12px',
+                                backgroundColor: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#1E293B' : 'rgba(250, 204, 21, 0.1)',
+                                border: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '1px solid #334155' : '1px solid #FACC15',
                                 fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase',
                                 color: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#94A3B8' : '#FACC15',
-                                borderColor: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#334155' : '#FACC15',
-                                cursor: 'pointer'
+                                boxShadow: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? 'none' : '0 0 15px rgba(250, 204, 21, 0.2)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
                             }}
                         >
-                            <Calculator size={14} />
+                            <Calculator size={16} />
                             {ranking.find(u => u.isUser)?.tieBreakerGuess != null
                                 ? `Tie-Breaker: ${ranking.find(u => u.isUser)?.tieBreakerGuess} Goles`
                                 : '⚠️ Configurar Desempate'}

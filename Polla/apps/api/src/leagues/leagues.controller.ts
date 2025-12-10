@@ -12,10 +12,12 @@ import {
   ForbiddenException,
   NotFoundException,
   Res,
+  Put,
 } from '@nestjs/common';
 import { LeaguesService } from './leagues.service';
 import { CreateLeagueDto } from './dto/create-league.dto';
 import { UpdateLeagueDto } from './dto/update-league.dto';
+import { UpdateTieBreakerDto } from './dto/update-tie-breaker.dto';
 import { TransferOwnerDto } from './dto/transfer-owner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -100,6 +102,17 @@ export class LeaguesController {
       leagueId,
       generateAccessCodesDto.quantity,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/tie-breaker')
+  async updateTieBreaker(
+    @Param('id') leagueId: string,
+    @Body() dto: UpdateTieBreakerDto,
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.updateTieBreaker(leagueId, userPayload.id, dto.guess);
   }
 
   // --- ADMIN ENDPOINTS ---

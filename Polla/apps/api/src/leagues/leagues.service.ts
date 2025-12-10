@@ -611,4 +611,17 @@ export class LeaguesService {
 
     return this.pdfService.generateVoucher(transaction, transaction.user, transaction.league);
   }
+
+  async updateTieBreaker(leagueId: string, userId: string, guess: number) {
+    const participant = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } },
+    });
+
+    if (!participant) {
+      throw new ForbiddenException('You are not a participant of this league.');
+    }
+
+    participant.tieBreakerGuess = guess;
+    return this.leagueParticipantsRepository.save(participant);
+  }
 }

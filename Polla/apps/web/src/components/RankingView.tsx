@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Users, ChevronDown, Check } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Users, ChevronDown, Check, Calculator } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
+import TieBreakerDialog from './TieBreakerDialog';
 
 // --- INTERFACES ---
 interface RankingUser {
@@ -11,6 +12,7 @@ interface RankingUser {
     avatar: string;
     isUser: boolean;
     trend: 'up' | 'down' | 'same';
+    tieBreakerGuess?: number;
 }
 
 interface LeagueOption {
@@ -29,6 +31,7 @@ export const RankingView = () => {
     const [leagues, setLeagues] = useState<LeagueOption[]>([]);
     const [ranking, setRanking] = useState<RankingUser[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isTieBreakerOpen, setIsTieBreakerOpen] = useState(false);
 
     // SISTEMA DE DISEÑO
     const COLORS = {
@@ -258,7 +261,8 @@ export const RankingView = () => {
                     points: item.totalPoints || 0,
                     avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
                     isUser: (item.id === user?.id) || (item.user?.id === user?.id),
-                    trend: 'same'
+                    trend: 'same',
+                    tieBreakerGuess: item.tieBreakerGuess
                 })) : [];
 
                 setRanking(mappedRanking);
@@ -335,6 +339,29 @@ export const RankingView = () => {
                 </div>
 
                 {/* 2. TABLA DE POSICIONES */}
+                {/* BOTÓN DESEMPATE (Solo en ligas específicas) */}
+                {selectedLeagueId !== 'global' && (
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                        <button
+                            onClick={() => setIsTieBreakerOpen(true)}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                padding: '8px 16px', borderRadius: '8px',
+                                backgroundColor: '#1E293B', border: '1px solid #334155',
+                                fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase',
+                                color: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#94A3B8' : '#FACC15',
+                                borderColor: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? '#334155' : '#FACC15',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Calculator size={14} />
+                            {ranking.find(u => u.isUser)?.tieBreakerGuess != null
+                                ? `Tie-Breaker: ${ranking.find(u => u.isUser)?.tieBreakerGuess} Goles`
+                                : '⚠️ Configurar Desempate'}
+                        </button>
+                    </div>
+                )}
+
                 <div style={STYLES.rankingCard}>
                     <div style={STYLES.tableHeader}>
                         <span>Posición / Usuario</span>
@@ -406,6 +433,16 @@ export const RankingView = () => {
                 <div
                     onClick={() => setIsDropdownOpen(false)}
                     style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 15 }}
+                />
+            )}
+
+            {isTieBreakerOpen && (
+                <TieBreakerDialog
+                    isOpen={isTieBreakerOpen}
+                    onClose={() => setIsTieBreakerOpen(false)}
+                    leagueId={selectedLeagueId}
+                    currentGuess={ranking.find(u => u.isUser)?.tieBreakerGuess}
+                    onSuccess={() => window.location.reload()}
                 />
             )}
 

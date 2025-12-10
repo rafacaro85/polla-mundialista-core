@@ -227,46 +227,11 @@ export const DashboardClient: React.FC = () => {
     }
   }, [selectedLeagueId]);
 
-  // --- SWIPE NAVIGATION LOGIC ---
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  const minSwipeDistance = 50;
-  const tabs: ('game' | 'leagues' | 'ranking' | 'bracket' | 'bonus')[] = ['game', 'leagues', 'ranking', 'bracket', 'bonus'];
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe || isRightSwipe) {
-      const currentIndex = tabs.indexOf(activeTab);
-      if (isLeftSwipe) {
-        // Swipe Left -> Next Tab
-        if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1]);
-      } else {
-        // Swipe Right -> Prev Tab
-        if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1]);
-      }
-    }
-  };
 
   return (
     <div
-      className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full touch-pan-y"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
     >
       <Header userName={user?.nickname || 'Invitado'} />
 

@@ -11,9 +11,11 @@ import { LeagueParticipantsService } from '../league-participants/league-partici
 import { TransactionsModule } from '../transactions/transactions.module';
 import { PdfModule } from '../common/pdf/pdf.module';
 
+import { Prediction } from '../database/entities/prediction.entity';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode]),
+    TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode, Prediction]),
     TransactionsModule,
     PdfModule,
   ],

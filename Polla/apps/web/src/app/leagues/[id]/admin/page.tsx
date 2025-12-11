@@ -1,17 +1,14 @@
-
-import React from 'react';
-import { notFound, redirect } from 'next/navigation';
-// In a real server component we would fetch data here.
-// Since we are using client components for 'api' lib mostly, we will use a client wrapper for security 
-// OR we can make this page.tsx client side.
-
-// Let's make it client side for consistency with the rest of the refactor
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import { AdminLeagueSettings } from '@/components/AdminLeagueSettings';
+
+// In a real server component we would fetch data here.
+// Since we are using client components for 'api' lib mostly, we will use a client wrapper for security 
+// OR we can make this page.tsx client side
 import { AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 
 export default function LeagueAdminPage() {

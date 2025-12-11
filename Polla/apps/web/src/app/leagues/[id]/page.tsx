@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { BrandProvider } from '@/components/BrandProvider';
 import { PrizeHero } from '@/components/PrizeHero';
 import { useAppStore } from '@/store/useAppStore';
+import { EnterpriseLeagueView } from '@/components/EnterpriseLeagueView';
 
 interface LeagueDetail {
     id: string;
@@ -140,6 +141,30 @@ export default function LeaguePage() {
         );
     }
 
+    // ENTERPRISE VIEW RENDER
+    if (league?.isEnterpriseActive) {
+        return (
+            <div className="min-h-screen bg-brand-secondary text-white font-sans transition-colors duration-500 relative">
+                {/* Floating Back Button */}
+                <div className="fixed top-6 left-6 z-50">
+                    <button
+                        onClick={() => router.back()}
+                        className="p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all border border-white/10 shadow-xl group"
+                    >
+                        <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                </div>
+
+                <div className="pointer-events-none fixed inset-0 z-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--brand-primary),_transparent_70%)]"></div>
+
+                <div className="relative z-10">
+                    <EnterpriseLeagueView league={league} participants={participants} />
+                </div>
+            </div>
+        );
+    }
+
+    // STANDARD VIEW RENDER
     return (
         <div className="min-h-screen bg-brand-secondary text-white p-4 pb-24 font-sans transition-colors duration-500">
             {/* Header */}
@@ -152,44 +177,28 @@ export default function LeaguePage() {
                     <ChevronLeft size={24} />
                 </button>
                 <div className="flex-1">
-                    {((league?.type === 'COMPANY' || league?.isEnterprise) && league?.brandingLogoUrl) ? (
-                        // ENTERPRISE HEADER
-                        <div className="flex items-center gap-4">
-                            <div className="relative h-16 w-auto aspect-[3/1] max-w-[200px]">
-                                <img
-                                    src={league.brandingLogoUrl}
-                                    alt="Logo Empresa"
-                                    className="h-full w-full object-contain object-left"
-                                />
-                            </div>
-                            <h1 className="text-xl font-bold font-inter text-white border-l border-white/20 pl-4">
-                                {league.name}
-                            </h1>
-                        </div>
-                    ) : (
-                        // STANDARD HEADER
-                        <div>
-                            <h1 className="text-3xl font-russo uppercase flex items-center gap-3">
-                                {league?.name || 'Detalle de Liga'}
-                                {league?.type === 'public' && <Shield className="text-yellow-500" size={24} />}
-                            </h1>
-                            <div className="flex items-center gap-4 text-slate-400 text-sm">
-                                <span className="flex items-center gap-1">
-                                    <Users size={14} /> {participants.length} / {league?.maxParticipants || '?'} Miembros
+                    {/* Standard Header Only (Enterprise logic moved) */}
+                    <div>
+                        <h1 className="text-3xl font-russo uppercase flex items-center gap-3">
+                            {league?.name || 'Detalle de Liga'}
+                            {league?.type === 'public' && <Shield className="text-yellow-500" size={24} />}
+                        </h1>
+                        <div className="flex items-center gap-4 text-slate-400 text-sm">
+                            <span className="flex items-center gap-1">
+                                <Users size={14} /> {participants.length} / {league?.maxParticipants || '?'} Miembros
+                            </span>
+                            {league?.code && (
+                                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-xs">
+                                    CÓDIGO: {league.code}
                                 </span>
-                                {league?.code && (
-                                    <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-xs">
-                                        CÓDIGO: {league.code}
-                                    </span>
-                                )}
-                            </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            {/* Prize Hero Section (Enterprise Only) */}
-            <PrizeHero league={league} />
+            {/* Prize Hero Section (For Standard, maybe optional or removed if only Ent has it? Keeping it for now if data exists) */}
+            {(league?.type === 'COMPANY' || league?.prizeImageUrl) && <PrizeHero league={league} />}
 
             {/* Ranking Table */}
             <div className="bg-carbon rounded-xl border border-slate-700 overflow-hidden">

@@ -7,6 +7,9 @@ import { Loader2, ChevronLeft, Trophy, Users, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { BrandProvider } from '@/components/BrandProvider';
+import { PrizeHero } from '@/components/PrizeHero';
+import { useAppStore } from '@/store/useAppStore';
 
 interface LeagueDetail {
     id: string;
@@ -20,6 +23,14 @@ interface LeagueDetail {
         avatarUrl?: string;
     };
     participantCount: number;
+    // Enterprise Fields
+    brandingLogoUrl?: string;
+    prizeImageUrl?: string;
+    prizeDetails?: string;
+    welcomeMessage?: string;
+    brandColorPrimary?: string;
+    brandColorSecondary?: string;
+    isEnterprise?: boolean;
 }
 
 interface Participant {
@@ -38,9 +49,22 @@ interface Participant {
 export default function LeaguePage() {
     const params = useParams();
     const router = useRouter();
+    const { setTheme } = useAppStore();
     const [league, setLeague] = useState<LeagueDetail | null>(null);
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (league && (league.type === 'COMPANY' || league.isEnterprise)) {
+            setTheme({
+                primary: league.brandColorPrimary,
+                secondary: league.brandColorSecondary
+            });
+        } else {
+            setTheme(null);
+        }
+        return () => setTheme(null);
+    }, [league, setTheme]);
 
     useEffect(() => {
         if (params.id) {
@@ -97,7 +121,7 @@ export default function LeaguePage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-obsidian flex items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-signal" />
+                <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
             </div>
         );
     }
@@ -108,7 +132,7 @@ export default function LeaguePage() {
                 <h1 className="text-2xl font-bold">Liga no encontrada</h1>
                 <button
                     onClick={() => router.back()}
-                    className="text-signal hover:underline flex items-center gap-2"
+                    className="text-brand-primary hover:underline flex items-center gap-2"
                 >
                     <ChevronLeft size={20} /> Volver
                 </button>
@@ -117,37 +141,60 @@ export default function LeaguePage() {
     }
 
     return (
-        <div className="min-h-screen bg-obsidian text-white p-4 pb-24 font-sans">
+        <div className="min-h-screen bg-brand-secondary text-white p-4 pb-24 font-sans transition-colors duration-500">
             {/* Header */}
+            {/* Header Logic */}
             <div className="flex items-center gap-4 mb-8">
                 <button
                     onClick={() => router.back()}
-                    className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors"
+                    className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-colors backdrop-blur-sm"
                 >
                     <ChevronLeft size={24} />
                 </button>
-                <div>
-                    <h1 className="text-3xl font-russo uppercase flex items-center gap-3">
-                        {league?.name || 'Detalle de Liga'}
-                        {league?.type === 'public' && <Shield className="text-yellow-500" size={24} />}
-                    </h1>
-                    <div className="flex items-center gap-4 text-slate-400 text-sm">
-                        <span className="flex items-center gap-1">
-                            <Users size={14} /> {participants.length} / {league?.maxParticipants || '?'} Miembros
-                        </span>
-                        {league?.code && (
-                            <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-xs">
-                                CÓDIGO: {league.code}
-                            </span>
-                        )}
-                    </div>
+                <div className="flex-1">
+                    {((league?.type === 'COMPANY' || league?.isEnterprise) && league?.brandingLogoUrl) ? (
+                        // ENTERPRISE HEADER
+                        <div className="flex items-center gap-4">
+                            <div className="relative h-16 w-auto aspect-[3/1] max-w-[200px]">
+                                <img
+                                    src={league.brandingLogoUrl}
+                                    alt="Logo Empresa"
+                                    className="h-full w-full object-contain object-left"
+                                />
+                            </div>
+                            <h1 className="text-xl font-bold font-inter text-white border-l border-white/20 pl-4">
+                                {league.name}
+                            </h1>
+                        </div>
+                    ) : (
+                        // STANDARD HEADER
+                        <div>
+                            <h1 className="text-3xl font-russo uppercase flex items-center gap-3">
+                                {league?.name || 'Detalle de Liga'}
+                                {league?.type === 'public' && <Shield className="text-yellow-500" size={24} />}
+                            </h1>
+                            <div className="flex items-center gap-4 text-slate-400 text-sm">
+                                <span className="flex items-center gap-1">
+                                    <Users size={14} /> {participants.length} / {league?.maxParticipants || '?'} Miembros
+                                </span>
+                                {league?.code && (
+                                    <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-xs">
+                                        CÓDIGO: {league.code}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Prize Hero Section (Enterprise Only) */}
+            <PrizeHero league={league} />
 
             {/* Ranking Table */}
             <div className="bg-carbon rounded-xl border border-slate-700 overflow-hidden">
                 <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex items-center gap-2">
-                    <Trophy className="text-signal" size={20} />
+                    <Trophy className="text-brand-primary" size={20} />
                     <h2 className="font-russo text-lg">Ranking de la Liga</h2>
                 </div>
 
@@ -186,7 +233,7 @@ export default function LeaguePage() {
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-right font-russo text-xl text-signal">
+                                <TableCell className="text-right font-russo text-xl text-brand-primary">
                                     {participant.points}
                                 </TableCell>
                             </TableRow>

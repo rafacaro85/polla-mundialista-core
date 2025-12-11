@@ -19,6 +19,8 @@ export const viewport = {
   userScalable: false,
 };
 
+import { GlobalThemeProvider } from "@/components/GlobalThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,10 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={cn(inter.className, "bg-obsidian text-white antialiased")} suppressHydrationWarning={true}>
-        <AuthProvider>
-          {children}
-          <Footer />
-        </AuthProvider>
+        <GlobalThemeProvider>
+          <AuthProvider>
+            {children}
+            <Footer />
+          </AuthProvider>
+        </GlobalThemeProvider>
         <Toaster />
       </body>
     </html>

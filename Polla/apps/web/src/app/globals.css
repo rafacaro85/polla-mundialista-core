@@ -11,6 +11,10 @@
     --signal: #00E676;
     --tactical: #94A3B8;
 
+    /* BRAND DEFAULT VARIABLES */
+    --brand-primary: #00E676;
+    --brand-secondary: #0F172A;
+
     /* Shadcn UI Variables */
     --popover: #1E293B;
     --popover-foreground: #ffffff;
@@ -34,7 +38,10 @@
 
   /* Prevent iOS Zoom on inputs */
   @media screen and (max-width: 768px) {
-    input, select, textarea {
+
+    input,
+    select,
+    textarea {
       font-size: 16px !important;
     }
   }

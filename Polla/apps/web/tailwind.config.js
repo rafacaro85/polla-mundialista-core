@@ -42,6 +42,10 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         // COLORES PERSONALIZADOS - GUÍA DE DIMENSIONES
+        brand: {
+          primary: 'var(--brand-primary)',
+          secondary: 'var(--brand-secondary)',
+        },
         obsidian: '#0F172A',  // Fondo
         carbon: '#1E293B',    // Tarjetas
         signal: '#00E676',    // Verde Neón

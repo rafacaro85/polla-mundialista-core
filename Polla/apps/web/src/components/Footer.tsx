@@ -16,7 +16,7 @@ export default function Footer() {
 
     const STYLES = {
         container: {
-            backgroundColor: '#020617', // Darker than Obsidian
+            backgroundColor: 'var(--brand-secondary)', // Dynamic
             borderTop: '1px solid #1E293B',
             padding: '40px 20px',
             marginTop: 'auto', // Push to bottom if flex container
@@ -61,9 +61,9 @@ export default function Footer() {
     };
 
     return (
-        <footer style={STYLES.container}>
+        <footer style={STYLES.container} >
             {/* ZONA SOCIAL */}
-            <div style={STYLES.socialRow}>
+            < div style={STYLES.socialRow} >
                 <a
                     href={config.socials.instagram}
                     target="_blank"
@@ -115,18 +115,18 @@ export default function Footer() {
                         <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                     </svg>
                 </a>
-            </div>
+            </div >
 
             {/* LINKS LEGALES */}
-            <div style={STYLES.linksRow}>
+            < div style={STYLES.linksRow} >
                 <a href={config.links.terms} style={STYLES.link} className="hover:text-white">Términos y Condiciones</a>
                 <a href={config.links.privacy} style={STYLES.link} className="hover:text-white">Política de Privacidad</a>
-            </div>
+            </div >
 
             {/* COPYRIGHT */}
-            <div style={STYLES.copyright}>
+            < div style={STYLES.copyright} >
                 {config.copyright}
-            </div>
-        </footer>
+            </div >
+        </footer >
     );
 }

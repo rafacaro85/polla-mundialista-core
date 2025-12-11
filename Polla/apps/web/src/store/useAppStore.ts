@@ -11,10 +11,12 @@ interface AppState {
     user: User | null;
     selectedLeagueId: string; // 'global' por defecto
     isLoading: boolean;
+    theme: { primary?: string; secondary?: string } | null;
 
     // --- ACTIONS ---
     setUser: (user: User | null) => void;
     setSelectedLeague: (id: string) => void;
+    setTheme: (theme: { primary?: string; secondary?: string } | null) => void;
     logout: () => void;
     syncUserFromServer: () => Promise<void>;
 }
@@ -35,8 +37,14 @@ export const useAppStore = create<AppState>()(
                 user: null,
                 selectedLeagueId: 'global',
                 isLoading: false,
+                theme: null,
 
                 // --- ACTIONS ---
+
+                /**
+                 * Sets the global application theme
+                 */
+                setTheme: (theme) => set({ theme }, false, 'setTheme'),
 
                 /**
                  * Actualiza el usuario en el store y localStorage

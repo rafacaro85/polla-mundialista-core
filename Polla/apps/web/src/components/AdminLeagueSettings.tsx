@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2, Users,
     AlertTriangle, RefreshCw, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette
+    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette, Crown
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -26,6 +26,7 @@ import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { EnterpriseLock } from '@/components/admin/EnterpriseLock';
 
 interface Participant {
     user: {
@@ -58,6 +59,8 @@ interface League {
     companyName?: string;
     brandColorPrimary?: string;
     brandColorSecondary?: string;
+    type?: string;
+    isEnterpriseActive?: boolean;
 }
 
 export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode; mode?: 'modal' | 'page' }) {
@@ -381,6 +384,28 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
 
 
+                                        {/* PROMO BANNER */}
+                                        {!currentLeague.isEnterpriseActive && (
+                                            <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-amber-500/30 rounded-xl p-4 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                                <div>
+                                                    <p className="text-xs font-bold text-amber-500 uppercase mb-1 flex items-center gap-2">
+                                                        <Crown size={14} /> ¿Eres una empresa?
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        Personaliza tu marca, logos y obtén analítica avanzada.
+                                                    </p>
+                                                </div>
+                                                <Button size="sm" className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs"
+                                                    onClick={() => {
+                                                        const text = `Hola, quiero pasar mi liga "${currentLeague.name}" a PRO (Enterprise).`;
+                                                        window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                                    }}
+                                                >
+                                                    Pásate a PRO
+                                                </Button>
+                                            </div>
+                                        )}
+
                                         {/* 3. Zona de Peligro */}
                                         <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
                                             <h3 className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-4">
@@ -413,26 +438,30 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
                                     {/* --- PESTAÑA BRANDING --- */}
                                     <TabsContent value="branding" className="mt-0 space-y-6">
-                                        <div style={STYLES.card}>
-                                            <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización Enterprise</h3>
-                                            <LeagueBrandingForm
-                                                leagueId={currentLeague.id}
-                                                initialData={{
-                                                    brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                                    prizeImageUrl: currentLeague.prizeImageUrl,
-                                                    prizeDetails: currentLeague.prizeDetails,
-                                                    welcomeMessage: currentLeague.welcomeMessage,
-                                                    isEnterprise: currentLeague.isEnterprise,
-                                                    companyName: currentLeague.companyName,
-                                                    brandColorPrimary: currentLeague.brandColorPrimary,
-                                                    brandColorSecondary: currentLeague.brandColorSecondary
-                                                }}
-                                                onSuccess={() => {
-                                                    toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                                    loadLeagueData();
-                                                }}
-                                            />
-                                        </div>
+                                        {!currentLeague.isEnterpriseActive ? (
+                                            <EnterpriseLock featureName="Personalización de Marca" />
+                                        ) : (
+                                            <div style={STYLES.card}>
+                                                <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización Enterprise</h3>
+                                                <LeagueBrandingForm
+                                                    leagueId={currentLeague.id}
+                                                    initialData={{
+                                                        brandingLogoUrl: currentLeague.brandingLogoUrl,
+                                                        prizeImageUrl: currentLeague.prizeImageUrl,
+                                                        prizeDetails: currentLeague.prizeDetails,
+                                                        welcomeMessage: currentLeague.welcomeMessage,
+                                                        isEnterprise: currentLeague.isEnterprise,
+                                                        companyName: currentLeague.companyName,
+                                                        brandColorPrimary: currentLeague.brandColorPrimary,
+                                                        brandColorSecondary: currentLeague.brandColorSecondary
+                                                    }}
+                                                    onSuccess={() => {
+                                                        toast({ title: 'Guardado', description: 'Personalización actualizada.' });
+                                                        loadLeagueData();
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
                                     </TabsContent>
 
                                     {/* --- PESTAÑA PLAN --- */}
@@ -583,7 +612,11 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                         </div>
                                     </TabsContent>
                                     <TabsContent value="analytics" className="mt-0 space-y-4">
-                                        <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                        {!currentLeague.isEnterpriseActive ? (
+                                            <EnterpriseLock featureName="Analítica Avanzada" />
+                                        ) : (
+                                            <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                        )}
                                     </TabsContent>
 
                                 </div>

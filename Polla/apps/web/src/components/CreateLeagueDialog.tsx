@@ -508,6 +508,16 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
                                         {isEnterprise && (
                                             <div style={{ marginTop: '12px' }} className="animate-in fade-in slide-in-from-top-2">
+                                                <div className="bg-amber-900/20 border border-amber-500/30 p-3 rounded-lg flex items-start gap-3 mb-4">
+                                                    <Crown size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                                                    <div className="space-y-1">
+                                                        <p className="text-[11px] font-bold text-amber-500 uppercase">Verificación Requerida</p>
+                                                        <p className="text-[10px] text-amber-200/80 leading-relaxed">
+                                                            Las funciones avanzadas (Branding, Analítica, Deptos) se habilitarán manualmente tras validar tu cuenta de empresa.
+                                                        </p>
+                                                    </div>
+                                                </div>
+
                                                 <label style={STYLES.label}>Nombre de la Empresa</label>
                                                 <input
                                                     type="text"

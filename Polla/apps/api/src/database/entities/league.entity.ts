@@ -73,6 +73,9 @@ export class League {
   @Column({ name: 'is_enterprise', default: false })
   isEnterprise: boolean;
 
+  @Column({ name: 'is_enterprise_active', default: false })
+  isEnterpriseActive: boolean;
+
   @Column({ name: 'company_name', nullable: true })
   companyName: string;
 

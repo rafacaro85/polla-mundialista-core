@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2, Users,
     AlertTriangle, RefreshCw, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift, Menu, X
+    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -54,6 +54,10 @@ interface League {
     prizeImageUrl?: string;
     prizeDetails?: string;
     welcomeMessage?: string;
+    isEnterprise?: boolean;
+    companyName?: string;
+    brandColorPrimary?: string;
+    brandColorSecondary?: string;
 }
 
 export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode; mode?: 'modal' | 'page' }) {
@@ -62,6 +66,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
     const [open, setOpen] = useState(false);
     const [currentLeague, setCurrentLeague] = useState<League | null>(null);
+    const brandColor = currentLeague?.brandColorPrimary || '#10B981';
     const [activeTab, setActiveTab] = useState('editar');
     const [editedName, setEditedName] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -236,6 +241,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
             {currentLeague?.isAdmin && (
                 <>
                     <NavItem value="editar" icon={Edit} label="Configuración" />
+                    <NavItem value="branding" icon={Palette} label="Personalización" />
                     <NavItem value="plan" icon={Gem} label="Mi Plan" />
                     <NavItem value="analytics" icon={BarChart3} label="Analítica" />
                 </>
@@ -262,12 +268,12 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 <aside className="hidden md:flex flex-col w-64 bg-[#1E293B] border-r border-slate-800 shrink-0">
                     <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center font-russo text-[#0F172A]">P</div>
+                            <div className="w-8 h-8 rounded flex items-center justify-center font-russo text-[#0F172A]" style={{ backgroundColor: brandColor }}>P</div>
                             <h2 className="text-sm font-russo text-white uppercase tracking-wider">
                                 POLA 2026
                             </h2>
                         </div>
-                        <p className="text-[10px] text-emerald-500 font-bold uppercase mt-1 truncate pl-1">
+                        <p className="text-[10px] font-bold uppercase mt-1 truncate pl-1" style={{ color: brandColor }}>
                             {currentLeague?.name}
                         </p>
                     </div>
@@ -345,26 +351,13 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                     onChange={e => setEditedName(e.target.value)}
                                                     className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
                                                 />
-                                                <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="bg-emerald-500 text-slate-900 hover:bg-emerald-400">
+                                                <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="text-slate-900 hover:opacity-90 transition-opacity" style={{ backgroundColor: brandColor }}>
                                                     <Save className="w-4 h-4" />
                                                 </Button>
                                             </div>
                                         </div>
 
-                                        {/* 2. Branding (Imágenes y Textos) */}
-                                        <LeagueBrandingForm
-                                            leagueId={currentLeague.id}
-                                            initialData={{
-                                                brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                                prizeImageUrl: currentLeague.prizeImageUrl,
-                                                prizeDetails: currentLeague.prizeDetails,
-                                                welcomeMessage: currentLeague.welcomeMessage,
-                                            }}
-                                            onSuccess={() => {
-                                                toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                                loadLeagueData(); // Reload to see changes if needed
-                                            }}
-                                        />
+
 
                                         {/* 3. Zona de Peligro */}
                                         <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
@@ -393,6 +386,30 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                     <Trash2 className="w-4 h-4 mr-2" /> Eliminar Polla Definitivamente
                                                 </Button>
                                             </div>
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA BRANDING --- */}
+                                    <TabsContent value="branding" className="mt-0 space-y-6">
+                                        <div style={STYLES.card}>
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización Enterprise</h3>
+                                            <LeagueBrandingForm
+                                                leagueId={currentLeague.id}
+                                                initialData={{
+                                                    brandingLogoUrl: currentLeague.brandingLogoUrl,
+                                                    prizeImageUrl: currentLeague.prizeImageUrl,
+                                                    prizeDetails: currentLeague.prizeDetails,
+                                                    welcomeMessage: currentLeague.welcomeMessage,
+                                                    isEnterprise: currentLeague.isEnterprise,
+                                                    companyName: currentLeague.companyName,
+                                                    brandColorPrimary: currentLeague.brandColorPrimary,
+                                                    brandColorSecondary: currentLeague.brandColorSecondary
+                                                }}
+                                                onSuccess={() => {
+                                                    toast({ title: 'Guardado', description: 'Personalización actualizada.' });
+                                                    loadLeagueData();
+                                                }}
+                                            />
                                         </div>
                                     </TabsContent>
 

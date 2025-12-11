@@ -9,7 +9,7 @@ import { AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 // In a real server component we would fetch data here.
 // Since we are using client components for 'api' lib mostly, we will use a client wrapper for security 
 // OR we can make this page.tsx client side
-import { AdminLeagueSettings } from '@/components/AdminLeagueSettings';
+import { LeagueSettings as AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 
 export default function LeagueAdminPage() {
     const params = useParams();

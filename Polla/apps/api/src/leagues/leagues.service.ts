@@ -185,7 +185,7 @@ export class LeaguesService {
       welcomeMessage: league.welcomeMessage,
       creatorName: league.creator.nickname || league.creator.fullName,
       type: league.type,
-      isEnterprise: league.type === 'COMPANY' || league.isEnterprise,
+      isEnterprise: league.type === LeagueType.COMPANY || league.isEnterprise,
       companyName: league.companyName,
     };
   }

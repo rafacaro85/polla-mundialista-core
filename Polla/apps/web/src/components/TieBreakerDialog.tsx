@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Trophy, Save, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface TieBreakerDialogProps {
     isOpen: boolean;
@@ -14,8 +15,6 @@ interface TieBreakerDialogProps {
 export default function TieBreakerDialog({ isOpen, onClose, leagueId, currentGuess, onSuccess }: TieBreakerDialogProps) {
     const [guess, setGuess] = useState<string>(currentGuess?.toString() || '');
     const [loading, setLoading] = useState(false);
-
-    if (!isOpen) return null;
 
     const handleSubmit = async () => {
         if (!guess) {
@@ -49,25 +48,23 @@ export default function TieBreakerDialog({ isOpen, onClose, leagueId, currentGue
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80">
-            <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
-
-                {/* Header */}
-                <div className="text-center mb-6">
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="z-[9999] sm:max-w-md bg-[#1E293B] border-[#334155] text-white">
+                <DialogHeader className="mb-4">
                     <div className="mx-auto w-12 h-12 bg-[#00E676]/10 rounded-full flex items-center justify-center mb-3 border border-[#00E676]/30">
                         <Trophy className="text-[#00E676]" size={24} />
                     </div>
-                    <h2 className="text-xl font-bold text-white font-russo uppercase tracking-wider">
+                    <DialogTitle className="text-xl font-bold text-center font-russo uppercase tracking-wider">
                         Desempate
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-slate-400 text-center leading-relaxed">
                         Predice el total de goles del Mundial. En caso de empate en puntos, ¡ganará quien se acerque más!
-                    </p>
-                </div>
+                    </DialogDescription>
+                </DialogHeader>
 
                 {/* Input */}
                 <div className="mb-6">
-                    <label className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2 block">
+                    <label className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2 block text-center">
                         Goles Totales
                     </label>
                     <input
@@ -106,8 +103,7 @@ export default function TieBreakerDialog({ isOpen, onClose, leagueId, currentGue
                     <AlertCircle size={12} />
                     <span>Puedes cambiar esto hasta que inicie el torneo.</span>
                 </div>
-
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2, Users,
     AlertTriangle, RefreshCw, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift
+    Edit, Trophy, Eye, BarChart3, Gift, Menu, X
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -24,6 +24,8 @@ import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 interface Participant {
     user: {
@@ -60,6 +62,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
     const [open, setOpen] = useState(false);
     const [currentLeague, setCurrentLeague] = useState<League | null>(null);
+    const [activeTab, setActiveTab] = useState('editar');
     const [editedName, setEditedName] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(false);
@@ -209,6 +212,39 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
         card: { backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginBottom: '16px' }
     };
 
+    // Helper NAV Item
+    const NavItem = ({ value, icon: Icon, label }: any) => {
+        const isActive = activeTab === value;
+        return (
+            <button
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-all rounded-r-full mr-4 mb-1 uppercase tracking-wider",
+                    isActive
+                        ? "bg-emerald-500/10 text-emerald-400 border-l-2 border-emerald-500"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800 border-l-2 border-transparent"
+                )}
+            >
+                <Icon size={16} />
+                <span>{label}</span>
+            </button>
+        );
+    };
+
+    const NavigationList = () => (
+        <nav className="flex-1 py-6 space-y-1">
+            {currentLeague?.isAdmin && (
+                <>
+                    <NavItem value="editar" icon={Edit} label="Configuración" />
+                    <NavItem value="plan" icon={Gem} label="Mi Plan" />
+                    <NavItem value="analytics" icon={BarChart3} label="Analítica" />
+                </>
+            )}
+            <NavItem value="bonus" icon={Trophy} label="Bonus" />
+            <NavItem value="usuarios" icon={Users} label="Participantes" />
+        </nav>
+    );
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -218,275 +254,300 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="!bg-[#0F172A] bg-[#0F172A] border-slate-700 text-white sm:max-w-[700px] max-h-[95vh] overflow-y-auto z-[50] p-0 flex flex-col">
-                <DialogTitle className="sr-only">Gestión de Polla</DialogTitle>
-                <DialogDescription className="sr-only">Panel de administración</DialogDescription>
 
-                {/* HEADLINE */}
-                <div className="p-6 pb-2 bg-[#1E293B] border-b border-slate-700">
-                    <h2 className="text-xl font-russo uppercase text-white flex items-center gap-2">
-                        <Settings className="text-emerald-500" /> Gestión de Polla
-                    </h2>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1 ml-8">{currentLeague?.name}</p>
-                </div>
-
-                {loadingParticipants && !currentLeague ? (
-                    <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div>
-                ) : currentLeague ? (
-                    <div className="flex-1 overflow-hidden flex flex-col">
-                        <Tabs defaultValue={currentLeague?.isAdmin ? 'editar' : 'usuarios'} className="flex-1 flex flex-col">
-
-                            <div className="px-6 pt-4 bg-[#1E293B]">
-                                <TabsList className="flex bg-[#0F172A] p-1 rounded-full border border-slate-700 w-full mb-2 shadow-inner">
-                                    {currentLeague?.isAdmin && (
-                                        <>
-                                            <TabsTrigger value="editar"
-                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                            >
-                                                <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
-                                            </TabsTrigger>
-                                            <TabsTrigger value="plan"
-                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                            >
-                                                <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
-                                            </TabsTrigger>
-                                            <TabsTrigger value="analytics"
-                                                className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                            >
-                                                <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Analítica
-                                            </TabsTrigger>
-                                        </>
-                                    )}
-                                    <TabsTrigger value="bonus"
-                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                    >
-                                        <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
-                                    </TabsTrigger>
-                                    <TabsTrigger value="usuarios"
-                                        className="flex-1 rounded-full text-[10px] font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] data-[state=active]:shadow-lg transition-all duration-300 text-slate-400 hover:text-white"
-                                    >
-                                        <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
-                                    </TabsTrigger>
-                                </TabsList>
+            <DialogContent className="max-w-none w-screen h-screen p-0 bg-[#0F172A] border-none flex overflow-hidden sm:rounded-none z-[60]">
+                {/* 1. SIDEBAR (Desktop) */}
+                <aside className="hidden md:flex flex-col w-64 bg-[#1E293B] border-r border-slate-800 shrink-0">
+                    <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center font-russo text-[#0F172A]">P</div>
+                            <h2 className="text-sm font-russo text-white uppercase tracking-wider">
+                                POLA 2026
+                            </h2>
+                        </div>
+                        <p className="text-[10px] text-emerald-500 font-bold uppercase mt-1 truncate pl-1">
+                            {currentLeague?.name}
+                        </p>
+                    </div>
+                    <NavigationList />
+                    {/* User Info Footer */}
+                    <div className="p-4 border-t border-slate-800 bg-[#0F172A]/30">
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 border border-white/10">
+                                <AvatarImage src={(user as any)?.avatar || (user as any)?.photoURL || ''} />
+                                <AvatarFallback>{(user as any)?.name?.charAt(0) || 'U'}</AvatarFallback>
+                            </Avatar>
+                            <div className="overflow-hidden">
+                                <p className="text-xs font-bold text-white truncate">{(user as any)?.name || (user as any)?.displayName}</p>
+                                <p className="text-[10px] text-slate-500 truncate">Admin</p>
                             </div>
+                        </div>
+                    </div>
+                </aside>
 
-                            <div className="flex-1 overflow-y-auto p-6 bg-[#0F172A]">
-                                {/* --- PESTAÑA EDITAR --- */}
-                                <TabsContent value="editar" className="mt-0 space-y-6">
-                                    {/* 1. Nombre */}
-                                    <div style={STYLES.card}>
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Nombre de la Polla</h3>
-                                        <div className="flex gap-2">
-                                            <input
-                                                value={editedName}
-                                                onChange={e => setEditedName(e.target.value)}
-                                                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
-                                            />
-                                            <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="bg-emerald-500 text-slate-900 hover:bg-emerald-400">
-                                                <Save className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                {/* 2. AREA PRINCIPAL */}
+                <div className="flex-1 flex flex-col h-full bg-[#0F172A] relative min-w-0">
+
+                    {/* MOBILE HEADER */}
+                    <header className="md:hidden h-14 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="-ml-2 text-white"><Menu /></Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="bg-[#1E293B] border-r-slate-800 p-0 w-72 text-white border-none">
+                                    <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
+                                        <h2 className="text-lg font-russo text-white uppercase tracking-wider">MENU</h2>
                                     </div>
+                                    <NavigationList />
+                                </SheetContent>
+                            </Sheet>
+                            <span className="font-russo uppercase text-sm truncate text-white">{currentLeague?.name}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="text-slate-400" onClick={() => setOpen(false)}>
+                            <X className="w-5 h-5" />
+                        </Button>
+                    </header>
 
-                                    {/* 2. Branding (Imágenes y Textos) */}
-                                    <LeagueBrandingForm
-                                        leagueId={currentLeague.id}
-                                        initialData={{
-                                            brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                            prizeImageUrl: currentLeague.prizeImageUrl,
-                                            prizeDetails: currentLeague.prizeDetails,
-                                            welcomeMessage: currentLeague.welcomeMessage,
-                                        }}
-                                        onSuccess={() => {
-                                            toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                            loadLeagueData(); // Reload to see changes if needed
-                                        }}
-                                    />
-
-                                    {/* 3. Zona de Peligro */}
-                                    <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
-                                        <h3 className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-4">
-                                            <AlertTriangle className="w-4 h-4" /> Zona de Peligro
-                                        </h3>
-
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-[10px] text-red-300 font-bold uppercase mb-2 block">Transferir Propiedad</label>
-                                                <select
-                                                    className="w-full bg-slate-900 border border-red-900/50 rounded-lg px-3 py-2 text-xs text-white"
-                                                    onChange={(e) => {
-                                                        if (e.target.value) handleTransferOwner(e.target.value);
-                                                    }}
-                                                    value=""
-                                                >
-                                                    <option value="" disabled>Seleccionar nuevo admin...</option>
-                                                    {participants.filter(p => p.user.id !== user?.id).map(p => (
-                                                        <option key={p.user.id} value={p.user.id}>{p.user.nickname}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-
-                                            <Button variant="destructive" className="w-full mt-2" onClick={handleDeleteLeague} disabled={loading}>
-                                                <Trash2 className="w-4 h-4 mr-2" /> Eliminar Polla Definitivamente
-                                            </Button>
-                                        </div>
+                    {/* LOADING STATE - Ajustado para ocupar full height */}
+                    {loadingParticipants && !currentLeague ? (
+                        <div className="flex-1 flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500 w-8 h-8" /></div>
+                    ) : currentLeague ? (
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+                            {/* Scrollable Content Container */}
+                            <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:px-12 bg-[#0F172A]">
+                                <div className="max-w-4xl mx-auto space-y-6 pb-20">
+                                    <div className="flex items-center justify-between mb-2 md:mb-6">
+                                        <h1 className="text-2xl font-russo uppercase text-white hidden md:block">{
+                                            activeTab === 'editar' ? 'Configuración' :
+                                                activeTab === 'plan' ? 'Mi Plan' :
+                                                    activeTab === 'analytics' ? 'Analítica' :
+                                                        activeTab === 'bonus' ? 'Desafíos Bonus' :
+                                                            'Participantes'
+                                        }</h1>
+                                        {/* Mobile Close is in Header */}
+                                        <Button variant="outline" className="hidden md:flex gap-2 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800" onClick={() => setOpen(false)}>
+                                            <X size={16} /> Cerrar Panel
+                                        </Button>
                                     </div>
-                                </TabsContent>
-
-                                {/* --- PESTAÑA PLAN --- */}
-                                <TabsContent value="plan" className="mt-0 space-y-6">
-                                    <div style={STYLES.card}>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-xs font-bold text-slate-400 uppercase">Estado del Plan</h3>
-                                            <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">
-                                                {participants.length} / {currentLeague.maxParticipants} Cupos
-                                            </span>
-                                        </div>
-                                        <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-slate-700 mb-4" />
-
-                                        <div className="bg-slate-900 rounded-lg p-4 border border-dashed border-slate-700 text-center">
-                                            <p className="text-xs text-slate-400 mb-1">CÓDIGO DE INVITACIÓN</p>
-                                            <p className="text-2xl font-mono text-emerald-400 font-bold tracking-widest my-2">{currentLeague.code}</p>
-                                            <div className="flex gap-2 justify-center mt-3">
-                                                <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-slate-600 hover:bg-slate-800 text-white">
-                                                    {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />} Copiar
-                                                </Button>
-                                                <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
-                                                    onClick={() => {
-                                                        const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\nCódigo: *${currentLeague.code}*`;
-                                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                                    }}
-                                                >
-                                                    <Share2 className="w-3 h-3 mr-1" /> WhatsApp
+                                    {/* --- PESTAÑA EDITAR --- */}
+                                    <TabsContent value="editar" className="mt-0 space-y-6">
+                                        {/* 1. Nombre */}
+                                        <div style={STYLES.card}>
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Nombre de la Polla</h3>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    value={editedName}
+                                                    onChange={e => setEditedName(e.target.value)}
+                                                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
+                                                />
+                                                <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="bg-emerald-500 text-slate-900 hover:bg-emerald-400">
+                                                    <Save className="w-4 h-4" />
                                                 </Button>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 rounded-xl p-5 border border-emerald-500/30">
-                                        <h3 className="text-emerald-400 font-bold uppercase text-sm mb-2 flex items-center gap-2">
-                                            <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
-                                        </h3>
-                                        <p className="text-xs text-slate-300 mb-4">
-                                            Solicita una ampliación de tu plan actual para invitar a más amigos.
-                                        </p>
-                                        <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
-                                            onClick={() => {
-                                                const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
-                                                window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                        {/* 2. Branding (Imágenes y Textos) */}
+                                        <LeagueBrandingForm
+                                            leagueId={currentLeague.id}
+                                            initialData={{
+                                                brandingLogoUrl: currentLeague.brandingLogoUrl,
+                                                prizeImageUrl: currentLeague.prizeImageUrl,
+                                                prizeDetails: currentLeague.prizeDetails,
+                                                welcomeMessage: currentLeague.welcomeMessage,
                                             }}
-                                        >
-                                            Solicitar Ampliación de Cupo
-                                        </Button>
-                                    </div>
-                                    {currentLeague.isPaid && (
-                                        <Button variant="outline" className="w-full border-slate-700 text-slate-400 hover:text-white"
-                                            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/leagues/${currentLeague.id}/voucher`, '_blank')}
-                                        >
-                                            <Copy className="w-3 h-3 mr-2" /> Descargar Comprobante de Pago
-                                        </Button>
-                                    )}
-                                </TabsContent>
+                                            onSuccess={() => {
+                                                toast({ title: 'Guardado', description: 'Personalización actualizada.' });
+                                                loadLeagueData(); // Reload to see changes if needed
+                                            }}
+                                        />
 
-                                {/* --- PESTAÑA BONUS --- */}
-                                <TabsContent value="bonus" className="mt-0 space-y-8">
-                                    {currentLeague?.isAdmin && (
-                                        <div className="space-y-4">
-                                            <LeagueBonusQuestions leagueId={currentLeague.id} />
-                                        </div>
-                                    )}
+                                        {/* 3. Zona de Peligro */}
+                                        <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
+                                            <h3 className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-4">
+                                                <AlertTriangle className="w-4 h-4" /> Zona de Peligro
+                                            </h3>
 
-                                    <div className="border-t border-slate-700 pt-6">
-                                        <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
-                                            <BarChart3 className="w-4 h-4 text-emerald-500" /> Consolidado de Puntos
-                                        </h3>
-                                        <div className="overflow-hidden rounded-lg border border-slate-700">
-                                            <table className="w-full text-xs text-left">
-                                                <thead className="bg-[#1E293B] text-slate-400 font-bold uppercase">
-                                                    <tr>
-                                                        <th className="p-3">Usuario</th>
-                                                        <th className="p-3 text-right">Partidos</th>
-                                                        <th className="p-3 text-right">Bonus</th>
-                                                        <th className="p-3 text-right text-white">Total</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-700 bg-slate-900/50">
-                                                    {participants.map((p) => (
-                                                        <tr key={p.user.id} className="hover:bg-slate-800/50">
-                                                            <td className="p-3 font-medium text-slate-300">{p.user.nickname}</td>
-                                                            <td className="p-3 text-right text-slate-400">{p.predictionPoints}</td>
-                                                            <td className="p-3 text-right text-emerald-400 font-bold">{p.bonusPoints}</td>
-                                                            <td className="p-3 text-right font-bold text-white">{p.totalPoints}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                {/* --- PESTAÑA USUARIOS --- */}
-                                <TabsContent value="usuarios" className="mt-0 space-y-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase">Lista de Participantes</h3>
-                                        <span className="text-xs text-slate-500">{participants.length} usuarios</span>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {participants.map((p) => (
-                                            <div key={p.user.id} className="bg-[#1E293B] border border-slate-700 rounded-xl p-3 flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10 border border-slate-600">
-                                                        <AvatarImage src={p.user.avatarUrl} />
-                                                        <AvatarFallback>{p.user.nickname.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <div className="font-bold text-sm text-white flex items-center gap-2">
-                                                            {p.user.nickname}
-                                                            {p.user.id === user?.id && <span className="bg-amber-500 text-black text-[9px] px-1 rounded font-bold">TU</span>}
-                                                            {p.isBlocked && <span className="text-red-500 text-[9px] border border-red-500 px-1 rounded uppercase">Bloqueado</span>}
-                                                        </div>
-                                                        <div className="text-[10px] text-slate-400">ID: {p.user.id.substring(0, 6)}...</div>
-                                                    </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[10px] text-red-300 font-bold uppercase mb-2 block">Transferir Propiedad</label>
+                                                    <select
+                                                        className="w-full bg-slate-900 border border-red-900/50 rounded-lg px-3 py-2 text-xs text-white"
+                                                        onChange={(e) => {
+                                                            if (e.target.value) handleTransferOwner(e.target.value);
+                                                        }}
+                                                        value=""
+                                                    >
+                                                        <option value="" disabled>Seleccionar nuevo admin...</option>
+                                                        {participants.filter(p => p.user.id !== user?.id).map(p => (
+                                                            <option key={p.user.id} value={p.user.id}>{p.user.nickname}</option>
+                                                        ))}
+                                                    </select>
                                                 </div>
 
-                                                {/* Acciones solo si soy admin y no soy yo mismo */}
-                                                {currentLeague?.isAdmin && p.user.id !== user?.id && (
-                                                    <div className="flex items-center gap-1">
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
-                                                            title="Ver Detalle"
-                                                            onClick={() => setSelectedUser({ id: p.user.id, name: p.user.nickname, avatar: p.user.avatarUrl })}
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-
-                                                        <Button variant="ghost" size="icon"
-                                                            className={`h-8 w-8 ${p.isBlocked ? 'text-green-500' : 'text-amber-500'} hover:bg-slate-800`}
-                                                            title={p.isBlocked ? "Desbloquear" : "Bloquear"}
-                                                            onClick={() => handleBlockParticipant(p.user.id, p.user.nickname, !!p.isBlocked)}
-                                                        >
-                                                            {p.isBlocked ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                                                        </Button>
-
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400"
-                                                            title="Expulsar"
-                                                            onClick={() => handleRemoveParticipant(p.user.id, p.user.nickname)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                )}
+                                                <Button variant="destructive" className="w-full mt-2" onClick={handleDeleteLeague} disabled={loading}>
+                                                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar Polla Definitivamente
+                                                </Button>
                                             </div>
-                                        ))}
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="analytics" className="mt-0 space-y-4">
-                                    <LeagueAnalyticsPanel leagueId={currentLeague.id} />
-                                </TabsContent>
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA PLAN --- */}
+                                    <TabsContent value="plan" className="mt-0 space-y-6">
+                                        <div style={STYLES.card}>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-xs font-bold text-slate-400 uppercase">Estado del Plan</h3>
+                                                <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">
+                                                    {participants.length} / {currentLeague.maxParticipants} Cupos
+                                                </span>
+                                            </div>
+                                            <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-slate-700 mb-4" />
+
+                                            <div className="bg-slate-900 rounded-lg p-4 border border-dashed border-slate-700 text-center">
+                                                <p className="text-xs text-slate-400 mb-1">CÓDIGO DE INVITACIÓN</p>
+                                                <p className="text-2xl font-mono text-emerald-400 font-bold tracking-widest my-2">{currentLeague.code}</p>
+                                                <div className="flex gap-2 justify-center mt-3">
+                                                    <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-slate-600 hover:bg-slate-800 text-white">
+                                                        {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />} Copiar
+                                                    </Button>
+                                                    <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
+                                                        onClick={() => {
+                                                            const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\nCódigo: *${currentLeague.code}*`;
+                                                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                                        }}
+                                                    >
+                                                        <Share2 className="w-3 h-3 mr-1" /> WhatsApp
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 rounded-xl p-5 border border-emerald-500/30">
+                                            <h3 className="text-emerald-400 font-bold uppercase text-sm mb-2 flex items-center gap-2">
+                                                <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
+                                            </h3>
+                                            <p className="text-xs text-slate-300 mb-4">
+                                                Solicita una ampliación de tu plan actual para invitar a más amigos.
+                                            </p>
+                                            <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                                                onClick={() => {
+                                                    const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
+                                                    window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                                }}
+                                            >
+                                                Solicitar Ampliación de Cupo
+                                            </Button>
+                                        </div>
+                                        {currentLeague.isPaid && (
+                                            <Button variant="outline" className="w-full border-slate-700 text-slate-400 hover:text-white"
+                                                onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/leagues/${currentLeague.id}/voucher`, '_blank')}
+                                            >
+                                                <Copy className="w-3 h-3 mr-2" /> Descargar Comprobante de Pago
+                                            </Button>
+                                        )}
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA BONUS --- */}
+                                    <TabsContent value="bonus" className="mt-0 space-y-8">
+                                        {currentLeague?.isAdmin && (
+                                            <div className="space-y-4">
+                                                <LeagueBonusQuestions leagueId={currentLeague.id} />
+                                            </div>
+                                        )}
+
+                                        <div className="border-t border-slate-700 pt-6">
+                                            <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
+                                                <BarChart3 className="w-4 h-4 text-emerald-500" /> Consolidado de Puntos
+                                            </h3>
+                                            <div className="overflow-hidden rounded-lg border border-slate-700">
+                                                <table className="w-full text-xs text-left">
+                                                    <thead className="bg-[#1E293B] text-slate-400 font-bold uppercase">
+                                                        <tr>
+                                                            <th className="p-3">Usuario</th>
+                                                            <th className="p-3 text-right">Partidos</th>
+                                                            <th className="p-3 text-right">Bonus</th>
+                                                            <th className="p-3 text-right text-white">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-700 bg-slate-900/50">
+                                                        {participants.map((p) => (
+                                                            <tr key={p.user.id} className="hover:bg-slate-800/50">
+                                                                <td className="p-3 font-medium text-slate-300">{p.user.nickname}</td>
+                                                                <td className="p-3 text-right text-slate-400">{p.predictionPoints}</td>
+                                                                <td className="p-3 text-right text-emerald-400 font-bold">{p.bonusPoints}</td>
+                                                                <td className="p-3 text-right font-bold text-white">{p.totalPoints}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA USUARIOS --- */}
+                                    <TabsContent value="usuarios" className="mt-0 space-y-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase">Lista de Participantes</h3>
+                                            <span className="text-xs text-slate-500">{participants.length} usuarios</span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {participants.map((p) => (
+                                                <div key={p.user.id} className="bg-[#1E293B] border border-slate-700 rounded-xl p-3 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10 border border-slate-600">
+                                                            <AvatarImage src={p.user.avatarUrl} />
+                                                            <AvatarFallback>{p.user.nickname.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <div className="font-bold text-sm text-white flex items-center gap-2">
+                                                                {p.user.nickname}
+                                                                {p.user.id === user?.id && <span className="bg-amber-500 text-black text-[9px] px-1 rounded font-bold">TU</span>}
+                                                                {p.isBlocked && <span className="text-red-500 text-[9px] border border-red-500 px-1 rounded uppercase">Bloqueado</span>}
+                                                            </div>
+                                                            <div className="text-[10px] text-slate-400">ID: {p.user.id.substring(0, 6)}...</div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Acciones solo si soy admin y no soy yo mismo */}
+                                                    {currentLeague?.isAdmin && p.user.id !== user?.id && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+                                                                title="Ver Detalle"
+                                                                onClick={() => setSelectedUser({ id: p.user.id, name: p.user.nickname, avatar: p.user.avatarUrl })}
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+
+                                                            <Button variant="ghost" size="icon"
+                                                                className={`h-8 w-8 ${p.isBlocked ? 'text-green-500' : 'text-amber-500'} hover:bg-slate-800`}
+                                                                title={p.isBlocked ? "Desbloquear" : "Bloquear"}
+                                                                onClick={() => handleBlockParticipant(p.user.id, p.user.nickname, !!p.isBlocked)}
+                                                            >
+                                                                {p.isBlocked ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                                            </Button>
+
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+                                                                title="Expulsar"
+                                                                onClick={() => handleRemoveParticipant(p.user.id, p.user.nickname)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="analytics" className="mt-0 space-y-4">
+                                        <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                    </TabsContent>
+
+                                </div>
                             </div>
                         </Tabs>
-                    </div>
-                ) : null}
+                    ) : null}
+                </div>
             </DialogContent>
 
             {/* MODAL DETALLE USUARIO */}

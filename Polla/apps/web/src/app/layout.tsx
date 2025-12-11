@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description: "Participa y gana",
 };
 
+export const viewport = {
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

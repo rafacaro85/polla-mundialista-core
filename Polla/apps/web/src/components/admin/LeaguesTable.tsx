@@ -112,7 +112,7 @@ export function LeaguesTable() {
     };
 
     const handleToggleEnterprise = async (league: League) => {
-        if (league.type !== 'COMPANY') return;
+        if (league.type !== 'COMPANY' && !league.isEnterprise) return;
         const newStatus = !league.isEnterpriseActive;
         if (!confirm(`¿${newStatus ? 'ACTIVAR' : 'DESACTIVAR'} modo Enterprise para ${league.name}?`)) return;
 
@@ -364,7 +364,8 @@ export function LeaguesTable() {
                                 <Button
                                     size="sm"
                                     onClick={() => handleToggleEnterprise(league)}
-                                    className={`h-6 text-[9px] px-2 font-bold ${league.isEnterpriseActive ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                                    style={{ backgroundColor: league.isEnterpriseActive ? '#EF4444' : '#10B981', color: 'white' }}
+                                    className="h-6 text-[9px] px-2 font-bold border-none hover:opacity-90 transition-opacity"
                                 >
                                     {league.isEnterpriseActive ? 'DESACTIVAR' : 'ACTIVAR'}
                                 </Button>

@@ -261,7 +261,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 )}
             </DialogTrigger>
 
-            <DialogContent className="max-w-none w-screen h-screen p-0 bg-[#0F172A] border-none flex overflow-hidden sm:rounded-none z-[60]">
+            <DialogContent showCloseButton={false} className="max-w-none w-screen h-screen p-0 bg-[#0F172A] border-none flex overflow-hidden sm:rounded-none z-[60]">
                 <DialogTitle className="sr-only">Configuración</DialogTitle>
                 <DialogDescription className="sr-only">Panel de administración</DialogDescription>
                 {/* 1. SIDEBAR (Desktop) */}
@@ -297,7 +297,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 <div className="flex-1 flex flex-col h-full bg-[#0F172A] relative min-w-0">
 
                     {/* MOBILE HEADER */}
-                    <header className="md:hidden h-14 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0">
+                    <header className="md:hidden h-16 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0">
                         <div className="flex items-center gap-3 overflow-hidden">
                             <Sheet>
                                 <SheetTrigger asChild>

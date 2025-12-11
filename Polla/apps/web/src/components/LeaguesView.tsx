@@ -242,34 +242,27 @@ export const LeaguesView = () => {
                         </div>
 
                         <div>
-                            {league.isAdmin ? (
-                                <button
-                                    onClick={() => router.push(`/league-admin/${league.id}`)}
-                                    style={{
-                                        ...STYLES.actionBtn,
-                                        backgroundColor: '#00E676',
-                                        color: '#0F172A',
-                                        boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                    }}
-                                >
-                                    Gestionar
-                                </button>
-                            ) : (
-                                <LeagueSettings
-                                    league={league}
-                                    onUpdate={fetchLeagues}
-                                    trigger={
-                                        <button style={{
+                            <LeagueSettings
+                                league={league as any}
+                                onUpdate={fetchLeagues}
+                                trigger={
+                                    <button style={
+                                        league.isAdmin ? {
+                                            ...STYLES.actionBtn,
+                                            backgroundColor: '#00E676',
+                                            color: '#0F172A',
+                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                        } : {
                                             ...STYLES.actionBtn,
                                             backgroundColor: 'transparent',
                                             border: '1px solid #475569',
                                             color: 'white'
-                                        }}>
-                                            Ver
-                                        </button>
-                                    }
-                                />
-                            )}
+                                        }
+                                    }>
+                                        {league.isAdmin ? 'GESTIONAR' : 'VER'}
+                                    </button>
+                                }
+                            />
                         </div>
 
                     </div>

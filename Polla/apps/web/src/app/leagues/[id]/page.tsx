@@ -3,268 +3,164 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { Loader2, ChevronLeft, Trophy, Users, Shield } from 'lucide-react';
+import { Loader2, Trophy, Users, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { BrandProvider } from '@/components/BrandProvider';
 import { PrizeHero } from '@/components/PrizeHero';
-import { useAppStore } from '@/store/useAppStore';
-import { EnterpriseLeagueView } from '@/components/EnterpriseLeagueView';
+import { SocialWallWidget } from '@/components/SocialWallWidget';
 
-interface LeagueDetail {
-    id: string;
-    name: string;
-    code: string;
-    type: string;
-    maxParticipants: number;
-    creator: {
-        id: string;
-        nickname: string;
-        avatarUrl?: string;
-    };
-    participantCount: number;
-    // Enterprise Fields
-    brandingLogoUrl?: string;
-    prizeImageUrl?: string;
-    prizeDetails?: string;
-    welcomeMessage?: string;
-    brandColorPrimary?: string;
-    brandColorSecondary?: string;
-    isEnterprise?: boolean;
-    isEnterpriseActive?: boolean;
-}
+// This page now acts as the "Home" / "Landing" of the league.
+// It receives the layout context (Theme & Nav).
 
-interface Participant {
-    id: string;
-    nickname: string;
-    avatarUrl?: string;
-    points: number;
-    rank: number;
-    user?: { // A veces viene anidado
-        nickname: string;
-        avatarUrl?: string;
-    };
-    totalPoints?: number; // A veces viene como totalPoints
-}
-
-export default function LeaguePage() {
+export default function LeagueLandingPage() {
     const params = useParams();
-    const router = useRouter();
-    const { setTheme } = useAppStore();
-    const [league, setLeague] = useState<LeagueDetail | null>(null);
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    const router = useRouter(); // For manual routing if needed
+    const [league, setLeague] = useState<any>(null);
+    const [participants, setParticipants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Fetch data again? 
+    // Ideally we share state with layout, but fetching again is safer for independent component lifecycle
+    // or we could use a context. For now, simple fetch.
     useEffect(() => {
-        // Activar tema si hay colores definidos, independientemente del flag estricto de tipo
-        if (league && (league.brandColorPrimary && league.brandColorSecondary)) {
-            setTheme({
-                primary: league.brandColorPrimary,
-                secondary: league.brandColorSecondary
-            });
-        } else {
-            setTheme(null);
-        }
-        return () => setTheme(null);
-    }, [league, setTheme]);
+        const load = async () => {
+            try {
+                // Get detailed league info (using same endpoints as before)
+                // Note: Layout handles global branding. This page handles CONTENT.
 
-    useEffect(() => {
-        if (params.id) {
-            loadData(params.id as string);
-        }
+                // 1. League
+                const { data: myLeagues } = await api.get('/leagues/my');
+                let found = myLeagues.find((l: any) => l.id === params.id);
+                setLeague(found);
+
+                // 2. Ranking / Participants
+                const { data: rankingData } = await api.get(`/leagues/${params.id}/ranking`);
+                const mapped = Array.isArray(rankingData) ? rankingData.map((item: any, index: number) => ({
+                    id: item.id || item.user?.id,
+                    nickname: item.nickname || item.user?.nickname || 'Anónimo',
+                    avatarUrl: item.avatarUrl || item.user?.avatarUrl,
+                    points: item.totalPoints !== undefined ? item.totalPoints : item.points,
+                    rank: index + 1
+                })) : [];
+                setParticipants(mapped);
+
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (params.id) load();
     }, [params.id]);
 
-    const loadData = async (id: string) => {
-        setLoading(true);
-        try {
-            // 1. Cargar Metadatos de la Liga
-            // Como no tenemos endpoint de detalle único, buscamos en /leagues/all (Admin) o /leagues/my
-            let leagueFound = null;
+    if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-brand-primary" /></div>;
+    if (!league) return null;
 
-            try {
-                const { data: allLeagues } = await api.get('/leagues/all');
-                leagueFound = allLeagues.find((l: any) => l.id === id);
-            } catch (e) {
-                console.log('No es admin o falló /leagues/all, intentando /leagues/my');
-                try {
-                    const { data: myLeagues } = await api.get('/leagues/my');
-                    leagueFound = myLeagues.find((l: any) => l.id === id);
-                } catch (e2) {
-                    console.error('Error buscando liga en mis ligas', e2);
-                }
-            }
+    const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
+    const isActive = league.isEnterpriseActive;
 
-            if (leagueFound) {
-                console.log('DEBUG: League Loaded', {
-                    id: leagueFound.id,
-                    type: leagueFound.type,
-                    isEnterprise: leagueFound.isEnterprise,
-                    isEnterpriseActive: leagueFound.isEnterpriseActive,
-                    branding: leagueFound.brandingLogoUrl
-                });
-                setLeague(leagueFound);
-            }
-
-            // 2. Cargar Ranking (Participantes)
-            const { data: rankingData } = await api.get(`/leagues/${id}/ranking`);
-
-            // Mapear datos de ranking para normalizar estructura
-            const mappedParticipants = Array.isArray(rankingData) ? rankingData.map((item: any, index: number) => ({
-                id: item.id || item.user?.id,
-                nickname: item.nickname || item.user?.nickname || 'Anónimo',
-                avatarUrl: item.avatarUrl || item.user?.avatarUrl,
-                points: item.totalPoints !== undefined ? item.totalPoints : item.points,
-                rank: index + 1
-            })) : [];
-
-            setParticipants(mappedParticipants);
-
-        } catch (error) {
-            console.error('Error loading league data:', error);
-            // toast.error('Error al cargar los datos de la liga');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-obsidian flex items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
-            </div>
-        );
-    }
-
-    if (!league && participants.length === 0) {
-        return (
-            <div className="min-h-screen bg-obsidian flex flex-col items-center justify-center text-white gap-4">
-                <h1 className="text-2xl font-bold">Liga no encontrada</h1>
-                <button
-                    onClick={() => router.back()}
-                    className="text-brand-primary hover:underline flex items-center gap-2"
-                >
-                    <ChevronLeft size={20} /> Volver
-                </button>
-            </div>
-        );
-    }
-
-    // ENTERPRISE VIEW RENDER
-    if (league?.isEnterpriseActive) {
-        return (
-            <div className="min-h-screen bg-brand-secondary text-white font-sans transition-colors duration-500 relative">
-                {/* Floating Back Button */}
-                <div className="fixed top-6 left-6 z-50">
-                    <button
-                        onClick={() => router.back()}
-                        className="p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all border border-white/10 shadow-xl group"
-                    >
-                        <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-                    </button>
-                </div>
-
-                <div className="pointer-events-none fixed inset-0 z-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--brand-primary),_transparent_70%)]"></div>
-
-                <div className="relative z-10">
-                    <EnterpriseLeagueView league={league} participants={participants} />
-                </div>
-            </div>
-        );
-    }
-
-    // STANDARD VIEW RENDER
     return (
-        <div className="min-h-screen bg-brand-secondary text-white p-4 pb-24 font-sans transition-colors duration-500">
-            {/* Header */}
-            {/* Header Logic */}
-            <div className="flex items-center gap-4 mb-8">
-                <button
-                    onClick={() => router.back()}
-                    className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-colors backdrop-blur-sm"
-                >
-                    <ChevronLeft size={24} />
-                </button>
-                <div className="flex-1">
-                    {/* Standard Header Only (Enterprise logic moved) */}
-                    <div>
-                        <h1 className="text-3xl font-russo uppercase flex items-center gap-3">
-                            {league?.name || 'Detalle de Liga'}
-                            {league?.type === 'public' && <Shield className="text-yellow-500" size={24} />}
-                        </h1>
-                        <div className="flex items-center gap-4 text-slate-400 text-sm">
-                            <span className="flex items-center gap-1">
-                                <Users size={14} /> {participants.length} / {league?.maxParticipants || '?'} Miembros
-                            </span>
-                            {league?.code && (
-                                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-xs">
-                                    CÓDIGO: {league.code}
-                                </span>
-                            )}
-                        </div>
+        <div className="flex flex-col gap-8 min-h-screen bg-transparent font-sans">
+
+            {/* 1. HERO HEADER (Branding) */}
+            <header className="relative w-full min-h-[12rem] md:min-h-[16rem] bg-gradient-to-r from-obsidian to-carbon border-b border-white/5 flex flex-col md:flex-row items-center justify-between px-6 py-8 gap-6 overflow-hidden outline outline-1 outline-white/5 mx-auto rounded-b-3xl md:rounded-3xl md:mt-4 md:w-[95%] shadow-2xl">
+                {/* Background Decor */}
+                <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
+
+                {/* Logo & Identity */}
+                {isEnterprise && league.brandingLogoUrl ? (
+                    <div className="relative z-10 w-32 h-32 md:w-48 md:h-32 flex-shrink-0 animate-in zoom-in duration-500">
+                        <img src={league.brandingLogoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
                     </div>
+                ) : (
+                    <div className="relative z-10 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                        <Shield className="w-16 h-16 text-brand-primary" strokeWidth={1} />
+                    </div>
+                )}
+
+                {/* Title Section */}
+                <div className="relative z-10 text-center md:text-right flex-1">
+                    <h1 className="text-3xl md:text-5xl font-black uppercase text-white tracking-tighter drop-shadow-sm">
+                        {league.name}
+                    </h1>
+                    {isEnterprise && league.companyName && (
+                        <p className="text-brand-primary font-bold tracking-widest uppercase text-sm mt-2 opacity-90">
+                            {league.companyName}
+                        </p>
+                    )}
                 </div>
-            </div>
+            </header>
 
-            {/* Prize Hero Section (For Standard, maybe optional or removed if only Ent has it? Keeping it for now if data exists) */}
-            {(league?.type === 'COMPANY' || league?.prizeImageUrl) && <PrizeHero league={league} />}
+            <div className="md:w-[95%] mx-auto w-full px-4 flex flex-col lg:flex-row gap-8 pb-20">
 
-            {/* Ranking Table */}
-            <div className="bg-carbon rounded-xl border border-slate-700 overflow-hidden">
-                <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex items-center gap-2">
-                    <Trophy className="text-brand-primary" size={20} />
-                    <h2 className="font-russo text-lg">Ranking de la Liga</h2>
+                {/* LEFT COLUMN: PRIZE & WALL (2/3 width) */}
+                <div className="flex-1 flex flex-col gap-8">
+
+                    {/* 2. PRIZE SECTION */}
+                    <div className="animate-in slide-in-from-bottom-4 duration-700 delay-100">
+                        <PrizeHero league={league} />
+                    </div>
+
+                    {/* 3. PARTICIPANT LIST (Read Only) */}
+                    <div className="bg-carbon border border-white/5 rounded-2xl overflow-hidden shadow-lg animate-in slide-in-from-bottom-8 duration-700 delay-200">
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="font-russo text-white uppercase text-lg flex items-center gap-2">
+                                <Trophy size={20} className="text-yellow-500" />
+                                Top 10 Ranking
+                            </h3>
+                            <button className="text-xs font-bold text-brand-primary uppercase hover:underline">
+                                Ver Ranking Completo
+                            </button>
+                        </div>
+                        <Table>
+                            <TableBody>
+                                {participants.slice(0, 10).map((participant) => (
+                                    <TableRow key={participant.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                        <TableCell className="w-12 text-center font-bold text-lg text-slate-400">
+                                            {participant.rank === 1 ? '🥇' : participant.type === 2 ? '🥈' : participant.rank === 3 ? '🥉' : participant.rank}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8 border border-white/10">
+                                                    <AvatarImage src={participant.avatarUrl} />
+                                                    <AvatarFallback>{participant.nickname.substring(0, 2)}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-bold text-white text-sm">{participant.nickname}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right font-russo text-brand-primary">
+                                            {participant.points} <span className="text-[10px] text-slate-500">PTS</span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
                 </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow className="border-slate-700 bg-black/20">
-                            <TableHead className="w-16 text-center text-tactical">#</TableHead>
-                            <TableHead className="text-tactical">Participante</TableHead>
-                            <TableHead className="text-right text-tactical">Puntos</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {participants.sort((a, b) => a.rank - b.rank).map((participant) => (
-                            <TableRow key={participant.id} className="border-slate-700 hover:bg-white/5">
-                                <TableCell className="text-center font-bold font-mono text-lg">
-                                    {participant.rank === 1 ? '🥇' :
-                                        participant.rank === 2 ? '🥈' :
-                                            participant.rank === 3 ? '🥉' : participant.rank}
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8 border border-slate-600">
-                                            {participant.avatarUrl ? (
-                                                <AvatarImage src={participant.avatarUrl} />
-                                            ) : (
-                                                <AvatarFallback className="bg-slate-800 text-xs">
-                                                    {participant.nickname.substring(0, 2).toUpperCase()}
-                                                </AvatarFallback>
-                                            )}
-                                        </Avatar>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-white">{participant.nickname}</span>
-                                            {league && participant.id === league.creator.id && (
-                                                <span className="text-[10px] text-yellow-500 font-bold uppercase">Admin</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-right font-russo text-xl text-brand-primary">
-                                    {participant.points}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {participants.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-center py-8 text-slate-500">
-                                    Aún no hay participantes en esta liga.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                {/* RIGHT COLUMN: WIDGETS (1/3 width) */}
+                <aside className="w-full lg:w-96 flex flex-col gap-8">
+
+                    {/* SOCIAL WALL WIDGET */}
+                    {(isEnterprise && isActive) && (
+                        <div className="animate-in slide-in-from-right-4 duration-700 delay-300">
+                            <SocialWallWidget leagueId={params.id as string} />
+                        </div>
+                    )}
+
+                    {/* INFO WIDGET */}
+                    <div className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 border border-indigo-500/20 rounded-2xl p-6 text-center">
+                        <Users size={32} className="text-indigo-400 mx-auto mb-3" />
+                        <h4 className="text-white font-bold uppercase text-sm mb-1">Comunidad Activa</h4>
+                        <p className="text-indigo-200/60 text-xs">
+                            {participants.length} participantes compitiendo por la gloria.
+                        </p>
+                    </div>
+
+                </aside>
+
             </div>
         </div>
     );

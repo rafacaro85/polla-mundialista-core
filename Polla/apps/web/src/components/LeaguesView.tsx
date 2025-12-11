@@ -5,7 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { CreateLeagueDialog } from './CreateLeagueDialog';
 import { JoinLeagueDialog } from './JoinLeagueDialog';
-import { LeagueSettings } from './LeagueSettings';
+import { LeagueSettings as AdminLeagueSettings } from './AdminLeagueSettings';
 
 // --- INTERFACES ---
 interface League {
@@ -242,7 +242,7 @@ export const LeaguesView = () => {
                         </div>
 
                         <div>
-                            <LeagueSettings
+                            <AdminLeagueSettings
                                 league={league as any}
                                 onUpdate={fetchLeagues}
                                 trigger={

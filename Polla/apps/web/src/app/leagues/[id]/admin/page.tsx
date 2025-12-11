@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Loader2, ShieldAlert } from 'lucide-react';
-import { AdminLeagueSettings } from '@/components/AdminLeagueSettings';
+
 
 // In a real server component we would fetch data here.
 // Since we are using client components for 'api' lib mostly, we will use a client wrapper for security 

@@ -251,6 +251,24 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
         </nav>
     );
 
+    const MobileNavItem = ({ value, icon: Icon, label }: any) => {
+        const isActive = activeTab === value;
+        return (
+            <button
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                    "flex flex-col items-center justify-center min-w-[80px] h-full px-2 text-[10px] font-bold transition-all border-b-2 shrink-0",
+                    isActive
+                        ? "text-emerald-400 border-emerald-500 bg-slate-800/50"
+                        : "text-slate-400 hover:text-white border-transparent"
+                )}
+            >
+                <Icon size={18} className="mb-1" />
+                <span>{label}</span>
+            </button>
+        );
+    };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -297,27 +315,31 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 <div className="flex-1 flex flex-col h-full bg-[#0F172A] relative min-w-0">
 
                     {/* MOBILE HEADER */}
-                    <header className="md:hidden h-16 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="-ml-2 text-white"><Menu /></Button>
-                                </SheetTrigger>
-                                <SheetContent side="left" className="bg-[#1E293B] border-r-slate-800 p-0 w-72 text-white border-none">
-                                    <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
-                                        <SheetTitle className="sr-only">Menú</SheetTitle>
-                                        <SheetDescription className="sr-only">Navegación</SheetDescription>
-                                        <h2 className="text-lg font-russo text-white uppercase tracking-wider">MENU</h2>
-                                    </div>
-                                    <NavigationList />
-                                </SheetContent>
-                            </Sheet>
-                            <span className="font-russo uppercase text-sm truncate text-white">{currentLeague?.name}</span>
+                    <header className="md:hidden h-14 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0 z-50">
+                        <div className="flex items-center gap-2 overflow-hidden flex-1">
+                            <div className="w-6 h-6 rounded flex items-center justify-center font-russo text-[#0F172A] text-xs shrink-0" style={{ backgroundColor: brandColor }}>P</div>
+                            <span className="font-russo uppercase text-sm truncate text-white" style={{ color: brandColor }}>{currentLeague?.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="text-slate-400" onClick={() => setOpen(false)}>
+                        <Button variant="ghost" size="icon" className="text-slate-400 shrink-0" onClick={() => setOpen(false)}>
                             <X className="w-5 h-5" />
                         </Button>
                     </header>
+
+                    {/* MOBILE NAVIGATION BAR */}
+                    {currentLeague && (
+                        <div className="md:hidden h-14 bg-[#1E293B] border-b border-slate-800 flex overflow-x-auto items-center no-scrollbar sticky top-0 z-40">
+                            {currentLeague?.isAdmin && (
+                                <>
+                                    <MobileNavItem value="editar" icon={Edit} label="Config" />
+                                    <MobileNavItem value="branding" icon={Palette} label="Marca" />
+                                    <MobileNavItem value="plan" icon={Gem} label="Plan" />
+                                    <MobileNavItem value="analytics" icon={BarChart3} label="Data" />
+                                </>
+                            )}
+                            <MobileNavItem value="bonus" icon={Trophy} label="Bonus" />
+                            <MobileNavItem value="usuarios" icon={Users} label="Usuarios" />
+                        </div>
+                    )}
 
                     {/* LOADING STATE - Ajustado para ocupar full height */}
                     {loadingParticipants && !currentLeague ? (

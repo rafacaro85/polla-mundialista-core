@@ -41,4 +41,8 @@ export class UpdateLeagueDto {
     @IsHexColor()
     @IsOptional()
     brandColorSecondary?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    isEnterpriseActive?: boolean;
 }

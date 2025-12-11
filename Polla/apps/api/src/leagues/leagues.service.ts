@@ -184,6 +184,9 @@ export class LeaguesService {
       prizeDetails: league.prizeDetails,
       welcomeMessage: league.welcomeMessage,
       creatorName: league.creator.nickname || league.creator.fullName,
+      type: league.type,
+      isEnterprise: league.type === 'COMPANY' || league.isEnterprise,
+      companyName: league.companyName,
     };
   }
 
@@ -431,10 +434,12 @@ export class LeaguesService {
     if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
     if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
 
-    if (updateLeagueDto.isEnterprise !== undefined) league.isEnterprise = updateLeagueDto.isEnterprise;
-    if (updateLeagueDto.companyName !== undefined) league.companyName = updateLeagueDto.companyName;
-    if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
-    if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
+    if (updateLeagueDto.isEnterpriseActive !== undefined) {
+      if (userRole !== 'SUPER_ADMIN') {
+        throw new ForbiddenException('Solo el SUPER_ADMIN puede activar/desactivar el modo Enterprise.');
+      }
+      league.isEnterpriseActive = updateLeagueDto.isEnterpriseActive;
+    }
 
     const updatedLeague = await this.leaguesRepository.save(league);
 

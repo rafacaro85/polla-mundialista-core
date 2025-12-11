@@ -30,6 +30,8 @@ interface League {
     prizeImageUrl?: string;
     prizeDetails?: string;
     welcomeMessage?: string;
+    isEnterprise?: boolean;
+    isEnterpriseActive?: boolean;
 }
 
 export function LeaguesTable() {
@@ -107,6 +109,21 @@ export function LeaguesTable() {
     const copyCode = (code: string) => {
         navigator.clipboard.writeText(code);
         toast.success('Código copiado');
+    };
+
+    const handleToggleEnterprise = async (league: League) => {
+        if (league.type !== 'COMPANY') return;
+        const newStatus = !league.isEnterpriseActive;
+        if (!confirm(`¿${newStatus ? 'ACTIVAR' : 'DESACTIVAR'} modo Enterprise para ${league.name}?`)) return;
+
+        try {
+            await api.patch(`/leagues/${league.id}`, { isEnterpriseActive: newStatus });
+            toast.success(`Modo Enterprise ${newStatus ? 'ACTIVADO' : 'DESACTIVADO'}`);
+            loadLeagues();
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al actualizar estado Enterprise');
+        }
     };
 
     // Filtrado
@@ -334,6 +351,25 @@ export function LeaguesTable() {
                                 {league.code} <Copy size={10} style={{ opacity: 0.5 }} />
                             </div>
                         </div>
+
+                        {/* ENTERPRISE TOGGLE (Solo para COMPANY) */}
+                        {league.type === 'COMPANY' && (
+                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px border-blue-500/30', borderRadius: '8px' }}>
+                                <div className="flex items-center gap-2">
+                                    <Shield size={12} className="text-blue-400" />
+                                    <span style={{ fontSize: '10px', color: '#60A5FA', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                        {league.isEnterpriseActive ? 'Enterprise ACTIVADO' : 'Enterprise INACTIVO'}
+                                    </span>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleToggleEnterprise(league)}
+                                    className={`h-6 text-[9px] px-2 font-bold ${league.isEnterpriseActive ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                                >
+                                    {league.isEnterpriseActive ? 'DESACTIVAR' : 'ACTIVAR'}
+                                </Button>
+                            </div>
+                        )}
 
                         {/* Botones de Acción */}
                         <div style={STYLES.actionsFooter}>

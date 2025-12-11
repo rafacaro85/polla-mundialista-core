@@ -32,6 +32,7 @@ interface LeagueDetail {
     brandColorPrimary?: string;
     brandColorSecondary?: string;
     isEnterprise?: boolean;
+    isEnterpriseActive?: boolean;
 }
 
 interface Participant {
@@ -56,7 +57,8 @@ export default function LeaguePage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (league && (league.type === 'COMPANY' || league.isEnterprise)) {
+        // Activar tema si hay colores definidos, independientemente del flag estricto de tipo
+        if (league && (league.brandColorPrimary && league.brandColorSecondary)) {
             setTheme({
                 primary: league.brandColorPrimary,
                 secondary: league.brandColorSecondary
@@ -94,6 +96,13 @@ export default function LeaguePage() {
             }
 
             if (leagueFound) {
+                console.log('DEBUG: League Loaded', {
+                    id: leagueFound.id,
+                    type: leagueFound.type,
+                    isEnterprise: leagueFound.isEnterprise,
+                    isEnterpriseActive: leagueFound.isEnterpriseActive,
+                    branding: leagueFound.brandingLogoUrl
+                });
                 setLeague(leagueFound);
             }
 

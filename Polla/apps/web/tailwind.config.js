@@ -46,9 +46,10 @@ module.exports = {
           primary: 'var(--brand-primary)',
           secondary: 'var(--brand-secondary)',
         },
-        obsidian: '#0F172A',  // Fondo
-        carbon: '#1E293B',    // Tarjetas
-        signal: '#00E676',    // Verde Neón
+        obsidian: 'var(--obsidian)',  // Fondo Dinámico
+        carbon: 'var(--carbon)',    // Tarjetas Dinámicas
+        signal: 'var(--signal)',    // Verde Neón / Acento Dinámico
+
         alert: '#FF1744',     // Rojo Neón (ACTUALIZADO)
         gold: '#FACC15',      // Oro (NUEVO)
         tactical: '#94A3B8',  // Texto Secundario

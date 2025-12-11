@@ -390,6 +390,8 @@ export class LeaguesService {
       prizeImageUrl: league.prizeImageUrl,
       prizeDetails: league.prizeDetails,
       welcomeMessage: league.welcomeMessage,
+      isEnterprise: league.isEnterprise,
+      isEnterpriseActive: league.isEnterpriseActive,
     }));
   }
 

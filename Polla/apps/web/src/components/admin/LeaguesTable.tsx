@@ -353,7 +353,7 @@ export function LeaguesTable() {
                         </div>
 
                         {/* ENTERPRISE TOGGLE (Solo para COMPANY) */}
-                        {league.type === 'COMPANY' && (
+                        {(league.type === 'COMPANY' || league.isEnterprise) && (
                             <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px border-blue-500/30', borderRadius: '8px' }}>
                                 <div className="flex items-center gap-2">
                                     <Shield size={12} className="text-blue-400" />

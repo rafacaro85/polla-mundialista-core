@@ -260,9 +260,16 @@ export class LeaguesService {
       id: p.league.id,
       name: p.league.name,
       code: p.league.accessCodePrefix,
+      type: p.league.type,
       isAdmin: p.isAdmin,
       creatorName: p.league.creator.nickname || p.league.creator.fullName,
-      participantCount: 0, // TODO: agregar conteo real si es necesario
+      participantCount: 0,
+      isEnterprise: p.league.isEnterprise,
+      isEnterpriseActive: p.league.isEnterpriseActive,
+      companyName: p.league.companyName,
+      brandingLogoUrl: p.league.brandingLogoUrl,
+      brandColorPrimary: p.league.brandColorPrimary,
+      brandColorSecondary: p.league.brandColorSecondary,
     }));
 
     console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));

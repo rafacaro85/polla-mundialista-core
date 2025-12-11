@@ -24,7 +24,7 @@ import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface Participant {
@@ -291,7 +291,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 <div className="flex-1 flex flex-col h-full bg-[#0F172A] relative min-w-0">
 
                     {/* MOBILE HEADER */}
-                    <header className="md:hidden h-14 border-b-2 border-red-500 bg-[#1E293B] flex items-center justify-between px-4 shrink-0 z-[70] relative">
+                    <header className="md:hidden h-14 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0">
                         <div className="flex items-center gap-3 overflow-hidden">
                             <Sheet>
                                 <SheetTrigger asChild>
@@ -299,6 +299,8 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                 </SheetTrigger>
                                 <SheetContent side="left" className="bg-[#1E293B] border-r-slate-800 p-0 w-72 text-white border-none">
                                     <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
+                                        <SheetTitle className="sr-only">Menú</SheetTitle>
+                                        <SheetDescription className="sr-only">Navegación</SheetDescription>
                                         <h2 className="text-lg font-russo text-white uppercase tracking-wider">MENU</h2>
                                     </div>
                                     <NavigationList />

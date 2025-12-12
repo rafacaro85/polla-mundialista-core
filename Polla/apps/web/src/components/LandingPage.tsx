@@ -8,12 +8,12 @@ import {
 } from 'lucide-react';
 
 /* =============================================================================
-   PALETA DE COLORES (REFERENCIA)
-   Obsidian: #0F172A (Fondos oscuros, Textos Fuertes)
-   Carbon:   #1E293B (Tarjetas oscuras, Elementos UI)
-   Signal:   #00E676 (Acción principal, Éxito)
-   Gold:     #FACC15 (Premium, Trofeos)
-   Tactical: #94A3B8 (Textos secundarios, Bordes, Iconos inactivos)
+   PALETA DE COLORES (USADA EN EL CÓDIGO)
+   Obsidian: #0F172A
+   Carbon:   #1E293B
+   Signal:   #00E676
+   Gold:     #FACC15
+   Tactical: #94A3B8
    ============================================================================= */
 
 /* =============================================================================
@@ -22,7 +22,7 @@ import {
 
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none">
-        <div className="relative w-9 h-9 flex items-center justify-center">
+        <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="w-full h-full text-[#00E676]">
                 <circle cx="50" cy="50" r="45" />
                 <path d="M50 20 L75 38 L65 68 L35 68 L25 38 Z" strokeLinecap="round" strokeLinejoin="round" />
@@ -42,7 +42,7 @@ const LogoLight = () => (
     </div>
 );
 
-const MatchCardVisual = ({ className }: { className?: string }) => (
+const MatchCardVisual = ({ className }) => (
     <div className={`bg-[#1E293B] rounded-xl p-3 border border-[#94A3B8]/20 shadow-2xl relative overflow-hidden w-64 ${className}`}>
         <div className="text-center mb-2 text-[8px] font-bold text-[#94A3B8] uppercase tracking-widest">Gran Final • New Jersey</div>
         <div className="flex justify-between items-center mb-3 text-white">
@@ -56,7 +56,7 @@ const MatchCardVisual = ({ className }: { className?: string }) => (
     </div>
 );
 
-const RankingCardVisual = ({ className }: { className?: string }) => (
+const RankingCardVisual = ({ className }) => (
     <div className={`bg-white rounded-xl p-4 border border-[#94A3B8]/20 shadow-xl w-64 ${className}`}>
         <h3 className="font-bold text-xs mb-3 flex items-center gap-2 text-[#0F172A] uppercase tracking-wider"><Trophy size={12} className="text-[#FACC15]" /> Top Global</h3>
         {[1, 2, 3].map(i => (
@@ -118,19 +118,19 @@ const iPhoneMockup = () => (
     </div>
 );
 
-const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+const PrimaryButton = ({ children, onClick }) => (
+    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative">
         {children}
     </button>
 );
 
-const SecondaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm">
+const SecondaryButton = ({ children, onClick }) => (
+    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative">
         {children}
     </button>
 );
 
-const FeatureCard = ({ icon, color, title, desc }: any) => (
+const FeatureCard = ({ icon, color, title, desc }) => (
     <div className="bg-white p-8 rounded-2xl border border-[#94A3B8]/20 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group h-full">
         <div className={`mb-6 w-14 h-14 rounded-xl flex items-center justify-center ${color} shadow-lg text-white group-hover:scale-110 transition-transform`}>{icon}</div>
         <h3 className="font-russo text-xl text-[#0F172A] mb-3">{title}</h3>
@@ -138,12 +138,12 @@ const FeatureCard = ({ icon, color, title, desc }: any) => (
     </div>
 );
 
-const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon: IconComponent = CheckCircle }: any) => {
+const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon = CheckCircle }) => {
     let iconColor = dark ? "text-[#00E676]" : "text-green-600";
     let textColor = dark ? "text-[#94A3B8]" : dull ? "text-[#94A3B8]/60" : "text-[#1E293B]";
     if (highlight) textColor = "text-[#0F172A] font-bold";
     if (dull) iconColor = "text-[#94A3B8]/60";
-
+    const IconComponent = icon;
     return (
         <li className={`flex items-center gap-3 ${textColor} text-sm`}>
             <IconComponent size={14} className={iconColor} strokeWidth={3} />
@@ -152,7 +152,7 @@ const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, ic
     )
 };
 
-const ScoreExample = ({ label, points, type }: any) => {
+const ScoreExample = ({ label, points }) => {
     return (
         <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-[#94A3B8]/20">
             <span className="text-sm font-bold text-[#1E293B]">{label}</span>
@@ -161,7 +161,7 @@ const ScoreExample = ({ label, points, type }: any) => {
     );
 };
 
-const FAQItem = ({ question, answer }: any) => {
+const FAQItem = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="border-b border-[#94A3B8]/20 last:border-0">
@@ -176,7 +176,7 @@ const FAQItem = ({ question, answer }: any) => {
     );
 };
 
-const StepCard = ({ num, title, desc }: any) => (
+const StepCard = ({ num, title, desc }) => (
     <div className="text-center p-6">
         <div className="w-12 h-12 rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
             {num}
@@ -189,23 +189,29 @@ const StepCard = ({ num, title, desc }: any) => (
 /* =============================================================================
    PÁGINA DE INICIO (LANDING PAGE)
    ============================================================================= */
-export default function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
+export default function LandingPage({ onLoginClick }) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // FUNCIÓN SOLICITADA - INTACTA
     const handleCreateBusinessPool = () => {
         // Set flag for redirect after login
-        localStorage.setItem('onboarding_business', 'true');
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('onboarding_business', 'true');
+        }
         // Trigger login
-        onLoginClick();
+        if (onLoginClick) onLoginClick();
     };
 
     return (
-        <div className="min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A]">
+        // Wrapper principal con fondo blanco y texto oscuro explícitos
+        <div className="w-full min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden">
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&display=swap');
         .font-russo { font-family: 'Russo One', sans-serif; }
       `}</style>
 
             {/* --- NAVBAR --- */}
-            <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#94A3B8]/20">
+            <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <LogoLight />
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#94A3B8]">
@@ -215,7 +221,12 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
                         <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
                         <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors">Ingresar</button>
-                        <button onClick={handleCreateBusinessPool} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
+
+                        {/* BOTÓN DEL NAVBAR CONECTADO A LA LÓGICA */}
+                        <button
+                            onClick={handleCreateBusinessPool}
+                            className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all"
+                        >
                             Crear Polla para mi Empresa
                         </button>
                     </div>
@@ -224,11 +235,12 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                     </button>
                 </div>
                 {isMenuOpen && (
-                    <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5">
+                    <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40">
                         <a href="#como-se-juega" className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
                         <a href="#precios" className="text-[#0F172A] font-bold py-2">Planes</a>
                         <a href="#corporativo" className="text-[#0F172A] font-bold py-2">Empresas</a>
-                        <button onClick={onLoginClick} className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase">Ingresar</button>
+                        <button onClick={onLoginClick} className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase">Ingresar</button>
+                        <button onClick={handleCreateBusinessPool} className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase">Crear Polla Empresa</button>
                     </div>
                 )}
             </nav>
@@ -252,7 +264,11 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
                             <SecondaryButton onClick={onLoginClick}>Ingresar / Tengo Código</SecondaryButton>
-                            <PrimaryButton onClick={handleCreateBusinessPool}>Crear Polla para mi Empresa <ArrowRight size={20} /></PrimaryButton>
+
+                            {/* BOTÓN PRINCIPAL CONECTADO A LA LÓGICA */}
+                            <PrimaryButton onClick={handleCreateBusinessPool}>
+                                Crear Polla para mi Empresa <ArrowRight size={20} />
+                            </PrimaryButton>
                         </div>
                         <div className="flex items-center justify-center lg:justify-start gap-4 pt-4 text-sm text-[#94A3B8] font-medium">
                             <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-[#00E676]" /><span>Google OAuth</span></div>
@@ -360,10 +376,10 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <ScoreExample label="Marcador Exacto" points="+3 PTS" type="win" />
-                            <ScoreExample label="Acertar Ganador" points="+2 PTS" type="win" />
-                            <ScoreExample label="Goles Local (2)" points="+1 PT" type="win" />
-                            <ScoreExample label="Goles Visitante (1)" points="+1 PT" type="win" />
+                            <ScoreExample label="Marcador Exacto" points="+3 PTS" />
+                            <ScoreExample label="Acertar Ganador" points="+2 PTS" />
+                            <ScoreExample label="Goles Local (2)" points="+1 PT" />
+                            <ScoreExample label="Goles Visitante (1)" points="+1 PT" />
                             <div className="pt-2 border-t border-[#94A3B8]/20 mt-2">
                                 <div className="flex justify-between items-center p-3 rounded-lg bg-[#0F172A] text-white">
                                     <span className="text-sm font-bold flex items-center gap-2"><Star size={14} className="text-[#FACC15]" /> TOTAL (Máximo)</span>
@@ -452,7 +468,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                                 <ListItemSmall text="Fidelización de Clientes (B2B/B2C)" dark={true} />
                                 <ListItemSmall text="Dashboard de Analítica" dark={true} />
                             </ul>
-                            <button onClick={onLoginClick} className="w-full py-3 rounded-lg bg-white font-black text-[#0F172A] hover:bg-[#94A3B8] transition-all">Cotizar Empresa</button>
+                            <button onClick={handleCreateBusinessPool} className="w-full py-3 rounded-lg bg-white font-black text-[#0F172A] hover:bg-[#94A3B8] transition-all">Cotizar Empresa</button>
                         </div>
                     </div>
                 </div>

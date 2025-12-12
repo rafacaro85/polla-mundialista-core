@@ -190,7 +190,12 @@ const StepCard = ({ num, title, desc }: any) => (
    PÁGINA DE INICIO (LANDING PAGE)
    ============================================================================= */
 export default function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const handleCreateBusinessPool = () => {
+        // Set flag for redirect after login
+        localStorage.setItem('onboarding_business', 'true');
+        // Trigger login
+        onLoginClick();
+    };
 
     return (
         <div className="min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A]">
@@ -210,8 +215,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
                         <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
                         <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors">Ingresar</button>
-                        <button onClick={onLoginClick} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
-                            Crear Polla
+                        <button onClick={handleCreateBusinessPool} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
+                            Crear Polla para mi Empresa
                         </button>
                     </div>
                     <button className="md:hidden text-[#0F172A]" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -246,8 +251,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                             Olvida el Excel. IA integrada, ranking en tiempo real, muro social y pagos automatizados. La plataforma definitiva para empresas, amigos e influencers.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-                            <PrimaryButton onClick={onLoginClick}>Empezar Gratis <ArrowRight size={20} /></PrimaryButton>
-                            <SecondaryButton onClick={onLoginClick}>Ver Demo</SecondaryButton>
+                            <SecondaryButton onClick={onLoginClick}>Ingresar / Tengo Código</SecondaryButton>
+                            <PrimaryButton onClick={handleCreateBusinessPool}>Crear Polla para mi Empresa <ArrowRight size={20} /></PrimaryButton>
                         </div>
                         <div className="flex items-center justify-center lg:justify-start gap-4 pt-4 text-sm text-[#94A3B8] font-medium">
                             <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-[#00E676]" /><span>Google OAuth</span></div>

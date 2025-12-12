@@ -27,7 +27,17 @@ function SuccessLogic() {
           console.log('Datos del usuario obtenidos:', userData);
           localStorage.setItem('user', JSON.stringify(userData));
           // Importante: forzar recarga completa para asegurar que el dashboard lea el localStorage fresco
-          window.location.href = '/';
+          const BUSINESS_ONBOARDING_KEY = 'onboarding_business';
+          const isBusinessOnboarding = localStorage.getItem(BUSINESS_ONBOARDING_KEY);
+
+          if (isBusinessOnboarding) {
+            console.log('🚀 Redirigiendo a registro de empresa (Onboarding)');
+            localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
+            window.location.href = '/business/new';
+          } else {
+            console.log('🏠 Redirigiendo al dashboard');
+            window.location.href = '/';
+          }
         })
         .catch(error => {
           console.error('Error obteniendo datos del usuario:', error);

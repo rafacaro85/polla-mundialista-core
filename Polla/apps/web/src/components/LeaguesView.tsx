@@ -18,6 +18,9 @@ interface League {
     code: string;
     maxParticipants: number;
     participantCount?: number;
+    type?: string;
+    isEnterprise?: boolean;
+    isEnterpriseActive?: boolean;
 }
 
 /* =============================================================================
@@ -43,7 +46,10 @@ export const LeaguesView = () => {
                 isAdmin: l.isAdmin,
                 initial: l.name.charAt(0).toUpperCase(),
                 code: l.code, // Necesario para LeagueSettings
-                maxParticipants: l.maxParticipants // Necesario para LeagueSettings
+                maxParticipants: l.maxParticipants, // Necesario para LeagueSettings
+                type: l.type,
+                isEnterprise: l.isEnterprise,
+                isEnterpriseActive: l.isEnterpriseActive
             }));
 
             setLeagues(mappedLeagues);
@@ -57,6 +63,8 @@ export const LeaguesView = () => {
     React.useEffect(() => {
         fetchLeagues();
     }, [fetchLeagues]);
+
+    const draftLeagues = leagues.filter(l => l.isEnterprise && !l.isEnterpriseActive && l.isAdmin);
 
     // ESTILOS EN LÍNEA (BLINDADOS)
     const STYLES = {
@@ -210,6 +218,49 @@ export const LeaguesView = () => {
                     </JoinLeagueDialog>
                 </div>
             </div>
+
+            {/* 1.5. BORRADORES EMPRESARIALES */}
+            {draftLeagues.map(l => (
+                <div key={l.id} style={{
+                    background: 'linear-gradient(90deg, rgba(249, 115, 22, 0.1) 0%, rgba(15, 23, 42, 0) 100%)',
+                    border: '1px solid rgba(249, 115, 22, 0.3)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <div style={{ width: '8px', height: '8px', backgroundColor: '#F97316', borderRadius: '50%' }}></div>
+                            <span style={{ color: '#F97316', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                Borrador Empresarial
+                            </span>
+                        </div>
+                        <h3 style={{ ...STYLES.leagueName, fontSize: '18px', marginBottom: '4px' }}>{l.name}</h3>
+                        <p style={{ color: '#94A3B8', fontSize: '11px' }}>Personaliza tu marca y activa tu plan.</p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                        <button
+                            onClick={() => router.push(`/leagues/${l.id}/studio`)}
+                            style={{
+                                backgroundColor: '#F97316',
+                                color: 'white',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontWeight: 'bold',
+                                fontSize: '11px',
+                                textTransform: 'uppercase',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Ir al Studio &rarr;
+                        </button>
+                    </div>
+                </div>
+            ))}
 
             {/* 2. LISTA DE LIGAS */}
             <div style={STYLES.grid}>

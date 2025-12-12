@@ -14,11 +14,24 @@ export function EnterpriseLeagueView({ league, participants }: EnterpriseLeagueV
         <div className="min-h-screen bg-transparent flex flex-col font-sans">
 
             {/* 1. CORPORATE HEADER (Full Width, Centered, Huge) */}
-            <header className="w-full py-16 flex flex-col items-center justify-center gap-6 bg-gradient-to-b from-black/40 to-transparent relative overflow-hidden">
-                {/* Background Pattern or Glow could go here */}
+            {/* 1. CORPORATE HEADER (Full Width, Centered, Huge) */}
+            <header className="w-full py-16 flex flex-col items-center justify-center gap-6 relative overflow-hidden bg-obsidian border-b border-white/5">
+
+                {/* Dynamic Background Cover */}
+                {league.brandCoverUrl ? (
+                    <>
+                        <div
+                            className="absolute inset-0 z-0 bg-cover bg-center opacity-40 blur-sm scale-110"
+                            style={{ backgroundImage: `url(${league.brandCoverUrl})` }}
+                        />
+                        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/40 to-obsidian" />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-b from-brand-primary/20 to-transparent opacity-30" />
+                )}
 
                 {league.brandingLogoUrl ? (
-                    <div className="relative h-40 w-full max-w-md animate-in fade-in zoom-in duration-700">
+                    <div className="relative z-10 h-40 w-full max-w-md animate-in fade-in zoom-in duration-700">
                         <img
                             src={league.brandingLogoUrl}
                             alt={league.companyName || "Empresa"}
@@ -26,17 +39,27 @@ export function EnterpriseLeagueView({ league, participants }: EnterpriseLeagueV
                         />
                     </div>
                 ) : (
-                    <Shield className="w-32 h-32 text-brand-primary opacity-50" />
+                    <div className="relative z-10">
+                        <Shield className="w-32 h-32 text-brand-primary" strokeWidth={1.5} />
+                    </div>
                 )}
 
-                <div className="text-center z-10">
-                    <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-[0.2em] text-white text-shadow-lg">
-                        {league.companyName || 'Empresa Patrocinadora'}
+                <div className="text-center z-10 max-w-2xl px-4">
+                    <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-[0.2em] text-white text-shadow-lg mb-2">
+                        {league.companyName || league.name}
                     </h1>
-                    <div className="h-1 w-24 bg-brand-primary mx-auto my-3 rounded-full shadow-[0_0_10px_var(--brand-primary)]"></div>
-                    <h2 className="text-lg md:text-xl text-white/80 font-russo tracking-wider">
-                        {league.name}
-                    </h2>
+
+                    {league.welcomeMessage && (
+                        <p className="text-lg md:text-xl text-brand-text font-russo tracking-wider mt-4 leading-relaxed drop-shadow-md">
+                            {league.welcomeMessage}
+                        </p>
+                    )}
+
+                    {!league.welcomeMessage && (
+                        <h2 className="text-lg md:text-xl text-white/80 font-russo tracking-wider mt-2">
+                            {league.name}
+                        </h2>
+                    )}
                 </div>
             </header>
 

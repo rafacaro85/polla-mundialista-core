@@ -85,6 +85,15 @@ export class League {
   @Column({ name: 'brand_color_secondary', default: '#1E293B' })
   brandColorSecondary: string;
 
+  @Column({ name: 'brand_color_bg', default: '#0F172A' })
+  brandColorBg: string;
+
+  @Column({ name: 'brand_color_text', default: '#F8FAFC' })
+  brandColorText: string;
+
+  @Column({ name: 'brand_cover_url', nullable: true })
+  brandCoverUrl?: string; // Banner Hero
+
   @OneToMany(() => LeagueParticipant, participant => participant.league)
   participants: LeagueParticipant[];
 

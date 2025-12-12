@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, Activity, Star, MessageSquare, Settings, Users } from 'lucide-react';
+import { Home, Trophy, Activity, Star, MessageSquare, Settings, Users, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assuming shadcn util exists
 
 interface NavItem {
@@ -39,6 +39,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
     }
 
     if (isAdmin) {
+        items.push({ label: 'Studio', icon: <Palette size={20} />, href: `${basePath}/studio`, adminOnly: true });
         items.push({ label: 'Admin', icon: <Settings size={20} />, href: `${basePath}/admin`, adminOnly: true });
     }
 
@@ -87,10 +88,10 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                             {isActive(item) && (
                                 <div className="absolute -top-2 h-1 w-8 bg-brand-primary rounded-b-full shadow-[0_0_8px_var(--brand-primary)]" />
                             )}
-                            {React.cloneElement(item.icon as React.ReactElement, {
+                            {React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, {
                                 size: 22,
                                 strokeWidth: isActive(item) ? 2.5 : 2
-                            })}
+                            }) : item.icon}
                             <span className="text-[9px] font-black uppercase tracking-tight">
                                 {item.label}
                             </span>

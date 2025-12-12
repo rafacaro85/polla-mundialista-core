@@ -42,6 +42,18 @@ export class UpdateLeagueDto {
     @IsOptional()
     brandColorSecondary?: string;
 
+    @IsString()
+    @IsOptional()
+    brandColorBg?: string;
+
+    @IsString()
+    @IsOptional()
+    brandColorText?: string;
+
+    @IsString()
+    @IsOptional()
+    brandCoverUrl?: string;
+
     @IsBoolean()
     @IsOptional()
     isEnterpriseActive?: boolean;

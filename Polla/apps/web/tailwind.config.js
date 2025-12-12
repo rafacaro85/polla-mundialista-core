@@ -45,6 +45,10 @@ module.exports = {
         brand: {
           primary: 'var(--brand-primary)',
           secondary: 'var(--brand-secondary)',
+          text: 'var(--brand-text)', // NEW
+        },
+        page: {
+          bg: 'var(--brand-bg)',     // NEW
         },
         obsidian: 'var(--obsidian)',  // Fondo Dinámico
         carbon: 'var(--carbon)',    // Tarjetas Dinámicas

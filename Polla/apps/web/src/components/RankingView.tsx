@@ -38,10 +38,10 @@ export const RankingView = () => {
         gold: '#FACC15',
         silver: '#94A3B8',
         bronze: '#B45309',
-        signal: '#00E676',
-        obsidian: '#0F172A',
-        carbon: '#1E293B',
-        text: '#F8FAFC'
+        signal: 'var(--brand-primary)', // Dynamic
+        obsidian: 'var(--obsidian)',    // Dynamic
+        carbon: 'var(--carbon)',        // Dynamic
+        text: 'var(--brand-text)'       // Dynamic
     };
 
     const STYLES = {

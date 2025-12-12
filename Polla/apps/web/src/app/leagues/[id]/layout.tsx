@@ -93,18 +93,21 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     // App is Dark Mode (#0F172A). I will keep Dark Mode defaults.
 
     // CSS Variables Injection
+    // CSS Variables Injection
     const themeStyles = {
         '--brand-primary': primary,
         // In this app, "Secondary" matches the "Background" usually (#0F172A).
         '--brand-secondary': secondary,
+        '--brand-bg': league.brandColorBg || '#0F172A', // NEW
+        '--brand-text': league.brandColorText || '#F8FAFC', // NEW
 
         // Mapping to Tailwind Config Variables
-        '--obsidian': secondary, // Main Background maps to Brand Secondary
-        '--carbon': `color-mix(in srgb, ${secondary}, white 10%)`, // Card Background lightened from secondary
+        '--obsidian': league.brandColorBg || secondary, // Map main bg to brand bg
+        '--carbon': `color-mix(in srgb, ${league.brandColorBg || secondary}, white 10%)`, // Card Background lightened from secondary
         '--signal': primary, // Accent maps to Brand Primary
 
         // Borders
-        '--border': `color-mix(in srgb, ${secondary}, white 20%)`,
+        '--border': `color-mix(in srgb, ${league.brandColorBg || secondary}, white 20%)`,
     } as React.CSSProperties;
 
     return (

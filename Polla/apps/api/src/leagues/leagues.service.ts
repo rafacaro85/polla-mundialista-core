@@ -270,6 +270,10 @@ export class LeaguesService {
       brandingLogoUrl: p.league.brandingLogoUrl,
       brandColorPrimary: p.league.brandColorPrimary,
       brandColorSecondary: p.league.brandColorSecondary,
+      brandColorBg: p.league.brandColorBg,
+      brandColorText: p.league.brandColorText,
+      brandCoverUrl: p.league.brandCoverUrl,
+      welcomeMessage: p.league.welcomeMessage,
     }));
 
     console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));

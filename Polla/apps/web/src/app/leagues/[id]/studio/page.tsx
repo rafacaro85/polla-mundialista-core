@@ -5,14 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     Loader2, Save, ArrowLeft, Smartphone, Monitor,
     Palette, Type, Image as ImageIcon, Upload, LayoutTemplate,
-    RefreshCw, Building2
+    Building2, Trophy, Menu, Bell, Search, Award, Check
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-// Asegúrate de que este componente acepte 'league' y 'participants' como props
-import { EnterpriseLeagueView } from '@/components/EnterpriseLeagueView';
 
-/* --- COMPONENTES UI DEL EDITOR --- */
+/* --- COMPONENTES UI DEL EDITOR (HELPERS) --- */
 
 const TabButton = ({ icon: Icon, label, isActive, onClick }: any) => (
     <button
@@ -24,7 +22,7 @@ const TabButton = ({ icon: Icon, label, isActive, onClick }: any) => (
 );
 
 const SectionTitle = ({ title, subtitle }: any) => (
-    <div>
+    <div className="mb-4">
         <h3 className="text-sm font-bold text-white mb-0.5">{title}</h3>
         <p className="text-xs text-slate-500">{subtitle}</p>
     </div>
@@ -58,7 +56,6 @@ const ImageUploader = ({ label, preview, onChange, placeholderIcon: Icon, aspect
         <label className="text-xs font-bold text-slate-300 ml-1">{label}</label>
         <label className={`relative block w-full border-2 border-dashed border-[#1E293B] hover:border-[#00E676] hover:bg-[#00E676]/5 rounded-xl cursor-pointer transition-all group overflow-hidden ${aspect === 'video' ? 'aspect-video' : 'h-24'}`}>
             <input type="file" className="hidden" accept="image/*" onChange={onChange} />
-
             {preview ? (
                 <div className="w-full h-full relative">
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
@@ -96,16 +93,25 @@ export default function StudioPage() {
     // Live Configuration State
     const [config, setConfig] = useState({
         brandColorPrimary: '#00E676',
-        brandColorSecondary: '#1E293B', // Usado como Surface/Cards
+        brandColorSecondary: '#1E293B',
         brandColorBg: '#0F172A',
         brandColorText: '#F8FAFC',
-        companyName: '',
-        welcomeMessage: '',
+        companyName: 'Mi Empresa S.A.',
+        welcomeMessage: '¡Bienvenidos a la polla corporativa! El ganador se llevará un premio sorpresa.',
         brandingLogoUrl: '',
         brandCoverUrl: '',
+        brandFontFamily: '"Russo One", sans-serif', // Nueva propiedad para la fuente
         isEnterprise: true,
         isEnterpriseActive: true
     });
+
+    // Font Options
+    const fontOptions = [
+        { name: 'Deportiva (Russo)', value: '"Russo One", sans-serif' },
+        { name: 'Moderna (Inter)', value: 'Inter, sans-serif' },
+        { name: 'Geométrica (Poppins)', value: 'Poppins, sans-serif' },
+        { name: 'Elegante (Slab)', value: '"Roboto Slab", serif' },
+    ];
 
     // Mock Data for Preview
     const [participantsMock] = useState([
@@ -117,8 +123,6 @@ export default function StudioPage() {
     useEffect(() => {
         const load = async () => {
             try {
-                // Ajusta esto según tu API real. Si get /leagues/my devuelve todas, ok.
-                // Si existe un endpoint específico /leagues/:id, úsalo mejor.
                 const { data: myLeagues } = await api.get('/leagues/my');
                 const found = myLeagues.find((l: any) => l.id === params.id);
                 if (found) {
@@ -146,11 +150,11 @@ export default function StudioPage() {
                 brandCoverUrl: config.brandCoverUrl,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
+                // brandFontFamily: config.brandFontFamily, // Descomentar si el backend soporta este campo
                 isEnterprise: true,
                 isEnterpriseActive: true
             });
             toast({ title: 'Configuración Guardada', description: 'Los cambios se han aplicado a toda la polla.' });
-            // router.push(`/leagues/${params.id}`); // Opcional: Quedarse en el studio
         } catch (error) {
             toast({ title: 'Error', description: 'No se pudo guardar la configuración.', variant: 'destructive' });
         } finally {
@@ -161,16 +165,10 @@ export default function StudioPage() {
     const handleImageUpload = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Check file size (limit to 1MB to avoid 413 Payload Too Large)
-            if (file.size > 1 * 1024 * 1024) {
-                toast({
-                    title: 'Archivo muy pesado',
-                    description: 'La imagen debe pesar menos de 1MB. Por favor optimízala.',
-                    variant: 'destructive'
-                });
+            if (file.size > 2 * 1024 * 1024) {
+                toast({ title: 'Archivo muy pesado', description: 'Máximo 2MB.', variant: 'destructive' });
                 return;
             }
-
             const reader = new FileReader();
             reader.onloadend = () => {
                 setConfig(prev => ({ ...prev, [key]: reader.result as string }));
@@ -181,43 +179,142 @@ export default function StudioPage() {
 
     if (loading) return <div className="h-screen flex items-center justify-center bg-[#0B1120]"><Loader2 className="animate-spin text-[#00E676]" /></div>;
 
-    // Objeto League simulado para el Preview
-    const mockLeagueForPreview = {
-        id: 'preview',
-        name: config.companyName || 'Vista Previa',
-        ...config
-    };
+    // --- RENDERIZADO DE LA VISTA PREVIA ---
+    const MobilePreviewContent = () => (
+        <div
+            className="min-h-full w-full flex flex-col font-sans transition-colors duration-300"
+            style={{ backgroundColor: config.brandColorBg, color: config.brandColorText }}
+        >
+            {/* INYECTAR TODAS LAS FUENTES PARA QUE ESTÉN DISPONIBLES */}
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&family=Poppins:wght@400;700;900&family=Roboto+Slab:wght@400;700&display=swap');
+                .custom-title-font { font-family: ${config.brandFontFamily}; }
+            `}</style>
 
-    // Estilos dinámicos para inyectar en el contenedor de preview
-    const previewContainerStyle = {
-        '--brand-primary': config.brandColorPrimary,
-        '--brand-secondary': config.brandColorSecondary,
-        '--brand-bg': config.brandColorBg,
-        '--brand-text': config.brandColorText,
-        backgroundColor: config.brandColorBg,
-        color: config.brandColorText,
-    } as React.CSSProperties;
+            {/* 1. HEADER (Logo Izquierda + Nombre) */}
+            <header
+                className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between border-b shadow-sm backdrop-blur-md"
+                style={{
+                    backgroundColor: `${config.brandColorBg}F2`,
+                    borderColor: `${config.brandColorSecondary}40`
+                }}
+            >
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-8 h-8 rounded-lg bg-white p-1 shrink-0 flex items-center justify-center shadow-sm">
+                        {config.brandingLogoUrl ? (
+                            <img src={config.brandingLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        ) : (
+                            <Building2 className="text-slate-800 w-5 h-5" />
+                        )}
+                    </div>
+                    <h1 className="custom-title-font text-base leading-tight truncate">
+                        {config.companyName || 'TU EMPRESA'}
+                    </h1>
+                </div>
+                <div className="flex gap-3 text-slate-400">
+                    <Search size={18} />
+                    <Bell size={18} />
+                </div>
+            </header>
+
+            <main className="p-4 space-y-5 flex-1 overflow-y-auto">
+
+                {/* 2. TARJETA DE PREMIO */}
+                <div
+                    className="rounded-2xl overflow-hidden shadow-lg border relative group"
+                    style={{ backgroundColor: config.brandColorSecondary, borderColor: `${config.brandColorText}10` }}
+                >
+                    <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor: `${config.brandColorText}10` }}>
+                        <Award size={16} style={{ color: config.brandColorPrimary }} />
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-80">Premios Especiales</span>
+                    </div>
+
+                    <div className="w-full h-40 bg-slate-800 relative overflow-hidden">
+                        {config.brandCoverUrl ? (
+                            <img src={config.brandCoverUrl} alt="Premio" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-900/50">
+                                <ImageIcon size={32} className="opacity-50" />
+                                <span className="text-[10px] mt-2 uppercase tracking-wider font-bold">Sin imagen de premio</span>
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                        <div className="absolute bottom-3 left-4 right-4">
+                            <p className="text-white text-sm font-medium line-clamp-2 drop-shadow-md">
+                                {config.welcomeMessage || 'Describe aquí el premio mayor...'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. TABLA DE POSICIONES (ESTÁTICA) */}
+                <div
+                    className="rounded-2xl p-4 shadow-lg border w-full"
+                    style={{ backgroundColor: config.brandColorSecondary, borderColor: `${config.brandColorText}10` }}
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="custom-title-font text-lg flex items-center gap-2">
+                            <Trophy size={18} className="text-yellow-400" /> TOP RANKING
+                        </h2>
+                        <span className="text-[10px] font-bold uppercase tracking-widest cursor-pointer opacity-70 hover:opacity-100">Ver Todo</span>
+                    </div>
+
+                    <div className="space-y-3">
+                        {participantsMock.map((user) => (
+                            <div
+                                key={user.id}
+                                className="flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-white/5"
+                            >
+                                <div className="custom-title-font text-lg w-6 text-center opacity-50">{user.rank}</div>
+                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-slate-300 border border-white/10 shrink-0">
+                                    {user.nickname.charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm truncate">{user.nickname}</p>
+                                    <p className="text-[10px] opacity-60 uppercase tracking-wide">Colaborador</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="block font-black text-lg" style={{ color: config.brandColorPrimary }}>{user.points}</span>
+                                    <span className="text-[9px] opacity-50 font-bold">PTS</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </main>
+
+            {/* Bottom Nav Mock */}
+            <div
+                className="h-16 border-t flex items-center justify-around px-2 shrink-0 mt-auto"
+                style={{ backgroundColor: config.brandColorBg, borderColor: `${config.brandColorText}10` }}
+            >
+                <div className="flex flex-col items-center gap-1 opacity-100" style={{ color: config.brandColorPrimary }}>
+                    <LayoutTemplate size={20} />
+                    <span className="text-[9px] font-bold">INICIO</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 opacity-50">
+                    <Trophy size={20} />
+                    <span className="text-[9px] font-bold">RANKING</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 opacity-50">
+                    <Menu size={20} />
+                    <span className="text-[9px] font-bold">MENÚ</span>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-[#0B1120] text-slate-200 font-sans flex flex-col lg:flex-row overflow-hidden">
 
-            {/* INYECCIÓN DE FUENTES */}
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Russo+One&display=swap');
-            `}</style>
-
-            {/* --- PANEL IZQUIERDO: HERRAMIENTAS (350px - 400px) --- */}
+            {/* --- PANEL IZQUIERDO: HERRAMIENTAS --- */}
             <aside className="w-full lg:w-[400px] bg-[#151F32] border-r border-[#1E293B] flex flex-col h-[50vh] lg:h-screen shadow-2xl z-20">
-
-                {/* Header Editor */}
                 <div className="p-5 border-b border-[#1E293B] flex items-center justify-between bg-[#0F172A]">
                     <div className="flex items-center gap-3">
                         <button onClick={() => router.back()} className="hover:bg-white/10 p-2 rounded-full transition-colors mr-1">
                             <ArrowLeft size={18} />
                         </button>
-                        <div className="bg-[#00E676] p-2 rounded-lg text-[#0F172A]">
-                            <LayoutTemplate size={20} />
-                        </div>
                         <div>
                             <h1 className="font-bold text-white leading-tight">Enterprise Studio</h1>
                             <p className="text-[10px] text-slate-400 uppercase tracking-widest">Editor de Marca</p>
@@ -225,170 +322,101 @@ export default function StudioPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
                 <div className="flex border-b border-[#1E293B]">
                     <TabButton icon={Palette} label="Marca" isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
                     <TabButton icon={ImageIcon} label="Recursos" isActive={activeTab === 'assets'} onClick={() => setActiveTab('assets')} />
                     <TabButton icon={Type} label="Contenido" isActive={activeTab === 'content'} onClick={() => setActiveTab('content')} />
                 </div>
 
-                {/* Scroll Area Herramientas */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-
-                    {/* TAB: MARCA */}
                     {activeTab === 'branding' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-                            <SectionTitle title="Paleta de Colores" subtitle="Define la identidad visual de tu portal." />
+                            <SectionTitle title="Paleta de Colores" subtitle="Personaliza la apariencia general." />
                             <div className="space-y-4">
-                                <ColorPicker
-                                    label="Color Primario (Botones/Acentos)"
-                                    value={config.brandColorPrimary}
-                                    onChange={(v: string) => setConfig({ ...config, brandColorPrimary: v })}
-                                />
-                                <ColorPicker
-                                    label="Fondo Principal (Obsidian)"
-                                    value={config.brandColorBg}
-                                    onChange={(v: string) => setConfig({ ...config, brandColorBg: v })}
-                                />
-                                <ColorPicker
-                                    label="Superficies / Tarjetas"
-                                    value={config.brandColorSecondary}
-                                    onChange={(v: string) => setConfig({ ...config, brandColorSecondary: v })}
-                                />
-                                <ColorPicker
-                                    label="Color de Texto"
-                                    value={config.brandColorText}
-                                    onChange={(v: string) => setConfig({ ...config, brandColorText: v })}
-                                />
+                                <ColorPicker label="Color Primario (Acentos)" value={config.brandColorPrimary} onChange={(v: string) => setConfig({ ...config, brandColorPrimary: v })} />
+                                <ColorPicker label="Fondo (Obsidian)" value={config.brandColorBg} onChange={(v: string) => setConfig({ ...config, brandColorBg: v })} />
+                                <ColorPicker label="Tarjetas (Surface)" value={config.brandColorSecondary} onChange={(v: string) => setConfig({ ...config, brandColorSecondary: v })} />
+                                <ColorPicker label="Texto Principal" value={config.brandColorText} onChange={(v: string) => setConfig({ ...config, brandColorText: v })} />
+                            </div>
+
+                            <div className="pt-4 border-t border-[#1E293B]">
+                                <SectionTitle title="Tipografía" subtitle="Estilo de letra para títulos y encabezados." />
+                                <div className="grid grid-cols-2 gap-3">
+                                    {fontOptions.map((font) => (
+                                        <button
+                                            key={font.name}
+                                            onClick={() => setConfig({ ...config, brandFontFamily: font.value })}
+                                            className={`p-3 rounded-xl border text-left text-xs transition-all relative ${config.brandFontFamily === font.value ? 'border-[#00E676] bg-[#00E676]/10 text-white' : 'border-[#1E293B] bg-[#0F172A] text-slate-400 hover:border-slate-600'}`}
+                                        >
+                                            <span className="block text-lg mb-1" style={{ fontFamily: font.value }}>Ag</span>
+                                            {font.name}
+                                            {config.brandFontFamily === font.value && <Check size={14} className="absolute top-2 right-2 text-[#00E676]" />}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* TAB: RECURSOS */}
                     {activeTab === 'assets' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-                            <SectionTitle title="Logotipo" subtitle="Sube el logo de la empresa (PNG transparente ideal)." />
+                            <SectionTitle title="Recursos Visuales" subtitle="Logotipo y banners." />
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-300 ml-1">URL Logo (o sube archivo)</label>
-                                <input
-                                    type="text"
-                                    placeholder="https://..."
-                                    value={config.brandingLogoUrl || ''}
-                                    onChange={(e) => setConfig({ ...config, brandingLogoUrl: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-xs text-slate-300 focus:border-[#00E676] outline-none"
-                                />
-                                <ImageUploader
-                                    label="Subir Archivo Local"
-                                    preview={config.brandingLogoUrl}
-                                    onChange={(e: any) => handleImageUpload('brandingLogoUrl', e)}
-                                    placeholderIcon={Building2}
-                                />
+                                <label className="text-xs font-bold text-slate-300 ml-1">Logotipo Corporativo</label>
+                                <ImageUploader label="Subir Archivo Local" preview={config.brandingLogoUrl} onChange={(e: any) => handleImageUpload('brandingLogoUrl', e)} placeholderIcon={Building2} />
                             </div>
-
-                            <div className="border-t border-[#1E293B] my-4"></div>
-
-                            <SectionTitle title="Banner Hero" subtitle="Imagen impactante para el premio o cabecera." />
+                            <div className="border-t border-[#1E293B] my-2"></div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-300 ml-1">URL Banner (o sube archivo)</label>
-                                <input
-                                    type="text"
-                                    placeholder="https://..."
-                                    value={config.brandCoverUrl || ''}
-                                    onChange={(e) => setConfig({ ...config, brandCoverUrl: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-xs text-slate-300 focus:border-[#00E676] outline-none"
-                                />
-                                <ImageUploader
-                                    label="Subir Archivo Local"
-                                    preview={config.brandCoverUrl}
-                                    onChange={(e: any) => handleImageUpload('brandCoverUrl', e)}
-                                    placeholderIcon={ImageIcon}
-                                    aspect="video"
-                                />
+                                <label className="text-xs font-bold text-slate-300 ml-1">Banner Premio</label>
+                                <ImageUploader label="Subir Archivo Local" preview={config.brandCoverUrl} onChange={(e: any) => handleImageUpload('brandCoverUrl', e)} placeholderIcon={ImageIcon} aspect="video" />
                             </div>
                         </div>
                     )}
 
-                    {/* TAB: CONTENIDO */}
                     {activeTab === 'content' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-                            <SectionTitle title="Identidad del Torneo" subtitle="Textos que verán tus colaboradores." />
-                            <InputGroup label="Nombre de la Empresa / Torneo">
-                                <input
-                                    type="text"
-                                    value={config.companyName}
-                                    onChange={(e) => setConfig({ ...config, companyName: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors"
-                                />
+                            <SectionTitle title="Identidad" subtitle="Información de la empresa." />
+                            <InputGroup label="Nombre Empresa">
+                                <input type="text" value={config.companyName} onChange={(e) => setConfig({ ...config, companyName: e.target.value })} className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors" />
                             </InputGroup>
-                            <InputGroup label="Mensaje de Bienvenida / Premio">
-                                <textarea
-                                    rows={4}
-                                    value={config.welcomeMessage}
-                                    onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors resize-none"
-                                    placeholder="Ej: ¡Bienvenidos a la polla! El ganador se lleva un viaje..."
-                                />
+                            <InputGroup label="Mensaje Bienvenida (Descripción Premio)">
+                                <textarea rows={4} value={config.welcomeMessage} onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })} className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors resize-none" />
                             </InputGroup>
                         </div>
                     )}
-
                 </div>
 
-                {/* Footer Actions */}
                 <div className="p-5 border-t border-[#1E293B] bg-[#0F172A] flex gap-3">
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                        Publicar Cambios
+                    <button onClick={handleSave} disabled={saving} className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Publicar
                     </button>
                 </div>
             </aside>
 
             {/* --- PANEL DERECHO: LIVE PREVIEW --- */}
             <main className="flex-1 bg-[#0B1120] relative flex items-center justify-center p-4 lg:p-10 h-[50vh] lg:h-screen overflow-hidden">
+                <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#1E293B 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
-                {/* Background Grid Pattern */}
-                <div className="absolute inset-0 opacity-20 pointer-events-none"
-                    style={{ backgroundImage: 'radial-gradient(#1E293B 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
-                </div>
-
-                {/* Mobile Device Simulation */}
-                <div className="relative w-full max-w-[380px] h-full max-h-[750px] bg-black rounded-[40px] shadow-2xl border-[8px] border-[#1E293B] overflow-hidden flex flex-col transition-all duration-500 ring-4 ring-black/50">
-
-                    {/* Notch */}
+                {/* Mobile Mockup */}
+                <div className="relative w-full max-w-[360px] h-full max-h-[720px] bg-black rounded-[40px] shadow-2xl border-[8px] border-[#1E293B] overflow-hidden flex flex-col transition-all duration-500 ring-4 ring-black/50">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-50 flex justify-center items-end pb-1">
                         <div className="w-12 h-1 bg-[#1E293B] rounded-full"></div>
                     </div>
 
-                    {/* LIVE PREVIEW CONTENT */}
-                    <div className="flex-1 overflow-y-auto w-full custom-scrollbar" style={previewContainerStyle}>
-                        {/* Aquí renderizamos tu componente real 'EnterpriseLeagueView'.
-                            Este componente DEBE usar las variables CSS o los colores del objeto 'league' 
-                            para que los cambios se reflejen en tiempo real.
-                        */}
-                        <div className="min-h-full">
-                            <EnterpriseLeagueView
-                                league={mockLeagueForPreview}
-                                participants={participantsMock}
-                            />
-                        </div>
+                    {/* Render Content */}
+                    <div className="flex-1 overflow-hidden relative bg-black">
+                        <MobilePreviewContent />
                     </div>
 
-                    {/* Reflection Overlay */}
+                    {/* Reflection */}
                     <div className="absolute inset-0 rounded-[32px] pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.5)] z-50"></div>
                 </div>
 
-                {/* Toggle Buttons (Decorativos por ahora) */}
                 <div className="absolute top-6 right-6 hidden lg:flex gap-2 bg-[#151F32] p-1 rounded-lg border border-[#1E293B]">
                     <button className="p-2 rounded-md bg-[#00E676] text-[#0F172A]"><Smartphone size={16} /></button>
                     <button className="p-2 rounded-md text-slate-500 hover:text-white"><Monitor size={16} /></button>
                 </div>
-
             </main>
-
         </div>
     );
 }

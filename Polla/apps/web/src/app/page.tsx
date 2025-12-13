@@ -188,13 +188,15 @@ export default function LandingPage() {
 
   // LÓGICA DE NEGOCIO INTEGRADA
   const onLoginClick = () => {
-    signInWithGoogle();
+    // Redirigir a la página de login donde el usuario puede elegir cómo ingresar
+    window.location.href = '/login';
   };
 
   const handleCreateBusinessPool = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding_business', 'true');
     }
+    // Para crear polla de empresa, ir directo a Google OAuth
     signInWithGoogle();
   };
 

@@ -80,7 +80,7 @@ export default function BusinessOnboardingPage() {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00E676] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600 rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
-            <Card className="w-full max-w-lg shadow-2xl bg-[#1E293B] border border-[#94A3B8]/20 relative z-10">
+            <Card className="w-full max-w-2xl shadow-2xl bg-[#1E293B] border border-[#94A3B8]/20 relative z-10">
                 <CardHeader className="space-y-1 text-center pb-8">
                     <div className="mx-auto w-16 h-16 bg-[#00E676]/10 rounded-2xl flex items-center justify-center mb-4 text-[#00E676] border border-[#00E676]/20 shadow-[0_0_15px_rgba(0,230,118,0.1)]">
                         <Building2 size={32} />

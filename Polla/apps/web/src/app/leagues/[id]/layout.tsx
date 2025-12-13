@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation'; // Added useRouter just in case
+import { useParams, useRouter, usePathname } from 'next/navigation'; // Added useRouter just in case
 import api from '@/lib/api';
 import { LeagueNavigation } from '@/components/LeagueNavigation';
 import { Loader2 } from 'lucide-react';
@@ -115,18 +115,18 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             className="min-h-screen w-full transition-colors duration-500 bg-obsidian text-white flex flex-col md:flex-row"
             style={themeStyles}
         >
-            {/* 4. PERSISTENT NAVIGATION (Sidebar/Bottom) */}
-            <LeagueNavigation
-                leagueId={league.id}
-                isAdmin={league.isAdmin || false} // Assuming backend returns isAdmin
-                isEnterpriseActive={league.isEnterpriseActive || false}
-            />
+            {/* 4. PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO */}
+            {!usePathname()?.includes('/studio') && (
+                <LeagueNavigation
+                    leagueId={league.id}
+                    isAdmin={league.isAdmin || false}
+                    isEnterpriseActive={league.isEnterpriseActive || false}
+                />
+            )}
 
             {/* 5. MAIN CONTENT AREA */}
-            {/* Added padding-bottom for mobile nav (handled in Nav component usually, or here) */}
-            {/* Mobile Nav has pb-safe + 16px. Content needs padding. */}
-            {/* Desktop has Sidebar 64px width (w-64 = 16rem = 256px actually). */}
-            <main className="flex-1 w-full md:pl-64 pb-24 md:pb-0">
+            {/* Remove padding if in Studio mode to allow full screen */}
+            <main className={`flex-1 w-full ${usePathname()?.includes('/studio') ? '' : 'md:pl-64 pb-24 md:pb-0'}`}>
                 {children}
             </main>
         </div>

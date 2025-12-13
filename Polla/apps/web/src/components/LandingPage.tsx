@@ -6,27 +6,14 @@ import {
     BarChart3, HelpCircle, ChevronDown, MessageCircle, Link as LinkIcon,
     Globe, Gift, Target, MousePointerClick
 } from 'lucide-react';
-
-
 import { signInWithGoogle } from '@/lib/auth.utils';
-
-/* =============================================================================
-   PALETA DE COLORES (USADA EN EL CÓDIGO)
-   Obsidian: #0F172A
-   Carbon:   #1E293B
-   Signal:   #00E676
-   Gold:     #FACC15
-   Tactical: #94A3B8
-   ============================================================================= */
-
 
 /* =============================================================================
    COMPONENTES UI (ELEMENTOS GRÁFICOS)
    ============================================================================= */
 
-
 const LogoLight = () => (
-    <div className="flex items-center gap-3 select-none">
+    <div className="flex items-center gap-3 select-none shrink-0">
         <div className="relative flex items-center justify-center shrink-0" style={{ width: '36px', height: '36px' }}>
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="text-[#00E676]" style={{ width: '100%', height: '100%' }}>
                 <circle cx="50" cy="50" r="45" />
@@ -47,41 +34,8 @@ const LogoLight = () => (
     </div>
 );
 
-
-const MatchCardVisual = ({ className }: { className?: string }) => (
-    <div className={`bg-[#1E293B] rounded-xl p-3 border border-[#94A3B8]/20 shadow-2xl relative overflow-hidden w-64 ${className}`}>
-        <div className="text-center mb-2 text-[8px] font-bold text-[#94A3B8] uppercase tracking-widest">Gran Final • New Jersey</div>
-        <div className="flex justify-between items-center mb-3 text-white">
-            <div className="text-center"><span className="text-2xl font-black">BRA</span></div>
-            <div className="text-xl font-bold text-[#00E676] bg-[#00E676]/10 px-2 py-0.5 rounded">3 - 1</div>
-            <div className="text-center"><span className="text-2xl font-black">FRA</span></div>
-        </div>
-        <div className="w-full bg-[#00E676] text-[#0F172A] text-center py-1.5 rounded font-black text-[10px] uppercase flex items-center justify-center gap-1">
-            <Star size={10} fill="currentColor" /> ¡ACERTASTE! +14 PTS
-        </div>
-    </div>
-);
-
-
-const RankingCardVisual = ({ className }: { className?: string }) => (
-    <div className={`bg-white rounded-xl p-4 border border-[#94A3B8]/20 shadow-xl w-64 ${className}`}>
-        <h3 className="font-bold text-xs mb-3 flex items-center gap-2 text-[#0F172A] uppercase tracking-wider"><Trophy size={12} className="text-[#FACC15]" /> Top Global</h3>
-        {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-3 mb-2 p-2 border-b border-[#94A3B8]/10 last:border-0">
-                <span className={`font-black w-4 text-center text-xs ${i === 1 ? 'text-[#FACC15]' : 'text-[#94A3B8]'}`}>{i}</span>
-                <div className="w-6 h-6 rounded-full bg-[#94A3B8]/20"></div>
-                <div className="flex-1">
-                    <div className="h-1.5 w-16 bg-[#94A3B8]/20 rounded mb-1"></div>
-                </div>
-                <span className="font-bold text-xs text-[#0F172A]">{(5 - i) * 100}</span>
-            </div>
-        ))}
-    </div>
-);
-
-
 const iPhoneMockup = () => (
-    <div className="relative mx-auto w-[280px] h-[580px] bg-[#0F172A] rounded-[45px] border-[10px] border-[#1E293B] shadow-2xl overflow-hidden transform rotate-[-3deg] hover:rotate-0 transition-transform duration-500 group">
+    <div className="relative mx-auto w-[280px] h-[580px] bg-[#0F172A] rounded-[45px] border-[10px] border-[#1E293B] shadow-2xl overflow-hidden transform rotate-[-3deg] hover:rotate-0 transition-transform duration-500 group shrink-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100px] h-[25px] bg-[#1E293B] rounded-b-[16px] z-20"></div>
         <div className="w-full h-full bg-[#0F172A] relative flex flex-col font-sans text-white pt-10 overflow-hidden">
             <div className="px-5 pb-4 flex justify-between items-center">
@@ -126,20 +80,47 @@ const iPhoneMockup = () => (
     </div>
 );
 
-
 const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative cursor-pointer">
+    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative whitespace-nowrap cursor-pointer">
         {children}
     </button>
 );
-
 
 const SecondaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative cursor-pointer">
+    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative whitespace-nowrap cursor-pointer">
         {children}
     </button>
 );
 
+const MatchCardVisual = ({ className }: { className?: string }) => (
+    <div className={`bg-[#1E293B] rounded-xl p-3 border border-[#94A3B8]/20 shadow-2xl relative overflow-hidden w-64 ${className}`}>
+        <div className="text-center mb-2 text-[8px] font-bold text-[#94A3B8] uppercase tracking-widest">Gran Final • New Jersey</div>
+        <div className="flex justify-between items-center mb-3 text-white">
+            <div className="text-center"><span className="text-2xl font-black">BRA</span></div>
+            <div className="text-xl font-bold text-[#00E676] bg-[#00E676]/10 px-2 py-0.5 rounded">3 - 1</div>
+            <div className="text-center"><span className="text-2xl font-black">FRA</span></div>
+        </div>
+        <div className="w-full bg-[#00E676] text-[#0F172A] text-center py-1.5 rounded font-black text-[10px] uppercase flex items-center justify-center gap-1">
+            <Star size={10} fill="currentColor" /> ¡ACERTASTE! +14 PTS
+        </div>
+    </div>
+);
+
+const RankingCardVisual = ({ className }: { className?: string }) => (
+    <div className={`bg-white rounded-xl p-4 border border-[#94A3B8]/20 shadow-xl w-64 ${className}`}>
+        <h3 className="font-bold text-xs mb-3 flex items-center gap-2 text-[#0F172A] uppercase tracking-wider"><Trophy size={12} className="text-[#FACC15]" /> Top Global</h3>
+        {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-3 mb-2 p-2 border-b border-[#94A3B8]/10 last:border-0">
+                <span className={`font-black w-4 text-center text-xs ${i === 1 ? 'text-[#FACC15]' : 'text-[#94A3B8]'}`}>{i}</span>
+                <div className="w-6 h-6 rounded-full bg-[#94A3B8]/20"></div>
+                <div className="flex-1">
+                    <div className="h-1.5 w-16 bg-[#94A3B8]/20 rounded mb-1"></div>
+                </div>
+                <span className="font-bold text-xs text-[#0F172A]">{(5 - i) * 100}</span>
+            </div>
+        ))}
+    </div>
+);
 
 const FeatureCard = ({ icon, color, title, desc }: any) => (
     <div className="bg-white p-8 rounded-2xl border border-[#94A3B8]/20 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group h-full">
@@ -148,7 +129,6 @@ const FeatureCard = ({ icon, color, title, desc }: any) => (
         <p className="text-[#94A3B8] text-sm leading-relaxed">{desc}</p>
     </div>
 );
-
 
 const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon = CheckCircle }: any) => {
     let iconColor = dark ? "text-[#00E676]" : "text-green-600";
@@ -164,7 +144,6 @@ const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, ic
     )
 };
 
-
 const ScoreExample = ({ label, points }: any) => {
     return (
         <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-[#94A3B8]/20">
@@ -173,7 +152,6 @@ const ScoreExample = ({ label, points }: any) => {
         </div>
     );
 };
-
 
 const FAQItem = ({ question, answer }: any) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -190,24 +168,11 @@ const FAQItem = ({ question, answer }: any) => {
     );
 };
 
-
-// ... (existing imports)
-
-// ... (LogoLight, MatchCardVisual, RankingCardVisual, iPhoneMockup, Buttons, FeatureCard, ListItemSmall, ScoreExample, FAQItem remain unchanged)
-
 const StepCard = ({ num, title, desc }: any) => (
-    <div className="text-center p-6 bg-transparent">
+    <div className="text-center p-6">
         <div
-            className="rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl shadow-sm"
-            style={{
-                width: '48px',
-                height: '48px',
-                margin: '0 auto 16px auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-            }}
+            className="w-12 h-12 rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl flex items-center justify-center mx-auto mb-4 shadow-sm"
+            style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
             {num}
         </div>
@@ -216,36 +181,33 @@ const StepCard = ({ num, title, desc }: any) => (
     </div>
 );
 
-
 /* =============================================================================
    PÁGINA DE INICIO (LANDING PAGE)
    ============================================================================= */
 export default function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-
-    // FUNCIÓN SOLICITADA - ACTUALIZADA PARA REDIRECCIÓN DIRECTA
+    // FUNCIÓN SOLICITADA - ACTUALIZADA PARA REDIRECCIÓN DIRECTA (PRESERVANDO LOGICA)
     const handleCreateBusinessPool = () => {
         if (typeof window !== 'undefined') {
             // Set flag for redirect after login
             localStorage.setItem('onboarding_business', 'true');
-            // Trigger Google OAuth direct redirect
+            // Trigger Google OAuth direct redirect via lib
             signInWithGoogle();
         }
     };
 
-
     return (
-        // Wrapper principal con fondo blanco y texto oscuro explícitos
-        <div className="w-full min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden" style={{ backgroundColor: '#ffffff', color: '#0F172A' }}>
+        // Wrapper principal con estilos base explícitos
+        <div className="min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden" style={{ backgroundColor: '#ffffff', color: '#0F172A' }}>
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&display=swap');
         .font-russo { font-family: 'Russo One', sans-serif; }
       `}</style>
 
-
             {/* --- NAVBAR --- */}
             <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
+                {/* CONTENEDOR CENTRAL: max-w-7xl mx-auto asegura que no se pegue a los bordes en pantallas gigantes */}
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <LogoLight />
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#94A3B8]">
@@ -256,10 +218,9 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
                         <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors cursor-pointer">Ingresar</button>
 
-                        {/* BOTÓN DEL NAVBAR CONECTADO A LA LÓGICA */}
                         <button
                             onClick={handleCreateBusinessPool}
-                            className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all cursor-pointer"
+                            className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all whitespace-nowrap cursor-pointer"
                             style={{ backgroundColor: '#0F172A', color: 'white' }}
                         >
                             Crear Polla para mi Empresa
@@ -280,10 +241,10 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 )}
             </nav>
 
-
             {/* --- HERO SECTION --- */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
+            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50 w-full">
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-green-100 to-transparent rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
+                {/* CONTENEDOR CENTRAL: max-w-7xl mx-auto */}
                 <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
                     <div className="space-y-8 text-center lg:text-left">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#94A3B8]/30 text-[#0F172A] text-[11px] font-bold uppercase tracking-widest shadow-sm">
@@ -300,8 +261,6 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
                             <SecondaryButton onClick={onLoginClick}>Ingresar / Tengo Código</SecondaryButton>
-
-                            {/* BOTÓN PRINCIPAL CONECTADO A LA LÓGICA */}
                             <PrimaryButton onClick={handleCreateBusinessPool}>
                                 Crear Polla para mi Empresa <ArrowRight size={20} />
                             </PrimaryButton>
@@ -319,13 +278,13 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- SECCIÓN: TORNEO GLOBAL Y COMUNIDAD --- */}
-            <section id="comunidad" className="py-20 bg-[#0F172A] text-white relative overflow-hidden">
+            <section id="comunidad" className="py-20 bg-[#0F172A] text-white relative overflow-hidden w-full">
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
                     <div className="absolute top-10 left-10 w-64 h-64 bg-[#1E293B] rounded-full blur-[100px]"></div>
                     <div className="absolute bottom-10 right-10 w-64 h-64 bg-[#00E676] rounded-full blur-[100px]"></div>
                 </div>
+                {/* CONTENEDOR CENTRAL */}
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div className="relative h-[400px] hidden lg:flex items-center justify-center">
@@ -363,16 +322,14 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- CÓMO JUGAR --- */}
-            <section id="como-se-juega" className="py-24 bg-white">
+            <section id="como-se-juega" className="py-24 bg-white w-full">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">¿CÓMO JUGAR?</h2>
                         <p className="text-[#94A3B8]">Es tan fácil que hasta tu abuela querrá participar.</p>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto relative">
-                        {/* Connector line for desktop */}
                         <div className="hidden md:block absolute top-12 left-20 right-20 h-0.5 bg-[#94A3B8]/20 -z-10"></div>
                         <StepCard num="1" title="Regístrate" desc="Crea tu cuenta gratis con Google en segundos. Sin formularios eternos." />
                         <StepCard num="2" title="Pronostica" desc="Ingresa tus marcadores de la fase de grupos y arma tu Bracket final." />
@@ -381,9 +338,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- FUNCIONALIDADES --- */}
-            <section className="py-24 bg-slate-50">
+            <section className="py-24 bg-slate-50 w-full">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-20 max-w-3xl mx-auto">
                         <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">MÁS QUE UNA APP, UN MOTOR DE JUEGO</h2>
@@ -401,9 +357,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- SISTEMA DE PUNTOS DETALLADO --- */}
-            <section className="py-24 bg-white border-y border-[#94A3B8]/20">
+            <section className="py-24 bg-white border-y border-[#94A3B8]/20 w-full">
                 <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
                     <div className="bg-white p-8 rounded-3xl shadow-xl border border-[#94A3B8]/20 relative">
                         <div className="absolute top-4 right-4 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Partido Real: 2 - 1</div>
@@ -453,9 +408,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- PLANES --- */}
-            <section id="precios" className="py-24 bg-slate-50">
+            <section id="precios" className="py-24 bg-slate-50 w-full">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">PLANES PARA TODOS</h2>
@@ -475,7 +429,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                                 <ListItemSmall text="Muro de Comentarios" dull={true} icon={X} />
                                 <ListItemSmall text="Publicidad Incluida" dull={true} />
                             </ul>
-                            <button onClick={onLoginClick} className="w-full py-3 rounded-lg border-2 border-[#0F172A] font-bold text-[#0F172A] hover:bg-[#0F172A] hover:text-white transition-all">Crear Gratis</button>
+                            <button onClick={onLoginClick} className="w-full py-3 rounded-lg border-2 border-[#0F172A] font-bold text-[#0F172A] hover:bg-[#0F172A] hover:text-white transition-all cursor-pointer">Crear Gratis</button>
                         </div>
                         {/* Plan Lider */}
                         <div className="border-2 border-[#00E676] bg-white rounded-2xl p-8 relative shadow-2xl transform lg:-translate-y-4">
@@ -493,7 +447,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                                 <ListItemSmall text="Gestión de Pagos (Semáforo)" />
                                 <ListItemSmall text="Sin Publicidad Externa" />
                             </ul>
-                            <button onClick={onLoginClick} className="w-full py-3 rounded-lg bg-[#00E676] font-black text-[#0F172A] shadow-lg shadow-green-500/20 hover:scale-105 transition-all">Seleccionar Plan</button>
+                            <button onClick={onLoginClick} className="w-full py-3 rounded-lg bg-[#00E676] font-black text-[#0F172A] shadow-lg shadow-green-500/20 hover:scale-105 transition-all cursor-pointer">Seleccionar Plan</button>
                         </div>
                         {/* Plan Corporativo */}
                         <div className="border border-[#94A3B8]/20 rounded-2xl p-8 hover:border-[#94A3B8] transition-all bg-[#0F172A] text-white">
@@ -509,15 +463,14 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                                 <ListItemSmall text="Fidelización de Clientes (B2B/B2C)" dark={true} />
                                 <ListItemSmall text="Dashboard de Analítica" dark={true} />
                             </ul>
-                            <button onClick={handleCreateBusinessPool} className="w-full py-3 rounded-lg bg-white font-black text-[#0F172A] hover:bg-[#94A3B8] transition-all">Cotizar Empresa</button>
+                            <button onClick={handleCreateBusinessPool} className="w-full py-3 rounded-lg bg-white font-black text-[#0F172A] hover:bg-[#94A3B8] transition-all cursor-pointer">Cotizar Empresa</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-
             {/* --- SECCIÓN FIDELIZACIÓN --- */}
-            <section id="corporativo" className="py-24 bg-white relative overflow-hidden border-t border-[#94A3B8]/20">
+            <section id="corporativo" className="py-24 bg-white relative overflow-hidden border-t border-[#94A3B8]/20 w-full">
                 <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
                     <div className="order-2 md:order-1">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest mb-6">
@@ -556,9 +509,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- PREGUNTAS FRECUENTES (FAQ) --- */}
-            <section className="py-24 bg-slate-50 border-t border-[#94A3B8]/20">
+            <section className="py-24 bg-slate-50 border-t border-[#94A3B8]/20 w-full">
                 <div className="max-w-3xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <HelpCircle size={40} className="mx-auto text-[#94A3B8] mb-4" />
@@ -574,9 +526,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
             </section>
 
-
             {/* --- FOOTER --- */}
-            <footer className="bg-white pt-20 pb-10 border-t border-[#94A3B8]/20">
+            <footer className="bg-white pt-20 pb-10 border-t border-[#94A3B8]/20 w-full">
                 <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-2">
                         <LogoLight />
@@ -606,7 +557,6 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 </div>
                 <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 Polla Mundialista. Todos los derechos reservados.</div>
             </footer>
-
 
             {/* --- WHATSAPP FLOATING BUTTON --- */}
             <a href="#" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">

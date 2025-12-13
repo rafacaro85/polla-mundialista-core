@@ -24,22 +24,12 @@ import {
 
 const LogoLight = () => (
   <div className="flex items-center gap-3 select-none">
-    <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
-      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="w-full h-full text-[#00E676]">
-        <circle cx="50" cy="50" r="45" />
-        <path d="M50 20 L75 38 L65 68 L35 68 L25 38 Z" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M50 20 L50 5" strokeLinecap="round" /><path d="M75 38 L90 30" strokeLinecap="round" />
-        <path d="M65 68 L80 85" strokeLinecap="round" /><path d="M35 68 L20 85" strokeLinecap="round" />
-        <path d="M25 38 L10 30" strokeLinecap="round" />
-      </svg>
-    </div>
-    <div className="flex flex-col leading-[0.85]">
-      <span className="font-[900] text-[16px] text-[#0F172A] tracking-tighter font-sans">POLLA</span>
-      <span className="font-[900] text-[20px] text-[#0F172A] tracking-tighter relative font-sans">
+    <div className="flex flex-col leading-tight">
+      <span className="font-black text-xl text-slate-900">POLLA</span>
+      <span className="font-black text-2xl text-slate-900">
         MUNDIALISTA
-        <span className="absolute -top-0.5 -right-1.5 w-1 h-1 bg-[#00E676] rounded-full"></span>
       </span>
-      <span className="text-[9px] font-bold text-[#94A3B8] tracking-widest uppercase mt-0.5">FIFA World Cup 2026</span>
+      <span className="text-xs font-bold text-slate-500 uppercase">FIFA World Cup 2026</span>
     </div>
   </div>
 );

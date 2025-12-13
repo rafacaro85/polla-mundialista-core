@@ -2,25 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FORZAR MODO CLARO Y RESETEAR ESTILOS CONFLICTIVOS */
+/* FORZADO BRUTO A MODO CLARO */
 :root {
-  --foreground-rgb: 15, 23, 42;
+  --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
 }
 
-html,
 body {
-  background-color: #ffffff !important;
-  /* Fuerza bruta blanca */
-  color: #0F172A !important;
-  margin: 0;
-  padding: 0;
+  color: #0F172A;
+  background: #FFFFFF !important;
+  /* Important para matar cualquier modo oscuro */
   overflow-x: hidden;
 }
 
-/* Arreglar SVGs gigantes si Tailwind falla */
-svg {
+/* Regla de seguridad para imágenes rotas */
+svg,
+img {
   max-width: 100%;
   height: auto;
 }

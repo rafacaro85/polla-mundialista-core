@@ -25,8 +25,8 @@ import {
 
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none">
-        <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="w-full h-full text-[#00E676]">
+        <div className="relative flex items-center justify-center shrink-0" style={{ width: '36px', height: '36px' }}>
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="text-[#00E676]" style={{ width: '100%', height: '100%' }}>
                 <circle cx="50" cy="50" r="45" />
                 <path d="M50 20 L75 38 L65 68 L35 68 L25 38 Z" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M50 20 L50 5" strokeLinecap="round" /><path d="M75 38 L90 30" strokeLinecap="round" />
@@ -38,7 +38,7 @@ const LogoLight = () => (
             <span className="font-[900] text-[16px] text-[#0F172A] tracking-tighter font-sans">POLLA</span>
             <span className="font-[900] text-[20px] text-[#0F172A] tracking-tighter relative font-sans">
                 MUNDIALISTA
-                <span className="absolute -top-0.5 -right-1.5 w-1 h-1 bg-[#00E676] rounded-full"></span>
+                <span className="absolute -top-0.5 -right-1.5 bg-[#00E676] rounded-full" style={{ width: '4px', height: '4px' }}></span>
             </span>
             <span className="text-[9px] font-bold text-[#94A3B8] tracking-widest uppercase mt-0.5">FIFA World Cup 2026</span>
         </div>
@@ -126,14 +126,14 @@ const iPhoneMockup = () => (
 
 
 const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative">
+    <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative cursor-pointer">
         {children}
     </button>
 );
 
 
 const SecondaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative">
+    <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative cursor-pointer">
         {children}
     </button>
 );
@@ -220,7 +220,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
 
     return (
         // Wrapper principal con fondo blanco y texto oscuro explícitos
-        <div className="w-full min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden">
+        <div className="w-full min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden" style={{ backgroundColor: '#ffffff', color: '#0F172A' }}>
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&display=swap');
         .font-russo { font-family: 'Russo One', sans-serif; }
@@ -228,7 +228,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
 
 
             {/* --- NAVBAR --- */}
-            <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20">
+            <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <LogoLight />
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#94A3B8]">
@@ -237,12 +237,13 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         <a href="#precios" className="hover:text-[#00E676] transition-colors">Planes</a>
                         <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
                         <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
-                        <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors">Ingresar</button>
+                        <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors cursor-pointer">Ingresar</button>
 
                         {/* BOTÓN DEL NAVBAR CONECTADO A LA LÓGICA */}
                         <button
                             onClick={handleCreateBusinessPool}
-                            className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all"
+                            className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all cursor-pointer"
+                            style={{ backgroundColor: '#0F172A', color: 'white' }}
                         >
                             Crear Polla para mi Empresa
                         </button>
@@ -252,12 +253,12 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                     </button>
                 </div>
                 {isMenuOpen && (
-                    <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40">
+                    <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40" style={{ backgroundColor: '#ffffff' }}>
                         <a href="#como-se-juega" className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
                         <a href="#precios" className="text-[#0F172A] font-bold py-2">Planes</a>
                         <a href="#corporativo" className="text-[#0F172A] font-bold py-2">Empresas</a>
-                        <button onClick={onLoginClick} className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase">Ingresar</button>
-                        <button onClick={handleCreateBusinessPool} className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase">Crear Polla Empresa</button>
+                        <button onClick={onLoginClick} className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase cursor-pointer">Ingresar</button>
+                        <button onClick={handleCreateBusinessPool} className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase cursor-pointer" style={{ backgroundColor: '#0F172A' }}>Crear Polla Empresa</button>
                     </div>
                 )}
             </nav>

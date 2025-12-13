@@ -1,8 +1,8 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Russo_One } from "next/font/google";
 import { AuthProvider } from "../lib/auth.tsx";
 import Footer from "@/components/Footer";
-import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 

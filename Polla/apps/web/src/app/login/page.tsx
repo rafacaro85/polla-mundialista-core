@@ -515,12 +515,13 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
 export default function LoginPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    // Redirigir si el usuario ya está logueado (opcional, si hay un token válido)
-    if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-      router.push('/');
-    }
-  }, [router]);
+  // DESHABILITADO: Permitir que usuarios vean la página de login incluso si tienen token
+  // Esto permite re-autenticación o cambio de cuenta
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+  //     router.push('/');
+  //   }
+  // }, [router]);
 
   const handleGoogleLogin = () => {
     // Limpiar completamente el localStorage y sessionStorage antes de iniciar sesión

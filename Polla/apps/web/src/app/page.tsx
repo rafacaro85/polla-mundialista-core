@@ -271,7 +271,7 @@ export default function LandingPage() {
           </div>
           <div className="relative mx-auto lg:mr-0 w-full max-w-sm flex justify-center">
             <div className="absolute top-10 left-10 w-full h-full bg-[#00E676] rounded-[3rem] blur-[60px] opacity-20"></div>
-            <iPhoneMockup />
+            {iPhoneMockup()}
           </div>
         </div>
       </section>

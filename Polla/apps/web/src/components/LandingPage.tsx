@@ -241,41 +241,51 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 )}
             </nav>
 
-            {/* --- HERO SECTION --- */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50 w-full">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-green-100 to-transparent rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
-                {/* CONTENEDOR CENTRAL: max-w-7xl mx-auto */}
-                <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
-                    <div className="space-y-8 text-center lg:text-left">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#94A3B8]/30 text-[#0F172A] text-[11px] font-bold uppercase tracking-widest shadow-sm">
-                            <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-                            Fútbol Profesional
-                        </div>
-                        <h1 className="font-russo text-5xl lg:text-7xl text-[#0F172A] leading-[0.95] tracking-tight">
-                            ORGANIZA LA <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] to-emerald-600">MEJOR POLLA</span>
-                            <br /> DE LA HISTORIA.
-                        </h1>
-                        <p className="text-[#94A3B8] text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
-                            Olvida el Excel. IA integrada, ranking en tiempo real, muro social y pagos automatizados. La plataforma definitiva para empresas, amigos e influencers.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-                            <SecondaryButton onClick={onLoginClick}>Ingresar / Tengo Código</SecondaryButton>
-                            <PrimaryButton onClick={handleCreateBusinessPool}>
-                                Crear Polla para mi Empresa <ArrowRight size={20} />
-                            </PrimaryButton>
-                        </div>
-                        <div className="flex items-center justify-center lg:justify-start gap-4 pt-4 text-sm text-[#94A3B8] font-medium">
-                            <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-[#00E676]" /><span>Google OAuth</span></div>
-                            <div className="w-1 h-1 bg-[#94A3B8] rounded-full"></div>
-                            <div className="flex items-center gap-2"><Zap size={16} className="text-[#00E676]" /><span>Resultados en Vivo</span></div>
-                        </div>
-                    </div>
-                    <div className="relative mx-auto lg:mr-0 w-full max-w-sm flex justify-center">
-                        <div className="absolute top-10 left-10 w-full h-full bg-[#00E676] rounded-[3rem] blur-[60px] opacity-20"></div>
-                        <iPhoneMockup />
-                    </div>
+            {/* --- HERO SECTION (SIMPLIFICADO / ROBUSTO) --- */}
+            <section className="w-full min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 py-12 text-center overflow-x-hidden">
+
+                {/* 1. Logo (Con margen inferior) */}
+                <div className="mb-10 relative flex justify-center">
+                    <LogoLight />
                 </div>
+
+                {/* 2. Títulos (Tamaños controlados) */}
+                <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6 tracking-tighter">
+                    ORGANIZA LA MEJOR <br />
+                    <span className="text-[#00E676]">POLLA DE LA HISTORIA</span>
+                </h1>
+
+                <p className="text-slate-300 text-lg md:text-xl max-w-2xl mb-12">
+                    Olvida el Excel. IA integrada, ranking en tiempo real y pagos automatizados.
+                </p>
+
+                {/* 3. Botones (Separados por GAP) */}
+                <div className="flex flex-col md:flex-row gap-5 w-full max-w-md">
+
+                    {/* Botón Jugador */}
+                    <button
+                        onClick={onLoginClick}
+                        className="w-full py-4 rounded-xl border border-slate-600 text-white font-bold hover:bg-slate-800 transition-all cursor-pointer"
+                    >
+                        INGRESAR / TENGO CÓDIGO
+                    </button>
+
+                    {/* Botón Empresa (Destacado) */}
+                    <button
+                        onClick={handleCreateBusinessPool}
+                        className="w-full py-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 cursor-pointer uppercase"
+                    >
+                        CREAR POLLA EMPRESA <ArrowRight size={20} />
+                    </button>
+                </div>
+
+                {/* 4. Footer de Features (Iconos abajo, no montados) */}
+                <div className="mt-16 flex flex-wrap justify-center gap-6 text-slate-400 text-sm font-medium">
+                    <span className="flex items-center gap-2"><ShieldCheck size={16} className="text-[#00E676]" /> Google OAuth</span>
+                    <span className="flex items-center gap-2"><Zap size={16} className="text-[#00E676]" /> Resultados en Vivo</span>
+                    <span className="flex items-center gap-2"><Globe size={16} className="text-[#00E676]" /> Comunidad Global</span>
+                </div>
+
             </section>
 
             {/* --- SECCIÓN: TORNEO GLOBAL Y COMUNIDAD --- */}

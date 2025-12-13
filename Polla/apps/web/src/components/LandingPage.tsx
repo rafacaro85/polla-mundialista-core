@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 
 
+import { signInWithGoogle } from '@/lib/auth.utils';
+
 /* =============================================================================
    PALETA DE COLORES (USADA EN EL CÓDIGO)
    Obsidian: #0F172A
@@ -189,9 +191,24 @@ const FAQItem = ({ question, answer }: any) => {
 };
 
 
+// ... (existing imports)
+
+// ... (LogoLight, MatchCardVisual, RankingCardVisual, iPhoneMockup, Buttons, FeatureCard, ListItemSmall, ScoreExample, FAQItem remain unchanged)
+
 const StepCard = ({ num, title, desc }: any) => (
-    <div className="text-center p-6">
-        <div className="w-12 h-12 rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+    <div className="text-center p-6 bg-transparent">
+        <div
+            className="rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl shadow-sm"
+            style={{
+                width: '48px',
+                height: '48px',
+                margin: '0 auto 16px auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+            }}
+        >
             {num}
         </div>
         <h3 className="font-russo text-lg text-[#0F172A] mb-2">{title}</h3>
@@ -207,14 +224,14 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 
-    // FUNCIÓN SOLICITADA - INTACTA
+    // FUNCIÓN SOLICITADA - ACTUALIZADA PARA REDIRECCIÓN DIRECTA
     const handleCreateBusinessPool = () => {
-        // Set flag for redirect after login
         if (typeof window !== 'undefined') {
+            // Set flag for redirect after login
             localStorage.setItem('onboarding_business', 'true');
+            // Trigger Google OAuth direct redirect
+            signInWithGoogle();
         }
-        // Trigger login
-        if (onLoginClick) onLoginClick();
     };
 
 

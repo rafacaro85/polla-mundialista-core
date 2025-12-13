@@ -188,13 +188,21 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
-  // Verificar si el usuario está autenticado y redirigir al dashboard
+  // Verificar si el usuario está autenticado y redirigir según el flujo
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
+      const onboardingBusiness = localStorage.getItem('onboarding_business');
+
       if (token) {
-        // Usuario autenticado, redirigir al dashboard
-        router.push('/dashboard');
+        // Si viene del flujo de empresa, redirigir al formulario
+        if (onboardingBusiness === 'true') {
+          localStorage.removeItem('onboarding_business'); // Limpiar flag
+          router.push('/business/new');
+        } else {
+          // Usuario normal autenticado, redirigir al dashboard
+          router.push('/dashboard');
+        }
       }
     }
   }, [router]);

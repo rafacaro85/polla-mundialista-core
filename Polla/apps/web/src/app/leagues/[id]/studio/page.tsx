@@ -141,6 +141,7 @@ export default function StudioPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            // PASO 1: Guardar la configuración de diseño (siempre se guarda)
             await api.patch(`/leagues/${params.id}`, {
                 brandColorPrimary: config.brandColorPrimary,
                 brandColorSecondary: config.brandColorSecondary,
@@ -150,16 +151,58 @@ export default function StudioPage() {
                 brandCoverUrl: config.brandCoverUrl,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
-                // brandFontFamily: config.brandFontFamily, // Descomentar si el backend soporta este campo
                 isEnterprise: true,
-                isEnterpriseActive: true
+                // NO cambiamos isEnterpriseActive aquí, eso lo hace el super admin
             });
-            toast({ title: 'Configuración Guardada', description: 'Los cambios se han aplicado a toda la polla.' });
-        } catch (error) {
-            toast({ title: 'Error', description: 'No se pudo guardar la configuración.', variant: 'destructive' });
+
+            // PASO 2: Verificar si la polla ya está activada (pagada)
+            const { data: leagueData } = await api.get(`/leagues/${params.id}/metadata`);
+            const isActivated = leagueData.league?.isEnterpriseActive === true;
+
+            if (!isActivated) {
+                // ❌ NO ACTIVADA: Mostrar mensaje de pago pendiente
+                toast({
+                    title: '🎨 Diseño Guardado',
+                    description: 'Tu diseño se guardó correctamente. Para activar tu polla empresarial, solicita la activación.',
+                    duration: 6000,
+                });
+
+                // Mostrar modal de activación pendiente
+                showActivationModal();
+            } else {
+                // ✅ ACTIVADA: Redirigir al dashboard con branding aplicado
+                toast({
+                    title: '✅ Configuración Publicada',
+                    description: 'Los cambios se han aplicado. Redirigiendo a tu polla empresarial...',
+                });
+
+                // Esperar 1 segundo para que el usuario vea el toast
+                setTimeout(() => {
+                    router.push(`/leagues/${params.id}`);
+                }, 1000);
+            }
+        } catch (error: any) {
+            console.error('Error al guardar:', error);
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'No se pudo guardar la configuración.',
+                variant: 'destructive'
+            });
         } finally {
             setSaving(false);
         }
+    };
+
+    // Modal de activación pendiente
+    const [showActivation, setShowActivation] = useState(false);
+    const showActivationModal = () => setShowActivation(true);
+
+    const handleWhatsAppContact = () => {
+        const phoneNumber = '573102345678'; // Reemplazar con número real de ventas
+        const message = encodeURIComponent(
+            `Hola! Quiero activar mi Polla Empresarial "${config.companyName}". Ya envié el comprobante de pago.`
+        );
+        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
     };
 
     const handleImageUpload = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,6 +460,63 @@ export default function StudioPage() {
                     <button className="p-2 rounded-md text-slate-500 hover:text-white"><Monitor size={16} /></button>
                 </div>
             </main>
+
+            {/* MODAL DE ACTIVACIÓN PENDIENTE */}
+            {showActivation && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-[#151F32] border border-[#1E293B] rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in slide-in-from-bottom-4 duration-300">
+                        <div className="text-center space-y-6">
+                            {/* Icon */}
+                            <div className="w-20 h-20 mx-auto rounded-full bg-[#00E676]/10 flex items-center justify-center">
+                                <Building2 size={40} className="text-[#00E676]" />
+                            </div>
+
+                            {/* Title */}
+                            <div>
+                                <h2 className="text-2xl font-black text-white mb-2">Activación Pendiente</h2>
+                                <p className="text-slate-400 text-sm leading-relaxed">
+                                    Tu diseño se ha guardado correctamente. Para publicar tu Polla Empresarial y que tus colaboradores puedan acceder, necesitas activar el servicio.
+                                </p>
+                            </div>
+
+                            {/* Steps */}
+                            <div className="bg-[#0F172A] rounded-xl p-4 text-left space-y-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-[#00E676] text-[#0F172A] flex items-center justify-center text-xs font-black shrink-0">1</div>
+                                    <p className="text-xs text-slate-300">Realiza el pago del servicio</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-[#00E676] text-[#0F172A] flex items-center justify-center text-xs font-black shrink-0">2</div>
+                                    <p className="text-xs text-slate-300">Envía el comprobante a nuestro equipo de ventas</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-[#00E676] text-[#0F172A] flex items-center justify-center text-xs font-black shrink-0">3</div>
+                                    <p className="text-xs text-slate-300">Nuestro equipo activará tu polla en minutos</p>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="space-y-3">
+                                <button
+                                    onClick={handleWhatsAppContact}
+                                    className="w-full py-4 bg-[#25D366] hover:bg-[#20BA5A] text-white font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg hover:scale-105"
+                                >
+                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                    </svg>
+                                    Contactar Ventas
+                                </button>
+                                <button
+                                    onClick={() => setShowActivation(false)}
+                                    className="w-full py-3 text-slate-400 hover:text-white font-bold uppercase tracking-widest text-sm transition-colors"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

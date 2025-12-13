@@ -1,48 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Russo+One&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --obsidian: #0F172A;
-    --carbon: #1E293B;
-    --signal: #00E676;
-    --tactical: #94A3B8;
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
 
-    /* BRAND DEFAULT VARIABLES */
-    --brand-primary: #00E676;
-    --brand-secondary: #0F172A;
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  background-color: #ffffff;
+  /* Forzado */
+}
 
-    /* Shadcn UI Variables */
-    --popover: #1E293B;
-    --popover-foreground: #ffffff;
-    --border: #334155;
-    --radius: 0.75rem;
-  }
-
-  body {
-    background-color: var(--obsidian);
-    color: white;
-  }
-
-  h1,
-  h2,
-  h3,
-  .score-board,
-  .rank-num {
-    font-family: var(--font-russo);
-    @apply uppercase;
-  }
-
-  /* Prevent iOS Zoom on inputs */
-  @media screen and (max-width: 768px) {
-
-    input,
-    select,
-    textarea {
-      font-size: 16px !important;
-    }
+/* Reset para asegurar que Tailwind funcione bien */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }

@@ -158,17 +158,24 @@ export default function StudioPage() {
         }
     };
 
-    // Helper para subir imagen (Simulado con FileReader para preview inmediato)
-    // En producción deberías subir a S3/Cloudinary aquí mismo si quieres persistencia real de archivos
     const handleImageUpload = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Check file size (limit to 1MB to avoid 413 Payload Too Large)
+            if (file.size > 1 * 1024 * 1024) {
+                toast({
+                    title: 'Archivo muy pesado',
+                    description: 'La imagen debe pesar menos de 1MB. Por favor optimízala.',
+                    variant: 'destructive'
+                });
+                return;
+            }
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 setConfig(prev => ({ ...prev, [key]: reader.result as string }));
             };
             reader.readAsDataURL(file);
-            // TODO: Implementar subida real a API aquí
         }
     };
 

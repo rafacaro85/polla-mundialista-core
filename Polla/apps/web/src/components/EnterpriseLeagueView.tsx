@@ -31,7 +31,7 @@ export function EnterpriseLeagueView({ league, participants }: EnterpriseLeagueV
                 )}
 
                 {league.brandingLogoUrl ? (
-                    <div className="relative z-10 h-40 w-full max-w-md animate-in fade-in zoom-in duration-700">
+                    <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 animate-in fade-in zoom-in duration-700">
                         <img
                             src={league.brandingLogoUrl}
                             alt={league.companyName || "Empresa"}

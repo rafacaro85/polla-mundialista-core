@@ -7,6 +7,7 @@ import {
     Globe, Gift, Target, MousePointerClick
 } from 'lucide-react';
 
+
 /* =============================================================================
    PALETA DE COLORES (USADA EN EL CÓDIGO)
    Obsidian: #0F172A
@@ -16,9 +17,11 @@ import {
    Tactical: #94A3B8
    ============================================================================= */
 
+
 /* =============================================================================
    COMPONENTES UI (ELEMENTOS GRÁFICOS)
    ============================================================================= */
+
 
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none">
@@ -42,7 +45,8 @@ const LogoLight = () => (
     </div>
 );
 
-const MatchCardVisual = ({ className }) => (
+
+const MatchCardVisual = ({ className }: { className?: string }) => (
     <div className={`bg-[#1E293B] rounded-xl p-3 border border-[#94A3B8]/20 shadow-2xl relative overflow-hidden w-64 ${className}`}>
         <div className="text-center mb-2 text-[8px] font-bold text-[#94A3B8] uppercase tracking-widest">Gran Final • New Jersey</div>
         <div className="flex justify-between items-center mb-3 text-white">
@@ -56,7 +60,8 @@ const MatchCardVisual = ({ className }) => (
     </div>
 );
 
-const RankingCardVisual = ({ className }) => (
+
+const RankingCardVisual = ({ className }: { className?: string }) => (
     <div className={`bg-white rounded-xl p-4 border border-[#94A3B8]/20 shadow-xl w-64 ${className}`}>
         <h3 className="font-bold text-xs mb-3 flex items-center gap-2 text-[#0F172A] uppercase tracking-wider"><Trophy size={12} className="text-[#FACC15]" /> Top Global</h3>
         {[1, 2, 3].map(i => (
@@ -71,6 +76,7 @@ const RankingCardVisual = ({ className }) => (
         ))}
     </div>
 );
+
 
 const iPhoneMockup = () => (
     <div className="relative mx-auto w-[280px] h-[580px] bg-[#0F172A] rounded-[45px] border-[10px] border-[#1E293B] shadow-2xl overflow-hidden transform rotate-[-3deg] hover:rotate-0 transition-transform duration-500 group">
@@ -118,19 +124,22 @@ const iPhoneMockup = () => (
     </div>
 );
 
-const PrimaryButton = ({ children, onClick }) => (
+
+const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
     <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative">
         {children}
     </button>
 );
 
-const SecondaryButton = ({ children, onClick }) => (
+
+const SecondaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
     <button onClick={onClick} className="bg-white border-2 border-[#94A3B8]/30 text-[#0F172A] font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:border-[#0F172A] hover:text-[#0F172A] transition-all duration-300 text-sm z-20 relative">
         {children}
     </button>
 );
 
-const FeatureCard = ({ icon, color, title, desc }) => (
+
+const FeatureCard = ({ icon, color, title, desc }: any) => (
     <div className="bg-white p-8 rounded-2xl border border-[#94A3B8]/20 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group h-full">
         <div className={`mb-6 w-14 h-14 rounded-xl flex items-center justify-center ${color} shadow-lg text-white group-hover:scale-110 transition-transform`}>{icon}</div>
         <h3 className="font-russo text-xl text-[#0F172A] mb-3">{title}</h3>
@@ -138,7 +147,8 @@ const FeatureCard = ({ icon, color, title, desc }) => (
     </div>
 );
 
-const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon = CheckCircle }) => {
+
+const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon = CheckCircle }: any) => {
     let iconColor = dark ? "text-[#00E676]" : "text-green-600";
     let textColor = dark ? "text-[#94A3B8]" : dull ? "text-[#94A3B8]/60" : "text-[#1E293B]";
     if (highlight) textColor = "text-[#0F172A] font-bold";
@@ -152,7 +162,8 @@ const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, ic
     )
 };
 
-const ScoreExample = ({ label, points }) => {
+
+const ScoreExample = ({ label, points }: any) => {
     return (
         <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-[#94A3B8]/20">
             <span className="text-sm font-bold text-[#1E293B]">{label}</span>
@@ -161,7 +172,8 @@ const ScoreExample = ({ label, points }) => {
     );
 };
 
-const FAQItem = ({ question, answer }) => {
+
+const FAQItem = ({ question, answer }: any) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="border-b border-[#94A3B8]/20 last:border-0">
@@ -176,7 +188,8 @@ const FAQItem = ({ question, answer }) => {
     );
 };
 
-const StepCard = ({ num, title, desc }) => (
+
+const StepCard = ({ num, title, desc }: any) => (
     <div className="text-center p-6">
         <div className="w-12 h-12 rounded-full bg-white border-2 border-[#94A3B8]/20 text-[#0F172A] font-black text-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
             {num}
@@ -186,11 +199,13 @@ const StepCard = ({ num, title, desc }) => (
     </div>
 );
 
+
 /* =============================================================================
    PÁGINA DE INICIO (LANDING PAGE)
    ============================================================================= */
-export default function LandingPage({ onLoginClick }) {
+export default function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 
     // FUNCIÓN SOLICITADA - INTACTA
     const handleCreateBusinessPool = () => {
@@ -202,6 +217,7 @@ export default function LandingPage({ onLoginClick }) {
         if (onLoginClick) onLoginClick();
     };
 
+
     return (
         // Wrapper principal con fondo blanco y texto oscuro explícitos
         <div className="w-full min-h-screen bg-white text-[#0F172A] font-sans selection:bg-[#00E676] selection:text-[#0F172A] overflow-x-hidden">
@@ -209,6 +225,7 @@ export default function LandingPage({ onLoginClick }) {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&display=swap');
         .font-russo { font-family: 'Russo One', sans-serif; }
       `}</style>
+
 
             {/* --- NAVBAR --- */}
             <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20">
@@ -244,6 +261,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 )}
             </nav>
+
 
             {/* --- HERO SECTION --- */}
             <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
@@ -282,6 +300,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 </div>
             </section>
+
 
             {/* --- SECCIÓN: TORNEO GLOBAL Y COMUNIDAD --- */}
             <section id="comunidad" className="py-20 bg-[#0F172A] text-white relative overflow-hidden">
@@ -326,6 +345,7 @@ export default function LandingPage({ onLoginClick }) {
                 </div>
             </section>
 
+
             {/* --- CÓMO JUGAR --- */}
             <section id="como-se-juega" className="py-24 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
@@ -342,6 +362,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 </div>
             </section>
+
 
             {/* --- FUNCIONALIDADES --- */}
             <section className="py-24 bg-slate-50">
@@ -361,6 +382,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 </div>
             </section>
+
 
             {/* --- SISTEMA DE PUNTOS DETALLADO --- */}
             <section className="py-24 bg-white border-y border-[#94A3B8]/20">
@@ -412,6 +434,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 </div>
             </section>
+
 
             {/* --- PLANES --- */}
             <section id="precios" className="py-24 bg-slate-50">
@@ -474,6 +497,7 @@ export default function LandingPage({ onLoginClick }) {
                 </div>
             </section>
 
+
             {/* --- SECCIÓN FIDELIZACIÓN --- */}
             <section id="corporativo" className="py-24 bg-white relative overflow-hidden border-t border-[#94A3B8]/20">
                 <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
@@ -514,6 +538,7 @@ export default function LandingPage({ onLoginClick }) {
                 </div>
             </section>
 
+
             {/* --- PREGUNTAS FRECUENTES (FAQ) --- */}
             <section className="py-24 bg-slate-50 border-t border-[#94A3B8]/20">
                 <div className="max-w-3xl mx-auto px-6">
@@ -530,6 +555,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                 </div>
             </section>
+
 
             {/* --- FOOTER --- */}
             <footer className="bg-white pt-20 pb-10 border-t border-[#94A3B8]/20">
@@ -562,6 +588,7 @@ export default function LandingPage({ onLoginClick }) {
                 </div>
                 <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 Polla Mundialista. Todos los derechos reservados.</div>
             </footer>
+
 
             {/* --- WHATSAPP FLOATING BUTTON --- */}
             <a href="#" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">

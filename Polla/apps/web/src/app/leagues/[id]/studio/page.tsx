@@ -155,9 +155,9 @@ export default function StudioPage() {
                 // NO cambiamos isEnterpriseActive aquí, eso lo hace el super admin
             });
 
-            // PASO 2: Verificar si la polla ya está activada (pagada)
-            const { data: leagueData } = await api.get(`/leagues/${params.id}/metadata`);
-            const isActivated = leagueData.league?.isEnterpriseActive === true;
+            // PASO 2: Verificar si la polla ya está activada (usar el estado actual)
+            // El estado 'config' ya tiene isEnterpriseActive del useEffect inicial
+            const isActivated = config.isEnterpriseActive === true;
 
             if (!isActivated) {
                 // ❌ NO ACTIVADA: Mostrar mensaje de pago pendiente
@@ -183,11 +183,22 @@ export default function StudioPage() {
             }
         } catch (error: any) {
             console.error('Error al guardar:', error);
-            toast({
-                title: 'Error',
-                description: error.response?.data?.message || 'No se pudo guardar la configuración.',
-                variant: 'destructive'
-            });
+
+            // Manejar error 413 (Payload Too Large)
+            if (error.response?.status === 413) {
+                toast({
+                    title: 'Imágenes muy pesadas',
+                    description: 'Las imágenes son demasiado grandes. Optimízalas a menos de 500KB cada una.',
+                    variant: 'destructive',
+                    duration: 8000,
+                });
+            } else {
+                toast({
+                    title: 'Error',
+                    description: error.response?.data?.message || 'No se pudo guardar la configuración.',
+                    variant: 'destructive'
+                });
+            }
         } finally {
             setSaving(false);
         }

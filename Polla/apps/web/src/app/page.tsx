@@ -22,5 +22,14 @@ export default function Home() {
     );
   }
 
-  return <LandingPage onLoginClick={() => setShowLogin(true)} />;
+  return (
+    <>
+      <div className="w-full bg-red-600 text-white text-center font-bold p-4 text-xl z-50 relative">
+        🚨 PRUEBA DE SEÑAL: SI LEES ESTO, EL CÓDIGO ESTÁ SUBIENDO 🚨
+        <br />
+        <span className="text-sm font-normal">Hora de prueba: {new Date().toLocaleTimeString()}</span>
+      </div>
+      <LandingPage onLoginClick={() => setShowLogin(true)} />
+    </>
+  );
 }

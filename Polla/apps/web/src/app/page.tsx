@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Trophy, Users, Zap, Building2, CheckCircle, ArrowRight,
   Menu, X, Star, PlayCircle, ShieldCheck, Cpu, Smartphone,
@@ -185,6 +186,18 @@ const StepCard = ({ num, title, desc }: { num: string, title: string, desc: stri
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+
+  // Verificar si el usuario está autenticado y redirigir al dashboard
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Usuario autenticado, redirigir al dashboard
+        router.push('/dashboard');
+      }
+    }
+  }, [router]);
 
   // LÓGICA DE NEGOCIO INTEGRADA
   const onLoginClick = () => {

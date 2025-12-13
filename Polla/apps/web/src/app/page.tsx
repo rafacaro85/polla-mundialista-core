@@ -1,47 +1,51 @@
 import React from 'react';
-import Link from 'next/link';
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+    <main className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
 
-      {/* 1. CONTENEDOR SEGURO (FLEX COLUMN) */}
-      <div className="max-w-md w-full flex flex-col items-center gap-8">
+      {/* EFECTO DE FONDO (Seguro) */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 -z-10"></div>
 
-        {/* TÍTULO SIMPLE (Sin estilos raros) */}
-        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-          POLLA <span className="text-emerald-500">MUNDIALISTA</span>
-        </h1>
+      <div className="max-w-md w-full flex flex-col items-center gap-10 z-10">
 
-        <p className="text-slate-400 text-lg">
-          La plataforma profesional para tu empresa y amigos.
-        </p>
+        {/* 1. TÍTULO CON GRADIENTE */}
+        <div className="space-y-4">
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-tight">
+            POLLA <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
+              MUNDIALISTA
+            </span>
+          </h1>
+          <p className="text-slate-400 text-lg md:text-xl font-light max-w-sm mx-auto">
+            Gestiona tu torneo corporativo o de amigos con tecnología profesional.
+          </p>
+        </div>
 
-        {/* 2. BOTONES ORDENADOS VERTICALMENTE */}
-        <div className="w-full flex flex-col gap-4">
+        {/* 2. BOTONES DE ACCIÓN (ESTILIZADOS) */}
+        <div className="w-full flex flex-col gap-5">
 
-          {/* BOTÓN JUGADOR */}
-          {/* Ajusta la ruta del Link según tu auth */}
-          <Link
+          {/* Botón Jugador (Outline) */}
+          <a
             href="/dashboard"
-            className="w-full py-4 rounded-lg border border-slate-700 text-white font-bold hover:bg-slate-800 transition-colors"
+            className="group w-full py-4 rounded-xl border border-slate-700 hover:border-emerald-500/50 bg-slate-900/50 text-white font-semibold transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-sm"
           >
-            INGRESAR / TENGO CÓDIGO
-          </Link>
+            <span>⚽</span> Ingresar / Tengo Código
+          </a>
 
-          {/* BOTÓN EMPRESA */}
-          <Link
+          {/* Botón Empresa (Solid & Glow) */}
+          <a
             href="/business/new"
-            className="w-full py-4 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-900/20"
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2"
           >
-            CREAR POLLA EMPRESA →
-          </Link>
+            🏢 CREAR POLLA EMPRESA →
+          </a>
 
         </div>
 
-        {/* 3. FOOTER PEQUEÑO */}
-        <div className="text-slate-600 text-sm mt-4">
-          Versión Estable 1.0 • {new Date().toLocaleDateString()}
+        {/* 3. FOOTER */}
+        <div className="text-slate-600 text-xs font-medium uppercase tracking-widest mt-8">
+          Plataforma Oficial • {new Date().getFullYear()}
         </div>
 
       </div>

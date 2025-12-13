@@ -6,6 +6,7 @@ import {
   BarChart3, HelpCircle, ChevronDown, MessageCircle, Link as LinkIcon,
   Globe, Gift, Target, MousePointerClick
 } from 'lucide-react';
+import { signInWithGoogle } from '@/lib/auth.utils';
 
 /* =============================================================================
    PALETA DE COLORES (USADA EN EL CÓDIGO)
@@ -187,14 +188,14 @@ export default function LandingPage() {
 
   // LÓGICA DE NEGOCIO INTEGRADA
   const onLoginClick = () => {
-    window.location.href = '/api/auth/signin';
+    signInWithGoogle();
   };
 
   const handleCreateBusinessPool = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding_business', 'true');
     }
-    onLoginClick();
+    signInWithGoogle();
   };
 
   return (

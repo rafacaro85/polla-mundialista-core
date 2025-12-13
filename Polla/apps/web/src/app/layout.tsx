@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={cn(inter.className, "bg-obsidian text-white antialiased")} suppressHydrationWarning={true}>
+      <body className={cn(inter.className, "bg-white text-slate-900 antialiased min-h-screen")} suppressHydrationWarning={true}>
         <GlobalThemeProvider>
           <AuthProvider>
             {children}

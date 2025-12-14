@@ -138,10 +138,10 @@ export default function StudioPage() {
         load();
     }, [params.id, toast]);
 
-    const handleSave = async () => {
+    // FUNCIÓN 1: Solo guardar cambios (sin redirigir)
+    const handleSaveChanges = async () => {
         setSaving(true);
         try {
-            // PASO 1: Guardar la configuración de diseño (siempre se guarda)
             await api.patch(`/leagues/${params.id}`, {
                 brandColorPrimary: config.brandColorPrimary,
                 brandColorSecondary: config.brandColorSecondary,
@@ -152,39 +152,15 @@ export default function StudioPage() {
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
                 isEnterprise: true,
-                // NO cambiamos isEnterpriseActive aquí, eso lo hace el super admin
             });
 
-            // PASO 2: Verificar si la polla ya está activada (usar el estado actual)
-            // El estado 'config' ya tiene isEnterpriseActive del useEffect inicial
-            const isActivated = config.isEnterpriseActive === true;
-
-            if (!isActivated) {
-                // ❌ NO ACTIVADA: Mostrar mensaje de pago pendiente
-                toast({
-                    title: '🎨 Diseño Guardado',
-                    description: 'Tu diseño se guardó correctamente. Para activar tu polla empresarial, solicita la activación.',
-                    duration: 6000,
-                });
-
-                // Mostrar modal de activación pendiente
-                showActivationModal();
-            } else {
-                // ✅ ACTIVADA: Redirigir al dashboard con branding aplicado
-                toast({
-                    title: '✅ Configuración Publicada',
-                    description: 'Los cambios se han aplicado. Redirigiendo a tu polla empresarial...',
-                });
-
-                // Esperar 1 segundo para que el usuario vea el toast
-                setTimeout(() => {
-                    router.push(`/leagues/${params.id}`);
-                }, 1000);
-            }
+            toast({
+                title: '💾 Cambios Guardados',
+                description: 'Tu diseño se guardó correctamente.',
+            });
         } catch (error: any) {
             console.error('Error al guardar:', error);
 
-            // Manejar error 413 (Payload Too Large)
             if (error.response?.status === 413) {
                 toast({
                     title: 'Imágenes muy pesadas',
@@ -195,7 +171,70 @@ export default function StudioPage() {
             } else {
                 toast({
                     title: 'Error',
-                    description: error.response?.data?.message || 'No se pudo guardar la configuración.',
+                    description: error.response?.data?.message || 'No se pudo guardar.',
+                    variant: 'destructive'
+                });
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // FUNCIÓN 2: Publicar (guardar + verificar + redirigir)
+    const handlePublish = async () => {
+        setSaving(true);
+        try {
+            // Guardar primero
+            await api.patch(`/leagues/${params.id}`, {
+                brandColorPrimary: config.brandColorPrimary,
+                brandColorSecondary: config.brandColorSecondary,
+                brandColorBg: config.brandColorBg,
+                brandColorText: config.brandColorText,
+                brandingLogoUrl: config.brandingLogoUrl,
+                brandCoverUrl: config.brandCoverUrl,
+                companyName: config.companyName,
+                welcomeMessage: config.welcomeMessage,
+                isEnterprise: true,
+            });
+
+            // Verificar si está activada
+            const isActivated = config.isEnterpriseActive === true;
+
+            if (!isActivated) {
+                // ❌ NO ACTIVADA: Mostrar modal
+                toast({
+                    title: '🎨 Diseño Guardado',
+                    description: 'Para publicar, solicita la activación de tu polla empresarial.',
+                    duration: 6000,
+                });
+                showActivationModal();
+            } else {
+                // ✅ ACTIVADA: Redirigir con recarga completa para aplicar colores
+                toast({
+                    title: '✅ Publicando...',
+                    description: 'Aplicando cambios a tu polla empresarial.',
+                });
+
+                // IMPORTANTE: Usar window.location.href para forzar recarga completa
+                // Esto asegura que BrandThemeProvider se actualice con los nuevos colores
+                setTimeout(() => {
+                    window.location.href = `/leagues/${params.id}`;
+                }, 1000);
+            }
+        } catch (error: any) {
+            console.error('Error al publicar:', error);
+
+            if (error.response?.status === 413) {
+                toast({
+                    title: 'Imágenes muy pesadas',
+                    description: 'Optimiza las imágenes a menos de 500KB.',
+                    variant: 'destructive',
+                    duration: 8000,
+                });
+            } else {
+                toast({
+                    title: 'Error',
+                    description: error.response?.data?.message || 'No se pudo publicar.',
                     variant: 'destructive'
                 });
             }
@@ -441,8 +480,22 @@ export default function StudioPage() {
                 </div>
 
                 <div className="p-5 border-t border-[#1E293B] bg-[#0F172A] flex gap-3">
-                    <button onClick={handleSave} disabled={saving} className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Publicar
+                    {/* Botón Guardar */}
+                    <button
+                        onClick={handleSaveChanges}
+                        disabled={saving}
+                        className="flex-1 py-3 bg-[#1E293B] text-white border border-[#334155] font-black uppercase tracking-widest rounded-xl hover:bg-[#334155] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Guardar
+                    </button>
+
+                    {/* Botón Publicar */}
+                    <button
+                        onClick={handlePublish}
+                        disabled={saving}
+                        className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,230,118,0.3)]"
+                    >
+                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />} Publicar
                     </button>
                 </div>
             </aside>

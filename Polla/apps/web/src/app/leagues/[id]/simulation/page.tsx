@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { BracketView } from '@/components/BracketView';
+import { GroupStageView } from '@/components/GroupStageView';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -38,7 +38,7 @@ export default function SimulationPage() {
 
     return (
         <div className="min-h-screen bg-brand-bg">
-            <BracketView matches={matches} />
+            <GroupStageView matches={matches} />
         </div>
     );
 }

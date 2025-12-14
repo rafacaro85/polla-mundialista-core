@@ -51,7 +51,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
     return (
         <>
             {/* DESKTOP SIDEBAR */}
-            <aside className="hidden md:flex flex-col w-64 fixed left-0 top-0 bottom-0 bg-obsidian border-r border-slate-800 z-50 pt-20 px-4">
+            <aside className="hidden md:flex flex-col w-64 fixed left-0 top-0 bottom-0 bg-brand-bg border-r border-brand-secondary z-50 pt-20 px-4">
                 <div className="space-y-2">
                     {items.map((item) => (
                         <Link
@@ -61,7 +61,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                                 "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold uppercase tracking-wide",
                                 isActive(item)
                                     ? "bg-brand-primary/10 text-brand-primary shadow-[0_0_15px_rgba(0,0,0,0.2)]"
-                                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                    : "text-slate-400 hover:bg-brand-secondary hover:text-brand-text"
                             )}
                         >
                             <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
@@ -74,7 +74,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
             </aside>
 
             {/* MOBILE BOTTOM NAV */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-obsidian/95 backdrop-blur-xl border-t border-slate-800 z-[100] pb-safe pt-2 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-bg/95 backdrop-blur-xl border-t border-brand-secondary z-[100] pb-safe pt-2 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center justify-around overflow-x-auto no-scrollbar gap-1">
                     {items.map((item) => (
                         <Link

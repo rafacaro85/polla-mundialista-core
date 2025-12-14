@@ -36,13 +36,13 @@ function SuccessLogic() {
             window.location.href = '/business/new';
           } else {
             console.log('🏠 Redirigiendo al dashboard');
-            window.location.href = '/';
+            window.location.href = '/dashboard'; // ✅ Redirigir a dashboard, no a landing
           }
         })
         .catch(error => {
           console.error('Error obteniendo datos del usuario:', error);
-          // Aún así redirigir, el dashboard intentará obtener los datos
-          window.location.href = '/';
+          // Aún así redirigir al dashboard
+          window.location.href = '/dashboard';
         });
     } else {
       console.error('No se encontró el token en la URL.');

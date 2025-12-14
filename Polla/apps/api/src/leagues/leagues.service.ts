@@ -709,4 +709,47 @@ export class LeaguesService {
       }
     });
   }
+
+  async getLeagueMatches(leagueId: string, userId?: string) {
+    // Para ligas empresariales, retornar todos los partidos del torneo FIFA 2026
+    // con las predicciones del usuario si está autenticado
+
+    const matchesQuery = this.leaguesRepository.manager
+      .getRepository(Match)
+      .createQueryBuilder('match')
+      .orderBy('match.date', 'ASC');
+
+    // Si hay userId, incluir sus predicciones
+    if (userId) {
+      matchesQuery
+        .leftJoinAndSelect(
+          'match.predictions',
+          'prediction',
+          'prediction.userId = :userId',
+          { userId }
+        );
+    }
+
+    const matches = await matchesQuery.getMany();
+
+    // Formatear la respuesta
+    return matches.map(match => ({
+      id: match.id,
+      homeTeam: match.homeTeam || match.homeTeamPlaceholder,
+      awayTeam: match.awayTeam || match.awayTeamPlaceholder,
+      date: match.date,
+      status: match.status,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      phase: match.phase,
+      group: match.group,
+      stadium: match.stadium,
+      prediction: match.predictions?.[0] ? {
+        homeScore: match.predictions[0].homeScore,
+        awayScore: match.predictions[0].awayScore,
+        isJoker: match.predictions[0].isJoker,
+        points: match.predictions[0].points,
+      } : null,
+    }));
+  }
 }

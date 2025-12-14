@@ -78,6 +78,12 @@ export class LeaguesController {
     return this.leaguesService.getLeagueRanking(leagueId);
   }
 
+  @Get(':id/matches')
+  async getLeagueMatches(@Param('id') leagueId: string, @Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.leaguesService.getLeagueMatches(leagueId, userId);
+  }
+
   @Get(':id/voucher')
   async getLeagueVoucher(@Param('id') leagueId: string, @Res() res: any) {
     const buffer = await this.leaguesService.getLeagueVoucher(leagueId);

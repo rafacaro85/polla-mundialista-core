@@ -3,13 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { GroupStageView } from '@/components/GroupStageView';
-import { Loader2 } from 'lucide-react';
+import { BracketView } from '@/components/BracketView';
+import { Loader2, Table, Trophy } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function SimulationPage() {
     const params = useParams();
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>('groups');
 
     useEffect(() => {
         const fetchMatches = async () => {
@@ -38,7 +40,39 @@ export default function SimulationPage() {
 
     return (
         <div className="min-h-screen bg-brand-bg">
-            <GroupStageView matches={matches} />
+            {/* Tabs */}
+            <div className="sticky top-0 z-20 bg-brand-bg/95 backdrop-blur-xl border-b border-brand-secondary">
+                <div className="max-w-4xl mx-auto px-4">
+                    <div className="flex gap-2 py-4">
+                        <button
+                            onClick={() => setActiveTab('groups')}
+                            className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wide transition-all ${activeTab === 'groups'
+                                    ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
+                                    : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
+                                }`}
+                        >
+                            <Table size={20} />
+                            <span className="text-sm">Tabla de Grupos</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('bracket')}
+                            className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wide transition-all ${activeTab === 'bracket'
+                                    ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
+                                    : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
+                                }`}
+                        >
+                            <Trophy size={20} />
+                            <span className="text-sm">Fase Final</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="pb-24 md:pb-0">
+                {activeTab === 'groups' && <GroupStageView matches={matches} />}
+                {activeTab === 'bracket' && <BracketView matches={matches} leagueId={params.id as string} />}
+            </div>
         </div>
     );
 }

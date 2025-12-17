@@ -446,6 +446,10 @@ export class LeaguesService {
     if (updateLeagueDto.companyName !== undefined) league.companyName = updateLeagueDto.companyName;
     if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
     if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
+    if (updateLeagueDto.brandColorBg !== undefined) league.brandColorBg = updateLeagueDto.brandColorBg;
+    if (updateLeagueDto.brandColorText !== undefined) league.brandColorText = updateLeagueDto.brandColorText;
+    if (updateLeagueDto.brandFontFamily !== undefined) league.brandFontFamily = updateLeagueDto.brandFontFamily;
+    if (updateLeagueDto.brandCoverUrl !== undefined) league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
 
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {

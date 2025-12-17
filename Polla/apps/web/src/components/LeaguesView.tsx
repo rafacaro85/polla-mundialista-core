@@ -293,27 +293,43 @@ export const LeaguesView = () => {
                         </div>
 
                         <div>
-                            <AdminLeagueSettings
-                                league={league as any}
-                                onUpdate={fetchLeagues}
-                                trigger={
-                                    <button style={
-                                        league.isAdmin ? {
-                                            ...STYLES.actionBtn,
-                                            backgroundColor: '#00E676',
-                                            color: '#0F172A',
-                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                        } : {
-                                            ...STYLES.actionBtn,
-                                            backgroundColor: 'transparent',
-                                            border: '1px solid #475569',
-                                            color: 'white'
-                                        }
-                                    }>
-                                        {league.isAdmin ? 'GESTIONAR' : 'VER'}
-                                    </button>
-                                }
-                            />
+                            {league.isAdmin && league.isEnterpriseActive ? (
+                                // Para ligas empresariales activas, redirigir al Studio
+                                <button
+                                    onClick={() => router.push(`/leagues/${league.id}/studio`)}
+                                    style={{
+                                        ...STYLES.actionBtn,
+                                        backgroundColor: '#00E676',
+                                        color: '#0F172A',
+                                        boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                    }}
+                                >
+                                    GESTIONAR
+                                </button>
+                            ) : (
+                                // Para ligas normales, mostrar el modal tradicional
+                                <AdminLeagueSettings
+                                    league={league as any}
+                                    onUpdate={fetchLeagues}
+                                    trigger={
+                                        <button style={
+                                            league.isAdmin ? {
+                                                ...STYLES.actionBtn,
+                                                backgroundColor: '#00E676',
+                                                color: '#0F172A',
+                                                boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                            } : {
+                                                ...STYLES.actionBtn,
+                                                backgroundColor: 'transparent',
+                                                border: '1px solid #475569',
+                                                color: 'white'
+                                            }
+                                        }>
+                                            {league.isAdmin ? 'GESTIONAR' : 'VER'}
+                                        </button>
+                                    }
+                                />
+                            )}
                         </div>
 
                     </div>

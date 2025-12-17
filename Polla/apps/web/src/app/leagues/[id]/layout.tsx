@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
@@ -105,8 +107,8 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
                 {/* MAIN CONTENT AREA - Adjusted for header */}
                 <main className={`flex-1 w-full ${usePathname()?.includes('/studio')
-                        ? ''
-                        : 'md:pl-64 pb-24 md:pb-0 pt-16' // pt-16 for header height
+                    ? ''
+                    : 'md:pl-64 pb-24 md:pb-0 pt-16' // pt-16 for header height
                     }`}>
                     {children}
                 </main>

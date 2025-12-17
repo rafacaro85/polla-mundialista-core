@@ -24,19 +24,23 @@ function SuccessLogic() {
       })
         .then(res => res.json())
         .then(userData => {
-          console.log('Datos del usuario obtenidos:', userData);
+          console.log('✅ [AUTH] Datos del usuario obtenidos:', userData);
           localStorage.setItem('user', JSON.stringify(userData));
-          // Importante: forzar recarga completa para asegurar que el dashboard lea el localStorage fresco
+
           const BUSINESS_ONBOARDING_KEY = 'onboarding_business';
           const isBusinessOnboarding = localStorage.getItem(BUSINESS_ONBOARDING_KEY);
 
+          console.log('🔍 [AUTH] Verificando flag de onboarding...');
+          console.log('🔍 [AUTH] Flag onboarding_business:', isBusinessOnboarding);
+          console.log('🔍 [AUTH] Tipo:', typeof isBusinessOnboarding);
+
           if (isBusinessOnboarding) {
-            console.log('🚀 Redirigiendo a registro de empresa (Onboarding)');
+            console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /business/new');
             localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
             window.location.href = '/business/new';
           } else {
-            console.log('🏠 Redirigiendo al dashboard');
-            window.location.href = '/dashboard'; // ✅ Redirigir a dashboard, no a landing
+            console.log('🏠 [AUTH] Sin flag - Redirigiendo a /dashboard');
+            window.location.href = '/dashboard';
           }
         })
         .catch(error => {

@@ -20,7 +20,6 @@ export class MatchSyncService {
 
     @Cron('*/1 * * * *') // Run every minute
     async syncLiveMatches() {
-        this.logger.log('Sincronizando partidos en vivo...');
         try {
             const { data } = await firstValueFrom(
                 this.httpService.get('/fixtures', {
@@ -30,7 +29,7 @@ export class MatchSyncService {
 
             const fixtures = data.response;
             if (!fixtures || fixtures.length === 0) {
-                this.logger.log('No hay partidos en vivo en este momento.');
+                // Silently return if no live matches (avoid log spam)
                 return;
             }
 

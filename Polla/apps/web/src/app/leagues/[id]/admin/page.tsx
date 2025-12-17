@@ -128,21 +128,40 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         const fetchLeague = async () => {
             try {
-                const { data: myLeagues } = await api.get('/leagues/my');
-                const found = myLeagues.find((l: any) => l.id === params.id);
+                // GOD MODE: Super Admins can access ANY league
+                const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
-                if (!found) {
-                    router.push('/dashboard');
-                    return;
+                if (isSuperAdmin) {
+                    // Super Admin: Fetch league directly without membership check
+                    try {
+                        const { data: leagueData } = await api.get(`/leagues/${params.id}`);
+                        setLeague({
+                            ...leagueData,
+                            isAdmin: true, // Grant admin privileges
+                            isSuperAdminAccess: true, // Flag for UI
+                        });
+                    } catch (error) {
+                        console.error('Error loading league:', error);
+                        router.push('/admin/leagues');
+                    }
+                } else {
+                    // Regular user: Check membership and admin status
+                    const { data: myLeagues } = await api.get('/leagues/my');
+                    const found = myLeagues.find((l: any) => l.id === params.id);
+
+                    if (!found) {
+                        router.push('/dashboard');
+                        return;
+                    }
+
+                    // Check if user is admin of this league
+                    if (!found.isAdmin) {
+                        router.push(`/leagues/${params.id}`);
+                        return;
+                    }
+
+                    setLeague(found);
                 }
-
-                // Check if user is admin
-                if (!found.isAdmin) {
-                    router.push(`/leagues/${params.id}`);
-                    return;
-                }
-
-                setLeague(found);
             } catch (error) {
                 console.error('Error loading league:', error);
                 router.push('/dashboard');
@@ -152,7 +171,7 @@ export default function AdminDashboardPage() {
         };
 
         fetchLeague();
-    }, [params.id, router]);
+    }, [params.id, router, user]);
 
     if (loading) {
         return (
@@ -239,11 +258,21 @@ export default function AdminDashboardPage() {
                         </div>
 
                         {/* Admin Badge */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-brand-primary/10 border border-brand-primary/30 rounded-full">
-                            <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse" />
-                            <span className="text-xs font-bold text-brand-primary uppercase tracking-wider">
-                                Administrador
-                            </span>
+                        <div className="flex flex-col md:flex-row gap-2">
+                            {league.isSuperAdminAccess && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/50 rounded-full">
+                                    <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                                        🛠️ God Mode
+                                    </span>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2 px-4 py-2 bg-brand-primary/10 border border-brand-primary/30 rounded-full">
+                                <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse" />
+                                <span className="text-xs font-bold text-brand-primary uppercase tracking-wider">
+                                    Administrador
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

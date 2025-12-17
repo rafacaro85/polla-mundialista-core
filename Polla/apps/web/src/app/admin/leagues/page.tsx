@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Building2, Users, TrendingUp, Search, Filter } from 'lucide-react';
+import { Plus, Building2, Users, TrendingUp, Search, Filter, Settings } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
@@ -193,10 +193,11 @@ export default function AdminLeaguesPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <button
-                                                    onClick={() => router.push(`/leagues/${league.id}/studio`)}
-                                                    className="text-indigo-400 hover:text-indigo-300 font-bold text-sm"
+                                                    onClick={() => router.push(`/leagues/${league.id}/admin`)}
+                                                    className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
                                                 >
-                                                    Ver →
+                                                    <Settings size={16} />
+                                                    Gestionar
                                                 </button>
                                             </td>
                                         </tr>

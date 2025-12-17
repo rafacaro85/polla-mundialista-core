@@ -124,15 +124,39 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
 
     const handleDeleteLeague = async () => {
         if (!currentLeague) return;
-        if (!confirm('¿ESTÁS SEGURO? Esta acción es irreversible.')) return;
+        if (!confirm('¿ESTÁS SEGURO? Esta acción es irreversible y eliminará TODOS los datos de la liga.')) return;
         setLoading(true);
         try {
-            await api.delete(`/leagues/${currentLeague.id}`);
-            toast({ title: 'Liga eliminada', description: 'La liga ha sido eliminada.' });
-            router.push('/');
+            console.log('🗑️ Eliminando liga:', currentLeague.id);
+            const { data } = await api.delete(`/leagues/${currentLeague.id}`);
+
+            // Check if deletion was successful
+            if (data.success) {
+                console.log('✅ Liga eliminada exitosamente');
+                toast({
+                    title: 'Liga eliminada',
+                    description: data.message || 'La liga ha sido eliminada correctamente.'
+                });
+
+                // CRITICAL: Redirect immediately to avoid zombie state
+                router.push('/dashboard');
+            } else {
+                // If success is false, show error
+                console.error('❌ Error en la eliminación:', data);
+                toast({
+                    title: 'Error',
+                    description: data.error || 'No se pudo eliminar la liga',
+                    variant: 'destructive'
+                });
+            }
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Error al eliminar la liga';
-            toast({ title: 'Error', description: msg, variant: 'destructive' });
+            console.error('❌ Error eliminando liga:', error);
+            const msg = error.response?.data?.message || 'Error al eliminar la liga. Verifica las dependencias de datos.';
+            toast({
+                title: 'Error',
+                description: msg,
+                variant: 'destructive'
+            });
         } finally {
             setLoading(false);
         }

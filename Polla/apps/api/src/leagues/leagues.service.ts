@@ -548,25 +548,108 @@ export class LeaguesService {
     }
 
     const manager = this.leaguesRepository.manager;
-    try {
-      // Borrar dependencias manualmente en orden correcto (usando nombres de columna camelCase como en Entities)
-      await manager.query(`DELETE FROM user_bonus_answers WHERE "questionId" IN (SELECT id FROM bonus_questions WHERE "leagueId" = $1)`, [leagueId]);
-      await manager.query(`DELETE FROM bonus_questions WHERE "leagueId" = $1`, [leagueId]);
-      await manager.query(`DELETE FROM user_brackets WHERE "leagueId" = $1`, [leagueId]);
-      await manager.query(`DELETE FROM access_codes WHERE "leagueId" = $1`, [leagueId]);
-      await manager.query(`DELETE FROM league_participants WHERE "leagueId" = $1`, [leagueId]);
-      // Transactions (Optional, if exists)
-      await manager.query(`DELETE FROM transactions WHERE "leagueId" = $1`, [leagueId]);
 
-      await this.leaguesRepository.delete({ id: leagueId }); // Use delete instead of remove to be more direct
-      return { message: 'Liga eliminada correctamente' };
+    try {
+      console.log(`🗑️ [deleteLeague] Iniciando eliminación nuclear de liga ${leagueId}...`);
+
+      // EJECUCIÓN NUCLEAR: Usar transacción para eliminar TODO
+      await manager.transaction(async (transactionalEntityManager) => {
+        // PASO 1: Obtener todos los participantes de la liga
+        console.log(`   📋 Paso 1: Buscando participantes...`);
+        const participants = await transactionalEntityManager.query(
+          `SELECT id FROM league_participants WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        const participantIds = participants.map((p: any) => p.id);
+        console.log(`   ✓ Encontrados ${participantIds.length} participantes`);
+
+        // PASO 2: Eliminar PREDICCIONES vinculadas a los participantes
+        if (participantIds.length > 0) {
+          console.log(`   🎯 Paso 2: Eliminando predicciones de participantes...`);
+          await transactionalEntityManager.query(
+            `DELETE FROM predictions WHERE "participantId" IN (${participantIds.map((_: any, i: number) => `$${i + 1}`).join(',')})`,
+            participantIds
+          );
+          console.log(`   ✓ Predicciones eliminadas`);
+        }
+
+        // PASO 3: Eliminar respuestas de bonus questions
+        console.log(`   ⭐ Paso 3: Eliminando respuestas de bonus...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM user_bonus_answers WHERE "questionId" IN (SELECT id FROM bonus_questions WHERE "leagueId" = $1)`,
+          [leagueId]
+        );
+        console.log(`   ✓ Respuestas de bonus eliminadas`);
+
+        // PASO 4: Eliminar bonus questions
+        console.log(`   ⭐ Paso 4: Eliminando bonus questions...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM bonus_questions WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Bonus questions eliminadas`);
+
+        // PASO 5: Eliminar brackets de usuarios
+        console.log(`   🏆 Paso 5: Eliminando brackets...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM user_brackets WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Brackets eliminados`);
+
+        // PASO 6: Eliminar códigos de acceso
+        console.log(`   🔑 Paso 6: Eliminando códigos de acceso...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM access_codes WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Códigos de acceso eliminados`);
+
+        // PASO 7: Eliminar transacciones/pagos
+        console.log(`   💳 Paso 7: Eliminando transacciones...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM transactions WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Transacciones eliminadas`);
+
+        // PASO 8: Eliminar participantes de la liga
+        console.log(`   👥 Paso 8: Eliminando participantes...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM league_participants WHERE "leagueId" = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Participantes eliminados`);
+
+        // PASO 9: FINALMENTE eliminar la liga
+        console.log(`   🏁 Paso 9: Eliminando la liga...`);
+        await transactionalEntityManager.query(
+          `DELETE FROM leagues WHERE id = $1`,
+          [leagueId]
+        );
+        console.log(`   ✓ Liga eliminada`);
+      });
+
+      console.log(`✅ [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`);
+      return { success: true, message: 'Liga eliminada correctamente' };
+
     } catch (error: any) {
-      console.error('❌ Error deleting league:', error);
+      console.error('❌ [deleteLeague] Error FATAL eliminando liga:', error);
+      console.error('   Stack:', error.stack);
+      console.error('   Code:', error.code);
+      console.error('   Detail:', error.detail);
+
       if (error.code === '23503') { // ForeignKeyViolation
-        throw new BadRequestException(`No se puede eliminar: Esta liga tiene datos vinculados en la tabla '${error.table || 'desconocida'}'. Detalle: ${error.detail || error.message}`);
+        throw new BadRequestException(
+          `No se puede eliminar: Esta liga tiene datos vinculados en la tabla '${error.table || 'desconocida'}'. ` +
+          `Detalle: ${error.detail || error.message}`
+        );
       }
-      // Lanzar como BadRequest para que el mensaje llegue al cliente en producción
-      throw new BadRequestException(`Error DB al eliminar liga: ${error.message} - Code: ${error.code}`);
+
+      throw new BadRequestException(
+        `Error al eliminar liga: ${error.message}. ` +
+        `Si el problema persiste, contacta al administrador.`
+      );
     }
   }
 

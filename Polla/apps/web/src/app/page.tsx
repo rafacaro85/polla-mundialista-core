@@ -213,10 +213,15 @@ export default function LandingPage() {
   };
 
   const handleCreateBusinessPool = () => {
+    console.log('🏢 [BUSINESS] Iniciando creación de polla empresarial');
     if (typeof window !== 'undefined') {
+      console.log('🏢 [BUSINESS] Estableciendo flag onboarding_business');
       localStorage.setItem('onboarding_business', 'true');
+      const flagSet = localStorage.getItem('onboarding_business');
+      console.log('🏢 [BUSINESS] Flag verificado:', flagSet);
     }
     // Para crear polla de empresa, ir directo a Google OAuth
+    console.log('🏢 [BUSINESS] Redirigiendo a Google OAuth');
     signInWithGoogle();
   };
 

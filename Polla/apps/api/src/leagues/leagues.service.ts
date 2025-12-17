@@ -272,6 +272,7 @@ export class LeaguesService {
       brandColorSecondary: p.league.brandColorSecondary,
       brandColorBg: p.league.brandColorBg,
       brandColorText: p.league.brandColorText,
+      brandFontFamily: p.league.brandFontFamily,
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
     }));

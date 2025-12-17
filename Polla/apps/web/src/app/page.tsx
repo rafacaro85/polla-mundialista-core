@@ -214,12 +214,29 @@ export default function LandingPage() {
 
   const handleCreateBusinessPool = () => {
     console.log('🏢 [BUSINESS] Iniciando creación de polla empresarial');
+
     if (typeof window !== 'undefined') {
+      // Verificar si el usuario ya está autenticado
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+
+      console.log('🏢 [BUSINESS] Token existente:', !!token);
+      console.log('🏢 [BUSINESS] Usuario existente:', !!user);
+
+      if (token && user) {
+        // Usuario ya autenticado, redirigir directamente al formulario
+        console.log('🏢 [BUSINESS] Usuario ya autenticado, redirigiendo a /business/new');
+        window.location.href = '/business/new';
+        return;
+      }
+
+      // Usuario no autenticado, establecer flag y hacer OAuth
       console.log('🏢 [BUSINESS] Estableciendo flag onboarding_business');
       localStorage.setItem('onboarding_business', 'true');
       const flagSet = localStorage.getItem('onboarding_business');
       console.log('🏢 [BUSINESS] Flag verificado:', flagSet);
     }
+
     // Para crear polla de empresa, ir directo a Google OAuth
     console.log('🏢 [BUSINESS] Redirigiendo a Google OAuth');
     signInWithGoogle();

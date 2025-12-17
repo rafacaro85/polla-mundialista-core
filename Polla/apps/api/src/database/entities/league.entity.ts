@@ -91,6 +91,9 @@ export class League {
   @Column({ name: 'brand_color_text', default: '#F8FAFC' })
   brandColorText: string;
 
+  @Column({ name: 'brand_font_family', default: '"Russo One", sans-serif' })
+  brandFontFamily: string;
+
   @Column({ name: 'brand_cover_url', nullable: true })
   brandCoverUrl?: string; // Banner Hero
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, createContext, useContext } from 'react';
 
 interface BrandThemeProps {
     primaryColor?: string;
@@ -8,8 +8,27 @@ interface BrandThemeProps {
     bgColor?: string;
     textColor?: string;
     logoUrl?: string;
+    companyName?: string;
     children: React.ReactNode;
 }
+
+interface BrandContextType {
+    brandColorPrimary: string;
+    brandColorSecondary: string;
+    brandColorBg: string;
+    brandColorText: string;
+    brandingLogoUrl?: string;
+    companyName?: string;
+}
+
+const BrandContext = createContext<BrandContextType>({
+    brandColorPrimary: '#00E676',
+    brandColorSecondary: '#1E293B',
+    brandColorBg: '#0F172A',
+    brandColorText: '#F8FAFC',
+});
+
+export const useBrand = () => useContext(BrandContext);
 
 /**
  * BrandThemeProvider - Inyecta colores corporativos dinámicos
@@ -23,6 +42,7 @@ interface BrandThemeProps {
  *   secondaryColor="#1E293B"
  *   bgColor="#0F172A"
  *   textColor="#F8FAFC"
+ *   companyName="Mi Empresa"
  * >
  *   {children}
  * </BrandThemeProvider>
@@ -33,6 +53,7 @@ export default function BrandThemeProvider({
     bgColor = '#0F172A',         // Obsidian Default
     textColor = '#F8FAFC',       // Texto claro Default
     logoUrl,
+    companyName,
     children
 }: BrandThemeProps) {
 
@@ -64,7 +85,16 @@ export default function BrandThemeProvider({
         };
     }, [primaryColor, secondaryColor, bgColor, textColor, logoUrl]);
 
-    return <>{children}</>;
+    const brandValue: BrandContextType = {
+        brandColorPrimary: primaryColor,
+        brandColorSecondary: secondaryColor,
+        brandColorBg: bgColor,
+        brandColorText: textColor,
+        brandingLogoUrl: logoUrl,
+        companyName,
+    };
+
+    return <BrandContext.Provider value={brandValue}>{children}</BrandContext.Provider>;
 }
 
 /**

@@ -1,9 +1,8 @@
-'use client';
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
 import { LeagueNavigation } from '@/components/LeagueNavigation';
+import { LeagueHeader } from '@/components/leagues/LeagueHeader';
 import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -89,9 +88,13 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             bgColor={bgColor}
             textColor={textColor}
             logoUrl={league.brandingLogoUrl}
+            companyName={league.companyName || league.name}
         >
+            {/* LEAGUE HEADER - Sticky top bar with logo and user menu */}
+            {!usePathname()?.includes('/studio') && <LeagueHeader />}
+
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
-                {/* 4. PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO */}
+                {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO */}
                 {!usePathname()?.includes('/studio') && (
                     <LeagueNavigation
                         leagueId={league.id}
@@ -100,9 +103,11 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     />
                 )}
 
-                {/* 5. MAIN CONTENT AREA */}
-                {/* Remove padding if in Studio mode to allow full screen */}
-                <main className={`flex-1 w-full ${usePathname()?.includes('/studio') ? '' : 'md:pl-64 pb-24 md:pb-0'}`}>
+                {/* MAIN CONTENT AREA - Adjusted for header */}
+                <main className={`flex-1 w-full ${usePathname()?.includes('/studio')
+                        ? ''
+                        : 'md:pl-64 pb-24 md:pb-0 pt-16' // pt-16 for header height
+                    }`}>
                     {children}
                 </main>
             </div>

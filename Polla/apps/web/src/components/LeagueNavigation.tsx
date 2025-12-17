@@ -38,10 +38,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
         items.push({ label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall`, enterpriseOnly: true });
     }
 
-    if (isAdmin) {
-        items.push({ label: 'Studio', icon: <Palette size={20} />, href: `${basePath}/studio`, adminOnly: true });
-        items.push({ label: 'Admin', icon: <Settings size={20} />, href: `${basePath}/admin`, adminOnly: true });
-    }
+    // Admin tabs removed - access via LeagueHeader dropdown menu (Panel de Control)
 
     const isActive = (item: NavItem) => {
         if (item.exact) return pathname === item.href;

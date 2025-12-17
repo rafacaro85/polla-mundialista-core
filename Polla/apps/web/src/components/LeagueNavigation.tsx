@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, Activity, Star, MessageSquare, Settings, Users, Palette } from 'lucide-react';
+import { Home, Trophy, Activity, Star, MessageSquare, Settings, Users, Palette, Gamepad2 } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assuming shadcn util exists
 
 interface NavItem {
@@ -28,7 +28,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
 
     const items: NavItem[] = [
         { label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
-        { label: 'Predicciones', icon: <Activity size={20} />, href: `${basePath}/predictions` },
+        { label: 'Juegos', icon: <Gamepad2 size={20} />, href: `${basePath}/predictions` },
         { label: 'Ranking', icon: <Trophy size={20} />, href: `${basePath}/ranking` },
         { label: 'Simulador', icon: <Users size={20} />, href: `${basePath}/simulation` },
         { label: 'Bonus', icon: <Star size={20} />, href: `${basePath}/bonus` },

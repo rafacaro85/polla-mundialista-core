@@ -493,31 +493,7 @@ export class LeaguesService {
 
   // --- ADMIN METHODS ---
 
-  async getAllLeagues() {
-    const leagues = await this.leaguesRepository.find({
-      relations: ['creator', 'participants'],
-    });
 
-    return leagues.map(league => ({
-      id: league.id,
-      name: league.name,
-      code: league.accessCodePrefix,
-      type: league.type,
-      maxParticipants: league.maxParticipants,
-      creator: {
-        id: league.creator.id,
-        nickname: league.creator.nickname || league.creator.fullName,
-        avatarUrl: league.creator.avatarUrl,
-      },
-      participantCount: league.participants?.length || 0,
-      brandingLogoUrl: league.brandingLogoUrl,
-      prizeImageUrl: league.prizeImageUrl,
-      prizeDetails: league.prizeDetails,
-      welcomeMessage: league.welcomeMessage,
-      isEnterprise: league.isEnterprise,
-      isEnterpriseActive: league.isEnterpriseActive,
-    }));
-  }
 
   async updateLeague(
     leagueId: string,

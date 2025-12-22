@@ -7,13 +7,15 @@ import {
 import {
     Users, Trophy, Banknote, TrendingUp, ShieldAlert,
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
-    Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText
+    Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
+    Building2, Rocket
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
 import { UsersTable } from '@/components/admin/UsersTable';
 import { LeaguesTable } from '@/components/admin/LeaguesTable';
 import { MatchesList } from '@/components/admin/MatchesList';
+import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
 
 /* =============================================================================
    DATOS MOCK
@@ -204,6 +206,7 @@ export default function SuperAdminDashboard() {
     });
 
     const [settingsForm, setSettingsForm] = useState<any>({});
+    const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
 
     useEffect(() => {
         loadDashboardData();
@@ -319,6 +322,7 @@ export default function SuperAdminDashboard() {
                     { id: 'matches', label: 'Partidos', icon: <Shield size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },
+                    { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
                     { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> }
                 ].map(tab => (
                     <button
@@ -402,6 +406,45 @@ export default function SuperAdminDashboard() {
                     </>
                 )
             }
+
+            {/* H. PESTAÑA EMPRESAS (NUEVO) */}
+            {activeTab === 'enterprise' && (
+                <div className="animate-in fade-in duration-500">
+                    <div className="bg-[#1E293B] rounded-xl p-8 border border-indigo-500/30 flex flex-col items-center text-center max-w-2xl mx-auto mb-8 shadow-2xl shadow-indigo-500/10">
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30">
+                            <Building2 size={32} className="text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold text-white mb-2">Gestión Corporativa (B2B)</h2>
+                        <p className="text-slate-400 text-sm mb-6 max-w-md">
+                            Herramienta para dar de alta clientes empresariales manualmente.
+                            Crea la liga, asigna el plan y omite la pasarela de pagos.
+                        </p>
+                        <button
+                            onClick={() => setShowEnterpriseModal(true)}
+                            className="group bg-white hover:bg-slate-50 text-indigo-900 font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-white/10 flex items-center gap-3 transform hover:scale-105 active:scale-95"
+                        >
+                            <Rocket size={20} className="text-indigo-600 group-hover:animate-bounce" />
+                            Alta Rápida de Empresa
+                        </button>
+                    </div>
+
+                    <div className="mb-4 flex items-center gap-2 px-2">
+                        <Trophy size={16} className="text-indigo-400" />
+                        <h3 className="text-sm font-bold text-slate-300 uppercase">Últimas Ligas Creadas</h3>
+                    </div>
+                    <LeaguesTable />
+                </div>
+            )}
+
+            {showEnterpriseModal && (
+                <CreateEnterpriseLeagueForm
+                    onClose={() => setShowEnterpriseModal(false)}
+                    onSuccess={() => {
+                        loadDashboardData();
+                        setShowEnterpriseModal(false);
+                    }}
+                />
+            )}
 
             {/* B. PESTAÑA USUARIOS (OJO DE DIOS) - REEMPLAZADO POR UsersTable */}
             {activeTab === 'users' && <UsersTable />}

@@ -47,7 +47,7 @@ interface League {
     welcomeMessage?: string;
 }
 
-export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
+export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagueId: string, defaultTab?: string }) {
     const { user } = useAppStore();
     const { toast } = useToast();
     const router = useRouter();
@@ -241,7 +241,7 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
                 <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div>
             ) : currentLeague ? (
                 <div className="flex-1 overflow-visible flex flex-col w-full max-w-4xl mx-auto p-4 sm:p-6 mb-20">
-                    <Tabs defaultValue="editar" className="flex-1 flex flex-col">
+                    <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col">
                         <div className="bg-[#1E293B] rounded-full p-1 mb-6 border border-slate-700 sticky top-[90px] z-10 shadow-xl">
                             <TabsList className="flex bg-transparent w-full">
                                 <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A]">

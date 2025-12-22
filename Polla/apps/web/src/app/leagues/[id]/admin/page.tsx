@@ -145,22 +145,21 @@ export default function AdminDashboardPage() {
                         router.push('/admin/leagues');
                     }
                 } else {
-                    // Regular user: Check membership and admin status
-                    const { data: myLeagues } = await api.get('/leagues/my');
-                    const found = myLeagues.find((l: any) => l.id === params.id);
+                    // Regular user: Fetch specific league and check admin status
+                    const { data: leagueData } = await api.get(`/leagues/${params.id}`);
 
-                    if (!found) {
+                    if (!leagueData) {
                         router.push('/dashboard');
                         return;
                     }
 
                     // Check if user is admin of this league
-                    if (!found.isAdmin) {
+                    if (!leagueData.isAdmin) {
                         router.push(`/leagues/${params.id}`);
                         return;
                     }
 
-                    setLeague(found);
+                    setLeague(leagueData);
                 }
             } catch (error) {
                 console.error('Error loading league:', error);

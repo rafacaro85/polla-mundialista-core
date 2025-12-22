@@ -41,15 +41,14 @@ export default function AdminUsersPage() {
                 const { data: leagueData } = await api.get(`/leagues/${params.id}`);
                 setLeague({ ...leagueData, isAdmin: true });
             } else {
-                const { data: myLeagues } = await api.get('/leagues/my');
-                const found = myLeagues.find((l: any) => l.id === params.id);
+                const { data: leagueData } = await api.get(`/leagues/${params.id}`);
 
-                if (!found || !found.isAdmin) {
+                if (!leagueData || !leagueData.isAdmin) {
                     router.push(`/leagues/${params.id}`);
                     return;
                 }
 
-                setLeague(found);
+                setLeague(leagueData);
             }
 
             // Fetch participants

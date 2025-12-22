@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { LogOut, Settings, User, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useBrand } from '@/components/providers/BrandThemeProvider';
 
 export function LeagueHeader() {
     const router = useRouter();
+    const params = useParams();
     const { user, logout } = useAppStore();
     const brand = useBrand();
     const [showMenu, setShowMenu] = useState(false);
@@ -125,7 +126,11 @@ export function LeagueHeader() {
                                         <button
                                             onClick={() => {
                                                 setShowMenu(false);
-                                                router.push(window.location.pathname.replace(/\/[^/]*$/, '/admin'));
+                                                // Check if we have an ID from params, otherwise try to extract from path
+                                                const leagueId = params?.id as string || window.location.pathname.split('/')[2];
+                                                if (leagueId) {
+                                                    router.push(`/leagues/${leagueId}/admin`);
+                                                }
                                             }}
                                             className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-white/10"
                                             style={{ color: brand.brandColorText }}

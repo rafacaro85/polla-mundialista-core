@@ -63,6 +63,13 @@ export class LeaguesController {
     return this.leaguesService.getMyLeagues(userId);
   }
 
+  @Get(':id')
+  async getLeague(@Param('id') leagueId: string, @Req() req: Request) {
+    const userPayload = req.user as { id: string; userId?: string };
+    const userId = userPayload.userId || userPayload.id;
+    return this.leaguesService.getLeagueForUser(leagueId, userId);
+  }
+
   @Get(':id/metadata')
   async getLeagueMetadata(@Param('id') leagueId: string) {
     return this.leaguesService.getMetadata(leagueId);

@@ -72,7 +72,7 @@ export default function GamesPage() {
                 // Fetch matches and predictions
                 const [matchesRes, predictionsRes] = await Promise.all([
                     api.get(`/leagues/${params.id}/matches`),
-                    api.get(`/leagues/${params.id}/predictions/me`)
+                    api.get(`/predictions/me`)
                 ]);
 
                 const matchesData = matchesRes.data;

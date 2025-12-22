@@ -72,9 +72,8 @@ export function LeagueSettingsPanel({ leagueId }: { leagueId: string }) {
         try {
             setLoadingParticipants(true);
 
-            // Cargar datos de la liga desde "my leagues"
-            const { data: myLeagues } = await api.get('/leagues/my');
-            const fetchedLeague = myLeagues.find((l: any) => l.id === leagueId);
+            // Cargar datos de la liga directamente
+            const { data: fetchedLeague } = await api.get(`/leagues/${leagueId}`);
 
             if (!fetchedLeague) {
                 toast({ title: 'Error', description: 'No se pudo cargar la información de la liga', variant: 'destructive', });

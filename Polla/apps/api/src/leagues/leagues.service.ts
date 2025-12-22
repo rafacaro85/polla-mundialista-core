@@ -285,6 +285,44 @@ export class LeaguesService {
     return result;
   }
 
+  async getLeagueForUser(leagueId: string, userId: string) {
+    const participant = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } },
+      relations: ['league', 'league.creator'],
+    });
+
+    if (!participant) {
+      throw new NotFoundException('League not found or user is not a participant');
+    }
+
+    return {
+      id: participant.league.id,
+      name: participant.league.name,
+      code: participant.league.accessCodePrefix,
+      type: participant.league.type,
+      isAdmin: participant.isAdmin,
+      creatorName: participant.league.creator.nickname || participant.league.creator.fullName,
+      participantCount: 0, // Frontend handles calling ranking/participants separately if needed, or we could count here.
+      isEnterprise: participant.league.isEnterprise,
+      isEnterpriseActive: participant.league.isEnterpriseActive,
+      companyName: participant.league.companyName,
+      brandingLogoUrl: participant.league.brandingLogoUrl,
+      brandColorPrimary: participant.league.brandColorPrimary,
+      brandColorSecondary: participant.league.brandColorSecondary,
+      brandColorBg: participant.league.brandColorBg,
+      brandColorText: participant.league.brandColorText,
+      brandFontFamily: participant.league.brandFontFamily,
+      brandCoverUrl: participant.league.brandCoverUrl,
+      welcomeMessage: participant.league.welcomeMessage,
+      // Additional fields needed for settings panel
+      prizeImageUrl: participant.league.prizeImageUrl,
+      prizeDetails: participant.league.prizeDetails,
+      status: participant.league.status,
+      isPaid: participant.league.isPaid,
+      maxParticipants: participant.league.maxParticipants,
+    };
+  }
+
   async getLeagueRanking(leagueId: string) {
     // Obtener IDs de participantes de la liga
     const participants = await this.leagueParticipantsRepository.find({

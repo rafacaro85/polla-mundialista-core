@@ -557,7 +557,7 @@ export class LeaguesService {
         // PASO 1: Obtener todos los participantes de la liga
         console.log(`   📋 Paso 1: Buscando participantes...`);
         const participants = await transactionalEntityManager.query(
-          `SELECT id FROM league_participants WHERE "leagueId" = $1`,
+          `SELECT id FROM league_participants WHERE league_id = $1`,
           [leagueId]
         );
         const participantIds = participants.map((p: any) => p.id);
@@ -570,7 +570,7 @@ export class LeaguesService {
         // PASO 3: Eliminar respuestas de bonus questions
         console.log(`   ⭐ Paso 3: Eliminando respuestas de bonus...`);
         await transactionalEntityManager.query(
-          `DELETE FROM user_bonus_answers WHERE "questionId" IN (SELECT id FROM bonus_questions WHERE "leagueId" = $1)`,
+          `DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`,
           [leagueId]
         );
         console.log(`   ✓ Respuestas de bonus eliminadas`);
@@ -578,7 +578,7 @@ export class LeaguesService {
         // PASO 4: Eliminar bonus questions
         console.log(`   ⭐ Paso 4: Eliminando bonus questions...`);
         await transactionalEntityManager.query(
-          `DELETE FROM bonus_questions WHERE "leagueId" = $1`,
+          `DELETE FROM bonus_questions WHERE league_id = $1`,
           [leagueId]
         );
         console.log(`   ✓ Bonus questions eliminadas`);
@@ -586,7 +586,7 @@ export class LeaguesService {
         // PASO 5: Eliminar brackets de usuarios
         console.log(`   🏆 Paso 5: Eliminando brackets...`);
         await transactionalEntityManager.query(
-          `DELETE FROM user_brackets WHERE "leagueId" = $1`,
+          `DELETE FROM user_brackets WHERE league_id = $1`,
           [leagueId]
         );
         console.log(`   ✓ Brackets eliminados`);
@@ -594,7 +594,7 @@ export class LeaguesService {
         // PASO 6: Eliminar códigos de acceso
         console.log(`   🔑 Paso 6: Eliminando códigos de acceso...`);
         await transactionalEntityManager.query(
-          `DELETE FROM access_codes WHERE "leagueId" = $1`,
+          `DELETE FROM access_codes WHERE league_id = $1`,
           [leagueId]
         );
         console.log(`   ✓ Códigos de acceso eliminados`);
@@ -602,7 +602,7 @@ export class LeaguesService {
         // PASO 7: Eliminar transacciones/pagos
         console.log(`   💳 Paso 7: Eliminando transacciones...`);
         await transactionalEntityManager.query(
-          `DELETE FROM transactions WHERE "leagueId" = $1`,
+          `DELETE FROM transactions WHERE league_id = $1`,
           [leagueId]
         );
         console.log(`   ✓ Transacciones eliminadas`);
@@ -610,7 +610,7 @@ export class LeaguesService {
         // PASO 8: Eliminar participantes de la liga
         console.log(`   👥 Paso 8: Eliminando participantes...`);
         await transactionalEntityManager.query(
-          `DELETE FROM league_participants WHERE "leagueId" = $1`,
+          `DELETE FROM league_participants WHERE league_id = $1`,
           [leagueId]
         );
         console.log(`   ✓ Participantes eliminados`);

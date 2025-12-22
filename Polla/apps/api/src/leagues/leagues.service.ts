@@ -252,17 +252,14 @@ export class LeaguesService {
   }
 
   async getAllLeagues() {
+    console.log('🔍 getAllLeagues called');
     try {
-      // 1. Verificar conexión básica (opcional, para debug)
-      // await this.leaguesRepository.count(); 
+      const leagues = await this.leaguesRepository.find({
+        relations: ['creator'],
+        order: { name: 'ASC' }
+      });
 
-      // 2. Usar QueryBuilder para eficiencia
-      const qb = this.leaguesRepository.createQueryBuilder('league')
-        .leftJoinAndSelect('league.creator', 'creator')
-        .loadRelationCountAndMap('league.participantCount', 'league.participants')
-        .orderBy('league.name', 'ASC');
-
-      const leagues = await qb.getMany();
+      console.log(`✅ Found ${leagues.length} leagues`);
 
       return leagues.map(l => ({
         id: l.id,
@@ -275,7 +272,7 @@ export class LeaguesService {
           nickname: l.creator?.nickname || l.creator?.fullName || 'Desconocido',
           avatarUrl: l.creator?.avatarUrl
         },
-        participantCount: (l as any).participantCount || 0,
+        participantCount: 0, // Temporarily hardcoded to 0
         isEnterprise: !!l.isEnterprise,
         isEnterpriseActive: !!l.isEnterpriseActive,
         brandingLogoUrl: l.brandingLogoUrl,
@@ -284,42 +281,10 @@ export class LeaguesService {
         welcomeMessage: l.welcomeMessage,
         companyName: l.companyName,
       }));
-
     } catch (error) {
-      console.error('CRITICAL ERROR in getAllLeagues (QueryBuilder):', error);
-
-      // Fallback: Intentar obtener sin relaciones complejas ni conteos
-      try {
-        console.log('Attempting fallback fetch...');
-        const leagues = await this.leaguesRepository.find({
-          relations: ['creator'], // Solo creator, sin participants
-          order: { name: 'ASC' }
-        });
-
-        return leagues.map(l => ({
-          id: l.id,
-          name: l.name,
-          code: l.accessCodePrefix || 'SIN-CODIGO',
-          type: l.type,
-          maxParticipants: l.maxParticipants,
-          creator: {
-            id: l.creator?.id,
-            nickname: l.creator?.nickname || l.creator?.fullName || 'Desconocido',
-            avatarUrl: l.creator?.avatarUrl
-          },
-          participantCount: 0, // Fallback 0
-          isEnterprise: !!l.isEnterprise,
-          isEnterpriseActive: !!l.isEnterpriseActive,
-          brandingLogoUrl: l.brandingLogoUrl,
-          prizeImageUrl: l.prizeImageUrl,
-          prizeDetails: l.prizeDetails,
-          welcomeMessage: l.welcomeMessage,
-          companyName: l.companyName,
-        }));
-      } catch (fallbackError) {
-        console.error('CRITICAL ERROR in getAllLeagues (Fallback):', fallbackError);
-        throw new InternalServerErrorException('Error irrecuperable al listar ligas.');
-      }
+      console.error('❌ CRITICAL ERROR in getAllLeagues:', error);
+      console.error('Error stack:', error.stack);
+      throw new InternalServerErrorException(`Error al cargar ligas: ${error.message}`);
     }
   }
 

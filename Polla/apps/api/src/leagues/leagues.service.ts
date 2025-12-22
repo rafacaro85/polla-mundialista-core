@@ -285,6 +285,43 @@ export class LeaguesService {
     return result;
   }
 
+  async getParticipants(leagueId: string, userId: string, userRole?: string) {
+    // 1. Verificar si es Super Admin
+    if (userRole === 'SUPER_ADMIN') {
+      return this.fetchParticipants(leagueId);
+    }
+
+    // 2. Verificar si es Admin de la Liga
+    const requester = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } },
+    });
+
+    if (!requester || !requester.isAdmin) {
+      throw new ForbiddenException('No tienes permisos para ver los participantes de esta liga.');
+    }
+
+    return this.fetchParticipants(leagueId);
+  }
+
+  private async fetchParticipants(leagueId: string) {
+    const participants = await this.leagueParticipantsRepository.find({
+      where: { league: { id: leagueId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' }
+    });
+
+    return participants.map(p => ({
+      ...p,
+      user: {
+        id: p.user.id,
+        nickname: p.user.nickname,
+        fullName: p.user.fullName,
+        email: p.user.email,
+        avatarUrl: p.user.avatarUrl,
+      }
+    }));
+  }
+
   async getLeagueForUser(leagueId: string, userId: string) {
     const participant = await this.leagueParticipantsRepository.findOne({
       where: { league: { id: leagueId }, user: { id: userId } },

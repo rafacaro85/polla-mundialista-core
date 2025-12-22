@@ -91,6 +91,12 @@ export class LeaguesController {
     return this.leaguesService.getLeagueMatches(leagueId, userId);
   }
 
+  @Get(':id/participants')
+  async getLeagueParticipants(@Param('id') leagueId: string, @Req() req: Request) {
+    const userPayload = req.user as { id: string, role?: string };
+    return this.leaguesService.getParticipants(leagueId, userPayload.id, userPayload.role);
+  }
+
   @Get(':id/voucher')
   async getLeagueVoucher(@Param('id') leagueId: string, @Res() res: any) {
     const buffer = await this.leaguesService.getLeagueVoucher(leagueId);

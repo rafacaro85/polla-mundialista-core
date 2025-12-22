@@ -230,7 +230,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                     </h2>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <Link href="/" className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
+                        <Link href={`/leagues/${leagueId}/admin`} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
                             Regresar
                         </Link>
                     </div>

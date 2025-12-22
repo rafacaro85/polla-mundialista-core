@@ -307,7 +307,7 @@ export class LeaguesService {
     const participants = await this.leagueParticipantsRepository.find({
       where: { league: { id: leagueId } },
       relations: ['user'],
-      order: { createdAt: 'DESC' }
+      order: { totalPoints: 'DESC' }
     });
 
     return participants.map(p => ({

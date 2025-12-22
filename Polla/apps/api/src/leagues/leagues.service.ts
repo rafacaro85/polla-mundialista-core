@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { League } from '../database/entities/league.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { BonusQuestion } from '../database/entities/bonus-question.entity';
+import { UserBracket } from '../database/entities/user-bracket.entity';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { Transaction } from '../database/entities/transaction.entity';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
@@ -554,73 +558,58 @@ export class LeaguesService {
 
       // EJECUCIÓN NUCLEAR: Usar transacción para eliminar TODO
       await manager.transaction(async (transactionalEntityManager) => {
-        // PASO 1: Obtener todos los participantes de la liga
-        console.log(`   📋 Paso 1: Buscando participantes...`);
-        const participants = await transactionalEntityManager.query(
-          `SELECT id FROM league_participants WHERE league_id = $1`,
-          [leagueId]
-        );
-        const participantIds = participants.map((p: any) => p.id);
-        console.log(`   ✓ Encontrados ${participantIds.length} participantes`);
+        // PASO 1: Logging (Participants check)
+        const participantsCount = await transactionalEntityManager.count(LeagueParticipant, {
+          where: { league: { id: leagueId } }
+        });
+        console.log(`   📋 Paso 1: Encontrados ${participantsCount} participantes para eliminar.`);
 
-        // NOTA: Las predicciones NO se eliminan porque no están ligadas a una liga específica
-        // sino a usuarios y partidos globales. Un usuario puede tener predicciones en múltiples ligas.
-        console.log(`   ℹ️ Las predicciones de usuarios se mantienen (son globales, no por liga)`);
+        // NOTA: Las predicciones son globales, no se tocan.
 
-        // PASO 3: Eliminar respuestas de bonus questions
-        console.log(`   ⭐ Paso 3: Eliminando respuestas de bonus...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM user_bonus_answers WHERE question_id IN (SELECT id FROM bonus_questions WHERE league_id = $1)`,
-          [leagueId]
-        );
-        console.log(`   ✓ Respuestas de bonus eliminadas`);
+        // PASO 2: Eliminar respuestas de bonus questions
+        console.log(`   ⭐ Paso 2: Eliminando respuestas de bonus...`);
+        // Primero buscamos las preguntas de esta liga
+        const questions = await transactionalEntityManager.find(BonusQuestion, {
+          where: { league: { id: leagueId } },
+          select: ['id']
+        });
+        const questionIds = questions.map(q => q.id);
 
-        // PASO 4: Eliminar bonus questions
-        console.log(`   ⭐ Paso 4: Eliminando bonus questions...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM bonus_questions WHERE league_id = $1`,
-          [leagueId]
-        );
+        if (questionIds.length > 0) {
+          await transactionalEntityManager.delete(UserBonusAnswer, { questionId: In(questionIds) });
+          console.log(`   ✓ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`);
+        } else {
+          console.log(`   ✓ No hay respuestas de bonus para eliminar`);
+        }
+
+        // PASO 3: Eliminar bonus questions
+        console.log(`   ⭐ Paso 3: Eliminando bonus questions...`);
+        await transactionalEntityManager.delete(BonusQuestion, { league: { id: leagueId } });
         console.log(`   ✓ Bonus questions eliminadas`);
 
-        // PASO 5: Eliminar brackets de usuarios
-        console.log(`   🏆 Paso 5: Eliminando brackets...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM user_brackets WHERE league_id = $1`,
-          [leagueId]
-        );
+        // PASO 4: Eliminar brackets de usuarios
+        console.log(`   🏆 Paso 4: Eliminando brackets...`);
+        await transactionalEntityManager.delete(UserBracket, { league: { id: leagueId } });
         console.log(`   ✓ Brackets eliminados`);
 
-        // PASO 6: Eliminar códigos de acceso
-        console.log(`   🔑 Paso 6: Eliminando códigos de acceso...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM access_codes WHERE league_id = $1`,
-          [leagueId]
-        );
+        // PASO 5: Eliminar códigos de acceso
+        console.log(`   🔑 Paso 5: Eliminando códigos de acceso...`);
+        await transactionalEntityManager.delete(AccessCode, { league: { id: leagueId } });
         console.log(`   ✓ Códigos de acceso eliminados`);
 
-        // PASO 7: Eliminar transacciones/pagos
-        console.log(`   💳 Paso 7: Eliminando transacciones...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM transactions WHERE league_id = $1`,
-          [leagueId]
-        );
+        // PASO 6: Eliminar transacciones/pagos
+        console.log(`   💳 Paso 6: Eliminando transacciones...`);
+        await transactionalEntityManager.delete(Transaction, { league: { id: leagueId } });
         console.log(`   ✓ Transacciones eliminadas`);
 
-        // PASO 8: Eliminar participantes de la liga
-        console.log(`   👥 Paso 8: Eliminando participantes...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM league_participants WHERE league_id = $1`,
-          [leagueId]
-        );
+        // PASO 7: Eliminar participantes de la liga
+        console.log(`   👥 Paso 7: Eliminando participantes...`);
+        await transactionalEntityManager.delete(LeagueParticipant, { league: { id: leagueId } });
         console.log(`   ✓ Participantes eliminados`);
 
-        // PASO 9: FINALMENTE eliminar la liga
-        console.log(`   🏁 Paso 9: Eliminando la liga...`);
-        await transactionalEntityManager.query(
-          `DELETE FROM leagues WHERE id = $1`,
-          [leagueId]
-        );
+        // PASO 8: FINALMENTE eliminar la liga
+        console.log(`   🏁 Paso 8: Eliminando la liga...`);
+        await transactionalEntityManager.delete(League, leagueId);
         console.log(`   ✓ Liga eliminada`);
       });
 

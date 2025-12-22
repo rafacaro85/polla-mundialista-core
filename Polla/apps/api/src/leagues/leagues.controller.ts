@@ -63,6 +63,14 @@ export class LeaguesController {
     return this.leaguesService.getMyLeagues(userId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Get('all')
+  async getAllLeagues() {
+    console.log('📋 [GET /leagues/all] Listando todas las ligas...');
+    return this.leaguesService.getAllLeagues();
+  }
+
   @Get(':id')
   async getLeague(@Param('id') leagueId: string, @Req() req: Request) {
     const userPayload = req.user as { id: string; userId?: string };
@@ -135,14 +143,6 @@ export class LeaguesController {
   }
 
   // --- ADMIN ENDPOINTS ---
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
-  @Get('all')
-  async getAllLeagues() {
-    console.log('📋 [GET /leagues/all] Listando todas las ligas...');
-    return this.leaguesService.getAllLeagues();
-  }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')

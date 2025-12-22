@@ -251,6 +251,35 @@ export class LeaguesService {
     }));
   }
 
+  async getAllLeagues() {
+    const leagues = await this.leaguesRepository.createQueryBuilder('league')
+      .leftJoinAndSelect('league.creator', 'creator')
+      .loadRelationCountAndMap('league.participantCount', 'league.participants')
+      .orderBy('league.name', 'ASC')
+      .getMany();
+
+    return leagues.map(l => ({
+      id: l.id,
+      name: l.name,
+      code: l.accessCodePrefix,
+      type: l.type,
+      maxParticipants: l.maxParticipants,
+      creator: {
+        id: l.creator?.id,
+        nickname: l.creator?.nickname || l.creator?.fullName || 'Sistema',
+        avatarUrl: l.creator?.avatarUrl
+      },
+      participantCount: (l as any).participantCount || 0,
+      isEnterprise: l.isEnterprise,
+      isEnterpriseActive: l.isEnterpriseActive,
+      brandingLogoUrl: l.brandingLogoUrl,
+      prizeImageUrl: l.prizeImageUrl,
+      prizeDetails: l.prizeDetails,
+      welcomeMessage: l.welcomeMessage,
+      companyName: l.companyName,
+    }));
+  }
+
   async getMyLeagues(userId: string) {
     console.log('getMyLeagues - userId:', userId);
     const participants = await this.leagueParticipantsRepository.find({

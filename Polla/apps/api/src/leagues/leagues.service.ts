@@ -563,15 +563,9 @@ export class LeaguesService {
         const participantIds = participants.map((p: any) => p.id);
         console.log(`   ✓ Encontrados ${participantIds.length} participantes`);
 
-        // PASO 2: Eliminar PREDICCIONES vinculadas a los participantes
-        if (participantIds.length > 0) {
-          console.log(`   🎯 Paso 2: Eliminando predicciones de participantes...`);
-          await transactionalEntityManager.query(
-            `DELETE FROM predictions WHERE "participantId" IN (${participantIds.map((_: any, i: number) => `$${i + 1}`).join(',')})`,
-            participantIds
-          );
-          console.log(`   ✓ Predicciones eliminadas`);
-        }
+        // NOTA: Las predicciones NO se eliminan porque no están ligadas a una liga específica
+        // sino a usuarios y partidos globales. Un usuario puede tener predicciones en múltiples ligas.
+        console.log(`   ℹ️ Las predicciones de usuarios se mantienen (son globales, no por liga)`);
 
         // PASO 3: Eliminar respuestas de bonus questions
         console.log(`   ⭐ Paso 3: Eliminando respuestas de bonus...`);

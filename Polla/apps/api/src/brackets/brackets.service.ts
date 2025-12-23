@@ -7,6 +7,7 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { SaveBracketDto } from './dto/save-bracket.dto';
 
 const PHASE_POINTS = {
+    'ROUND_32': 2,
     'ROUND_16': 3,
     'QUARTER': 6,
     'SEMI': 10,

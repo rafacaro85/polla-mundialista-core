@@ -16,6 +16,7 @@ import { BracketView } from './BracketView';
 import { BonusView } from './BonusView';
 import MatchInfoSheet from './MatchInfoSheet';
 import { BottomNav } from './BottomNav';
+import { PhaseProgressDashboard } from './PhaseProgressDashboard';
 
 import { LeaguesView } from './LeaguesView';
 import { RankingView } from './RankingView';
@@ -255,6 +256,11 @@ export const DashboardClient: React.FC = () => {
 
           {activeTab === 'game' && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+
+              {/* Phase Progress */}
+              <div className="mb-6">
+                <PhaseProgressDashboard />
+              </div>
 
               <div className="mb-4">
                 <DateFilter

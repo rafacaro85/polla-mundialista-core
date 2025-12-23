@@ -3,6 +3,7 @@ import { Trophy, Users, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PrizeHero } from './PrizeHero';
+import { PhaseProgressDashboard } from './PhaseProgressDashboard';
 
 interface EnterpriseLeagueViewProps {
     league: any;
@@ -66,6 +67,11 @@ export function EnterpriseLeagueView({ league, participants }: EnterpriseLeagueV
             {/* 2. PRIZE HERO SECTION */}
             <div className="w-full max-w-6xl mx-auto px-4 -mt-8 relative z-20">
                 <PrizeHero league={league} />
+            </div>
+
+            {/* 2.5 PHASE PROGRESS */}
+            <div className="w-full max-w-4xl mx-auto px-4 mt-8">
+                <PhaseProgressDashboard />
             </div>
 
             {/* 3. PARTICIPANTS LIST (Read Only) */}

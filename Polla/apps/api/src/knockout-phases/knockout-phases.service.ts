@@ -8,7 +8,7 @@ import { Match } from '../database/entities/match.entity';
 const PHASE_ORDER = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'];
 
 // Next phase mapping
-const NEXT_PHASE = {
+const NEXT_PHASE: { [key: string]: string | null } = {
     'GROUP': 'ROUND_32',
     'ROUND_32': 'ROUND_16',
     'ROUND_16': 'QUARTER',

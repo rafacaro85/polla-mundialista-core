@@ -6,6 +6,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { BracketsService } from '../brackets/brackets.service';
 import { TournamentService } from '../tournament/tournament.service';
+import { KnockoutPhasesService } from '../knockout-phases/knockout-phases.service';
 
 @Injectable()
 export class MatchesService {
@@ -18,6 +19,7 @@ export class MatchesService {
         private dataSource: DataSource,
         private bracketsService: BracketsService,
         private tournamentService: TournamentService,
+        private knockoutPhasesService: KnockoutPhasesService,
     ) { }
 
     async findAll(userId?: string): Promise<Match[]> {
@@ -90,7 +92,13 @@ export class MatchesService {
             await this.bracketsService.calculateBracketPoints(matchId, winner);
             console.log(`🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`);
 
-            // 5. Trigger automático de promoción si es partido de grupo
+            // 5. Check and unlock next knockout phase if current phase is complete
+            if (match.phase) {
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
+                console.log(`🔓 Checked phase unlock for ${match.phase}`);
+            }
+
+            // 6. Trigger automático de promoción si es partido de grupo
             if (match.phase === 'GROUP' && match.group) {
                 this.tournamentService.promoteFromGroup(match.group)
                     .catch(err => console.error(`❌ Error promoting from group ${match.group}:`, err));
@@ -158,6 +166,12 @@ export class MatchesService {
             const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
             await this.bracketsService.calculateBracketPoints(id, winner);
             console.log(`🏆 Bracket points calculated for match ${id}, winner: ${winner}`);
+
+            // Check and unlock next knockout phase if current phase is complete
+            if (match.phase) {
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
+                console.log(`🔓 Checked phase unlock for ${match.phase}`);
+            }
 
             // Trigger automático de promoción si es partido de grupo
             if (match.phase === 'GROUP' && match.group) {

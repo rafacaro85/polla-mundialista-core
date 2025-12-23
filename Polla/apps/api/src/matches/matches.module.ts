@@ -7,6 +7,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { ScoringModule } from '../scoring/scoring.module';
 import { BracketsModule } from '../brackets/brackets.module';
 import { TournamentModule } from '../tournament/tournament.module';
+import { KnockoutPhasesModule } from '../knockout-phases/knockout-phases.module';
 import { HttpModule } from '@nestjs/axios';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MatchSyncService } from './match-sync.service';
@@ -16,6 +17,7 @@ import { MatchSyncService } from './match-sync.service';
         TypeOrmModule.forFeature([Match, Prediction]),
         BracketsModule,
         TournamentModule,
+        KnockoutPhasesModule,
         ScoringModule,
         HttpModule.register({
             baseURL: 'https://v3.football.api-sports.io',

@@ -29,11 +29,11 @@ export class KnockoutPhasesInitService implements OnModuleInit {
             // Create initial phases
             const phases = [
                 { phase: 'GROUP', isUnlocked: true, unlockedAt: new Date() },
-                { phase: 'ROUND_32', isUnlocked: false, unlockedAt: null },
-                { phase: 'ROUND_16', isUnlocked: false, unlockedAt: null },
-                { phase: 'QUARTER', isUnlocked: false, unlockedAt: null },
-                { phase: 'SEMI', isUnlocked: false, unlockedAt: null },
-                { phase: 'FINAL', isUnlocked: false, unlockedAt: null },
+                { phase: 'ROUND_32', isUnlocked: false },
+                { phase: 'ROUND_16', isUnlocked: false },
+                { phase: 'QUARTER', isUnlocked: false },
+                { phase: 'SEMI', isUnlocked: false },
+                { phase: 'FINAL', isUnlocked: false },
             ];
 
             for (const phaseData of phases) {

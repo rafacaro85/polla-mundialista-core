@@ -27,11 +27,14 @@ export function useKnockoutPhases() {
     const fetchPhases = async () => {
         try {
             setLoading(true);
+            console.log('🔍 Fetching knockout phases...');
             const { data } = await api.get('/knockout-phases/status');
+            console.log('✅ Phases fetched:', data);
             setPhases(data);
             setError(null);
         } catch (err: any) {
-            console.error('Error fetching phases:', err);
+            console.error('❌ Error fetching phases:', err);
+            console.error('Error details:', err.response?.data);
             setError(err.message || 'Error al cargar fases');
         } finally {
             setLoading(false);
@@ -40,10 +43,12 @@ export function useKnockoutPhases() {
 
     const fetchNextPhaseInfo = async () => {
         try {
+            console.log('🔍 Fetching next phase info...');
             const { data } = await api.get('/knockout-phases/next/info');
+            console.log('✅ Next phase info:', data);
             setNextPhaseInfo(data);
         } catch (err) {
-            console.error('Error fetching next phase info:', err);
+            console.error('❌ Error fetching next phase info:', err);
         }
     };
 

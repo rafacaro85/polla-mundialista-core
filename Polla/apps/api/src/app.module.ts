@@ -31,6 +31,7 @@ import { UserBonusAnswer } from './database/entities/user-bonus-answer.entity';
 import { Transaction } from './database/entities/transaction.entity';
 import { SystemConfig } from './database/entities/system-config.entity';
 import { SystemSettings } from './system-settings/entities/system-setting.entity';
+import { KnockoutPhaseStatus } from './database/entities/knockout-phase-status.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -67,6 +68,7 @@ import { APP_GUARD } from '@nestjs/core';
           Transaction,
           SystemConfig,
           SystemSettings,
+          KnockoutPhaseStatus,
         ],
         synchronize: true, // Note: synchronize: true should not be used in production
       }),

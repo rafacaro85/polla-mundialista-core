@@ -7,6 +7,7 @@ import DateFilter from '@/components/DateFilter';
 import { Loader2, Gamepad2 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
 
 interface Match {
     id: string;
@@ -137,6 +138,25 @@ export default function GamesPage() {
         [matches, selectedDate]
     );
 
+    // Detect current phase from matches
+    const currentPhase = useMemo(() => {
+        if (matches.length === 0) return 'GROUP';
+
+        // Get phases from filtered matches
+        const phases = filteredMatches.map(m => m.phase).filter(Boolean);
+
+        // Priority order for phases
+        const phaseOrder = ['FINAL', 'SEMI', 'QUARTER', 'ROUND_16', 'ROUND_32', 'GROUP'];
+
+        for (const phase of phaseOrder) {
+            if (phases.includes(phase)) {
+                return phase;
+            }
+        }
+
+        return 'GROUP';
+    }, [matches, filteredMatches]);
+
     const handlePredictionChange = async (matchId: string, homeScore: any, awayScore: any, isJoker?: boolean) => {
         try {
             // Delete prediction if both scores are null
@@ -196,57 +216,59 @@ export default function GamesPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-bg flex items-center justify-center">
-                <Loader2 className="animate-spin text-brand-primary" size={40} />
+                <Loader2 className="animate-spin text-brand-primary" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-brand-bg pb-24 md:pb-4">
-            {/* Header */}
-            <div className="max-w-4xl mx-auto px-4 pt-8 mb-6 text-center">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                    <Gamepad2 className="text-brand-primary" size={32} />
-                    <h1 className="text-3xl font-russo uppercase text-brand-text">
-                        Juegos
-                    </h1>
+        <DynamicPredictionsWrapper currentPhase={currentPhase}>
+            <div className="min-h-screen bg-brand-bg pb-24 md:pb-4">
+                {/* Header */}
+                <div className="max-w-4xl mx-auto px-4 pt-8 mb-6 text-center">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                        <Gamepad2 className="text-brand-primary" size={32} />
+                        <h1 className="text-3xl font-russo uppercase text-brand-text">
+                            Juegos
+                        </h1>
+                    </div>
+                    <p className="text-slate-400 text-sm">
+                        Haz tus predicciones para cada partido
+                    </p>
                 </div>
-                <p className="text-slate-400 text-sm">
-                    Haz tus predicciones para cada partido
-                </p>
-            </div>
 
-            {/* Date Filter - Horizontal Scroll */}
-            {dates.length > 0 && (
-                <div className="mb-6">
-                    <DateFilter
-                        dates={dates}
-                        selectedDate={selectedDate}
-                        onSelect={setSelectedDate}
-                    />
-                </div>
-            )}
-
-            {/* Matches Grid */}
-            <div className="max-w-4xl mx-auto px-4 space-y-4">
-                {filteredMatches.length > 0 ? (
-                    filteredMatches.map((match: any) => (
-                        <MatchCard
-                            key={match.id}
-                            match={match}
-                            onSavePrediction={handlePredictionChange}
+                {/* Date Filter - Horizontal Scroll */}
+                {dates.length > 0 && (
+                    <div className="mb-6">
+                        <DateFilter
+                            dates={dates}
+                            selectedDate={selectedDate}
+                            onSelect={setSelectedDate}
                         />
-                    ))
-                ) : (
-                    <div className="bg-brand-secondary border border-brand-primary/20 rounded-2xl p-12 text-center">
-                        <p className="text-slate-400">
-                            {selectedDate
-                                ? `No hay partidos para ${selectedDate}`
-                                : 'No hay partidos disponibles'}
-                        </p>
                     </div>
                 )}
+
+                {/* Matches Grid */}
+                <div className="max-w-4xl mx-auto px-4 space-y-4">
+                    {filteredMatches.length > 0 ? (
+                        filteredMatches.map((match: any) => (
+                            <MatchCard
+                                key={match.id}
+                                match={match}
+                                onSavePrediction={handlePredictionChange}
+                            />
+                        ))
+                    ) : (
+                        <div className="bg-brand-secondary border border-brand-primary/20 rounded-2xl p-12 text-center">
+                            <p className="text-slate-400">
+                                {selectedDate
+                                    ? `No hay partidos para ${selectedDate}`
+                                    : 'No hay partidos disponibles'}
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </DynamicPredictionsWrapper>
     );
 }

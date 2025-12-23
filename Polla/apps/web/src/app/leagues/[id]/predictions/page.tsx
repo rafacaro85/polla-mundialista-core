@@ -141,7 +141,7 @@ export default function GamesPage() {
         try {
             // Delete prediction if both scores are null
             if (homeScore === null && awayScore === null) {
-                await api.delete(`/leagues/${params.id}/predictions/${matchId}`);
+                await api.delete(`/predictions/${matchId}`);
 
                 setMatches(prevMatches =>
                     prevMatches.map(m =>
@@ -161,7 +161,7 @@ export default function GamesPage() {
             }
 
             // Save prediction
-            await api.post(`/leagues/${params.id}/predictions`, {
+            await api.post(`/predictions`, {
                 matchId,
                 homeScore: parseInt(homeScore),
                 awayScore: parseInt(awayScore),

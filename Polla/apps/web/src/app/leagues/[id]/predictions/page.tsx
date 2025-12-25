@@ -9,6 +9,7 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
 import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
+import { AiSuggestionsButton } from '@/components/AiSuggestionsButton';
 
 interface Match {
     id: string;
@@ -214,6 +215,28 @@ export default function GamesPage() {
         }
     };
 
+    const handleAiPredictions = (predictions: { [matchId: string]: [number, number] }) => {
+        setMatches(prevMatches => prevMatches.map(match => {
+            // Si ya tiene predicción del usuario, no la sobrescribimos
+            if ((match.userH !== undefined && match.userH !== null && match.userH !== '') ||
+                (match.userA !== undefined && match.userA !== null && match.userA !== '')) {
+                return match;
+            }
+
+            // Si hay predicción de la IA para este partido
+            if (predictions[match.id]) {
+                const [homeScore, awayScore] = predictions[match.id];
+                return {
+                    ...match,
+                    userH: homeScore.toString(),
+                    userA: awayScore.toString()
+                };
+            }
+
+            return match;
+        }));
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-bg flex items-center justify-center">
@@ -228,6 +251,12 @@ export default function GamesPage() {
                 {/* Phase Progress Dashboard */}
                 <div className="max-w-4xl mx-auto px-4 pt-8 mb-6">
                     <PhaseProgressDashboard />
+                    <div className="mt-4 flex justify-center">
+                        <AiSuggestionsButton
+                            matches={matches}
+                            onPredictionsGenerated={handleAiPredictions}
+                        />
+                    </div>
                 </div>
 
                 {/* Date Filter - Horizontal Scroll */}

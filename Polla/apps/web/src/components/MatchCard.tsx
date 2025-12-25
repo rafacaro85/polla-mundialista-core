@@ -101,6 +101,14 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const initialAway = match.prediction?.awayScore?.toString() || match.userA || '';
   const [homeScore, setHomeScore] = useState(initialHome);
   const [awayScore, setAwayScore] = useState(initialAway);
+
+  // Sincronizar estado local si cambian las props (ej: predicción IA)
+  React.useEffect(() => {
+    const newHome = match.prediction?.homeScore?.toString() ?? match.userH ?? '';
+    const newAway = match.prediction?.awayScore?.toString() ?? match.userA ?? '';
+    if (newHome !== homeScore) setHomeScore(newHome);
+    if (newAway !== awayScore) setAwayScore(newAway);
+  }, [match.prediction, match.userH, match.userA]); // eslint-disable-line react-hooks/exhaustive-deps
   // Estado local Joker
   const [isJoker, setIsJoker] = useState(match.prediction?.isJoker || (match.prediction as any)?.isJoker || (match.isJoker) || false);
 

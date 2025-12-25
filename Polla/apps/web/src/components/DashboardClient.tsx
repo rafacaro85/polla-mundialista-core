@@ -21,6 +21,7 @@ import { PhaseProgressDashboard } from './PhaseProgressDashboard';
 import { LeaguesView } from './LeaguesView';
 import { RankingView } from './RankingView';
 import { toast } from 'sonner';
+import { AiSuggestionsButton } from './AiSuggestionsButton';
 
 interface Match {
   id: string;
@@ -229,6 +230,27 @@ export const DashboardClient: React.FC = () => {
     }
   }, [selectedLeagueId]);
 
+  const handleAiPredictions = (predictions: { [matchId: string]: [number, number] }) => {
+    setMatches(prevMatches => prevMatches.map(match => {
+      // Si ya tiene predicción (guardada o en estado local), no sobrescribir
+      const hasPrediction = (match.prediction?.homeScore != null && match.prediction?.awayScore != null) ||
+        (match.userH && match.userH !== '') ||
+        (match.userA && match.userA !== '');
+
+      if (hasPrediction) return match;
+
+      if (predictions[match.id]) {
+        const [homeScore, awayScore] = predictions[match.id];
+        return {
+          ...match,
+          userH: homeScore.toString(),
+          userA: awayScore.toString()
+        };
+      }
+      return match;
+    }));
+  };
+
 
 
   return (
@@ -260,6 +282,12 @@ export const DashboardClient: React.FC = () => {
               {/* Phase Progress */}
               <div className="mb-6">
                 <PhaseProgressDashboard />
+                <div className="mt-4 flex justify-center">
+                  <AiSuggestionsButton
+                    matches={matches}
+                    onPredictionsGenerated={handleAiPredictions}
+                  />
+                </div>
               </div>
 
               <div className="mb-4">

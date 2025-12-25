@@ -15,10 +15,10 @@ interface PredictionOutput {
     [matchId: string]: [number, number];
 }
 
-export async function generateAiPredictions(matches: MatchInput[]): Promise<PredictionOutput | null> {
+export async function generateAiPredictions(matches: MatchInput[]) {
     if (!process.env.GOOGLE_API_KEY) {
         console.error('GOOGLE_API_KEY is not set');
-        throw new Error('La clave de API de Google no está configurada');
+        return { success: false, error: 'API Key no configurada en el servidor' };
     }
 
     try {
@@ -53,9 +53,9 @@ Ejemplo de respuesta válida:
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         const predictions = JSON.parse(cleanText);
-        return predictions;
-    } catch (error) {
+        return { success: true, data: predictions };
+    } catch (error: any) {
         console.error('Error generating AI predictions:', error);
-        throw new Error('Error al generar predicciones con IA');
+        return { success: false, error: error.message || 'Error al generar predicciones con IA' };
     }
 }

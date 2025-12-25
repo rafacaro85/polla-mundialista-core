@@ -32,17 +32,18 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSugge
                 date: m.date
             }));
 
-            const predictions = await generateAiPredictions(matchesForAi);
+            const response = await generateAiPredictions(matchesForAi);
 
-            if (predictions) {
-                onPredictionsGenerated(predictions);
+            if (response.success && response.data) {
+                onPredictionsGenerated(response.data);
                 toast.success('¡La IA ha completado tu polla! Revisa y guarda.');
             } else {
-                toast.error('No se pudieron generar predicciones.');
+                console.error('AI Error:', response.error);
+                toast.error(`Error: ${response.error || 'No se pudieron generar predicciones'}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error al contactar con la IA.');
+            toast.error(error.message || 'Error al contactar con la IA.');
         } finally {
             setLoading(false);
         }

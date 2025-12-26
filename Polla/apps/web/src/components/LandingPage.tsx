@@ -190,8 +190,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
     // FUNCIÓN SOLICITADA - ACTUALIZADA PARA REDIRECCIÓN DIRECTA (PRESERVANDO LOGICA)
     const handleCreateBusinessPool = () => {
         if (typeof window !== 'undefined') {
-            // Set flag for redirect after login
-            localStorage.setItem('onboarding_business', 'true');
+            // Set flag for redirect after login using Cookies to survive OAuth redirects
+            document.cookie = "onboarding_business=true; path=/; max-age=3600; SameSite=Lax";
             // Trigger Google OAuth direct redirect via lib
             signInWithGoogle();
         }

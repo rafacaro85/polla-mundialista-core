@@ -46,15 +46,15 @@ function SuccessLogic() {
           }
 
           const BUSINESS_ONBOARDING_KEY = 'onboarding_business';
-          const isBusinessOnboarding = localStorage.getItem(BUSINESS_ONBOARDING_KEY);
+          const isBusinessOnboarding = getCookie(BUSINESS_ONBOARDING_KEY) || localStorage.getItem(BUSINESS_ONBOARDING_KEY);
 
           console.log('🔍 [AUTH] Verificando flag de onboarding...');
           console.log('🔍 [AUTH] Flag onboarding_business:', isBusinessOnboarding);
-          console.log('🔍 [AUTH] Tipo:', typeof isBusinessOnboarding);
 
           if (isBusinessOnboarding) {
             console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /business/new');
             localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
+            document.cookie = `${BUSINESS_ONBOARDING_KEY}=; path=/; max-age=0`;
             window.location.href = '/business/new';
           } else {
             console.log('🏠 [AUTH] Sin flag - Redirigiendo a /dashboard');

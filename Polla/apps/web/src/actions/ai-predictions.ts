@@ -22,7 +22,8 @@ export async function generateAiPredictions(matches: MatchInput[]) {
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        // Intento 1: Usar gemini-1.5-flash
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         const prompt = `
 Actúa como "SoccerBet Strategist", un agente de inteligencia artificial de élite, especializado única y exclusivamente en el análisis de partidos de fútbol.

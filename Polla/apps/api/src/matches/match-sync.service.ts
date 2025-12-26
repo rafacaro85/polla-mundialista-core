@@ -29,52 +29,13 @@ export class MatchSyncService {
 
             const fixtures = data.response;
             if (!fixtures || fixtures.length === 0) {
-                // Silently return if no live matches (avoid log spam)
                 return;
             }
 
             let updatedCount = 0;
-
             for (const fixture of fixtures) {
-                const externalId = fixture.fixture.id;
-                const statusShort = fixture.fixture.status.short;
-                const homeScore = fixture.goals.home;
-                const awayScore = fixture.goals.away;
-
-                // Find match in our DB
-                const match = await this.matchesRepository.findOne({ where: { externalId } });
-
-                if (!match) {
-                    continue; // Match not tracked in our system
-                }
-
-                if (match.isLocked) {
-                    this.logger.log(`Partido ${match.id} (Ext: ${externalId}) está bloqueado manualmente. Saltando.`);
-                    continue;
-                }
-
-                // Update scores
-                match.homeScore = homeScore;
-                match.awayScore = awayScore;
-
-                // Check if match finished
-                if (['FT', 'AET', 'PEN'].includes(statusShort)) {
-                    if (match.status !== 'COMPLETED') {
-                        match.status = 'COMPLETED';
-                        await this.matchesRepository.save(match);
-
-                        this.logger.log(`Partido ${match.id} finalizado. Calculando puntos...`);
-                        await this.scoringService.calculatePointsForMatch(match.id);
-                    }
-                } else {
-                    // Update status to LIVE if not already
-                    if (match.status !== 'LIVE' && match.status !== 'COMPLETED') {
-                        match.status = 'LIVE';
-                    }
-                    await this.matchesRepository.save(match);
-                }
-
-                updatedCount++;
+                const wasUpdated = await this.processFixtureData(fixture);
+                if (wasUpdated) updatedCount++;
             }
 
             if (updatedCount > 0) {
@@ -83,6 +44,58 @@ export class MatchSyncService {
 
         } catch (error) {
             this.logger.error('Error sincronizando partidos', error);
+        }
+    }
+
+    // Método público para simulación o webhook
+    async processFixtureData(fixture: any): Promise<boolean> {
+        try {
+            const externalId = fixture.fixture.id;
+            const statusShort = fixture.fixture.status.short;
+            const homeScore = fixture.goals.home;
+            const awayScore = fixture.goals.away;
+
+            // Find match in our DB
+            const match = await this.matchesRepository.findOne({ where: { externalId } });
+
+            if (!match) {
+                return false; // Match not tracked
+            }
+
+            if (match.isLocked) {
+                this.logger.log(`Partido ${match.id} (Ext: ${externalId}) está bloqueado manualmente. Saltando.`);
+                return false;
+            }
+
+            // Detectar cambios
+            const hasChanged = match.homeScore !== homeScore || match.awayScore !== awayScore || match.status !== 'COMPLETED';
+            if (!hasChanged) return false;
+
+            // Update scores
+            match.homeScore = homeScore;
+            match.awayScore = awayScore;
+
+            // Check if match finished
+            if (['FT', 'AET', 'PEN'].includes(statusShort)) {
+                if (match.status !== 'COMPLETED') {
+                    match.status = 'COMPLETED';
+                    await this.matchesRepository.save(match);
+
+                    this.logger.log(`Partido ${match.id} finalizado. Calculando puntos...`);
+                    await this.scoringService.calculatePointsForMatch(match.id);
+                }
+            } else {
+                // Update status to LIVE if not already
+                if (match.status !== 'LIVE' && match.status !== 'COMPLETED') {
+                    match.status = 'LIVE';
+                }
+                await this.matchesRepository.save(match);
+            }
+
+            return true;
+        } catch (e) {
+            this.logger.error(`Error procesando fixture ${fixture?.fixture?.id}`, e);
+            return false;
         }
     }
 }

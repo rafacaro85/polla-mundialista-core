@@ -428,7 +428,10 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                     </Button>
                                                     <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                                                         onClick={() => {
-                                                            const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\nCódigo: *${currentLeague.code}*`;
+                                                            const appUrl = window.location.origin;
+                                                            const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\n` +
+                                                                `Link: ${appUrl}/invite/${currentLeague.code}\n` +
+                                                                `Código: *${currentLeague.code}*`;
                                                             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                         }}
                                                     >

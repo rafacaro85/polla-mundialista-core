@@ -168,10 +168,12 @@ export default function AdminUsersPage() {
                             const appUrl = window.location.origin;
                             const code = league?.accessCodePrefix || '';
                             const leagueName = league?.companyName || league?.name || 'Polla';
-                            const message = `¡Únete a nuestra Polla Mundialista 2026! 🏆\n\n` +
-                                `Polla: ${leagueName}\n` +
-                                `Código: ${code}\n\n` +
-                                `Regístrate aquí: ${appUrl}/login`;
+                            const inviteUrl = `${appUrl}/invite/${code}`;
+
+                            const message = `¡Hola! Te invito a la Polla Mundialista de *${leagueName}*. 🏆\n\n` +
+                                `Únete fácil dando clic verificándolo aquí:\n👉 ${inviteUrl}\n\n` +
+                                `O usa el código: *${code}*`;
+
                             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                             window.open(whatsappUrl, '_blank');
                         }}

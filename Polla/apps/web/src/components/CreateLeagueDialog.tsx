@@ -594,10 +594,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                     <button
                                         onClick={() => {
                                             const appUrl = window.location.origin;
-                                            const message = `¡Únete a mi Polla Mundialista 2026! 🏆\n\n` +
-                                                `Polla: ${createdLeagueName}\n` +
-                                                `Código: ${createdCode}\n\n` +
-                                                `Regístrate aquí: ${appUrl}/login`;
+                                            const inviteUrl = `${appUrl}/invite/${createdCode}`;
+                                            const message = `¡Hola! Te invito a mi Polla del Mundial. 🏆\n\n` +
+                                                `Polla: *${createdLeagueName}*\n\n` +
+                                                `Únete fácil dando clic aquí:\n👉 ${inviteUrl}\n\n` +
+                                                `O ingresa el código: *${createdCode}*`;
                                             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                                             window.open(whatsappUrl, '_blank');
                                         }}

@@ -93,4 +93,16 @@ export class MatchesController {
     async resetKnockoutMatches() {
         return this.matchesService.resetKnockoutMatches();
     }
+
+    // Endpoint de prueba/simulación para validar sincronización (solo ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('simulate-sync')
+    async simulateSync(@Body() fixtureData: any) {
+        const result = await this.matchSyncService.processFixtureData(fixtureData);
+        return {
+            message: result ? 'Partido actualizado' : 'No se detectaron cambios o no se encontró el partido',
+            dataProcessed: true
+        };
+    }
 }

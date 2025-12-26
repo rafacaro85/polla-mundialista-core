@@ -19,6 +19,7 @@ export default function InvitePage() {
                 // No token -> Redirect to Login
                 const code = params?.code ? String(params.code) : '';
                 if (code) {
+                    localStorage.setItem('pendingInviteCode', code);
                     const callbackUrl = `/invite/${code}`;
                     router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
                 } else {

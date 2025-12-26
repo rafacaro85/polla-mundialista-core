@@ -27,6 +27,15 @@ function SuccessLogic() {
           console.log('✅ [AUTH] Datos del usuario obtenidos:', userData);
           localStorage.setItem('user', JSON.stringify(userData));
 
+          const pendingInviteCode = localStorage.getItem('pendingInviteCode');
+          if (pendingInviteCode) {
+            console.log('🎟️ [AUTH] Invitación pendiente detectada:', pendingInviteCode);
+            localStorage.removeItem('pendingInviteCode');
+            /* Use window.location.href to force full reload/redirect ensuring clean state */
+            window.location.href = `/invite/${pendingInviteCode}`;
+            return;
+          }
+
           const BUSINESS_ONBOARDING_KEY = 'onboarding_business';
           const isBusinessOnboarding = localStorage.getItem(BUSINESS_ONBOARDING_KEY);
 

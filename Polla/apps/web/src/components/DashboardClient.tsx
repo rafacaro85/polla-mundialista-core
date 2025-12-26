@@ -40,6 +40,11 @@ interface Match {
   group?: string;
   homeTeamPlaceholder?: string;
   awayTeamPlaceholder?: string;
+  // Propiedades opcionales para manejo de estado local y respuesta de API
+  userH?: string;
+  userA?: string;
+  prediction?: Prediction | any; // Any temporal para flexibilidad con la respuesta del backend
+  isJoker?: boolean;
 }
 
 interface Prediction {
@@ -251,7 +256,23 @@ export const DashboardClient: React.FC = () => {
     }));
   };
 
+  const handleClearPredictions = () => {
+    setMatches(prevMatches => prevMatches.map(match => {
+      // Solo limpiar si NO hay predicción guardada en BD
+      // Asumimos que si hay prediction.homeScore !== null, está guardada
+      const savedPrediction = match.prediction?.homeScore != null && match.prediction?.awayScore != null;
 
+      if (!savedPrediction) {
+        return {
+          ...match,
+          userH: '',
+          userA: ''
+        };
+      }
+      return match;
+    }));
+    toast.info('Se han limpiado las sugerencias no guardadas.');
+  };
 
   return (
     <LeagueThemeProvider
@@ -286,6 +307,7 @@ export const DashboardClient: React.FC = () => {
                   <AiSuggestionsButton
                     matches={matches}
                     onPredictionsGenerated={handleAiPredictions}
+                    onClear={handleClearPredictions}
                   />
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { generateAiPredictions } from '@/actions/ai-predictions';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Match {
@@ -16,9 +16,10 @@ interface Match {
 interface AiSuggestionsButtonProps {
     matches: Match[];
     onPredictionsGenerated: (predictions: { [matchId: string]: [number, number] }) => void;
+    onClear?: () => void;
 }
 
-export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSuggestionsButtonProps) {
+export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear }: AiSuggestionsButtonProps) {
     const [loading, setLoading] = useState(false);
 
     const handleGenerate = async () => {
@@ -36,7 +37,7 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSugge
 
             if (response.success && response.data) {
                 onPredictionsGenerated(response.data);
-                toast.success('¡La IA ha completado tu polla! Revisa y guarda.');
+                toast.success(`¡La IA ha completado tu polla! (Modelo: ${response.modelUsed || 'Gemini'})`);
             } else {
                 console.error('AI Error:', response.error);
                 toast.error(`Error: ${response.error || 'No se pudieron generar predicciones'}`);
@@ -50,17 +51,29 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSugge
     };
 
     return (
-        <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-purple-400/30"
-        >
-            {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-                <Sparkles className="w-4 h-4 text-yellow-200 group-hover:scale-110 transition-transform" />
+        <div className="flex items-center gap-2">
+            <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-purple-400/30"
+            >
+                {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                    <Sparkles className="w-4 h-4 text-yellow-200 group-hover:scale-110 transition-transform" />
+                )}
+                <span>{loading ? 'Consultando IA...' : 'Sugerir Resultados con IA'}</span>
+            </button>
+
+            {onClear && (
+                <button
+                    onClick={onClear}
+                    title="Limpiar predicciones no guardadas"
+                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 rounded-lg border border-slate-700 transition-colors"
+                >
+                    <Trash2 className="w-5 h-5" />
+                </button>
             )}
-            <span>{loading ? 'Consultando IA...' : 'Sugerir Resultados con IA'}</span>
-        </button>
+        </div>
     );
 }

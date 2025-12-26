@@ -237,6 +237,24 @@ export default function GamesPage() {
         }));
     };
 
+    const handleClearPredictions = () => {
+        setMatches(prevMatches => prevMatches.map(match => {
+            // Solo limpiar si NO hay predicción guardada (userPrediction viene del backend)
+            // En esta página usamos 'userPrediction' o chequeamos si ya venía con datos
+            const hasSavedPrediction = match.userPrediction && (match.userPrediction.homeScore !== undefined || match.userPrediction.homeScorePrediction !== undefined);
+
+            if (!hasSavedPrediction) {
+                return {
+                    ...match,
+                    userH: '',
+                    userA: ''
+                };
+            }
+            return match;
+        }));
+        toast.info('Se han limpiado las sugerencias no guardadas.');
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-bg flex items-center justify-center">
@@ -255,6 +273,7 @@ export default function GamesPage() {
                         <AiSuggestionsButton
                             matches={matches}
                             onPredictionsGenerated={handleAiPredictions}
+                            onClear={handleClearPredictions}
                         />
                     </div>
                 </div>

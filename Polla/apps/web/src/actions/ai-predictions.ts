@@ -123,7 +123,7 @@ Ejemplo: { "id1": [2, 1], "id2": [0, 0] }
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
         const predictions = JSON.parse(cleanText);
 
-        return { success: true, data: predictions };
+        return { success: true, data: predictions, modelUsed: selectedModel };
 
     } catch (error: any) {
         console.error('Error generando predicciones (REST):', error);

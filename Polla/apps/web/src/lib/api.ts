@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Log para debuggear en producción (aparecerá en la consola del navegador)
 console.log('🌍 API URL CONFIGURADA:', API_URL);

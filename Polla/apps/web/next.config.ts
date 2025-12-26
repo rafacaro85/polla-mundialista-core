@@ -27,6 +27,18 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.SERVER_URL || 'http://localhost:3001'}/api/:path*`,
+      },
+      {
+        source: '/auth/:path*',
+        destination: `${process.env.SERVER_URL || 'http://localhost:3001'}/auth/:path*`,
+      }
+    ];
+  },
 };
 
 export default nextConfig;

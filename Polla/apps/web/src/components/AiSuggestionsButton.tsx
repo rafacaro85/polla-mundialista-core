@@ -95,10 +95,10 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear, 
                     onClick={handleSave}
                     disabled={saving}
                     title="Guardar predicciones sugeridas"
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                 >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    <span>Guardar Todo</span>
+                    <span>Guardar</span>
                 </button>
             )}
 

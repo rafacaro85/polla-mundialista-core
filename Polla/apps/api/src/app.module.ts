@@ -72,6 +72,7 @@ import { APP_GUARD } from '@nestjs/core';
           KnockoutPhaseStatus,
         ],
         synchronize: true, // Note: synchronize: true should not be used in production
+        ssl: configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined,
       }),
       inject: [ConfigService],
     }),

@@ -259,7 +259,6 @@ export const DashboardClient: React.FC = () => {
   const handleClearPredictions = () => {
     setMatches(prevMatches => prevMatches.map(match => {
       // Solo limpiar si NO hay predicción guardada en BD
-      // Asumimos que si hay prediction.homeScore !== null, está guardada
       const savedPrediction = match.prediction?.homeScore != null && match.prediction?.awayScore != null;
 
       if (!savedPrediction) {
@@ -272,6 +271,51 @@ export const DashboardClient: React.FC = () => {
       return match;
     }));
     toast.info('Se han limpiado las sugerencias no guardadas.');
+  };
+
+  const handleSaveAiPredictions = async () => {
+    // Filtrar partidos que tienen predicción local pero no guardada en BD
+    const predictionsToSave = matches.filter(m => {
+      const hasLocalPrediction = m.userH && m.userH !== '' && m.userA && m.userA !== '';
+      const isSaved = m.prediction && m.prediction.homeScore != null && m.prediction.awayScore != null;
+      return hasLocalPrediction && !isSaved;
+    });
+
+    if (predictionsToSave.length === 0) {
+      toast.info('No hay nuevas predicciones para guardar.');
+      return;
+    }
+
+    try {
+      const promises = predictionsToSave.map(m =>
+        api.post('/predictions', {
+          matchId: m.id,
+          homeScore: parseInt(m.userH!),
+          awayScore: parseInt(m.userA!),
+          leagueId: selectedLeagueId !== 'global' ? selectedLeagueId : undefined
+        }).then(() => {
+          setMatches(prev => prev.map(pm => {
+            if (pm.id === m.id) {
+              return {
+                ...pm,
+                prediction: {
+                  ...pm.prediction,
+                  homeScore: parseInt(m.userH!),
+                  awayScore: parseInt(m.userA!)
+                }
+              };
+            }
+            return pm;
+          }));
+        })
+      );
+
+      await Promise.all(promises);
+      toast.success(`Guardadas ${predictionsToSave.length} predicciones exitosamente.`);
+    } catch (error) {
+      console.error('Error guardando predicciones masivas:', error);
+      toast.error('Hubo un error al guardar algunas predicciones.');
+    }
   };
 
   return (
@@ -308,6 +352,7 @@ export const DashboardClient: React.FC = () => {
                     matches={matches}
                     onPredictionsGenerated={handleAiPredictions}
                     onClear={handleClearPredictions}
+                    onSave={handleSaveAiPredictions}
                   />
                 </div>
               </div>

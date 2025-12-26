@@ -255,6 +255,50 @@ export default function GamesPage() {
         toast.info('Se han limpiado las sugerencias no guardadas.');
     };
 
+    const handleSaveAiPredictions = async () => {
+        const predictionsToSave = matches.filter(m => {
+            const hasLocalPrediction = m.userH && m.userH !== '' && m.userA && m.userA !== '';
+            const hasSavedPrediction = m.userPrediction && (m.userPrediction.homeScore !== undefined || m.userPrediction.homeScorePrediction !== undefined);
+            return hasLocalPrediction && !hasSavedPrediction;
+        });
+
+        if (predictionsToSave.length === 0) {
+            toast.info('No hay nuevas sugerencias para guardar.');
+            return;
+        }
+
+        try {
+            const promises = predictionsToSave.map(m =>
+                api.post('/predictions', {
+                    matchId: m.id,
+                    homeScore: parseInt(m.userH!),
+                    awayScore: parseInt(m.userA!),
+                    leagueId: params.id
+                }).then(() => {
+                    setMatches(prev => prev.map(pm => {
+                        if (pm.id === m.id) {
+                            return {
+                                ...pm,
+                                userPrediction: {
+                                    ...pm.userPrediction,
+                                    homeScore: parseInt(m.userH!),
+                                    awayScore: parseInt(m.userA!)
+                                }
+                            };
+                        }
+                        return pm;
+                    }));
+                })
+            );
+
+            await Promise.all(promises);
+            toast.success(`Se guardaron ${predictionsToSave.length} predicciones sugeridas.`);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al guardar predicciones.');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-bg flex items-center justify-center">
@@ -274,6 +318,7 @@ export default function GamesPage() {
                             matches={matches}
                             onPredictionsGenerated={handleAiPredictions}
                             onClear={handleClearPredictions}
+                            onSave={handleSaveAiPredictions}
                         />
                     </div>
                 </div>

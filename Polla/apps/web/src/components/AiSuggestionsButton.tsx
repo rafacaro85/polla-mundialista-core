@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { generateAiPredictions } from '@/actions/ai-predictions';
-import { Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Loader2, Sparkles, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Match {
@@ -17,10 +17,13 @@ interface AiSuggestionsButtonProps {
     matches: Match[];
     onPredictionsGenerated: (predictions: { [matchId: string]: [number, number] }) => void;
     onClear?: () => void;
+    onSave?: () => Promise<void>;
 }
 
-export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear }: AiSuggestionsButtonProps) {
+export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear, onSave }: AiSuggestionsButtonProps) {
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     const handleGenerate = async () => {
         setLoading(true);
@@ -37,7 +40,8 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear }
 
             if (response.success && response.data) {
                 onPredictionsGenerated(response.data);
-                toast.success(`¡La IA ha completado tu polla! (Modelo: ${response.modelUsed || 'Gemini'})`);
+                setHasUnsavedChanges(true);
+                toast.success('¡La IA ha completado tu polla! Revisa y guarda.');
             } else {
                 console.error('AI Error:', response.error);
                 toast.error(`Error: ${response.error || 'No se pudieron generar predicciones'}`);
@@ -50,11 +54,32 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear }
         }
     };
 
+    const handleSave = async () => {
+        if (!onSave) return;
+        setSaving(true);
+        try {
+            await onSave();
+            setHasUnsavedChanges(false);
+            // toast.success enviado por el padre
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleClear = () => {
+        if (onClear) {
+            onClear();
+            setHasUnsavedChanges(false);
+        }
+    };
+
     return (
         <div className="flex items-center gap-2">
             <button
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={loading || saving}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-purple-400/30"
             >
                 {loading ? (
@@ -65,9 +90,21 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear }
                 <span>{loading ? 'Consultando IA...' : 'Sugerir Resultados con IA'}</span>
             </button>
 
-            {onClear && (
+            {onSave && hasUnsavedChanges && (
                 <button
-                    onClick={onClear}
+                    onClick={handleSave}
+                    disabled={saving}
+                    title="Guardar predicciones sugeridas"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    <span>Guardar Todo</span>
+                </button>
+            )}
+
+            {onClear && hasUnsavedChanges && (
+                <button
+                    onClick={handleClear}
                     title="Limpiar predicciones no guardadas"
                     className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 rounded-lg border border-slate-700 transition-colors"
                 >

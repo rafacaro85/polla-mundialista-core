@@ -14,6 +14,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://polla-mundialista-core-web.vercel.app',
+      'https://lapollavirtual.com',
       'http://localhost:3000',
       /\.vercel\.app$/,
     ],

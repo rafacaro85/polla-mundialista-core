@@ -57,6 +57,9 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
             toast.success(`¡Bienvenido a ${previewData?.name || 'la polla'}!`);
 
+            // Limpiar invitación pendiente
+            localStorage.removeItem('pendingInviteCode');
+
             // Redirigir a la liga específica
             const targetUrl = `/leagues/${data.leagueId}`;
 

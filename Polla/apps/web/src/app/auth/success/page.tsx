@@ -30,7 +30,9 @@ function SuccessLogic() {
           const pendingInviteCode = localStorage.getItem('pendingInviteCode');
           if (pendingInviteCode) {
             console.log('🎟️ [AUTH] Invitación pendiente detectada:', pendingInviteCode);
-            localStorage.removeItem('pendingInviteCode');
+            // NO borrar aquí. Dejar que la página de destino lo gestione para asegurar persistencia.
+            // localStorage.removeItem('pendingInviteCode'); 
+
             /* Use window.location.href to force full reload/redirect ensuring clean state */
             window.location.href = `/invite/${pendingInviteCode}`;
             return;

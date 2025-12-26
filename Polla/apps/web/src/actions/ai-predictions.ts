@@ -41,12 +41,60 @@ Ejemplo: { "id1": [2, 1], "id2": [0, 0] }
         }
     };
 
-    // Intentar con gemini-1.5-flash
-    const model = 'gemini-1.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+    // Paso 1: Descubrir modelos disponibles
+    let selectedModel = 'gemini-1.5-flash'; // Fallback por defecto
 
     try {
-        console.log(`Enviando petición REST a ${model}...`);
+        console.log('Consultando modelos disponibles...');
+        const modelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
+        const modelsRes = await fetch(modelsUrl);
+
+        if (modelsRes.ok) {
+            const modelsData = await modelsRes.json();
+            const availableModels = modelsData.models || [];
+
+            // Buscar un modelo Gemini preferido
+            const preferredModels = [
+                'models/gemini-1.5-flash',
+                'models/gemini-1.5-flash-latest',
+                'models/gemini-1.5-flash-001',
+                'models/gemini-pro',
+                'models/gemini-1.0-pro'
+            ];
+
+            const foundModel = availableModels.find((m: any) =>
+                preferredModels.includes(m.name) &&
+                m.supportedGenerationMethods?.includes('generateContent')
+            );
+
+            // Si no encontramos uno preferido, tomar cualquiera que sea gemini y soporte generateContent
+            const fallbackModel = availableModels.find((m: any) =>
+                m.name.includes('gemini') &&
+                m.supportedGenerationMethods?.includes('generateContent')
+            );
+
+            if (foundModel) {
+                selectedModel = foundModel.name.replace('models/', '');
+                console.log(`Modelo seleccionado (preferido): ${selectedModel}`);
+            } else if (fallbackModel) {
+                selectedModel = fallbackModel.name.replace('models/', '');
+                console.log(`Modelo seleccionado (fallback): ${selectedModel}`);
+            } else {
+                console.warn('No se encontraron modelos Gemini explícitos en la lista. Usando default.');
+                console.log('Modelos disponibles:', availableModels.map((m: any) => m.name));
+            }
+        } else {
+            console.warn('Error listando modelos, usando default.', await modelsRes.text());
+        }
+    } catch (e) {
+        console.error('Error en descubrimiento de modelos:', e);
+    }
+
+    // Paso 2: Generar contenido con el modelo seleccionado
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${API_KEY}`;
+
+    try {
+        console.log(`Enviando petición REST a ${selectedModel}...`);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -59,7 +107,9 @@ Ejemplo: { "id1": [2, 1], "id2": [0, 0] }
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error de API Google:', errorData);
-            throw new Error(errorData.error?.message || `Error ${response.status}: ${response.statusText}`);
+            // Mensaje de error más detallado para el usuario
+            const msg = errorData.error?.message || `Error ${response.status}`;
+            throw new Error(`Fallo modelo ${selectedModel}: ${msg}`);
         }
 
         const data = await response.json();

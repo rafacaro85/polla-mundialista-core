@@ -86,6 +86,16 @@ export const DashboardClient: React.FC = () => {
   const [currentLeague, setCurrentLeague] = useState<any>(null);
 
   useEffect(() => {
+    // Check for pending invite code on mount
+    const pendingInviteCode = localStorage.getItem('pendingInviteCode');
+    if (pendingInviteCode) {
+      console.log('🎟️ [Dashboard] Invitación pendiente detectada, redirigiendo...', pendingInviteCode);
+      localStorage.removeItem('pendingInviteCode');
+      window.location.href = `/invite/${pendingInviteCode}`;
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchCurrentLeague = async () => {
       if (selectedLeagueId && selectedLeagueId !== 'global') {
         try {

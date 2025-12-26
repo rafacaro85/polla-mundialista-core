@@ -65,18 +65,18 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
         } catch (error: any) {
             console.error('Join Error:', error);
-            const msg = error.response?.data?.message || '';
+            const msg = error.response?.data?.message || 'Error desconocido';
 
-            // Manejar caso "Ya unido" suavemente
+            // Manejar caso "Ya unido"
             if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
                 toast.info('Ya eres miembro de esta polla.');
-                // Redirigir a donde corresponda
-                // Recuperar ID si es posible o ir al dashboard
                 router.push('/dashboard');
-            } else {
-                toast.error(msg || 'No pudimos unirte a la polla. Intenta manualmente.');
-                router.push('/dashboard');
+                return;
             }
+
+            // Mostrar error en pantalla en lugar de redirigir
+            setStatus('error' as any); // Type cast rápido o actualizar estado
+            setPreviewData((prev: any) => ({ ...prev, error: msg }));
         }
     };
 
@@ -90,6 +90,26 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
         await joinLeague(code, department);
         setLoading(false);
     };
+
+    if (status === 'error' as any) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0F172A] p-4">
+                <div className="max-w-md w-full bg-[#1E293B] rounded-2xl p-8 border border-red-500/30 text-center shadow-2xl relative">
+                    <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                        <span className="text-3xl">⚠️</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-white mb-2">Hubo un problema</h2>
+                    <p className="text-slate-300 mb-6">{previewData?.error || 'No pudimos unirte a la polla.'}</p>
+                    <Button
+                        onClick={() => router.push('/dashboard')}
+                        className="w-full bg-slate-700 hover:bg-slate-600 text-white"
+                    >
+                        Ir al Inicio
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     if (status === 'input-required' && previewData) {
         return (

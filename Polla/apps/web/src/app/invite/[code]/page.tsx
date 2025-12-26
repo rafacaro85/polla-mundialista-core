@@ -19,7 +19,8 @@ export default function InvitePage() {
                 // No token -> Redirect to Login
                 const code = params?.code ? String(params.code) : '';
                 if (code) {
-                    localStorage.setItem('pendingInviteCode', code);
+                    // Use Cookie with max-age (1 hour) and path=/ to survive redirects and protocol changes
+                    document.cookie = `pendingInviteCode=${code}; path=/; max-age=3600; SameSite=Lax`;
                     const callbackUrl = `/invite/${code}`;
                     router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
                 } else {

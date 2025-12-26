@@ -59,6 +59,7 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
             // Limpiar invitación pendiente
             localStorage.removeItem('pendingInviteCode');
+            document.cookie = "pendingInviteCode=; path=/; max-age=0";
 
             // Redirigir a la liga específica
             const targetUrl = `/leagues/${data.leagueId}`;

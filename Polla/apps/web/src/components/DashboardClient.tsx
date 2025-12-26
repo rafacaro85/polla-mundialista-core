@@ -88,22 +88,31 @@ export const DashboardClient: React.FC = () => {
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for pending invite code on mount
-    const code = localStorage.getItem('pendingInviteCode');
-    if (code) {
-      setPendingInvite(code);
-    }
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const cookieCode = getCookie('pendingInviteCode');
+    const localCode = localStorage.getItem('pendingInviteCode');
+    const code = cookieCode || localCode;
+
+    if (code) setPendingInvite(code);
   }, []);
 
   const handleProcessInvite = () => {
     if (pendingInvite) {
       localStorage.removeItem('pendingInviteCode');
+      document.cookie = "pendingInviteCode=; path=/; max-age=0";
       window.location.href = `/invite/${pendingInvite}`;
     }
   };
 
   const handleDiscardInvite = () => {
     localStorage.removeItem('pendingInviteCode');
+    document.cookie = "pendingInviteCode=; path=/; max-age=0";
     setPendingInvite(null);
   };
 

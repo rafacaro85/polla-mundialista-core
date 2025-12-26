@@ -27,7 +27,14 @@ function SuccessLogic() {
           console.log('✅ [AUTH] Datos del usuario obtenidos:', userData);
           localStorage.setItem('user', JSON.stringify(userData));
 
-          const pendingInviteCode = localStorage.getItem('pendingInviteCode');
+          const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+          };
+
+          const pendingInviteCode = getCookie('pendingInviteCode') || localStorage.getItem('pendingInviteCode');
           if (pendingInviteCode) {
             console.log('🎟️ [AUTH] Invitación pendiente detectada:', pendingInviteCode);
             // NO borrar aquí. Dejar que la página de destino lo gestione para asegurar persistencia.

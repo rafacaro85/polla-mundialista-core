@@ -64,7 +64,8 @@ export class LeaguesService {
         maxParticipants,
         creator,
         accessCodePrefix: code,
-        isPaid: packageType !== 'starter', // Assuming starter is free
+        // Si es 'starter' (gratis), se considera pagado/activo. Si es Premium, empieza como NO pagado.
+        isPaid: packageType === 'starter' || packageType === 'FREE',
         isEnterprise: !!isEnterprise,
         companyName: companyName,
       });
@@ -316,6 +317,7 @@ export class LeaguesService {
       brandFontFamily: p.league.brandFontFamily,
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
+      isPaid: p.league.isPaid,
     }));
 
     console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));

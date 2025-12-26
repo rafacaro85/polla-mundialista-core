@@ -56,6 +56,35 @@ export default function LeagueLandingPage() {
     if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-brand-primary" /></div>;
     if (!league) return null;
 
+    // BLOQUEO POR PAGO PENDIENTE
+    if (league.isPaid === false) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-in fade-in zoom-in duration-500">
+                <div className="mb-6 p-6 bg-yellow-500/10 rounded-full border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                    <Shield size={64} className="text-yellow-500" />
+                </div>
+                <h1 className="text-3xl font-black text-white mb-4 uppercase tracking-tight">Activación Pendiente</h1>
+                <p className="text-slate-400 max-w-lg mb-8 leading-relaxed text-lg">
+                    Tu polla <strong className="text-white">{league.name}</strong> ha sido reservada, pero requiere validación del pago para ser activada oficialmente.
+                </p>
+
+                <div className="bg-[#1E293B] p-6 rounded-2xl border border-white/10 max-w-md w-full mb-8 text-left shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-bl-full"></div>
+                    <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-lg">👇 Pasos para activar:</h3>
+                    <ol className="list-decimal list-inside space-y-3 text-slate-300 text-sm">
+                        <li className="pl-2">Realiza el pago correspondiente a tu plan.</li>
+                        <li className="pl-2">Envía el comprobante a <span className="text-brand-primary font-bold">pagos@lapollavirtual.com</span> o WhatsApp.</li>
+                        <li className="pl-2">Tu liga será activada en menos de 24h.</li>
+                    </ol>
+                </div>
+
+                <button onClick={() => router.push('/dashboard')} className="text-brand-primary font-bold hover:text-white transition-colors uppercase tracking-widest text-sm">
+                    ← Volver al Dashboard
+                </button>
+            </div>
+        )
+    }
+
     const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
     const isActive = league.isEnterpriseActive;
 

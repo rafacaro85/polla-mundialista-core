@@ -27,18 +27,6 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.SERVER_URL || 'https://polla-mundialista-core.vercel.app'}/api/:path*`,
-      },
-      {
-        source: '/auth/:path*',
-        destination: `${process.env.SERVER_URL || 'https://polla-mundialista-core.vercel.app'}/auth/:path*`,
-      }
-    ];
-  },
 };
 
 export default nextConfig;

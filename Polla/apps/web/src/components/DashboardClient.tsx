@@ -381,7 +381,7 @@ export const DashboardClient: React.FC = () => {
         )}
 
         {/* BLOQUEO DE PAGO PENDIENTE (Payment Lock) */}
-        {currentLeague && currentLeague.isPaid === false && selectedLeagueId !== 'global' && (
+        {currentLeague && currentLeague.isPaid === false && !currentLeague.isEnterprise && selectedLeagueId !== 'global' && (
           <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
             <div className="mb-6 p-6 bg-yellow-500/10 rounded-full border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
               <Shield size={64} className="text-yellow-500" />

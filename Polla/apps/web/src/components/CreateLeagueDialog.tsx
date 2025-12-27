@@ -589,45 +589,63 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 <div style={STYLES.successBox}>
                                     <p className="text-tactical text-center text-sm">Comparte este código con tus amigos para que se unan:</p>
 
-                                    <div style={STYLES.codeDisplay}>
-                                        {createdCode}
-                                    </div>
+                                    {/* SOLO mostrar botones de compartir si es Starter (Gratis) */}
+                                    {selectedPlan === 'starter' ? (
+                                        // Wait, PLANS[0] is starter (Free). Others are paid.
+                                        // Use selectedPlan === 'starter' check.
+                                        <>
+                                            <div style={STYLES.codeDisplay}>
+                                                {createdCode}
+                                            </div>
 
-                                    <button
-                                        onClick={handleCopyCode}
-                                        style={{ ...STYLES.cancelBtn, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', color: 'white', borderColor: '#475569' }}
-                                    >
-                                        {copied ? <Check size={16} color="#00E676" /> : <Copy size={16} />}
-                                        {copied ? '¡Copiado!' : 'Copiar Código'}
-                                    </button>
+                                            <button
+                                                onClick={handleCopyCode}
+                                                style={{ ...STYLES.cancelBtn, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', color: 'white', borderColor: '#475569' }}
+                                            >
+                                                {copied ? <Check size={16} color="#00E676" /> : <Copy size={16} />}
+                                                {copied ? '¡Copiado!' : 'Copiar Código'}
+                                            </button>
 
-                                    <button
-                                        onClick={() => {
-                                            const appUrl = window.location.origin;
-                                            const inviteUrl = `${appUrl}/invite/${createdCode}`;
-                                            const message = `¡Hola! Te invito a mi Polla del Mundial. 🏆\n\n` +
-                                                `Polla: *${createdLeagueName}*\n\n` +
-                                                `Únete fácil dando clic aquí:\n👉 ${inviteUrl}\n\n` +
-                                                `O ingresa el código: *${createdCode}*`;
-                                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                                            window.open(whatsappUrl, '_blank');
-                                        }}
-                                        style={{
-                                            ...STYLES.cancelBtn,
-                                            width: '100%',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            backgroundColor: '#25D366',
-                                            color: '#0F172A',
-                                            borderColor: '#25D366',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        <Shield size={16} />
-                                        Compartir por WhatsApp
-                                    </button>
+                                            <button
+                                                onClick={() => {
+                                                    const appUrl = window.location.origin;
+                                                    const inviteUrl = `${appUrl}/invite/${createdCode}`;
+                                                    const message = `¡Hola! Te invito a mi Polla del Mundial. 🏆\n\n` +
+                                                        `Polla: *${createdLeagueName}*\n\n` +
+                                                        `Únete fácil dando clic aquí:\n👉 ${inviteUrl}\n\n` +
+                                                        `O ingresa el código: *${createdCode}*`;
+                                                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                                                    window.open(whatsappUrl, '_blank');
+                                                }}
+                                                style={{
+                                                    ...STYLES.cancelBtn,
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    backgroundColor: '#25D366',
+                                                    color: '#0F172A',
+                                                    borderColor: '#25D366',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                <Shield size={16} />
+                                                Compartir por WhatsApp
+                                            </button>
+                                        </>
+                                    ) : (
+                                        // Mensaje para ligas de pago
+                                        <div className="text-center space-y-4 mb-4">
+                                            <p className="text-white text-lg font-bold">¡Tu polla ha sido reservada!</p>
+                                            <p className="text-gray-400 text-xs px-4">
+                                                Código de acceso: <span className="text-[#00E676] font-mono text-base ml-2">{createdCode}</span>
+                                            </p>
+                                            <p className="text-yellow-500 text-xs italic border border-yellow-500/30 bg-yellow-500/10 p-2 rounded-lg">
+                                                ⚠️ Tu liga está PENDIENTE de activación. Realiza el pago para desbloquearla.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     {selectedPlan !== 'starter' && (
                                         <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>

@@ -27,40 +27,40 @@ export function LeagueHeader() {
             if (!leagueId || !user) return;
 
             try {
-                const { data } = await api.get(`/leagues/${leagueId}/metadata`);
+                // ESTRATEGIA DEFINITIVA: Usar /leagues/my como fuente de verdad
+                // Este endpoint ya procesa roles y ownership correctamente en el backend.
+                const [myLeaguesRes, metadataRes] = await Promise.all([
+                    api.get('/leagues/my'),
+                    api.get(`/leagues/${leagueId}/metadata`)
+                ]);
 
-                // Robust comparison (handle string vs number mismatches if any)
-                const creatorId = data.league?.creator?.id;
-                const userId = user.id;
+                const myLeagues = myLeaguesRes.data || [];
+                const metadata = metadataRes.data;
 
-                const isCreator = String(creatorId) === String(userId);
+                // Buscar la liga actual en mis ligas
+                const currentLeagueInMyList = myLeagues.find((l: any) => l.id === leagueId);
 
-                // Check if user is an ADMIN participant
-                const isParticipantAdmin = data.league?.participants?.some(
-                    (p: any) => String(p.user?.id) === String(userId) && (p.role === 'ADMIN' || p.role === 'owner')
-                );
-
+                // Determinar permisos
+                const isMyLeagueAdmin = currentLeagueInMyList?.isAdmin === true;
                 const isGlobalAdmin = user.role === 'SUPER_ADMIN';
 
-                /* DEBUG LOG FOR ENTERPRISE PERMISSIONS ISSUE */
-                if (process.env.NODE_ENV === 'development' || user.role === 'SUPER_ADMIN') {
-                    console.log('[LeagueHeader] Permission Check:', {
+                /* DEBUG LOG */
+                if (process.env.NODE_ENV === 'development' || isGlobalAdmin) {
+                    console.log('[LeagueHeader] Permission Check (Via /leagues/my):', {
                         leagueId,
-                        creatorId,
-                        myUserId: userId,
-                        isCreator,
-                        isParticipantAdmin,
-                        isGlobalAdmin,
-                        isEnterprise: data.league?.isEnterprise
+                        foundInMyLeagues: !!currentLeagueInMyList,
+                        isAdminInMyLeagues: isMyLeagueAdmin,
+                        isGlobalAdmin
                     });
                 }
 
                 setLeagueData({
-                    isLeagueAdmin: isCreator || isParticipantAdmin || isGlobalAdmin,
-                    isEnterprise: data.league?.isEnterprise || data.league?.type === 'COMPANY'
+                    isLeagueAdmin: isMyLeagueAdmin || isGlobalAdmin,
+                    // Usar metadatos para determinar si es empresa, o fallback a lo que diga myLeagues
+                    isEnterprise: metadata?.league?.isEnterprise || metadata?.league?.type === 'COMPANY' || currentLeagueInMyList?.isEnterprise
                 });
             } catch (error) {
-                console.error("Error checking permissions", error);
+                console.error("Error checking permissions in header", error);
             }
         };
         checkLeaguePermissions();

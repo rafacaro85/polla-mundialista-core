@@ -26,42 +26,44 @@ export function LeagueHeader() {
             const leagueId = params?.id as string || window.location.pathname.split('/')[2];
             if (!leagueId || !user) return;
 
+            // 1. Fetch My Leagues (Reliable for permissions)
+            let myLeagues = [];
             try {
-                // ESTRATEGIA DEFINITIVA: Usar /leagues/my como fuente de verdad
-                // Este endpoint ya procesa roles y ownership correctamente en el backend.
-                const [myLeaguesRes, metadataRes] = await Promise.all([
-                    api.get('/leagues/my'),
-                    api.get(`/leagues/${leagueId}/metadata`)
-                ]);
-
-                const myLeagues = myLeaguesRes.data || [];
-                const metadata = metadataRes.data;
-
-                // Buscar la liga actual en mis ligas
-                const currentLeagueInMyList = myLeagues.find((l: any) => l.id === leagueId);
-
-                // Determinar permisos
-                const isMyLeagueAdmin = currentLeagueInMyList?.isAdmin === true;
-                const isGlobalAdmin = user.role === 'SUPER_ADMIN';
-
-                /* DEBUG LOG */
-                if (process.env.NODE_ENV === 'development' || isGlobalAdmin) {
-                    console.log('[LeagueHeader] Permission Check (Via /leagues/my):', {
-                        leagueId,
-                        foundInMyLeagues: !!currentLeagueInMyList,
-                        isAdminInMyLeagues: isMyLeagueAdmin,
-                        isGlobalAdmin
-                    });
-                }
-
-                setLeagueData({
-                    isLeagueAdmin: isMyLeagueAdmin || isGlobalAdmin,
-                    // Usar metadatos para determinar si es empresa, o fallback a lo que diga myLeagues
-                    isEnterprise: metadata?.league?.isEnterprise || metadata?.league?.type === 'COMPANY' || currentLeagueInMyList?.isEnterprise
-                });
-            } catch (error) {
-                console.error("Error checking permissions in header", error);
+                const { data } = await api.get('/leagues/my');
+                myLeagues = data || [];
+            } catch (err) {
+                console.error("Error fetching my leagues in header", err);
             }
+
+            // 2. Fetch Metadata (Optional/Unreliable for permissions but needed for enterprise flag)
+            let metadata = null;
+            try {
+                const { data } = await api.get(`/leagues/${leagueId}/metadata`);
+                metadata = data;
+            } catch (err) {
+                console.warn("Error fetching metadata in header (non-fatal)", err);
+            }
+
+            // 3. Determine Permissions
+            const currentLeagueInMyList = myLeagues.find((l: any) => l.id === leagueId);
+            const isMyLeagueAdmin = currentLeagueInMyList?.isAdmin === true;
+            const isGlobalAdmin = user.role === 'SUPER_ADMIN';
+
+            /* DEBUG LOG */
+            if (process.env.NODE_ENV === 'development' || isGlobalAdmin) {
+                console.log('[LeagueHeader] Permission Check Resilient:', {
+                    leagueId,
+                    isAdminInMyLeagues: isMyLeagueAdmin,
+                    metadataExists: !!metadata,
+                    isGlobalAdmin
+                });
+            }
+
+            setLeagueData({
+                isLeagueAdmin: isMyLeagueAdmin || isGlobalAdmin,
+                // Enterprise flag fallback priority: Metadata -> MyLeagues
+                isEnterprise: metadata?.league?.isEnterprise || metadata?.league?.type === 'COMPANY' || currentLeagueInMyList?.isEnterprise
+            });
         };
         checkLeaguePermissions();
     }, [params.id, user, window.location.pathname]);

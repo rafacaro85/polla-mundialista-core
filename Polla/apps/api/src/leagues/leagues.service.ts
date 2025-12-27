@@ -281,6 +281,7 @@ export class LeaguesService {
         prizeDetails: l.prizeDetails,
         welcomeMessage: l.welcomeMessage,
         companyName: l.companyName,
+        isPaid: l.isPaid,
       }));
     } catch (error) {
       console.error('❌ CRITICAL ERROR in getAllLeagues:', error);
@@ -551,6 +552,13 @@ export class LeaguesService {
         throw new ForbiddenException('Solo el SUPER_ADMIN puede activar/desactivar el modo Enterprise.');
       }
       league.isEnterpriseActive = updateLeagueDto.isEnterpriseActive;
+    }
+
+    if (updateLeagueDto.isPaid !== undefined) {
+      if (userRole !== 'SUPER_ADMIN') {
+        throw new ForbiddenException('Solo el SUPER_ADMIN puede modificar el estado de pago.');
+      }
+      league.isPaid = updateLeagueDto.isPaid;
     }
 
     const updatedLeague = await this.leaguesRepository.save(league);

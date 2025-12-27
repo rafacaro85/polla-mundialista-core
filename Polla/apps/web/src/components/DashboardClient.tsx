@@ -5,7 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import LeagueThemeProvider from './LeagueThemeProvider';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Header } from './ui/Header';
 import DateFilter from './DateFilter';

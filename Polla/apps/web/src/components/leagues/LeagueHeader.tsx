@@ -23,11 +23,31 @@ export function LeagueHeader() {
 
     React.useEffect(() => {
         const checkLeaguePermissions = async () => {
-            if (!params.id || !user) return;
+            const leagueId = params?.id as string || window.location.pathname.split('/')[2];
+            if (!leagueId || !user) return;
+
             try {
-                const { data } = await api.get(`/leagues/${params.id}/metadata`);
-                const isCreator = data.league?.creator?.id === user.id;
+                const { data } = await api.get(`/leagues/${leagueId}/metadata`);
+
+                // Robust comparison (handle string vs number mismatches if any)
+                const creatorId = data.league?.creator?.id;
+                const userId = user.id;
+
+                const isCreator = String(creatorId) === String(userId);
                 const isGlobalAdmin = user.role === 'SUPER_ADMIN';
+
+                /* DEBUG LOG FOR ENTERPRISE PERMISSIONS ISSUE */
+                if (process.env.NODE_ENV === 'development' || user.role === 'SUPER_ADMIN') {
+                    console.log('[LeagueHeader] Permission Check:', {
+                        leagueId,
+                        creatorId,
+                        myUserId: userId,
+                        isCreator,
+                        isGlobalAdmin,
+                        isEnterprise: data.league?.isEnterprise
+                    });
+                }
+
                 setLeagueData({
                     isLeagueAdmin: isCreator || isGlobalAdmin,
                     isEnterprise: data.league?.isEnterprise || data.league?.type === 'COMPANY'
@@ -37,7 +57,7 @@ export function LeagueHeader() {
             }
         };
         checkLeaguePermissions();
-    }, [params.id, user]);
+    }, [params.id, user, window.location.pathname]);
 
     // Use fetched permission, fall back to global role check for safety or initial render
     const canManageLeague = leagueData?.isLeagueAdmin || user?.role === 'SUPER_ADMIN';

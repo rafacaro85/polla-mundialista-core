@@ -57,7 +57,7 @@ function SuccessLogic() {
             document.cookie = `${BUSINESS_ONBOARDING_KEY}=; path=/; max-age=0`;
             window.location.href = '/business/new';
           } else {
-          } else {
+
             console.log('🏠 [AUTH] Sin flag - Verificando redirección inteligente...');
 
             // Smart Redirect para usuarios Enterprise

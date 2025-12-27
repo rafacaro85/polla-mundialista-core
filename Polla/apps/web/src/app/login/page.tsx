@@ -52,7 +52,32 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         }
 
         toast.success('¡Bienvenido de nuevo!');
-        window.location.href = '/'; // Recargar para limpiar estados y actualizar auth
+        toast.success('¡Bienvenido de nuevo!');
+
+        // LÓGICA DE REDIRECCIÓN INTELIGENTE
+        // Si el usuario pertenece a una única liga empresarial, ir directo allí.
+        if (data.user.role !== 'SUPER_ADMIN') {
+          try {
+            // Necesitamos guardar el token antes de hacer la petición
+            // (Ya se hizo en localStorage arriba, pero aseguramos que api client lo use si es necesario,
+            // aunque api interceptor suele leer de localStorage)
+
+            const { data: leagues } = await api.get('/leagues/my');
+
+            // Buscar ligas empresariales
+            const enterpriseLeagues = leagues.filter((l: any) => l.type === 'COMPANY' || l.isEnterprise);
+
+            // Si el usuario SOLO tiene una liga y es empresarial -> Redirigir directo
+            if (leagues.length === 1 && enterpriseLeagues.length === 1) {
+              window.location.href = `/leagues/${enterpriseLeagues[0].id}`;
+              return;
+            }
+          } catch (error) {
+            console.error('Error determinando redirección:', error);
+          }
+        }
+
+        window.location.href = '/dashboard';
 
       } else if (view === 'register') {
         // REGISTER FLOW

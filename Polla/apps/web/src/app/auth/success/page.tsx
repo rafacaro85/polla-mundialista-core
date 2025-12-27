@@ -57,8 +57,34 @@ function SuccessLogic() {
             document.cookie = `${BUSINESS_ONBOARDING_KEY}=; path=/; max-age=0`;
             window.location.href = '/business/new';
           } else {
-            console.log('🏠 [AUTH] Sin flag - Redirigiendo a /dashboard');
-            window.location.href = '/dashboard';
+          } else {
+            console.log('🏠 [AUTH] Sin flag - Verificando redirección inteligente...');
+
+            // Smart Redirect para usuarios Enterprise
+            if (userData.role !== 'SUPER_ADMIN') {
+              fetch(`${API_URL}/leagues/my`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              })
+                .then(res => res.json())
+                .then(leagues => {
+                  // Filtrar ligas empresariales
+                  const enterpriseLeagues = leagues.filter((l: any) => l.type === 'COMPANY' || l.isEnterprise);
+
+                  // Si tiene exactamente una liga y es empresarial -> Redirect directo
+                  if (leagues.length === 1 && enterpriseLeagues.length === 1) {
+                    console.log('🚀 [AUTH] Redirigiendo a Liga Empresarial:', enterpriseLeagues[0].id);
+                    window.location.href = `/leagues/${enterpriseLeagues[0].id}`;
+                  } else {
+                    window.location.href = '/dashboard';
+                  }
+                })
+                .catch(err => {
+                  console.error('Error fetching leagues:', err);
+                  window.location.href = '/dashboard';
+                });
+            } else {
+              window.location.href = '/dashboard';
+            }
           }
         })
         .catch(error => {

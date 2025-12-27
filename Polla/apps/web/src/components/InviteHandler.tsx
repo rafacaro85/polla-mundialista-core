@@ -74,7 +74,13 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             // Manejar caso "Ya unido"
             if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
                 toast.info('Ya eres miembro de esta polla.');
-                router.push('/dashboard');
+
+                // Redirigir a la liga en lugar del dashboard
+                if (previewData?.id) {
+                    router.push(`/leagues/${previewData.id}`);
+                } else {
+                    router.push('/dashboard');
+                }
                 return;
             }
 

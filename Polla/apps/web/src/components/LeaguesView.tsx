@@ -296,19 +296,60 @@ export const LeaguesView = () => {
 
                         <div>
                             {league.isAdmin && league.isEnterpriseActive ? (
-                                // Para ligas empresariales activas, redirigir al Studio
+                                // CASO 1: Ligas empresariales activas
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        onClick={() => router.push(`/leagues/${league.id}/admin`)}
+                                        style={{
+                                            ...STYLES.actionBtn,
+                                            width: '32px',
+                                            padding: 0,
+                                            backgroundColor: '#334155',
+                                            color: '#94A3B8'
+                                        }}
+                                        title="Configuración"
+                                    >
+                                        <Settings size={14} />
+                                    </button>
+                                    <button
+                                        onClick={() => router.push(`/leagues/${league.id}`)}
+                                        style={{
+                                            ...STYLES.actionBtn,
+                                            backgroundColor: '#00E676',
+                                            color: '#0F172A',
+                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                        }}
+                                    >
+                                        INGRESAR
+                                    </button>
+                                </div>
+                            ) : league.isAdmin && league.isEnterprise && !league.isEnterpriseActive ? (
+                                // CASO 2: Ligas empresariales pendientes (Borradores)
                                 <button
                                     onClick={() => router.push(`/leagues/${league.id}/studio`)}
                                     style={{
                                         ...STYLES.actionBtn,
-                                        backgroundColor: '#00E676',
-                                        color: '#0F172A',
-                                        boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                        backgroundColor: '#F97316',
+                                        color: 'white'
                                     }}
                                 >
-                                    GESTIONAR
+                                    DISEÑAR
+                                </button>
+                            ) : !league.isAdmin ? (
+                                // CASO 3: Participante (Cualquier liga) - Botón directo a Jugar
+                                <button
+                                    onClick={() => router.push(`/leagues/${league.id}`)}
+                                    style={{
+                                        ...STYLES.actionBtn,
+                                        backgroundColor: 'transparent',
+                                        border: '1px solid #475569',
+                                        color: 'white'
+                                    }}
+                                >
+                                    JUGAR
                                 </button>
                             ) : (
+                                // CASO 4: Admin Normal (Mantiene comportamiento actual con Modal)
                                 // Validación de Pago Pendiente (Solo para NO Enterprise)
                                 !league.isPaid && !league.isEnterprise ? (
                                     <button
@@ -324,25 +365,17 @@ export const LeaguesView = () => {
                                         PENDIENTE
                                     </button>
                                 ) : (
-                                    // Para ligas normales activas
                                     <AdminLeagueSettings
                                         league={league as any}
                                         onUpdate={fetchLeagues}
                                         trigger={
-                                            <button style={
-                                                league.isAdmin ? {
-                                                    ...STYLES.actionBtn,
-                                                    backgroundColor: '#00E676',
-                                                    color: '#0F172A',
-                                                    boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                                } : {
-                                                    ...STYLES.actionBtn,
-                                                    backgroundColor: 'transparent',
-                                                    border: '1px solid #475569',
-                                                    color: 'white'
-                                                }
-                                            }>
-                                                {league.isAdmin ? 'GESTIONAR' : 'VER'}
+                                            <button style={{
+                                                ...STYLES.actionBtn,
+                                                backgroundColor: '#00E676',
+                                                color: '#0F172A',
+                                                boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                            }}>
+                                                GESTIONAR
                                             </button>
                                         }
                                     />

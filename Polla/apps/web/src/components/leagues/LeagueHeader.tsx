@@ -151,8 +151,8 @@ export function LeagueHeader() {
                                                 // Check if we have an ID from params, otherwise try to extract from path
                                                 const leagueId = params?.id as string || window.location.pathname.split('/')[2];
                                                 if (leagueId) {
-                                                    // Route to studio if enterprise, else standard admin
-                                                    const targetPath = leagueData?.isEnterprise ? `/leagues/${leagueId}/studio` : `/leagues/${leagueId}/admin`;
+                                                    // Route to main admin dashboard
+                                                    const targetPath = `/leagues/${leagueId}/admin`;
                                                     router.push(targetPath);
                                                 }
                                             }}

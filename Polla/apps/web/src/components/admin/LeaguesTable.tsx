@@ -303,9 +303,7 @@ export function LeaguesTable() {
 
     return (
         <div style={STYLES.container}>
-            <div style={{ border: '1px dashed red', padding: '10px', color: 'red', textAlign: 'center', fontWeight: 'bold' }}>
-                DEBUG: VERSION 1.5 - CHECKING UPDATES
-            </div>
+
 
             {/* HEADER: BUSCADOR + BOTÓN CREAR */}
             <div style={STYLES.headerRow}>

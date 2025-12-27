@@ -638,9 +638,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         // Mensaje para ligas de pago
                                         <div className="text-center space-y-4 mb-4">
                                             <p className="text-white text-lg font-bold">¡Tu polla ha sido reservada!</p>
-                                            <p className="text-gray-400 text-xs px-4">
-                                                Código de acceso: <span className="text-[#00E676] font-mono text-base ml-2">{createdCode}</span>
-                                            </p>
+
                                             <p className="text-yellow-500 text-xs italic border border-yellow-500/30 bg-yellow-500/10 p-2 rounded-lg">
                                                 ⚠️ Tu liga está PENDIENTE de activación. Realiza el pago para desbloquearla.
                                             </p>

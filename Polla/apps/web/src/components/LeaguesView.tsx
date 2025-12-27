@@ -309,45 +309,44 @@ export const LeaguesView = () => {
                                     GESTIONAR
                                 </button>
                             ) : (
-                            ): (
-                                    // Validación de Pago Pendiente (Solo para NO Enterprise)
-                                    !league.isPaid && !league.isEnterprise ? (
-                            <button
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: 'rgba(234, 179, 8, 0.2)', // Yellow transparent
-                                    color: '#FACC15',
-                                    border: '1px solid #FACC15',
-                                    cursor: 'not-allowed'
-                                }}
-                                title="Pago pendiente de validación"
-                            >
-                                PENDIENTE
-                            </button>
-                            ) : (
-                            // Para ligas normales activas
-                            <AdminLeagueSettings
-                                league={league as any}
-                                onUpdate={fetchLeagues}
-                                trigger={
-                                    <button style={
-                                        league.isAdmin ? {
+                                // Validación de Pago Pendiente (Solo para NO Enterprise)
+                                !league.isPaid && !league.isEnterprise ? (
+                                    <button
+                                        style={{
                                             ...STYLES.actionBtn,
-                                            backgroundColor: '#00E676',
-                                            color: '#0F172A',
-                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                        } : {
-                                            ...STYLES.actionBtn,
-                                            backgroundColor: 'transparent',
-                                            border: '1px solid #475569',
-                                            color: 'white'
-                                        }
-                                    }>
-                                        {league.isAdmin ? 'GESTIONAR' : 'VER'}
+                                            backgroundColor: 'rgba(234, 179, 8, 0.2)', // Yellow transparent
+                                            color: '#FACC15',
+                                            border: '1px solid #FACC15',
+                                            cursor: 'not-allowed'
+                                        }}
+                                        title="Pago pendiente de validación"
+                                    >
+                                        PENDIENTE
                                     </button>
-                                }
-                            />
-                            )
+                                ) : (
+                                    // Para ligas normales activas
+                                    <AdminLeagueSettings
+                                        league={league as any}
+                                        onUpdate={fetchLeagues}
+                                        trigger={
+                                            <button style={
+                                                league.isAdmin ? {
+                                                    ...STYLES.actionBtn,
+                                                    backgroundColor: '#00E676',
+                                                    color: '#0F172A',
+                                                    boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                                } : {
+                                                    ...STYLES.actionBtn,
+                                                    backgroundColor: 'transparent',
+                                                    border: '1px solid #475569',
+                                                    color: 'white'
+                                                }
+                                            }>
+                                                {league.isAdmin ? 'GESTIONAR' : 'VER'}
+                                            </button>
+                                        }
+                                    />
+                                )
                             )}
                         </div>
 

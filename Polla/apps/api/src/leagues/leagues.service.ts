@@ -38,6 +38,11 @@ export class LeaguesService {
     try {
       const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName } = createLeagueDto;
 
+      console.log('--- CREATE LEAGUE DEBUG ---');
+      console.log('Package Type:', packageType);
+      console.log('Calculated isPaid:', packageType === 'starter' || packageType === 'FREE');
+      console.log('---------------------------');
+
       // Validate maxUsers based on packageType
       // This is a basic validation, you might want to move this to a config or constant
       if (packageType === 'starter' && maxParticipants > 3) {

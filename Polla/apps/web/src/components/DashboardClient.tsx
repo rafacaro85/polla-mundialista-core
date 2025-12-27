@@ -377,6 +377,38 @@ export const DashboardClient: React.FC = () => {
           </div>
         )}
 
+        {/* BLOQUEO DE PAGO PENDIENTE (Payment Lock) */}
+        {currentLeague && currentLeague.isPaid === false && selectedLeagueId !== 'global' && (
+          <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+            <div className="mb-6 p-6 bg-yellow-500/10 rounded-full border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+              <Shield size={64} className="text-yellow-500" />
+            </div>
+            <h1 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Activación Pendiente</h1>
+            <p className="text-slate-400 max-w-xs mb-8 leading-relaxed text-sm">
+              La polla <strong className="text-white">{currentLeague.name}</strong> requiere validación del pago para ser activada.
+            </p>
+
+            <div className="bg-[#1E293B] p-6 rounded-2xl border border-white/10 max-w-sm w-full mb-8 text-left shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-bl-full"></div>
+              <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-sm">👇 Pasos para activar:</h3>
+              <ol className="list-decimal list-inside space-y-3 text-slate-300 text-xs">
+                <li className="pl-2">Realiza el pago de tu plan.</li>
+                <li className="pl-2">Envía el comprobante a soporte.</li>
+                <li className="pl-2">Tu liga será activada en breve.</li>
+              </ol>
+            </div>
+
+            <div className="flex gap-4">
+              <Button onClick={() => window.location.href = `https://wa.me/573105973421?text=Hola,%20adjunto%20pago%20para%20activar%20liga%20${currentLeague.name}`} className="bg-green-500 hover:bg-green-600 text-white font-bold">
+                Enviar Comprobante
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="outline" className="border-slate-600 text-slate-400 hover:text-white">
+                Recargar
+              </Button>
+            </div>
+          </div>
+        )}
+
         <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
 
           {/* VISTAS */}

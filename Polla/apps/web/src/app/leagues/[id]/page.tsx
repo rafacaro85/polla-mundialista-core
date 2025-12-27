@@ -31,6 +31,9 @@ export default function LeagueLandingPage() {
                 // 1. League
                 const { data: myLeagues } = await api.get('/leagues/my');
                 let found = myLeagues.find((l: any) => l.id === params.id);
+                console.log('🔍 [LeagueLandingPage] League Found:', found);
+                console.log('   isPaid:', found?.isPaid);
+                console.log('   isPaid type:', typeof found?.isPaid);
                 setLeague(found);
 
                 // 2. Ranking / Participants

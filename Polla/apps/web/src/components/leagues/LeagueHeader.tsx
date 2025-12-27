@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { LogOut, Settings, User, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useBrand } from '@/components/providers/BrandThemeProvider';
+import api from '@/lib/api';
 
 export function LeagueHeader() {
     const router = useRouter();
@@ -18,7 +19,28 @@ export function LeagueHeader() {
         router.push('/');
     };
 
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+    const [leagueData, setLeagueData] = useState<{ isLeagueAdmin: boolean; isEnterprise: boolean } | null>(null);
+
+    React.useEffect(() => {
+        const checkLeaguePermissions = async () => {
+            if (!params.id || !user) return;
+            try {
+                const { data } = await api.get(`/leagues/${params.id}/metadata`);
+                const isCreator = data.league?.creator?.id === user.id;
+                const isGlobalAdmin = user.role === 'SUPER_ADMIN';
+                setLeagueData({
+                    isLeagueAdmin: isCreator || isGlobalAdmin,
+                    isEnterprise: data.league?.isEnterprise || data.league?.type === 'COMPANY'
+                });
+            } catch (error) {
+                console.error("Error checking permissions", error);
+            }
+        };
+        checkLeaguePermissions();
+    }, [params.id, user]);
+
+    // Use fetched permission, fall back to global role check for safety or initial render
+    const canManageLeague = leagueData?.isLeagueAdmin || user?.role === 'SUPER_ADMIN';
 
     return (
         <header
@@ -122,21 +144,23 @@ export function LeagueHeader() {
                                         Mi Perfil
                                     </button>
 
-                                    {isAdmin && (
+                                    {canManageLeague && (
                                         <button
                                             onClick={() => {
                                                 setShowMenu(false);
                                                 // Check if we have an ID from params, otherwise try to extract from path
                                                 const leagueId = params?.id as string || window.location.pathname.split('/')[2];
                                                 if (leagueId) {
-                                                    router.push(`/leagues/${leagueId}/admin`);
+                                                    // Route to studio if enterprise, else standard admin
+                                                    const targetPath = leagueData?.isEnterprise ? `/leagues/${leagueId}/studio` : `/leagues/${leagueId}/admin`;
+                                                    router.push(targetPath);
                                                 }
                                             }}
                                             className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-white/10"
                                             style={{ color: brand.brandColorText }}
                                         >
                                             <Settings size={16} />
-                                            Panel de Control
+                                            {leagueData?.isEnterprise ? 'Panel de Control' : 'Administrar Polla'}
                                         </button>
                                     )}
 

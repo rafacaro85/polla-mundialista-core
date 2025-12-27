@@ -121,6 +121,9 @@ export const DashboardClient: React.FC = () => {
       if (selectedLeagueId && selectedLeagueId !== 'global') {
         try {
           const { data } = await api.get(`/leagues/${selectedLeagueId}/metadata`);
+          console.log('🔍 [DashboardClient] League Metadata Received:', data.league);
+          console.log('   -> isPaid:', data.league?.isPaid);
+          console.log('   -> isPaid type:', typeof data.league?.isPaid);
           setCurrentLeague(data.league);
         } catch (error) {
           console.error('Error fetching league metadata', error);

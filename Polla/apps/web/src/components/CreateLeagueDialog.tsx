@@ -98,6 +98,12 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         if (!plan) return;
 
         setLoading(true);
+        console.log('🚀 [CreateLeague] Iniciando creación:', {
+            name: leagueName.trim(),
+            planId: selectedPlan,
+            planName: plan.name,
+            isEnterprise
+        });
         try {
             const response = await api.post('/leagues', {
                 name: leagueName.trim(),
@@ -107,6 +113,10 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 isEnterprise,
                 companyName: isEnterprise ? companyName : undefined
             });
+
+            console.log('✅ [CreateLeague] Respuesta servidor:', response.data);
+            console.log('   -> isPaid en respuesta:', response.data.isPaid);
+            console.log('   -> packageType en respuesta:', response.data.packageType);
 
             setCreatedCode(response.data.accessCodePrefix);
             setCreatedLeagueName(leagueName.trim());

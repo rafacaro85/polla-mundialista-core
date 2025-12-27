@@ -71,6 +71,7 @@ export class LeaguesService {
         accessCodePrefix: code,
         // Si es 'starter' (gratis), se considera pagado/activo. Si es Premium, empieza como NO pagado.
         isPaid: packageType === 'starter' || packageType === 'FREE',
+        packageType, // <--- FALTABA ESTO
         isEnterprise: !!isEnterprise,
         companyName: companyName,
       });

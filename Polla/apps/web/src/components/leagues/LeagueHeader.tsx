@@ -34,6 +34,12 @@ export function LeagueHeader() {
                 const userId = user.id;
 
                 const isCreator = String(creatorId) === String(userId);
+
+                // Check if user is an ADMIN participant
+                const isParticipantAdmin = data.league?.participants?.some(
+                    (p: any) => String(p.user?.id) === String(userId) && (p.role === 'ADMIN' || p.role === 'owner')
+                );
+
                 const isGlobalAdmin = user.role === 'SUPER_ADMIN';
 
                 /* DEBUG LOG FOR ENTERPRISE PERMISSIONS ISSUE */
@@ -43,13 +49,14 @@ export function LeagueHeader() {
                         creatorId,
                         myUserId: userId,
                         isCreator,
+                        isParticipantAdmin,
                         isGlobalAdmin,
                         isEnterprise: data.league?.isEnterprise
                     });
                 }
 
                 setLeagueData({
-                    isLeagueAdmin: isCreator || isGlobalAdmin,
+                    isLeagueAdmin: isCreator || isParticipantAdmin || isGlobalAdmin,
                     isEnterprise: data.league?.isEnterprise || data.league?.type === 'COMPANY'
                 });
             } catch (error) {

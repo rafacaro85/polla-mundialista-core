@@ -31,9 +31,6 @@ export default function LeagueLandingPage() {
                 // 1. League
                 const { data: myLeagues } = await api.get('/leagues/my');
                 let found = myLeagues.find((l: any) => l.id === params.id);
-                console.log('🔍 [LeagueLandingPage] League Found:', found);
-                console.log('   isPaid:', found?.isPaid);
-                console.log('   isPaid type:', typeof found?.isPaid);
                 setLeague(found);
 
                 // 2. Ranking / Participants
@@ -60,7 +57,7 @@ export default function LeagueLandingPage() {
     if (!league) return null;
 
     // BLOQUEO POR PAGO PENDIENTE
-    if (league.isPaid === false) {
+    if (league.isPaid === false && !league.isEnterprise && !league.isEnterpriseActive) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-in fade-in zoom-in duration-500">
                 <div className="mb-6 p-6 bg-yellow-500/10 rounded-full border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.2)]">

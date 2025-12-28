@@ -261,35 +261,35 @@ export function UserNav() {
             hasArrow
           />
 
-          {selectedLeagueId && selectedLeagueId !== 'global' && (
+          {selectedLeagueId && selectedLeagueId !== 'global' ? (
+            <>
+              <MenuItem
+                icon={Settings}
+                label="Administrar Polla"
+                onClick={() => router.push(`/leagues/${selectedLeagueId}/admin`)}
+                hasArrow
+                isSpecial
+              />
+              <MenuItem
+                icon={LayoutGrid}
+                label="Volver al Dashboard"
+                onClick={() => router.push('/dashboard')}
+                hasArrow
+              />
+            </>
+          ) : (
             <MenuItem
-              icon={Settings}
-              label="Administrar Polla Actual"
-              onClick={() => router.push(`/leagues/${selectedLeagueId}/admin`)}
+              icon={LayoutGrid}
+              label="Mis Pollas"
+              onClick={() => router.push('/dashboard')}
               hasArrow
-              isSpecial
             />
           )}
-
-          <MenuItem
-            icon={LayoutGrid}
-            label="Ir al Dashboard"
-            onClick={() => router.push('/dashboard')}
-            hasArrow
-          />
-
-          <MenuItem
-            icon={Settings}
-            label="Panel Admin Pollas"
-            onClick={() => router.push('/leagues-admin')}
-            hasArrow
-            isSpecial
-          />
 
           {isAdmin && (
             <MenuItem
               icon={Shield}
-              label="Panel de Control"
+              label="Super Admin"
               onClick={handleSuperAdmin}
               isSpecial
               hasArrow

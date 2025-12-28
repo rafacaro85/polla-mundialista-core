@@ -65,4 +65,8 @@ export class UpdateLeagueDto {
     @IsBoolean()
     @IsOptional()
     isPaid?: boolean;
+
+    @IsBoolean()
+    @IsOptional()
+    enableDepartmentWar?: boolean;
 }

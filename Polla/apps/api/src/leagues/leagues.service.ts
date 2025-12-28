@@ -225,6 +225,7 @@ export class LeaguesService {
       type: league.type,
       isEnterprise: league.type === LeagueType.COMPANY || league.isEnterprise,
       companyName: league.companyName,
+      enableDepartmentWar: !!league.enableDepartmentWar,
     };
   }
 

@@ -79,6 +79,9 @@ export class League {
   @Column({ name: 'company_name', nullable: true })
   companyName: string;
 
+  @Column({ name: 'enable_department_war', default: false })
+  enableDepartmentWar: boolean;
+
   @Column({ name: 'brand_color_primary', default: '#00E676' })
   brandColorPrimary: string;
 

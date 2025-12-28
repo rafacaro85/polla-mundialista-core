@@ -102,7 +102,8 @@ export default function StudioPage() {
         brandCoverUrl: '',
         brandFontFamily: '"Russo One", sans-serif', // Nueva propiedad para la fuente
         isEnterprise: true,
-        isEnterpriseActive: true
+        isEnterpriseActive: true,
+        enableDepartmentWar: false,
     });
 
     // Font Options
@@ -152,7 +153,9 @@ export default function StudioPage() {
                 brandCoverUrl: config.brandCoverUrl,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
+                welcomeMessage: config.welcomeMessage,
                 isEnterprise: true,
+                enableDepartmentWar: config.enableDepartmentWar,
             });
 
             toast({
@@ -196,7 +199,10 @@ export default function StudioPage() {
                 brandCoverUrl: config.brandCoverUrl,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
+                companyName: config.companyName,
+                welcomeMessage: config.welcomeMessage,
                 isEnterprise: true,
+                enableDepartmentWar: config.enableDepartmentWar,
             });
 
             // Actualizar estado local
@@ -481,6 +487,22 @@ export default function StudioPage() {
                             <InputGroup label="Mensaje Bienvenida (Descripción Premio)">
                                 <textarea rows={4} value={config.welcomeMessage} onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })} className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors resize-none" />
                             </InputGroup>
+
+                            <div className="flex items-center justify-between p-4 bg-[#0F172A] border border-[#1E293B] rounded-xl">
+                                <div>
+                                    <h4 className="text-sm font-bold text-white">Guerra de Áreas</h4>
+                                    <p className="text-xs text-slate-400">Habilitar competencia por departamentos.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!config.enableDepartmentWar}
+                                        onChange={(e) => setConfig({ ...config, enableDepartmentWar: e.target.checked })}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00E676]"></div>
+                                </label>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -24,12 +24,19 @@ interface LeagueOption {
 /* =============================================================================
    COMPONENTE: RANKING VIEW (CON DROPDOWN SELECTOR)
    ============================================================================= */
-export const RankingView = () => {
+interface RankingViewProps {
+    leagueId?: string;
+    enableDepartmentWar?: boolean;
+}
+
+export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps) => {
     const { user } = useAppStore();
     const [selectedLeagueId, setSelectedLeagueId] = useState('global');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [leagues, setLeagues] = useState<LeagueOption[]>([]);
     const [ranking, setRanking] = useState<RankingUser[]>([]);
+    const [deptRanking, setDeptRanking] = useState<any[]>([]); // New state
+    const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users'); // New state
     const [loading, setLoading] = useState(false);
     const [isTieBreakerOpen, setIsTieBreakerOpen] = useState(false);
 
@@ -56,7 +63,8 @@ export const RankingView = () => {
             maxWidth: '600px',
             margin: '0 auto',
             width: '100%',
-            position: 'relative' as const
+            position: 'relative' as const,
+            marginTop: leagueId ? '20px' : '0'
         },
         headerSection: {
             marginBottom: '24px',
@@ -222,6 +230,12 @@ export const RankingView = () => {
 
     // Cargar Pollas
     useEffect(() => {
+        if (leagueId) {
+            setSelectedLeagueId(leagueId);
+            setLeagues([{ id: leagueId, name: 'Ranking de la Polla', icon: <Users size={16} /> }]);
+            return;
+        }
+
         const fetchLeagues = async () => {
             try {
                 const { data } = await api.get('/leagues/my');
@@ -242,46 +256,67 @@ export const RankingView = () => {
             }
         };
         fetchLeagues();
-    }, []);
+    }, [leagueId]);
 
-    // Cargar Ranking cuando cambia la liga
+    // Cargar Ranking cuando cambia la liga o el tab
     useEffect(() => {
         const fetchRanking = async () => {
             setLoading(true);
             try {
-                const endpoint = selectedLeagueId === 'global'
-                    ? '/leagues/global/ranking'
-                    : `/leagues/${selectedLeagueId}/ranking`;
+                if (activeTab === 'departments' && selectedLeagueId !== 'global') {
+                    // Cargar Ranking de Departamentos
+                    const { data } = await api.get(`/leagues/${selectedLeagueId}/analytics`);
+                    // El payload tiene { departmentRanking: [...] }
+                    const dRanking = (data.departmentRanking || []).map((d: any, i: number) => ({
+                        rank: i + 1,
+                        name: d.department,
+                        points: parseFloat(d.avgPoints),
+                        members: d.members,
+                        avatar: d.department.substring(0, 2).toUpperCase(),
+                        isUser: false, // No aplica
+                        trend: 'same'
+                    }));
+                    setDeptRanking(dRanking);
+                } else {
+                    // Cargar Ranking de Usuarios Normal
+                    const endpoint = selectedLeagueId === 'global'
+                        ? '/leagues/global/ranking'
+                        : `/leagues/${selectedLeagueId}/ranking`;
 
-                const { data } = await api.get(endpoint);
+                    const { data } = await api.get(endpoint);
 
-                const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
-                    rank: index + 1,
-                    name: item.nickname || item.user?.nickname || 'Anónimo',
-                    points: item.totalPoints || 0,
-                    avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
-                    isUser: (item.id === user?.id) || (item.user?.id === user?.id),
-                    trend: 'same',
-                    tieBreakerGuess: item.tieBreakerGuess
-                })) : [];
+                    const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
+                        rank: index + 1,
+                        name: item.nickname || item.user?.nickname || 'Anónimo',
+                        points: item.totalPoints || 0,
+                        avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
+                        isUser: (item.id === user?.id) || (item.user?.id === user?.id),
+                        trend: 'same',
+                        tieBreakerGuess: item.tieBreakerGuess
+                    })) : [];
 
-                setRanking(mappedRanking);
+                    setRanking(mappedRanking);
+                }
             } catch (error) {
                 console.error('Error fetching ranking:', error);
                 setRanking([]);
+                setDeptRanking([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (user) {
+        if (user && selectedLeagueId) {
             fetchRanking();
         }
-    }, [selectedLeagueId, user]);
+    }, [selectedLeagueId, user, activeTab]);
 
     // Datos actuales
     const selectedLeague = leagues.find(l => l.id === selectedLeagueId) || leagues[0] || { id: 'global', name: 'Cargando...', icon: <Crown size={16} /> };
-    const currentRanking = ranking;
+    // Datos actuales
+    const selectedLeague = leagues.find(l => l.id === selectedLeagueId) || leagues[0] || { id: 'global', name: 'Cargando...', icon: <Crown size={16} /> };
+    // Determinar qué lista renderizar
+    const currentList = activeTab === 'departments' ? deptRanking : ranking;
 
     return (
         <div style={STYLES.container}>
@@ -299,11 +334,14 @@ export const RankingView = () => {
                             {selectedLeague.icon}
                             {selectedLeague.name}
                         </div>
-                        <ChevronDown
-                            size={20}
-                            color={isDropdownOpen ? COLORS.signal : '#94A3B8'}
-                            style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                        />
+                        {/* Only show chevron if NOT fixed league id (global mode selector enabled) */}
+                        {!leagueId && (
+                            <ChevronDown
+                                size={20}
+                                color={isDropdownOpen ? COLORS.signal : '#94A3B8'}
+                                style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                            />
+                        )}
                     </div>
 
                     {/* MENÚ DESPLEGABLE (LISTA) */}
@@ -338,6 +376,26 @@ export const RankingView = () => {
                     )}
                 </div>
 
+                {/* TABS DE GUERRA DE ÁREAS */}
+                {enableDepartmentWar && leagueId && (
+                    <div className="flex mb-6 bg-[#1e293b] p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('users')}
+                            className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'users' ? 'bg-[#00E676] text-[#0F172A]' : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            Participantes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('departments')}
+                            className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'departments' ? 'bg-[#00E676] text-[#0F172A]' : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            Guerra de Áreas
+                        </button>
+                    </div>
+                )}
+
                 {/* 2. TABLA DE POSICIONES */}
                 {/* BOTÓN DESEMPATE (Solo en ligas específicas) */}
                 {selectedLeagueId !== 'global' && (
@@ -371,21 +429,21 @@ export const RankingView = () => {
 
                 <div style={STYLES.rankingCard}>
                     <div style={STYLES.tableHeader}>
-                        <span>Posición / Usuario</span>
-                        <span>Puntos</span>
+                        <span>Posición / {activeTab === 'departments' ? 'Área' : 'Usuario'}</span>
+                        <span>{activeTab === 'departments' ? 'Promedio' : 'Puntos'}</span>
                     </div>
 
                     {loading ? (
                         <div className="p-8 text-center text-slate-400">Cargando ranking...</div>
-                    ) : currentRanking.length > 0 ? (
-                        currentRanking.map((user, index) => {
-                            const isLast = index === currentRanking.length - 1 && currentRanking.length > 1;
-                            const rankStyle = getRankStyle(user.rank, isLast);
-                            const isUserStyle = user.isUser ? STYLES.userRow : {};
+                    ) : currentList.length > 0 ? (
+                        currentList.map((item, index) => {
+                            const isLast = index === currentList.length - 1 && currentList.length > 1;
+                            const rankStyle = getRankStyle(item.rank, isLast);
+                            const isUserStyle = item.isUser ? STYLES.userRow : {};
 
                             return (
-                                <div key={user.rank} style={{ ...STYLES.row, ...isUserStyle }}>
-                                    {user.isUser && (
+                                <div key={item.rank} style={{ ...STYLES.row, ...isUserStyle }}>
+                                    {item.isUser && (
                                         <div style={{
                                             position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
                                             backgroundColor: COLORS.signal,
@@ -397,27 +455,33 @@ export const RankingView = () => {
                                     </div>
                                     <div style={{
                                         ...STYLES.avatar,
-                                        borderColor: user.isUser ? COLORS.signal : '#475569',
-                                        color: user.isUser ? COLORS.signal : 'white'
+                                        borderColor: item.isUser ? COLORS.signal : '#475569',
+                                        color: item.isUser ? COLORS.signal : 'white',
+                                        borderRadius: activeTab === 'departments' ? '8px' : '50%' // Cuadrado para deptos
                                     }}>
-                                        {user.avatar}
+                                        {item.avatar}
                                     </div>
                                     <div style={STYLES.infoCol}>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span style={{ ...STYLES.name, color: user.rank <= 3 ? rankStyle.color : 'white' }}>
-                                                {user.name}
+                                            <span style={{ ...STYLES.name, color: item.rank <= 3 ? rankStyle.color : 'white' }}>
+                                                {item.name}
                                             </span>
-                                            {user.isUser && <span style={STYLES.youTag}>(TÚ)</span>}
+                                            {item.isUser && <span style={STYLES.youTag}>(TÚ)</span>}
                                         </div>
+                                        {activeTab === 'departments' && (
+                                            <span style={{ fontSize: '10px', color: '#64748B' }}>
+                                                {item.members} miembros
+                                            </span>
+                                        )}
                                     </div>
                                     <div style={STYLES.pointsCol}>
-                                        <div style={{ ...STYLES.points, color: user.isUser ? COLORS.signal : 'white' }}>
-                                            {user.points}
+                                        <div style={{ ...STYLES.points, color: item.isUser ? COLORS.signal : 'white' }}>
+                                            {item.points}
                                         </div>
                                         <div style={STYLES.trendIcon}>
-                                            {user.trend === 'up' && <TrendingUp size={12} color="#00E676" />}
-                                            {user.trend === 'down' && <TrendingDown size={12} color="#FF1744" />}
-                                            {user.trend === 'same' && <Minus size={12} color="#64748B" />}
+                                            {item.trend === 'up' && <TrendingUp size={12} color="#00E676" />}
+                                            {item.trend === 'down' && <TrendingDown size={12} color="#FF1744" />}
+                                            {item.trend === 'same' && <Minus size={12} color="#64748B" />}
                                         </div>
                                     </div>
                                 </div>

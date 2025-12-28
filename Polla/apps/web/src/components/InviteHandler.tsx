@@ -27,8 +27,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 const { data } = await api.get(`/leagues/preview/${code}`);
                 setPreviewData(data);
 
-                // 2. Si es empresa, pedir departamento (detener auto-join)
-                if (data.isEnterprise) {
+                // 2. Si es empresa Y tiene habilitada la guerra de áreas, pedir departamento
+                if (data.isEnterprise && data.enableDepartmentWar) {
                     setStatus('input-required');
                     return;
                 }

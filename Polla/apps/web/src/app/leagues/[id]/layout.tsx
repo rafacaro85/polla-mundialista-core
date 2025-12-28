@@ -87,6 +87,10 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const bgColor = isEnterprise ? (league.brandColorBg || '#0F172A') : '#0F172A';
     const textColor = isEnterprise ? (league.brandColorText || '#F8FAFC') : '#F8FAFC';
 
+    // Check if we are on the main dashboard page
+    const isDashboardRoot = usePathname() === `/leagues/${params.id}`;
+    const showLayoutUI = !usePathname()?.includes('/studio') && !isDashboardRoot;
+
     return (
         <BrandThemeProvider
             primaryColor={primaryColor}
@@ -97,11 +101,11 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             companyName={league.companyName || league.name}
         >
             {/* LEAGUE HEADER - Sticky top bar with logo and user menu */}
-            {!usePathname()?.includes('/studio') && <LeagueHeader />}
+            {showLayoutUI && <LeagueHeader />}
 
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
-                {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO */}
-                {!usePathname()?.includes('/studio') && (
+                {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO AND DASHBOARD ROOT */}
+                {showLayoutUI && (
                     <LeagueNavigation
                         leagueId={league.id}
                         isAdmin={league.isAdmin || false}
@@ -110,9 +114,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                 )}
 
                 {/* MAIN CONTENT AREA - Adjusted for header */}
-                <main className={`flex-1 w-full ${usePathname()?.includes('/studio')
-                    ? ''
-                    : 'md:pl-64 pb-24 md:pb-0 pt-16' // pt-16 for header height
+                <main className={`flex-1 w-full ${showLayoutUI
+                    ? 'md:pl-64 pb-24 md:pb-0 pt-16' // Layout normal (Admin)
+                    : '' // Dashboard toma control total
                     }`}>
                     {children}
                 </main>

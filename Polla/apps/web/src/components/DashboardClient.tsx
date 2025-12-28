@@ -92,7 +92,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [infoMatch, setInfoMatch] = useState<Match | null>(null);
   // Estado inicial del tab
   const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>(
-    props.initialTab || (props.defaultLeagueId ? 'home' : 'leagues')
+    props.initialTab || 'home'
   );
 
   // ... (existing code) ...
@@ -503,15 +503,18 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
         <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
 
           {/* VISTAS */}
+          {/* VISTAS */}
           {activeTab === 'home' && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-              <LeagueHomeView league={currentLeague} participants={participants} />
+              {selectedLeagueId === 'global' ? (
+                <LeaguesView />
+              ) : (
+                <LeagueHomeView league={currentLeague} participants={participants} />
+              )}
             </div>
           )}
 
-          {activeTab === 'leagues' && (
-            <LeaguesView />
-          )}
+          {/* Tab 'leagues' eliminado, integrado en home */}
 
           {activeTab === 'ranking' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">

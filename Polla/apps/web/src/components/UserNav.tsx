@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, Settings, ChevronRight, Shield } from 'lucide-react';
+import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -258,6 +258,13 @@ export function UserNav() {
             icon={User}
             label="Mi Perfil"
             onClick={handleProfile}
+            hasArrow
+          />
+
+          <MenuItem
+            icon={LayoutGrid}
+            label="Ir al Dashboard"
+            onClick={() => router.push('/dashboard')}
             hasArrow
           />
 

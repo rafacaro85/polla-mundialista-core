@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
     const stats = {
         total: participants.length,
         active: participants.filter(p => p.status === 'ACTIVE').length,
-        pending: participants.filter(p => p.status === 'PENDING').length,
+        blocked: participants.filter(p => p.status === 'BLOCKED' || p.isBlocked).length,
     };
 
     if (loading) {
@@ -201,11 +201,11 @@ export default function AdminUsersPage() {
                     <div className="bg-brand-secondary border border-slate-700 rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-slate-400 text-sm mb-1">Pendientes</p>
-                                <p className="text-3xl font-bold text-orange-400">{stats.pending}</p>
+                                <p className="text-slate-400 text-sm mb-1">Bloqueados</p>
+                                <p className="text-3xl font-bold text-red-500 animate-in zoom-in">{stats.blocked}</p>
                             </div>
-                            <div className="p-3 bg-orange-500/10 rounded-lg">
-                                <Ban className="text-orange-400" size={24} />
+                            <div className="p-3 bg-red-500/10 rounded-lg">
+                                <Ban className="text-red-500" size={24} />
                             </div>
                         </div>
                     </div>

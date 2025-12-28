@@ -90,7 +90,28 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
   const [infoMatch, setInfoMatch] = useState<Match | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>('game');
+  // Estado inicial del tab
+  const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>(
+    props.initialTab || (props.defaultLeagueId ? 'home' : 'leagues')
+  );
+
+  // ... (existing code) ...
+
+  {
+    activeTab === 'ranking' && (
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        <RankingView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
+      </div>
+    )
+  }
+
+  // ... (existing code) ...
+
+  <BottomNav
+    activeTab={activeTab}
+    onTabChange={setActiveTab}
+    showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
+  />
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]); // Para el Home
 
@@ -494,7 +515,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
           {activeTab === 'ranking' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <RankingView />
+              <RankingView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
             </div>
           )}
 
@@ -613,7 +634,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           </div>
         )}
 
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
+        />
 
         <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
       </div >

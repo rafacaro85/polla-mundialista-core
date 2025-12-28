@@ -4,9 +4,10 @@ import { Calendar, Trophy, Activity, Star, Users, Home } from 'lucide-react';
 interface BottomNavProps {
     activeTab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus';
     onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus') => void;
+    showLeaguesTab?: boolean;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true }) => {
     return (
         <nav
             className="fixed bottom-0 left-0 right-0 w-full bg-[#0F172A]/95 backdrop-blur-xl border-t border-[#1E293B] z-[9999] shadow-[0_-4px_20px_rgba(0,0,0,0.5)]"
@@ -34,15 +35,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                     <span className="text-[10px] font-black tracking-widest uppercase">Juego</span>
                 </button>
 
-                {/* 2. LIGAS (MIS POLLAS) */}
-                <button
-                    onClick={() => onTabChange('leagues')}
-                    className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'leagues' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}
-                >
-                    {activeTab === 'leagues' && <div className="absolute -top-4 w-10 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
-                    <Users size={24} strokeWidth={activeTab === 'leagues' ? 2.5 : 2} />
-                    <span className="text-[10px] font-black tracking-widest uppercase">Pollas</span>
-                </button>
+                {/* 2. LIGAS (MIS POLLAS) - CONDICIONAL */}
+                {showLeaguesTab && (
+                    <button
+                        onClick={() => onTabChange('leagues')}
+                        className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'leagues' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}
+                    >
+                        {activeTab === 'leagues' && <div className="absolute -top-4 w-10 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
+                        <Users size={24} strokeWidth={activeTab === 'leagues' ? 2.5 : 2} />
+                        <span className="text-[10px] font-black tracking-widest uppercase">Pollas</span>
+                    </button>
+                )}
 
                 {/* 3. RANKING */}
                 <button
@@ -64,10 +67,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                     <span className="text-[10px] font-black tracking-widest uppercase">Sim</span>
                 </button>
 
-                {/* 5. BONUS - Ocultamos o condensamos? 6 items es mucho. 
-                    El usuario pidió 'el resto de pestaña son las que seguimos manejando'.
-                    Voy a reducir el texto de 'Simulador' a 'Sim' y 'Ranking' a 'Rank' para espacio. 
-                */}
+                {/* 5. BONUS */}
                 <button
                     onClick={() => onTabChange('bonus')}
                     className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'bonus' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}

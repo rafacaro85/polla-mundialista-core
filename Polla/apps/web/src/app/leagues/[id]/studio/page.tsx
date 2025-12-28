@@ -185,8 +185,8 @@ export default function StudioPage() {
     const handlePublish = async () => {
         setSaving(true);
         try {
-            // Guardar primero
-            await api.patch(`/leagues/${params.id}`, {
+            // Guardar primero y capturar la respuesta actualizada del backend
+            const { data: updatedLeague } = await api.patch(`/leagues/${params.id}`, {
                 brandColorPrimary: config.brandColorPrimary,
                 brandColorSecondary: config.brandColorSecondary,
                 brandColorBg: config.brandColorBg,
@@ -199,8 +199,12 @@ export default function StudioPage() {
                 isEnterprise: true,
             });
 
-            // Verificar si está activada
-            const isActivated = config.isEnterpriseActive === true;
+            // Actualizar estado local
+            setConfig(prev => ({ ...prev, ...updatedLeague }));
+
+            // Verificar si está activada usando la respuesta fresca del servidor
+            // Esto soluciona el problema de tener que recargar la página tras activación externa
+            const isActivated = updatedLeague.isEnterpriseActive === true;
 
             if (!isActivated) {
                 // ❌ NO ACTIVADA: Mostrar modal

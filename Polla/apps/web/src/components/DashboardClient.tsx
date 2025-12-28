@@ -74,8 +74,15 @@ const getFlag = (teamName: string) => {
   return flags[teamName] || 'https://flagcdn.com/h80/un.png';
 };
 
-export const DashboardClient: React.FC = () => {
-  const { user, selectedLeagueId, syncUserFromServer } = useAppStore();
+import { LeagueHomeView } from './LeagueHomeView';
+
+interface DashboardClientProps {
+  defaultLeagueId?: string;
+  initialTab?: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus';
+}
+
+export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
+  const { user, selectedLeagueId, setSelectedLeagueId, syncUserFromServer } = useAppStore();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
@@ -83,11 +90,45 @@ export const DashboardClient: React.FC = () => {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
   const [infoMatch, setInfoMatch] = useState<Match | null>(null);
-  const [activeTab, setActiveTab] = useState<'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>('game');
+  const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>('game');
   const [currentLeague, setCurrentLeague] = useState<any>(null);
+  const [participants, setParticipants] = useState<any[]>([]); // Para el Home
 
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Inicialización desde Props
+  useEffect(() => {
+    if (props.defaultLeagueId) {
+      setSelectedLeagueId(props.defaultLeagueId);
+    }
+    if (props.initialTab) {
+      setActiveTab(props.initialTab);
+    }
+  }, [props.defaultLeagueId, props.initialTab, setSelectedLeagueId]);
+
+  // Fetch Participantes para Home
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      if (activeTab === 'home' && selectedLeagueId && selectedLeagueId !== 'global') {
+        try {
+          const { data } = await api.get(`/leagues/${selectedLeagueId}/ranking`);
+          const mapped = Array.isArray(data) ? data.map((item: any, index: number) => ({
+            id: item.id || item.user?.id,
+            nickname: item.nickname || item.user?.nickname || 'Anónimo',
+            avatarUrl: item.avatarUrl || item.user?.avatarUrl,
+            points: item.totalPoints !== undefined ? item.totalPoints : item.points,
+            rank: index + 1
+          })) : [];
+          setParticipants(mapped);
+        } catch (error) {
+          console.error("Error fetching participants for home", error);
+        }
+      }
+    };
+    fetchParticipants();
+  }, [activeTab, selectedLeagueId]);
+
 
   // SWR Fetcher
   const fetcher = (url: string) => api.get(url).then(res => res.data);
@@ -441,6 +482,12 @@ export const DashboardClient: React.FC = () => {
         <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
 
           {/* VISTAS */}
+          {activeTab === 'home' && (
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+              <LeagueHomeView league={currentLeague} participants={participants} />
+            </div>
+          )}
+
           {activeTab === 'leagues' && (
             <LeaguesView />
           )}

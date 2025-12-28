@@ -5,7 +5,8 @@ import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import LeagueThemeProvider from './LeagueThemeProvider';
-import { PlusIcon, Shield } from 'lucide-react';
+import { PlusIcon, Shield, RefreshCw } from 'lucide-react';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Header } from './ui/Header';
 import DateFilter from './DateFilter';
@@ -86,6 +87,156 @@ export const DashboardClient: React.FC = () => {
   const [currentLeague, setCurrentLeague] = useState<any>(null);
 
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // SWR Fetcher
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+
+  // SWR Hooks
+  const { data: matchesData, mutate: mutateMatches } = useSWR('/matches/live', fetcher, {
+    refreshInterval: 60000,
+    revalidateOnFocus: true,
+    revalidateIfStale: false,
+  });
+
+  const { data: predictionsData } = useSWR('/predictions/me', fetcher, {
+    revalidateOnFocus: true,
+  });
+
+  useEffect(() => {
+    if (matchesData && predictionsData) {
+      setLoadingMatches(false);
+
+      const processedMatches = matchesData.map((m: any) => {
+        const date = new Date(m.date);
+        const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+          'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const dateStr = `${month} ${day}`;
+
+        const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
+
+        return {
+          ...m,
+          dateStr,
+          displayDate: dateStr,
+          homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
+          awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
+          status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
+          scoreH: m.homeScore,
+          scoreA: m.awayScore,
+          prediction: userPrediction ? {
+            homeScore: userPrediction.homeScore,
+            awayScore: userPrediction.awayScore,
+            points: userPrediction.points || 0
+          } : undefined,
+          userH: userPrediction?.homeScore?.toString() || '',
+          userA: userPrediction?.awayScore?.toString() || '',
+          points: userPrediction?.points || 0
+        };
+      });
+
+      setMatches(processedMatches);
+      setDates(prev => {
+        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
+        return uniqueDates.length !== prev.length ? uniqueDates : prev;
+      });
+
+      setSelectedDate(prev => {
+        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
+        if (!prev && uniqueDates.length > 0) return uniqueDates[0];
+        return prev;
+      });
+    }
+  }, [matchesData, predictionsData]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+    const refreshPromise = mutateMatches();
+    await Promise.all([minWait, refreshPromise]);
+    setIsRefreshing(false);
+    toast.success('Marcadores actualizados');
+  };
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // SWR Fetcher
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+
+  // SWR Hooks
+  const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR('/matches/live', fetcher, {
+    refreshInterval: 60000, // 1 minuto
+    revalidateOnFocus: true,
+    revalidateIfStale: false, // Optimización solicitada
+  });
+
+  const { data: predictionsData } = useSWR('/predictions/me', fetcher, {
+    revalidateOnFocus: true,
+  });
+
+  // Effect to process data when SWR updates
+  useEffect(() => {
+    if (matchesData && predictionsData) {
+      setLoadingMatches(false); // Legacy loading clean up
+
+      const processedMatches = matchesData.map((m: any) => {
+        const date = new Date(m.date);
+
+        const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+          'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const dateStr = `${month} ${day}`;
+        const displayDate = dateStr;
+
+        const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
+
+        return {
+          ...m,
+          dateStr,
+          displayDate,
+          homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
+          awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
+          status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
+          scoreH: m.homeScore,
+          scoreA: m.awayScore,
+          prediction: userPrediction ? {
+            homeScore: userPrediction.homeScore,
+            awayScore: userPrediction.awayScore,
+            points: userPrediction.points || 0
+          } : undefined,
+          userH: userPrediction?.homeScore?.toString() || '',
+          userA: userPrediction?.awayScore?.toString() || '',
+          points: userPrediction?.points || 0
+        };
+      });
+
+      setMatches(processedMatches);
+      // Update dates only if empty to avoid jumping selection
+      setDates(prev => {
+        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
+        return uniqueDates.length !== prev.length ? uniqueDates : prev;
+      });
+
+      // Initial date selection
+      setSelectedDate(prev => {
+        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
+        if (!prev && uniqueDates.length > 0) return uniqueDates[0];
+        return prev;
+      });
+    }
+  }, [matchesData, predictionsData]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    // Truco UX: Animación mínima de 2 segundos
+    const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+    const refreshPromise = mutateMatches();
+    await Promise.all([minWait, refreshPromise]);
+    setIsRefreshing(false);
+    toast.success('Marcadores actualizados');
+  };
 
   useEffect(() => {
     const getCookie = (name: string) => {
@@ -136,63 +287,10 @@ export const DashboardClient: React.FC = () => {
     fetchCurrentLeague();
   }, [selectedLeagueId]);
 
+  // Legacy Load Data Effect removed (replaced by SWR)
+  // Mantener solo syncUserFromServer si es necesario para auth
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoadingMatches(true);
-        await syncUserFromServer();
-
-        const [matchesRes, predictionsRes] = await Promise.all([
-          api.get('/matches'),
-          api.get('/predictions/me')
-        ]);
-
-        const matchesData = matchesRes.data;
-        const predictionsData = predictionsRes.data;
-
-        const processedMatches = matchesData.map((m: any) => {
-          const date = new Date(m.date);
-
-          const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-          const month = monthNames[date.getMonth()];
-          const day = date.getDate();
-          const dateStr = `${month} ${day}`;
-          const displayDate = dateStr;
-
-          const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
-
-          return {
-            ...m,
-            dateStr,
-            displayDate,
-            homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
-            awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
-            status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
-            scoreH: m.homeScore,
-            scoreA: m.awayScore,
-            prediction: userPrediction ? {
-              homeScore: userPrediction.homeScore,
-              awayScore: userPrediction.awayScore,
-              points: userPrediction.points || 0
-            } : undefined,
-            userH: userPrediction?.homeScore?.toString() || '',
-            userA: userPrediction?.awayScore?.toString() || '',
-            points: userPrediction?.points || 0
-          };
-        });
-
-        setMatches(processedMatches);
-        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate)));
-        setDates(uniqueDates as string[]);
-        if (uniqueDates.length > 0) setSelectedDate(uniqueDates[0] as string);
-      } catch (error) {
-        console.error('Error cargando datos', error);
-      } finally {
-        setLoadingMatches(false);
-      }
-    };
-    loadData();
+    syncUserFromServer();
   }, [syncUserFromServer]);
 
   const filteredMatches = useMemo(() =>
@@ -441,12 +539,23 @@ export const DashboardClient: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <DateFilter
-                  dates={dates}
-                  selectedDate={selectedDate}
-                  onSelect={setSelectedDate}
-                />
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <div className="flex-1 overflow-x-auto">
+                  <DateFilter
+                    dates={dates}
+                    selectedDate={selectedDate}
+                    onSelect={setSelectedDate}
+                  />
+                </div>
+                <Button
+                  onClick={handleManualRefresh}
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
+                  title="Actualizar Marcadores"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--brand-primary,#00E676)]' : ''}`} />
+                </Button>
               </div>
 
               <div className="flex flex-col gap-4 pb-4">

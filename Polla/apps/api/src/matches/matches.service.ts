@@ -30,6 +30,14 @@ export class MatchesService {
         return query.getMany();
     }
 
+    async findLive(): Promise<Match[]> {
+        return this.matchesRepository.find({
+            order: { date: 'ASC' }
+        });
+    }
+
+
+
     async createMatch(data: {
         homeTeam: string;
         awayTeam: string;

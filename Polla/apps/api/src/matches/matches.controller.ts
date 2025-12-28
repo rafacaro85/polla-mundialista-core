@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Header } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { Match } from '../database/entities/match.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,6 +19,15 @@ export class MatchesController {
     async findAll(@Request() req: any): Promise<Match[]> {
         return this.matchesService.findAll(req.user.id);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('live')
+    @Header('Cache-Control', 'public, max-age=30')
+    async findLive(): Promise<Match[]> {
+        return this.matchesService.findLive();
+    }
+
+
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')

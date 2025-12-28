@@ -365,20 +365,32 @@ export const LeaguesView = () => {
                                         PENDIENTE
                                     </button>
                                 ) : (
-                                    <AdminLeagueSettings
-                                        league={league as any}
-                                        onUpdate={fetchLeagues}
-                                        trigger={
-                                            <button style={{
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button
+                                            onClick={() => router.push(`/leagues/${league.id}/admin`)}
+                                            style={{
+                                                ...STYLES.actionBtn,
+                                                width: '32px',
+                                                padding: 0,
+                                                backgroundColor: '#334155',
+                                                color: '#94A3B8'
+                                            }}
+                                            title="Configuración"
+                                        >
+                                            <Settings size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => router.push(`/leagues/${league.id}`)}
+                                            style={{
                                                 ...STYLES.actionBtn,
                                                 backgroundColor: '#00E676',
                                                 color: '#0F172A',
                                                 boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                            }}>
-                                                GESTIONAR
-                                            </button>
-                                        }
-                                    />
+                                            }}
+                                        >
+                                            INGRESAR
+                                        </button>
+                                    </div>
                                 )
                             )}
                         </div>

@@ -313,8 +313,7 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
 
     // Datos actuales
     const selectedLeague = leagues.find(l => l.id === selectedLeagueId) || leagues[0] || { id: 'global', name: 'Cargando...', icon: <Crown size={16} /> };
-    // Datos actuales
-    const selectedLeague = leagues.find(l => l.id === selectedLeagueId) || leagues[0] || { id: 'global', name: 'Cargando...', icon: <Crown size={16} /> };
+
     // Determinar qué lista renderizar
     const currentList = activeTab === 'departments' ? deptRanking : ranking;
 

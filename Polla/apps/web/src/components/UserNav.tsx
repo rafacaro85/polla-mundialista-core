@@ -298,6 +298,16 @@ return (
           hasArrow
         />
 
+        {selectedLeagueId && selectedLeagueId !== 'global' && (
+          <MenuItem
+            icon={Settings}
+            label="Administrar Polla Actual"
+            onClick={() => router.push(`/leagues/${selectedLeagueId}/admin`)}
+            hasArrow
+            isSpecial
+          />
+        )}
+
         <MenuItem
           icon={LayoutGrid}
           label="Ir al Dashboard"

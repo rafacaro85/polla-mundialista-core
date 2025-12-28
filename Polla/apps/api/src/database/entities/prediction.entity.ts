@@ -1,8 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index } from 'typeorm';
 import { User } from './user.entity'; // Corrected path
 import { Match } from './match.entity';
 
 @Entity('predictions')
+@Index(['match']) // Fast lookup for match scoring
+@Index(['user', 'match'], { unique: true }) // Prevent duplicate predictions per match
 export class Prediction {
   @PrimaryGeneratedColumn('uuid')
   id: string;

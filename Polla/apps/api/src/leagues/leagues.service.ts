@@ -958,4 +958,17 @@ export class LeaguesService {
       } : null,
     }));
   }
+
+  async getWoodenSpoon(leagueId: string) {
+    return this.leagueParticipantsRepository
+      .createQueryBuilder('lp')
+      .leftJoinAndSelect('lp.user', 'user')
+      .select(['lp.id', 'lp.totalPoints', 'user.id', 'user.nickname', 'user.fullName', 'user.avatarUrl'])
+      .where('lp.league.id = :leagueId', { leagueId })
+      .andWhere('lp.isBlocked = :isBlocked', { isBlocked: false })
+      .orderBy('lp.totalPoints', 'ASC') // Orden ascendente para obtener el menor puntaje
+      .limit(1) // Solo traer 1 registro
+      .getOne();
+  }
+}
 }

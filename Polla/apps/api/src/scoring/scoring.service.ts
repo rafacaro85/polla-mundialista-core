@@ -13,6 +13,11 @@ export class ScoringService {
     private predictionsRepository: Repository<Prediction>,
   ) { }
 
+  /**
+   * Calcula los puntos obtenidos en una predicción.
+   * Regla Acumulativa (Max 7 puntos):
+   * 1 (HomeGoal) + 1 (AwayGoal) + 2 (Sign) + 3 (Exact) = 7 Total
+   */
   calculatePoints(match: Match, prediction: Prediction): number {
     if ((match.status !== 'COMPLETED' && match.status !== 'FINISHED') || match.homeScore === null || match.awayScore === null) {
       return 0; // Match not completed or scores not available

@@ -5,12 +5,14 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import { League } from './league.entity';
 import { User } from './user.entity';
 
 @Entity({ name: 'league_participants' })
 @Unique(['league', 'user'])
+@Index(['league', 'totalPoints']) // CRITICAL: Optimized for Leaderboard Ordering
 export class LeagueParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;

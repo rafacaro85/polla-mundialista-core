@@ -211,7 +211,7 @@ export class LeagueParticipantsService {
   async updateParticipant(
     leagueId: string,
     userId: string,
-    data: { department?: string },
+    data: { department?: string; fullName?: string; email?: string; phoneNumber?: string },
     requesterId: string,
     requesterRole: string,
   ) {
@@ -229,16 +229,46 @@ export class LeagueParticipantsService {
       throw new BadRequestException('No tienes permisos para editar participantes');
     }
 
-    // 3. Buscar participante
+    // 3. Buscar participante con Usuario
     const participant = await this.leagueParticipantRepository.findOne({
       where: { league: { id: leagueId }, user: { id: userId } },
+      relations: ['user'],
     });
 
     if (!participant) throw new NotFoundException('Participante no encontrado');
 
-    // 4. Actualizar
+    // 4. Actualizar Participante
+    let hasUserUpdates = false;
+
     if (data.department !== undefined) {
       participant.department = data.department;
+    }
+
+    // 5. Actualizar Usuario Relacionado
+    if (participant.user) {
+      if (data.fullName !== undefined && data.fullName !== participant.user.fullName) {
+        participant.user.fullName = data.fullName;
+        hasUserUpdates = true;
+      }
+      if (data.email !== undefined && data.email !== participant.user.email) {
+        participant.user.email = data.email;
+        hasUserUpdates = true;
+      }
+      if (data.phoneNumber !== undefined && data.phoneNumber !== participant.user.phoneNumber) {
+        participant.user.phoneNumber = data.phoneNumber;
+        hasUserUpdates = true;
+      }
+    }
+
+    if (hasUserUpdates) {
+      try {
+        await this.userRepository.save(participant.user);
+      } catch (error) {
+        if (error.code === '23505') { // Postgres Unique Violation Check
+          throw new ConflictException('El correo electrónico ya está en uso por otro usuario.');
+        }
+        throw error;
+      }
     }
 
     return this.leagueParticipantRepository.save(participant);

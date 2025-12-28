@@ -324,54 +324,55 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                 <div style={STYLES.headerSection}>
                     <h2 style={STYLES.title}>Ranking</h2>
 
-                    {/* BOTÓN SELECTOR (TRIGGER) */}
-                    <div
-                        style={STYLES.dropdownTrigger}
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    >
-                        <div style={STYLES.triggerText}>
-                            {selectedLeague.icon}
-                            {selectedLeague.name}
-                        </div>
-                        {/* Only show chevron if NOT fixed league id (global mode selector enabled) */}
-                        {!leagueId && (
-                            <ChevronDown
-                                size={20}
-                                color={isDropdownOpen ? COLORS.signal : '#94A3B8'}
-                                style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                            />
-                        )}
-                    </div>
+                    {/* BOTÓN SELECTOR (TRIGGER) - Solo mostrar si NO hay leagueId fijo */}
+                    {!leagueId && (
+                        <>
+                            <div
+                                style={STYLES.dropdownTrigger}
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <div style={STYLES.triggerText}>
+                                    {selectedLeague.icon}
+                                    {selectedLeague.name}
+                                </div>
+                                <ChevronDown
+                                    size={20}
+                                    color={isDropdownOpen ? COLORS.signal : '#94A3B8'}
+                                    style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                                />
+                            </div>
 
-                    {/* MENÚ DESPLEGABLE (LISTA) */}
-                    {isDropdownOpen && (
-                        <div style={STYLES.dropdownMenu}>
-                            {leagues.map(league => {
-                                const isSelected = selectedLeagueId === league.id;
-                                return (
-                                    <div
-                                        key={league.id}
-                                        style={{
-                                            ...STYLES.menuItem,
-                                            backgroundColor: isSelected ? 'rgba(0, 230, 118, 0.1)' : 'transparent',
-                                            color: isSelected ? COLORS.signal : '#94A3B8'
-                                        }}
-                                        onClick={() => {
-                                            setSelectedLeagueId(league.id);
-                                            setIsDropdownOpen(false);
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            {league.icon}
-                                            <span style={{ fontFamily: isSelected ? "'Russo One', sans-serif" : 'sans-serif' }}>
-                                                {league.name}
-                                            </span>
-                                        </div>
-                                        {isSelected && <Check size={16} color={COLORS.signal} />}
-                                    </div>
-                                )
-                            })}
-                        </div>
+                            {/* MENÚ DESPLEGABLE */}
+                            {isDropdownOpen && (
+                                <div style={STYLES.dropdownMenu}>
+                                    {leagues.map(league => {
+                                        const isSelected = selectedLeagueId === league.id;
+                                        return (
+                                            <div
+                                                key={league.id}
+                                                style={{
+                                                    ...STYLES.menuItem,
+                                                    backgroundColor: isSelected ? 'rgba(0, 230, 118, 0.1)' : 'transparent',
+                                                    color: isSelected ? COLORS.signal : '#94A3B8'
+                                                }}
+                                                onClick={() => {
+                                                    setSelectedLeagueId(league.id);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    {league.icon}
+                                                    <span style={{ fontFamily: isSelected ? "'Russo One', sans-serif" : 'sans-serif' }}>
+                                                        {league.name}
+                                                    </span>
+                                                </div>
+                                                {isSelected && <Check size={16} color={COLORS.signal} />}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 

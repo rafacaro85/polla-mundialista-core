@@ -12,7 +12,11 @@ import {
     Shield,
     Ban,
     Trash2,
-    Share2
+
+    Share2,
+    Edit2, // Added
+    X, // Added
+    Save // Added
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -27,6 +31,38 @@ export default function AdminUsersPage() {
     const [loading, setLoading] = useState(true);
     const [showBulkImport, setShowBulkImport] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Edit State
+    const [editingParticipant, setEditingParticipant] = useState<any>(null);
+    const [editForm, setEditForm] = useState({ fullName: '', email: '', phoneNumber: '', department: '' });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleEditClick = (participant: any) => {
+        setEditingParticipant(participant);
+        setEditForm({
+            fullName: participant.user?.fullName || '',
+            email: participant.user?.email || '',
+            phoneNumber: participant.user?.phoneNumber || '',
+            department: participant.department || ''
+        });
+    };
+
+    const handleSaveParticipant = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingParticipant) return;
+        setIsSaving(true);
+        try {
+            await api.patch(`/leagues/${params.id}/participants/${editingParticipant.user.id}`, editForm);
+            // Refresh data
+            await fetchData();
+            setEditingParticipant(null);
+        } catch (error) {
+            console.error('Error updating participant:', error);
+            alert('Error al actualizar participante. Verifica que el correo no esté duplicado.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -271,8 +307,12 @@ export default function AdminUsersPage() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <button className="text-slate-400 hover:text-white transition-colors">
-                                                    <MoreVertical size={20} />
+                                                <button
+                                                    onClick={() => handleEditClick(participant)}
+                                                    className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
+                                                    title="Editar Información"
+                                                >
+                                                    <Edit2 size={18} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -294,6 +334,86 @@ export default function AdminUsersPage() {
                         setShowBulkImport(false);
                     }}
                 />
+            )}
+
+            {/* Edit Participant Modal */}
+            {editingParticipant && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between p-6 border-b border-[#334155]">
+                            <h2 className="text-xl font-bold text-white">Editar Participante</h2>
+                            <button
+                                onClick={() => setEditingParticipant(null)}
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveParticipant} className="p-6 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    value={editForm.fullName}
+                                    onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
+                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase">Correo Electrónico</label>
+                                <input
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase">Departamento / Área</label>
+                                <input
+                                    type="text"
+                                    value={editForm.department}
+                                    onChange={e => setEditForm({ ...editForm, department: e.target.value })}
+                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    placeholder="Ej. Ventas"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase">Teléfono / WhatsApp</label>
+                                <input
+                                    type="text"
+                                    value={editForm.phoneNumber}
+                                    onChange={e => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    placeholder="+57..."
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingParticipant(null)}
+                                    className="flex-1 py-3 bg-[#334155] text-white font-bold rounded-xl hover:bg-[#475569] transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-bold rounded-xl hover:bg-[#00C853] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </div>
     );

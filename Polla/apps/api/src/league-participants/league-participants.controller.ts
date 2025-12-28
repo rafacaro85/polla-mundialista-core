@@ -12,7 +12,7 @@ export class LeagueParticipantsController {
     async updateParticipant(
         @Param('leagueId') leagueId: string,
         @Param('userId') userId: string,
-        @Body() body: { department?: string },
+        @Body() body: { department?: string; fullName?: string; email?: string; phoneNumber?: string },
         @Req() req: any,
     ) {
         const userPayload = req.user as { id: string; role: string };

@@ -166,18 +166,27 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => {
                             const appUrl = window.location.origin;
-                            const code = league?.accessCodePrefix || '';
-                            const leagueName = league?.companyName || league?.name || 'Polla';
+                            const code = league?.accessCodePrefix; // Don't fallback to empty string immediately to allow checks
+
+                            if (!code) {
+                                console.error('Falta el código de acceso en la liga:', league);
+                                alert('Error: No se encontró el código de invitación para esta liga. Por favor recarga la página.');
+                                return;
+                            }
+
+                            const leagueName = league?.companyName || league?.name || 'Polla Mundialista';
                             const inviteUrl = `${appUrl}/invite/${code}`;
 
+                            // Formato mejorado para WhatsApp
                             const message = `¡Hola! Te invito a la Polla Mundialista de *${leagueName}*. 🏆\n\n` +
-                                `Únete fácil dando clic verificándolo aquí:\n👉 ${inviteUrl}\n\n` +
-                                `O usa el código: *${code}*`;
+                                `Únete fácilmente dando clic aquí:\n👉 ${inviteUrl}\n\n` +
+                                `O usa el código de acceso: *${code}*`;
 
                             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                             window.open(whatsappUrl, '_blank');
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/30"
+                        disabled={loading}
+                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Share2 size={20} />
                         Invitar por WhatsApp

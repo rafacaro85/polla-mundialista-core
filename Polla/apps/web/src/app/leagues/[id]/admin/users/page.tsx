@@ -99,6 +99,33 @@ export default function AdminUsersPage() {
         }
     };
 
+
+
+    const handleToggleBlock = async (participant: any) => {
+        const action = participant.isBlocked ? 'desbloquear' : 'bloquear';
+        if (!confirm(`¿Estás seguro de que deseas ${action} a ${participant.user?.fullName || 'este usuario'}?`)) return;
+
+        try {
+            await api.patch(`/leagues/${params.id}/participants/${participant.user.id}/toggle-block`);
+            await fetchData();
+        } catch (error) {
+            console.error('Error toggling block:', error);
+            alert('Error al cambiar estado del usuario.');
+        }
+    };
+
+    const handleDelete = async (participant: any) => {
+        if (!confirm(`¿ELIMINAR a ${participant.user?.fullName || 'este usuario'} de la liga?\n\nEsta acción borrará sus predicciones y puntaje. No se puede deshacer.`)) return;
+
+        try {
+            await api.delete(`/leagues/${params.id}/participants/${participant.user.id}`);
+            await fetchData();
+        } catch (error) {
+            console.error('Error deleting participant:', error);
+            alert('Error al eliminar usuario.');
+        }
+    };
+
     const filteredParticipants = participants.filter(p =>
         p.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -311,13 +338,34 @@ export default function AdminUsersPage() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <button
-                                                    onClick={() => handleEditClick(participant)}
-                                                    className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
-                                                    title="Editar Información"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    {/* Editar */}
+                                                    <button
+                                                        onClick={() => handleEditClick(participant)}
+                                                        className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
+                                                        title="Editar Información"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </button>
+
+                                                    {/* Bloquear / Desbloquear */}
+                                                    <button
+                                                        onClick={() => handleToggleBlock(participant)}
+                                                        className={`p-2 rounded-lg transition-colors ${participant.isBlocked || participant.status === 'BLOCKED' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20'}`}
+                                                        title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear Usuario" : "Bloquear Usuario"}
+                                                    >
+                                                        {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={18} /> : <Ban size={18} />}
+                                                    </button>
+
+                                                    {/* Eliminar */}
+                                                    <button
+                                                        onClick={() => handleDelete(participant)}
+                                                        className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                                        title="Expulsar de la Liga"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

@@ -61,7 +61,15 @@ export class LeaguesService {
       }
 
       // Generar código automático si no se proporciona
-      const code = accessCodePrefix || this.generateCode();
+      let code = accessCodePrefix;
+
+      if (!code) {
+        if ((isEnterprise || type === LeagueType.COMPANY) && companyName) {
+          code = this.generateEnterpriseCode(companyName);
+        } else {
+          code = this.generateCode();
+        }
+      }
 
       const league = this.leaguesRepository.create({
         name,
@@ -113,6 +121,25 @@ export class LeaguesService {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+  }
+
+  private generateEnterpriseCode(companyName: string): string {
+    // 1. Limpiar nombre: Mayúsculas y solo letras/números
+    const cleanName = companyName
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, ''); // Eliminar espacios y símbolos
+
+    // 2. Tomar prefijo (Max 6-8 chars)
+    const prefix = cleanName.length > 8 ? cleanName.substring(0, 8) : cleanName;
+
+    // 3. Generar sufijo aleatorio (3 chars/nums para evitar colisiones simples)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let suffix = '';
+    for (let i = 0; i < 4; i++) {
+      suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return `${prefix}-${suffix}`;
   }
 
   async getMetadata(leagueId: string): Promise<{ league: League; availableSlots: number }> {

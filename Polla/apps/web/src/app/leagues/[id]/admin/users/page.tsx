@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => {
                             const appUrl = window.location.origin;
-                            const code = league?.accessCodePrefix; // Don't fallback to empty string immediately to allow checks
+                            const code = league?.accessCodePrefix || league?.code;
 
                             if (!code) {
                                 console.error('Falta el código de acceso en la liga:', league);

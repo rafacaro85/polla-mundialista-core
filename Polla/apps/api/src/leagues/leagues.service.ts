@@ -392,7 +392,9 @@ export class LeaguesService {
         fullName: p.user.fullName,
         email: p.user.email,
         avatarUrl: p.user.avatarUrl,
-      }
+        phoneNumber: p.user.phoneNumber,
+      },
+      status: p.isBlocked ? 'BLOCKED' : 'ACTIVE'
     }));
   }
 

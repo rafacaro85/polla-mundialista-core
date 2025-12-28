@@ -300,6 +300,10 @@ export default function AdminUsersPage() {
                                                     <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-bold">
                                                         Activo
                                                     </span>
+                                                ) : participant.status === 'BLOCKED' ? (
+                                                    <span className="px-3 py-1 bg-red-500/10 text-red-500 rounded-full text-xs font-bold">
+                                                        Bloqueado
+                                                    </span>
                                                 ) : (
                                                     <span className="px-3 py-1 bg-orange-500/10 text-orange-400 rounded-full text-xs font-bold">
                                                         Pendiente

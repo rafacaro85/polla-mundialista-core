@@ -580,6 +580,7 @@ export class LeaguesService {
     if (updateLeagueDto.brandColorText !== undefined) league.brandColorText = updateLeagueDto.brandColorText;
     if (updateLeagueDto.brandFontFamily !== undefined) league.brandFontFamily = updateLeagueDto.brandFontFamily;
     if (updateLeagueDto.brandCoverUrl !== undefined) league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
+    if (updateLeagueDto.enableDepartmentWar !== undefined) league.enableDepartmentWar = updateLeagueDto.enableDepartmentWar;
 
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {

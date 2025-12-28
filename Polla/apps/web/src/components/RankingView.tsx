@@ -232,7 +232,7 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
     useEffect(() => {
         if (leagueId) {
             setSelectedLeagueId(leagueId);
-            setLeagues([{ id: leagueId, name: 'Ranking de la Polla', icon: <Users size={16} /> }]);
+            setLeagues([{ id: leagueId, name: 'General', icon: <Users size={16} /> }]);
             return;
         }
 

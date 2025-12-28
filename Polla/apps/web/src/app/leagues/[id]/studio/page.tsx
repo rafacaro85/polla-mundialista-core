@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     Loader2, Save, ArrowLeft, Smartphone, Monitor,
     Palette, Type, Image as ImageIcon, Upload, LayoutTemplate,
-    Building2, Trophy, Menu, Bell, Search, Award, Check
+    Building2, Trophy, Menu, Bell, Search, Award, Check,
+    Shield // Added Shield icon
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -153,7 +154,6 @@ export default function StudioPage() {
                 brandCoverUrl: config.brandCoverUrl,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
-                welcomeMessage: config.welcomeMessage,
                 isEnterprise: true,
                 enableDepartmentWar: config.enableDepartmentWar,
             });
@@ -197,8 +197,6 @@ export default function StudioPage() {
                 brandFontFamily: config.brandFontFamily,
                 brandingLogoUrl: config.brandingLogoUrl,
                 brandCoverUrl: config.brandCoverUrl,
-                companyName: config.companyName,
-                welcomeMessage: config.welcomeMessage,
                 companyName: config.companyName,
                 welcomeMessage: config.welcomeMessage,
                 isEnterprise: true,
@@ -487,44 +485,49 @@ export default function StudioPage() {
                             <InputGroup label="Mensaje Bienvenida (Descripción Premio)">
                                 <textarea rows={4} value={config.welcomeMessage} onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })} className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg p-3 text-white focus:border-[#00E676] outline-none transition-colors resize-none" />
                             </InputGroup>
-
-                            <div className="flex items-center justify-between p-4 bg-[#0F172A] border border-[#1E293B] rounded-xl">
-                                <div>
-                                    <h4 className="text-sm font-bold text-white">Guerra de Áreas</h4>
-                                    <p className="text-xs text-slate-400">Habilitar competencia por departamentos.</p>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!config.enableDepartmentWar}
-                                        onChange={(e) => setConfig({ ...config, enableDepartmentWar: e.target.checked })}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00E676]"></div>
-                                </label>
-                            </div>
                         </div>
                     )}
                 </div>
 
-                <div className="p-5 border-t border-[#1E293B] bg-[#0F172A] flex gap-3">
-                    {/* Botón Guardar */}
-                    <button
-                        onClick={handleSaveChanges}
-                        disabled={saving}
-                        className="flex-1 py-3 bg-[#1E293B] text-white border border-[#334155] font-black uppercase tracking-widest rounded-xl hover:bg-[#334155] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Guardar
-                    </button>
+                <div className="p-5 border-t border-[#1E293B] bg-[#0F172A] flex flex-col gap-4">
+                    {/* WAR TOGGLE */}
+                    <div className="flex items-center justify-between px-1 bg-[#1E293B]/50 p-2 rounded-lg border border-[#334155]/30">
+                        <div>
+                            <h4 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wide">
+                                <Shield size={14} className="text-[#00E676]" />
+                                Guerra de Áreas
+                            </h4>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={!!config.enableDepartmentWar}
+                                onChange={(e) => setConfig({ ...config, enableDepartmentWar: e.target.checked })}
+                                className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#00E676]"></div>
+                        </label>
+                    </div>
 
-                    {/* Botón Publicar */}
-                    <button
-                        onClick={handlePublish}
-                        disabled={saving}
-                        className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,230,118,0.3)]"
-                    >
-                        {saving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />} Publicar
-                    </button>
+                    <div className="flex gap-3">
+                        {/* Botón Guardar */}
+                        <button
+                            onClick={handleSaveChanges}
+                            disabled={saving}
+                            className="flex-1 py-3 bg-[#1E293B] text-white border border-[#334155] font-black uppercase tracking-widest rounded-xl hover:bg-[#334155] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        >
+                            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Guardar
+                        </button>
+
+                        {/* Botón Publicar */}
+                        <button
+                            onClick={handlePublish}
+                            disabled={saving}
+                            className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,230,118,0.3)] text-xs"
+                        >
+                            {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} Publicar
+                        </button>
+                    </div>
                 </div>
             </aside>
 

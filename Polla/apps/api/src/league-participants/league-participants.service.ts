@@ -208,4 +208,39 @@ export class LeagueParticipantsService {
       totalTriviaPoints: participant.triviaPoints,
     };
   }
+  async updateParticipant(
+    leagueId: string,
+    userId: string,
+    data: { department?: string },
+    requesterId: string,
+    requesterRole: string,
+  ) {
+    // 1. Verificar Liga
+    const league = await this.leagueRepository.findOne({
+      where: { id: leagueId },
+      relations: ['creator'],
+    });
+
+    if (!league) throw new NotFoundException('Liga no encontrada');
+
+    // 2. Permisos
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+      throw new BadRequestException('No tienes permisos para editar participantes');
+    }
+
+    // 3. Buscar participante
+    const participant = await this.leagueParticipantRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } },
+    });
+
+    if (!participant) throw new NotFoundException('Participante no encontrado');
+
+    // 4. Actualizar
+    if (data.department !== undefined) {
+      participant.department = data.department;
+    }
+
+    return this.leagueParticipantRepository.save(participant);
+  }
 }

@@ -184,13 +184,16 @@ export default function AdminDashboardPage() {
         return null;
     }
 
-    const modules = [
+    const isEnterprise = league.isEnterprise || league.type === 'COMPANY';
+
+    const allModules = [
         {
             icon: <Palette size={24} />,
             title: 'Diseño & Marca',
             description: 'Personaliza colores, logos y textos de la interfaz corporativa',
             href: `/leagues/${params.id}/studio`,
             variant: 'primary' as const,
+            hidden: !isEnterprise,
         },
         {
             icon: <Users size={24} />,
@@ -211,6 +214,7 @@ export default function AdminDashboardPage() {
             description: 'Visualiza estadísticas de participación y engagement',
             href: `/leagues/${params.id}/admin/analytics`,
             disabled: !league.isEnterpriseActive,
+            hidden: !isEnterprise,
         },
         {
             icon: <FileBarChart2 size={24} />,
@@ -229,6 +233,8 @@ export default function AdminDashboardPage() {
             href: `/leagues/${params.id}/admin/settings`,
         },
     ];
+
+    const modules = allModules.filter(m => !m.hidden);
 
     return (
         <div className="min-h-screen bg-brand-bg text-brand-text">

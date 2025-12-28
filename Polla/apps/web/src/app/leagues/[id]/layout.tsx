@@ -19,8 +19,12 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
     // 1. Fetch League Data (Client Side because we need auth token from cookie implicit in browser or api interceptor)
     useEffect(() => {
-        const fetchLeague = async () => {
+        const init = async () => {
             if (!params.id) return;
+
+            // Ensure user data is fresh (crucial for permissions)
+            await useAppStore.getState().syncUserFromServer();
+
             try {
                 // Try fetching specific league details. 
                 // Since we don't have a direct /leagues/:id public endpoint documented yet that returns EVERYTHING,
@@ -55,7 +59,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             }
         };
 
-        fetchLeague();
+        init();
     }, [params.id]);
 
 

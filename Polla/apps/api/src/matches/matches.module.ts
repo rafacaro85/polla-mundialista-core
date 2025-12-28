@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MatchesController } from './matches.controller';
 import { MatchesService } from './matches.service';
@@ -19,12 +20,16 @@ import { MatchSyncService } from './match-sync.service';
         TournamentModule,
         KnockoutPhasesModule,
         ScoringModule,
-        HttpModule.register({
-            baseURL: 'https://v3.football.api-sports.io',
-            headers: {
-                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-                'x-rapidapi-host': process.env.RAPIDAPI_HOST,
-            },
+        HttpModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                baseURL: 'https://v3.football.api-sports.io',
+                headers: {
+                    'x-rapidapi-key': configService.get<string>('RAPIDAPI_KEY'),
+                    'x-rapidapi-host': configService.get<string>('RAPIDAPI_HOST'),
+                },
+            }),
+            inject: [ConfigService],
         }),
         ScheduleModule.forRoot(),
     ],

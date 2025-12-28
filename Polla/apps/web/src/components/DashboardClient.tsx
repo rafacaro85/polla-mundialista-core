@@ -75,6 +75,7 @@ const getFlag = (teamName: string) => {
 };
 
 import { LeagueHomeView } from './LeagueHomeView';
+import { GlobalHomeView } from './GlobalHomeView';
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
@@ -448,7 +449,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
       >
-        <Header userName={user?.nickname || 'Invitado'} />
+        <Header
+          userName={user?.nickname || 'Invitado'}
+          leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}
+        />
 
         {pendingInvite && (
           <div className="bg-indigo-600 text-white p-4 mx-4 mt-4 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 z-50 relative">
@@ -507,14 +511,19 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           {activeTab === 'home' && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-300">
               {selectedLeagueId === 'global' ? (
-                <LeaguesView />
+                <GlobalHomeView
+                  userName={user?.nickname || user?.fullName?.split(' ')[0]}
+                  onNavigateToLeagues={() => setActiveTab('leagues')}
+                />
               ) : (
                 <LeagueHomeView league={currentLeague} participants={participants} />
               )}
             </div>
           )}
 
-          {/* Tab 'leagues' eliminado, integrado en home */}
+          {activeTab === 'leagues' && (
+            <LeaguesView />
+          )}
 
           {activeTab === 'ranking' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">

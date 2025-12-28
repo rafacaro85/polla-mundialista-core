@@ -7,9 +7,14 @@ export const PrizeHero = ({ league }: { league: any }) => {
     // O mostramos un estado "Por Definir" si es Enterprise activo pero no configurado.
     if (!league) return null;
 
-    // Si no es Enterprise, quizás no queramos Hero Section?
-    // El requerimiento es "Para Enterprise".
-    if (league.type !== 'COMPANY' && !league.isEnterprise) return null;
+    if (!league) return null;
+
+    // Si tiene imagen o detalles, lo mostramos, independientemente del tipo.
+    // Si es Enterprise, se mantiene el soporte. Si es Normal y tiene premio configurado, también.
+    const hasPrizeBytes = league.prizeImageUrl || league.prizeDetails;
+    const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
+
+    if (!hasPrizeBytes && !isEnterprise) return null;
 
     return (
         <div className="w-full relative aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl mb-8 group bg-[var(--brand-secondary)] border border-white/10">

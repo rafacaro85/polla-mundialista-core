@@ -7,9 +7,10 @@ import { useAppStore } from '@/store/useAppStore';
 
 interface HeaderProps {
   userName: string;
+  leagueName?: string;
 }
 
-export function Header({ userName }: HeaderProps) {
+export function Header({ userName, leagueName }: HeaderProps) {
   const { user, selectedLeagueId } = useAppStore();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
@@ -26,7 +27,11 @@ export function Header({ userName }: HeaderProps) {
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Volver</span>
-                <span className="text-sm font-bold text-white leading-none">Global</span>
+                {leagueName ? (
+                  <span className="text-lg font-russ text-white leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] md:max-w-xs">{leagueName}</span>
+                ) : (
+                  <span className="text-sm font-bold text-white leading-none">Global</span>
+                )}
               </div>
             </Link>
           ) : (

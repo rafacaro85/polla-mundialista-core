@@ -35,7 +35,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                     <span className="text-[10px] font-black tracking-widest uppercase">Juego</span>
                 </button>
 
-                {/* 2. LIGAS (Eliminado - Integrado en Inicio) */}
+                {/* 2. LIGAS (MIS POLLAS) - CONDICIONAL (Solo Global) */}
+                {showLeaguesTab && (
+                    <button
+                        onClick={() => onTabChange('leagues')}
+                        className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'leagues' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}
+                    >
+                        {activeTab === 'leagues' && <div className="absolute -top-4 w-10 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
+                        <Users size={24} strokeWidth={activeTab === 'leagues' ? 2.5 : 2} />
+                        <span className="text-[10px] font-black tracking-widest uppercase">Pollas</span>
+                    </button>
+                )}
 
                 {/* 3. RANKING */}
                 <button

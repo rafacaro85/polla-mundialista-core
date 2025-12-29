@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { DashboardClient } from '@/components/DashboardClient';
 import api from '@/lib/api';
 import { Loader2 } from 'lucide-react';
-import { LeagueHomeView } from '@/components/LeagueHomeView';
+import { EnterpriseLeagueHome } from '@/modules/enterprise-league/components/EnterpriseLeagueHome';
 import { useAppStore } from '@/store/useAppStore';
 
 interface PageProps {
@@ -86,7 +86,7 @@ export default function LeagueDashboardPage({ params }: PageProps) {
         // El Layout externo (apps/web/src/app/leagues/[id]/layout.tsx) ya provee el Sidebar y Header.
         return (
             <div className="p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <LeagueHomeView league={league} participants={participants} />
+                <EnterpriseLeagueHome league={league} participants={participants} />
             </div>
         );
     }

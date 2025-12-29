@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
 import { LeagueNavigation } from '@/components/LeagueNavigation';
+import { EnterpriseNavigation } from '@/modules/enterprise-league/components/EnterpriseNavigation';
 import { LeagueHeader } from '@/components/leagues/LeagueHeader';
 import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2 } from 'lucide-react';
@@ -106,10 +107,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
                 {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO AND DASHBOARD ROOT */}
-                {showLayoutUI && (
-                    <LeagueNavigation
+                {showLayoutUI && isEnterprise && (
+                    <EnterpriseNavigation
                         leagueId={league.id}
-                        isAdmin={league.isAdmin || false}
                         isEnterpriseActive={league.isEnterpriseActive || false}
                     />
                 )}

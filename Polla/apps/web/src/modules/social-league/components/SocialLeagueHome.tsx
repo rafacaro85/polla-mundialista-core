@@ -2,32 +2,28 @@ import React from 'react';
 import { Shield, Trophy, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { PrizeHero } from '@/components/PrizeHero';
+import { PrizeHero } from '@/components/PrizeHero'; // Shared UI can remain in components for now
 
-interface LeagueHomeViewProps {
+interface SocialLeagueHomeProps {
     league: any;
     participants: any[];
 }
 
-export const LeagueHomeView: React.FC<LeagueHomeViewProps> = ({ league, participants }) => {
+export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, participants }) => {
     if (!league) return null;
-
-    // Lógica de visualización simplificada (Estilo "Polla Normal")
-    // Aunque si es empresarial también podría usarse, el usuario pidió énfasis en las normales.
 
     return (
         <div className="flex flex-col gap-6 font-sans pb-24">
 
-            {/* 1. HERO HEADER */}
-            {/* Usamos un diseño limpio, sin branding excesivo de empresa, pero elegante */}
+            {/* 1. HERO HEADER (Social Style: Clean, Modern, Mobile First) */}
             <header className="relative w-full min-h-[14rem] bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/5 flex flex-col items-center justify-center p-6 gap-4 overflow-hidden rounded-b-3xl shadow-xl text-center">
                 {/* Background Decor */}
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--brand-primary,#00E676)] opacity-10 blur-[100px] rounded-full pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#00E676] opacity-10 blur-[100px] rounded-full pointer-events-none"></div>
 
                 {/* Icono de la Polla */}
                 <div className="relative z-10 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm shadow-inner">
-                    <Shield className="w-12 h-12 text-[var(--brand-primary,#00E676)]" strokeWidth={1.5} />
+                    <Shield className="w-12 h-12 text-[#00E676]" strokeWidth={1.5} />
                 </div>
 
                 {/* Info */}
@@ -36,19 +32,19 @@ export const LeagueHomeView: React.FC<LeagueHomeViewProps> = ({ league, particip
                         {league.name}
                     </h1>
                     <p className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-widest">
-                        Bienvenido a la Polla
+                        Polla de Amigos
                     </p>
                 </div>
             </header>
 
             <div className="px-4 flex flex-col gap-6">
 
-                {/* 2. MENSAJE / REGLAS (Si existen) */}
+                {/* 2. MENSAJE / REGLAS */}
                 {league.description && (
                     <div className="bg-[#1E293B] border border-white/5 rounded-xl p-5 shadow-lg relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-[var(--brand-primary,#00E676)]"></div>
+                        <div className="absolute top-0 left-0 w-1 h-full bg-[#00E676]"></div>
                         <h3 className="text-white font-bold uppercase text-sm mb-3 flex items-center gap-2">
-                            📢 Información & Reglas
+                            📢 Información
                         </h3>
                         <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
                             {league.description}
@@ -83,7 +79,7 @@ export const LeagueHomeView: React.FC<LeagueHomeViewProps> = ({ league, particip
                     </div>
                 </div>
 
-                {/* 4. PREMIO (PrizeHero) */}
+                {/* 4. PREMIO */}
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <PrizeHero league={league} />
                 </div>
@@ -112,18 +108,11 @@ export const LeagueHomeView: React.FC<LeagueHomeViewProps> = ({ league, particip
                                             <span className="font-bold text-white text-xs">{participant.nickname}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right font-russo text-[var(--brand-primary,#00E676)] text-xs">
+                                    <TableCell className="text-right font-russo text-[#00E676] text-xs">
                                         {participant.points !== undefined ? participant.points : participant.totalPoints || 0} PTS
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {participants.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center text-xs text-slate-500 py-4">
-                                        Aún no hay ranking disponible
-                                    </TableCell>
-                                </TableRow>
-                            )}
                         </TableBody>
                     </Table>
                 </div>

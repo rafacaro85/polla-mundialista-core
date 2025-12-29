@@ -5,24 +5,24 @@ import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import LeagueThemeProvider from './LeagueThemeProvider';
-import { PlusIcon, Shield, RefreshCw } from 'lucide-react';
+import { PlusIcon, Shield } from 'lucide-react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Header } from './ui/Header';
-import DateFilter from './DateFilter';
-import MatchCard from './MatchCard';
-import PrizeCard from './PrizeCard';
 import { GroupStageView } from './GroupStageView';
 import { BracketView } from './BracketView';
 import { BonusView } from './BonusView';
 import MatchInfoSheet from './MatchInfoSheet';
 import { BottomNav } from './BottomNav';
-import { PhaseProgressDashboard } from './PhaseProgressDashboard';
 
-import { LeaguesView } from './LeaguesView';
-import { RankingView } from './RankingView';
+import { LeaguesList } from '@/modules/core-dashboard/components/LeaguesList';
+import { GlobalHome } from '@/modules/core-dashboard/components/GlobalHome';
+import { GlobalRankingTable } from '@/modules/core-dashboard/components/GlobalRankingTable';
+import { SocialLeagueHome } from '@/modules/social-league/components/SocialLeagueHome';
+import { SocialRankingTable } from '@/modules/social-league/components/SocialRankingTable';
+import { SocialFixture } from '@/modules/social-league/components/SocialFixture';
+import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { toast } from 'sonner';
-import { AiSuggestionsButton } from './AiSuggestionsButton';
 
 interface Match {
   id: string;
@@ -74,8 +74,7 @@ const getFlag = (teamName: string) => {
   return flags[teamName] || 'https://flagcdn.com/h80/un.png';
 };
 
-import { LeagueHomeView } from './LeagueHomeView';
-import { GlobalHomeView } from './GlobalHomeView';
+// Modular views imported above
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
@@ -84,10 +83,8 @@ interface DashboardClientProps {
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { user, selectedLeagueId, setSelectedLeagueId, syncUserFromServer } = useAppStore();
+  const { predictions } = useMyPredictions();
 
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [dates, setDates] = useState<string[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
   const [infoMatch, setInfoMatch] = useState<Match | null>(null);
@@ -162,62 +159,40 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     revalidateIfStale: false, // Optimización solicitada
   });
 
-  const { data: predictionsData } = useSWR('/predictions/me', fetcher, {
-    revalidateOnFocus: true,
-  });
+  // Calculate Merged Matches for Bracket/Home
+  const matches = useMemo(() => {
+    if (!matchesData) return [];
+    return matchesData.map((m: any) => {
+      const date = new Date(m.date);
+      const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const dateStr = `${month} ${day}`;
+      const displayDate = dateStr;
 
-  // Effect to process data when SWR updates
-  useEffect(() => {
-    if (matchesData && predictionsData) {
-      setLoadingMatches(false); // Legacy loading clean up
+      const pred = predictions[m.id];
 
-      const processedMatches = matchesData.map((m: any) => {
-        const date = new Date(m.date);
-
-        const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-          'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-        const month = monthNames[date.getMonth()];
-        const day = date.getDate();
-        const dateStr = `${month} ${day}`;
-        const displayDate = dateStr;
-
-        const userPrediction = predictionsData.find((p: any) => p.match.id === m.id);
-
-        return {
-          ...m,
-          dateStr,
-          displayDate,
-          homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
-          awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
-          status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
-          scoreH: m.homeScore,
-          scoreA: m.awayScore,
-          prediction: userPrediction ? {
-            homeScore: userPrediction.homeScore,
-            awayScore: userPrediction.awayScore,
-            points: userPrediction.points || 0
-          } : undefined,
-          userH: userPrediction?.homeScore?.toString() || '',
-          userA: userPrediction?.awayScore?.toString() || '',
-          points: userPrediction?.points || 0
-        };
-      });
-
-      setMatches(processedMatches);
-      // Update dates only if empty to avoid jumping selection
-      setDates(prev => {
-        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
-        return uniqueDates.length !== prev.length ? uniqueDates : prev;
-      });
-
-      // Initial date selection
-      setSelectedDate(prev => {
-        const uniqueDates = Array.from(new Set(processedMatches.map((m: any) => m.displayDate))) as string[];
-        if (!prev && uniqueDates.length > 0) return uniqueDates[0];
-        return prev;
-      });
-    }
-  }, [matchesData, predictionsData]);
+      return {
+        ...m,
+        dateStr,
+        displayDate,
+        homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
+        awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
+        status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
+        scoreH: m.homeScore,
+        scoreA: m.awayScore,
+        prediction: pred ? {
+          homeScore: pred.homeScore,
+          awayScore: pred.awayScore,
+          points: pred.points || 0
+        } : undefined,
+        userH: pred?.homeScore?.toString() || '',
+        userA: pred?.awayScore?.toString() || '',
+        points: pred?.points || 0
+      };
+    });
+  }, [matchesData, predictions]);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -515,82 +490,37 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           {activeTab === 'home' && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-300">
               {selectedLeagueId === 'global' ? (
-                <GlobalHomeView
+                <GlobalHome
                   userName={user?.nickname || user?.fullName?.split(' ')[0]}
                   onNavigateToLeagues={() => setActiveTab('leagues')}
                 />
               ) : (
-                <LeagueHomeView league={currentLeague} participants={participants} />
+                <SocialLeagueHome league={currentLeague} participants={participants} />
               )}
             </div>
           )}
 
           {activeTab === 'leagues' && (
-            <LeaguesView />
+            <LeaguesList />
           )}
 
           {activeTab === 'ranking' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <RankingView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
+              {selectedLeagueId === 'global' ? (
+                <GlobalRankingTable />
+              ) : (
+                <SocialRankingTable leagueId={selectedLeagueId} />
+              )}
             </div>
           )}
 
           {activeTab === 'game' && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-
-              {/* Phase Progress */}
-              <div className="mb-6">
-                <PhaseProgressDashboard />
-                <div className="mt-4 flex justify-center">
-                  <AiSuggestionsButton
-                    matches={matches}
-                    onPredictionsGenerated={handleAiPredictions}
-                    onClear={handleClearPredictions}
-                    onSave={handleSaveAiPredictions}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <div className="flex-1 overflow-x-auto">
-                  <DateFilter
-                    dates={dates}
-                    selectedDate={selectedDate}
-                    onSelect={setSelectedDate}
-                  />
-                </div>
-                <Button
-                  onClick={handleManualRefresh}
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
-                  title="Actualizar Marcadores"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--brand-primary,#00E676)]' : ''}`} />
-                </Button>
-              </div>
-
-              <div className="flex flex-col gap-4 pb-4">
-                {loadingMatches ? (
-                  <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
-                ) : matches.filter(m => m.displayDate === selectedDate).length === 0 ? (
-                  <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
-                ) : (
-                  matches
-                    .filter(m => m.displayDate === selectedDate)
-                    .map((match) => (
-                      <MatchCard
-                        key={match.id}
-                        match={match}
-                        showInputs={true}
-                        onSavePrediction={handlePredictionChange}
-                        onInfoClick={() => setInfoMatch(match)}
-                        isGlobal={selectedLeagueId === 'global'}
-                      />
-                    ))
-                )}
-              </div>
-            </div >
+            <SocialFixture
+              matchesData={matchesData}
+              loading={isLoadingMatchesSWR}
+              onRefresh={handleManualRefresh}
+              isRefreshing={isRefreshing}
+            />
           )}
 
           {

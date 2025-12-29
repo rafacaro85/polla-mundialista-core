@@ -89,7 +89,8 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
     // Check if we are on the main dashboard page
     const isDashboardRoot = usePathname() === `/leagues/${params.id}`;
-    const showLayoutUI = !usePathname()?.includes('/studio') && !isDashboardRoot;
+    // FIXED: If Enterprise, ALWAYS show layout (as before). Only hide for Normal leagues in DashboardRoot.
+    const showLayoutUI = !usePathname()?.includes('/studio') && (isEnterprise || !isDashboardRoot);
 
     return (
         <BrandThemeProvider

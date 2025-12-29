@@ -327,7 +327,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                   onNavigateToLeagues={() => setActiveTab('leagues')}
                 />
               ) : (
-                <SocialLeagueHome league={currentLeague} participants={participants} />
+                <SocialLeagueHome
+                  league={currentLeague}
+                  participants={participants}
+                  onTabChange={setActiveTab}
+                />
               )}
             </div>
           )}

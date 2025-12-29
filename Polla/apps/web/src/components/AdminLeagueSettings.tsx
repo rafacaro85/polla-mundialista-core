@@ -243,13 +243,13 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
         <nav className="flex-1 py-6 space-y-1">
             {currentLeague?.isAdmin && (
                 <>
-                    <NavItem value="branding" icon={Palette} label="Personalización" />
-                    <NavItem value="plan" icon={Gem} label="Mi Plan" />
-                    <NavItem value="analytics" icon={BarChart3} label="Analítica" />
+                    <NavItem value="branding" icon={Edit} label="EDITAR" />
+                    <NavItem value="plan" icon={Gem} label="PLAN" />
+                    <NavItem value="analytics" icon={BarChart3} label="DATA" />
                 </>
             )}
-            <NavItem value="bonus" icon={Trophy} label="Bonus" />
-            <NavItem value="usuarios" icon={Users} label="Participantes" />
+            <NavItem value="bonus" icon={Trophy} label="BONUS" />
+            <NavItem value="usuarios" icon={Users} label="USUARIOS" />
         </nav>
     );
 
@@ -259,7 +259,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
             <button
                 onClick={() => setActiveTab(value)}
                 className={cn(
-                    "flex flex-col items-center justify-center min-w-[80px] h-full px-2 text-[10px] font-bold transition-all border-b-2 shrink-0",
+                    "flex flex-col items-center justify-center min-w-[80px] h-full px-2 text-[10px] font-bold transition-all border-b-2 shrink-0 italic tracking-tighter",
                     isActive
                         ? "text-emerald-400 border-emerald-500 bg-slate-800/50"
                         : "text-slate-400 hover:text-white border-transparent"
@@ -382,30 +382,56 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             </div>
                                         </div>
 
-                                        {!currentLeague.isEnterpriseActive ? (
-                                            <EnterpriseLock featureName="Personalización de Marca" />
-                                        ) : (
-                                            <div style={STYLES.card}>
-                                                <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización Enterprise</h3>
-                                                <LeagueBrandingForm
-                                                    leagueId={currentLeague.id}
-                                                    initialData={{
-                                                        brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                                        prizeImageUrl: currentLeague.prizeImageUrl,
-                                                        prizeDetails: currentLeague.prizeDetails,
-                                                        welcomeMessage: currentLeague.welcomeMessage,
-                                                        isEnterprise: currentLeague.isEnterprise,
-                                                        companyName: currentLeague.companyName,
-                                                        brandColorPrimary: currentLeague.brandColorPrimary,
-                                                        brandColorSecondary: currentLeague.brandColorSecondary
-                                                    }}
-                                                    onSuccess={() => {
-                                                        toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                                        loadLeagueData();
-                                                    }}
-                                                />
+                                        <div style={STYLES.card}>
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización de Polla</h3>
+                                            <LeagueBrandingForm
+                                                leagueId={currentLeague.id}
+                                                showEnterpriseFields={!!currentLeague.isEnterpriseActive}
+                                                initialData={{
+                                                    brandingLogoUrl: currentLeague.brandingLogoUrl,
+                                                    prizeImageUrl: currentLeague.prizeImageUrl,
+                                                    prizeDetails: currentLeague.prizeDetails,
+                                                    welcomeMessage: currentLeague.welcomeMessage,
+                                                    isEnterprise: currentLeague.isEnterprise,
+                                                    companyName: currentLeague.companyName,
+                                                    brandColorPrimary: currentLeague.brandColorPrimary,
+                                                    brandColorSecondary: currentLeague.brandColorSecondary
+                                                }}
+                                                onSuccess={() => {
+                                                    toast({ title: 'Guardado', description: 'Personalización actualizada.' });
+                                                    loadLeagueData();
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* ZONA DE PELIGRO (Movida a EDITAR) */}
+                                        <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
+                                            <h3 className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-4">
+                                                <AlertTriangle className="w-4 h-4" /> Zona de Peligro
+                                            </h3>
+
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[10px] text-red-300 font-bold uppercase mb-2 block">Transferir Propiedad</label>
+                                                    <select
+                                                        className="w-full bg-slate-900 border border-red-900/50 rounded-lg px-3 py-2 text-xs text-white"
+                                                        onChange={(e) => {
+                                                            if (e.target.value) handleTransferOwner(e.target.value);
+                                                        }}
+                                                        value=""
+                                                    >
+                                                        <option value="" disabled>Seleccionar nuevo admin...</option>
+                                                        {participants.filter(p => p.user.id !== user?.id).map(p => (
+                                                            <option key={p.user.id} value={p.user.id}>{p.user.nickname}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <Button variant="destructive" className="w-full mt-2" onClick={handleDeleteLeague} disabled={loading}>
+                                                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar Polla Definitivamente
+                                                </Button>
                                             </div>
-                                        )}
+                                        </div>
                                     </TabsContent>
 
                                     {/* --- PESTAÑA PLAN --- */}
@@ -481,34 +507,6 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             </div>
                                         )}
 
-                                        {/* ZONA DE PELIGRO (Movida desde Configuración) */}
-                                        <div className="border border-red-900/50 bg-red-900/10 rounded-xl p-5 mt-8">
-                                            <h3 className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-4">
-                                                <AlertTriangle className="w-4 h-4" /> Zona de Peligro
-                                            </h3>
-
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label className="text-[10px] text-red-300 font-bold uppercase mb-2 block">Transferir Propiedad</label>
-                                                    <select
-                                                        className="w-full bg-slate-900 border border-red-900/50 rounded-lg px-3 py-2 text-xs text-white"
-                                                        onChange={(e) => {
-                                                            if (e.target.value) handleTransferOwner(e.target.value);
-                                                        }}
-                                                        value=""
-                                                    >
-                                                        <option value="" disabled>Seleccionar nuevo admin...</option>
-                                                        {participants.filter(p => p.user.id !== user?.id).map(p => (
-                                                            <option key={p.user.id} value={p.user.id}>{p.user.nickname}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                <Button variant="destructive" className="w-full mt-2" onClick={handleDeleteLeague} disabled={loading}>
-                                                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar Polla Definitivamente
-                                                </Button>
-                                            </div>
-                                        </div>
                                     </TabsContent>
 
                                     {/* --- PESTAÑA BONUS --- */}

@@ -6,6 +6,7 @@ import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
     leagueId: string;
+    showEnterpriseFields?: boolean;
     initialData: {
         brandingLogoUrl?: string;
         prizeImageUrl?: string;
@@ -103,13 +104,13 @@ const STYLES = {
     }
 };
 
-export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }: LeagueBrandingFormProps) {
+export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = true }: LeagueBrandingFormProps) {
     const [formData, setFormData] = useState({
         brandingLogoUrl: initialData.brandingLogoUrl || '',
         prizeImageUrl: initialData.prizeImageUrl || '',
         prizeDetails: initialData.prizeDetails || '',
         welcomeMessage: initialData.welcomeMessage || '',
-        isEnterprise: true,
+        isEnterprise: initialData.isEnterprise || false,
         companyName: initialData.companyName || '',
         brandColorPrimary: initialData.brandColorPrimary || '#00E676',
         brandColorSecondary: initialData.brandColorSecondary || '#1E293B'
@@ -226,51 +227,53 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess }:
             </div>
 
             {/* SECCIÓN ENTERPRISE */}
-            <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '20px' }}>
-                <div style={STYLES.title}>
-                    <Briefcase size={20} /> Branding Corporativo
-                </div>
-
-                <div style={{ paddingLeft: '10px', marginLeft: '9px' }}>
-                    <div style={STYLES.fieldGroup}>
-                        <label style={STYLES.label}>Nombre de la Empresa</label>
-                        <input
-                            type="text"
-                            value={formData.companyName || ''}
-                            onChange={(e) => handleChange('companyName', e.target.value)}
-                            style={STYLES.input}
-                            placeholder="Ej. TechCorp Solutions"
-                        />
+            {showEnterpriseFields && (
+                <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '20px' }}>
+                    <div style={STYLES.title}>
+                        <Briefcase size={20} /> Branding Corporativo
                     </div>
 
-                    <div style={{ display: 'flex', gap: '20px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={STYLES.label}>Color Primario (Botones/Acentos)</label>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <input
-                                    type="color"
-                                    value={formData.brandColorPrimary || '#00E676'}
-                                    onChange={(e) => handleChange('brandColorPrimary', e.target.value)}
-                                    style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
-                                />
-                                <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorPrimary}</span>
-                            </div>
+                    <div style={{ paddingLeft: '10px', marginLeft: '9px' }}>
+                        <div style={STYLES.fieldGroup}>
+                            <label style={STYLES.label}>Nombre de la Empresa</label>
+                            <input
+                                type="text"
+                                value={formData.companyName || ''}
+                                onChange={(e) => handleChange('companyName', e.target.value)}
+                                style={STYLES.input}
+                                placeholder="Ej. TechCorp Solutions"
+                            />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={STYLES.label}>Color Secundario (Fondo Página)</label>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <input
-                                    type="color"
-                                    value={formData.brandColorSecondary || '#1E293B'}
-                                    onChange={(e) => handleChange('brandColorSecondary', e.target.value)}
-                                    style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
-                                />
-                                <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorSecondary}</span>
+
+                        <div style={{ display: 'flex', gap: '20px' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={STYLES.label}>Color Primario (Botones/Acentos)</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type="color"
+                                        value={formData.brandColorPrimary || '#00E676'}
+                                        onChange={(e) => handleChange('brandColorPrimary', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                    />
+                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorPrimary}</span>
+                                </div>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={STYLES.label}>Color Secundario (Fondo Página)</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type="color"
+                                        value={formData.brandColorSecondary || '#1E293B'}
+                                        onChange={(e) => handleChange('brandColorSecondary', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                    />
+                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorSecondary}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <button
                 onClick={handleSubmit}

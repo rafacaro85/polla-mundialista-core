@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ userName, leagueName }: HeaderProps) {
-  const { user, selectedLeagueId } = useAppStore();
+  const { user, selectedLeagueId, setSelectedLeague } = useAppStore();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   return (
@@ -21,7 +21,11 @@ export function Header({ userName, leagueName }: HeaderProps) {
         {/* Left: Logo or Back Button */}
         <div className="flex items-center gap-3">
           {selectedLeagueId && selectedLeagueId !== 'global' ? (
-            <Link href="/dashboard" className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 transition-colors group">
+            <Link
+              href="/dashboard"
+              onClick={() => setSelectedLeague('global')}
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 transition-colors group"
+            >
               <div className="bg-slate-800 p-2 rounded-md group-hover:bg-slate-700 transition-colors border border-slate-700">
                 <ChevronLeft size={20} className="text-white" />
               </div>

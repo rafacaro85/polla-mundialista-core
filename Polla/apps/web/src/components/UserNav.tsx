@@ -270,12 +270,6 @@ export function UserNav() {
                 hasArrow
                 isSpecial
               />
-              <MenuItem
-                icon={LayoutGrid}
-                label="Volver al Dashboard"
-                onClick={() => router.push('/dashboard')}
-                hasArrow
-              />
             </>
           ) : (
             <MenuItem

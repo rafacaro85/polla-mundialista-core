@@ -104,6 +104,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   useEffect(() => {
     if (props.defaultLeagueId) {
       setSelectedLeague(props.defaultLeagueId);
+    } else {
+      setSelectedLeague('global');
     }
     if (props.initialTab) {
       setActiveTab(props.initialTab);

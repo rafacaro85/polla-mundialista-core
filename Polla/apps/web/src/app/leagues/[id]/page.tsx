@@ -5,27 +5,27 @@ import { useParams } from 'next/navigation';
 import { useLeague } from '@/shared/hooks/useLeague';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
 
-// 1. IMPORTACIÓN DINÁMICA (Lazy Loading)
-// Esto aísla los módulos y evita que rompan la página principal si tienen errores internos.
+// 1. IMPORTACIÓN DINÁMICA (Lazy Loading) con Named Exports
 const SocialLeagueView = dynamic(
-    () => import('@/modules/social-league/views/SocialLeagueView').then((mod) => mod.SocialLeagueView),
+    () => import('@/modules/social-league/views/SocialLeagueView')
+        .then((mod) => mod.SocialLeagueView),
     {
-        loading: () => <div className="p-10 text-center flex justify-center text-white gap-2"><LoadingSpinner /> Cargando entorno social...</div>,
-        ssr: false // Importante: Renderizar solo en cliente para evitar errores de hidratación
+        ssr: false,
+        loading: () => <div className="flex h-screen items-center justify-center bg-[#0F172A]"><LoadingSpinner /></div>
     }
 );
 
 const EnterpriseLeagueView = dynamic(
-    () => import('@/modules/enterprise-league/views/EnterpriseLeagueView').then((mod) => mod.EnterpriseLeagueView),
+    () => import('@/modules/enterprise-league/views/EnterpriseLeagueView')
+        .then((mod) => mod.EnterpriseLeagueView),
     {
-        loading: () => <div className="p-10 text-center flex justify-center text-white gap-2"><LoadingSpinner /> Cargando entorno empresarial...</div>,
-        ssr: false
+        ssr: false,
+        loading: () => <div className="flex h-screen items-center justify-center bg-[#0F172A]"><LoadingSpinner /></div>
     }
 );
 
 export default function LeagueDispatcherPage() {
     const params = useParams();
-    // Asegúrate de manejar el caso donde id sea array o undefined
     const leagueId = (Array.isArray(params?.id) ? params?.id[0] : params?.id) as string;
 
     const { league, isLoading, error } = useLeague(leagueId);
@@ -52,7 +52,7 @@ export default function LeagueDispatcherPage() {
     }
 
     // 3. EL DISPATCHER (Switch)
-    console.log('League Loaded:', league.type); // Debugging
+    console.log('League Loaded:', league.type);
 
     const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
 

@@ -104,7 +104,7 @@ const STYLES = {
     }
 };
 
-export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = true }: LeagueBrandingFormProps) {
+export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = false }: LeagueBrandingFormProps) {
     const [formData, setFormData] = useState({
         brandingLogoUrl: initialData.brandingLogoUrl || '',
         prizeImageUrl: initialData.prizeImageUrl || '',

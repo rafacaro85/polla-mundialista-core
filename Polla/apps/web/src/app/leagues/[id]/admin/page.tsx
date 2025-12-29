@@ -190,7 +190,7 @@ export default function AdminDashboardPage() {
         {
             icon: <Palette size={24} />,
             title: 'Diseño & Marca',
-            description: 'Personaliza colores, logos y textos de la interfaz corporativa',
+            description: 'Personaliza colores, logos y textos de la interfaz',
             href: `/leagues/${params.id}/studio`,
             variant: 'primary' as const,
             hidden: !isEnterprise,
@@ -198,14 +198,14 @@ export default function AdminDashboardPage() {
         {
             icon: <Users size={24} />,
             title: 'Participantes',
-            description: 'Gestiona usuarios, aprueba accesos e invita empleados',
+            description: 'Gestiona usuarios, aprueba accesos e invita amigos',
             href: `/leagues/${params.id}/admin/users`,
             stat: league.participantCount ? `${league.participantCount} activos` : undefined,
         },
         {
             icon: <Star size={24} />,
             title: 'Preguntas Bonus',
-            description: 'Crea preguntas personalizadas para tu empresa',
+            description: 'Crea preguntas personalizadas para los participantes',
             href: `/leagues/${params.id}/admin/bonus`,
         },
         {
@@ -310,7 +310,7 @@ export default function AdminDashboardPage() {
                                 ¿Necesitas ayuda?
                             </h3>
                             <p className="text-sm text-slate-400 mb-4">
-                                Si tienes dudas sobre cómo gestionar tu polla empresarial, contáctanos.
+                                Si tienes dudas sobre cómo gestionar tu polla, contáctanos.
                             </p>
                             <button className="text-sm font-bold text-brand-primary hover:underline">
                                 Contactar Soporte →

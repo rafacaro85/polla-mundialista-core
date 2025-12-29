@@ -137,11 +137,62 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         }
     };
 
+    const compressImage = (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new window.Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Redimensionar si es muy grande (max 1200px)
+                    const MAX_SIZE = 1200;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    // Comprimir a JPEG con calidad 0.7
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) resolve(blob);
+                            else reject(new Error('Canvas to Blob failed'));
+                        },
+                        'image/jpeg',
+                        0.7
+                    );
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    };
+
     const handleFileUpload = async (file: File, field: string) => {
         try {
             setLoading(true);
+
+            // Comprimir imagen antes de subir
+            const compressedBlob = await compressImage(file);
+
             const uploadData = new FormData();
-            uploadData.append('file', file);
+            uploadData.append('file', compressedBlob, 'image.jpg');
 
             const response = await api.post('/upload', uploadData, {
                 headers: {
@@ -152,7 +203,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             handleChange(field, response.data.url);
         } catch (error) {
             console.error('Error uploading file:', error);
-            alert('Error al subir la imagen');
+            alert('Error al subir la imagen. Verifica que el archivo no esté corrupto.');
         } finally {
             setLoading(false);
         }

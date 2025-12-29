@@ -45,6 +45,11 @@ interface League {
     prizeImageUrl?: string;
     prizeDetails?: string;
     welcomeMessage?: string;
+    isEnterprise?: boolean;
+    isEnterpriseActive?: boolean;
+    companyName?: string;
+    brandColorPrimary?: string;
+    brandColorSecondary?: string;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagueId: string, defaultTab?: string }) {
@@ -280,11 +285,16 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                                 {/* Branding Form */}
                                 <LeagueBrandingForm
                                     leagueId={currentLeague.id}
+                                    showEnterpriseFields={!!currentLeague.isEnterpriseActive}
                                     initialData={{
                                         brandingLogoUrl: currentLeague.brandingLogoUrl,
                                         prizeImageUrl: currentLeague.prizeImageUrl,
                                         prizeDetails: currentLeague.prizeDetails,
                                         welcomeMessage: currentLeague.welcomeMessage,
+                                        isEnterprise: currentLeague.isEnterprise,
+                                        companyName: currentLeague.companyName,
+                                        brandColorPrimary: currentLeague.brandColorPrimary,
+                                        brandColorSecondary: currentLeague.brandColorSecondary,
                                     }}
                                     onSuccess={() => {
                                         toast({ title: 'Guardado', description: 'Personalización actualizada.' });

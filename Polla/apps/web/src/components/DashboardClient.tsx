@@ -278,6 +278,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     fetchCurrentLeague();
   }, [selectedLeagueId]);
 
+  const isEnterpriseMode = currentLeague && (currentLeague.type === 'COMPANY' || currentLeague.isEnterprise);
+
   // Legacy Load Data Effect removed (replaced by SWR)
   // Mantener solo syncUserFromServer si es necesario para auth
   useEffect(() => {

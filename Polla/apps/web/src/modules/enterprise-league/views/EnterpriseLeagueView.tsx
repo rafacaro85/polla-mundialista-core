@@ -32,10 +32,14 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
     }, [leagueId]);
 
     if (!data) return (
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex h-screen items-center justify-center bg-[#0F172A]">
             <Loader2 className="animate-spin text-white" />
         </div>
     );
 
-    return <EnterpriseLeagueHome league={data.league} participants={data.participants} />;
+    return (
+        <div className="w-full min-h-screen bg-[#0F172A]">
+            <EnterpriseLeagueHome league={data.league} participants={data.participants} />
+        </div>
+    );
 };

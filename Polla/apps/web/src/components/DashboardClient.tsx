@@ -242,7 +242,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // Legacy Load Data Effect removed (replaced by SWR)
   // Mantener solo syncUserFromServer si es necesario para auth
   useEffect(() => {
-    syncUserFromServer();
+    // Wrap in void to prevent returning a Promise to useEffect (which React attempts to use as cleanup)
+    void syncUserFromServer();
   }, [syncUserFromServer]);
 
 

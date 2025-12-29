@@ -143,7 +143,6 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             reader.readAsDataURL(file);
             reader.onload = (event) => {
                 const img = new window.Image();
-                img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     let width = img.width;
@@ -166,7 +165,11 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx?.drawImage(img, 0, 0, width, height);
+                    if (!ctx) {
+                        reject(new Error('Could not get canvas context'));
+                        return;
+                    }
+                    ctx.drawImage(img, 0, 0, width, height);
 
                     // Comprimir a JPEG con calidad 0.7
                     canvas.toBlob(
@@ -178,9 +181,10 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                         0.7
                     );
                 };
-                img.onerror = (err) => reject(err);
+                img.onerror = (err) => reject(new Error('Failed to load image for compression'));
+                img.src = event.target?.result as string;
             };
-            reader.onerror = (err) => reject(err);
+            reader.onerror = (err) => reject(new Error('Failed to read file'));
         });
     };
 
@@ -188,22 +192,29 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         try {
             setLoading(true);
 
-            // Comprimir imagen antes de subir
-            const compressedBlob = await compressImage(file);
+            let fileToUpload: File | Blob = file;
+            let filename = file.name;
+
+            try {
+                // Intentar comprimir
+                const compressedBlob = await compressImage(file);
+                fileToUpload = compressedBlob;
+                // Forzar extensión .jpg para el blob comprimido
+                filename = file.name.split('.')[0] + '_comp.jpg';
+            } catch (compError) {
+                console.warn('Compresión fallida, subiendo original:', compError);
+                // Si falla la compresión, seguimos con el original (fallback)
+            }
 
             const uploadData = new FormData();
-            uploadData.append('file', compressedBlob, 'image.jpg');
+            uploadData.append('file', fileToUpload, filename);
 
-            const response = await api.post('/upload', uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
+            const response = await api.post('/upload', uploadData);
 
             handleChange(field, response.data.url);
         } catch (error) {
             console.error('Error uploading file:', error);
-            alert('Error al subir la imagen. Verifica que el archivo no esté corrupto.');
+            alert('No se pudo subir la imagen. Intenta con un archivo más pequeño o de otro formato.');
         } finally {
             setLoading(false);
         }

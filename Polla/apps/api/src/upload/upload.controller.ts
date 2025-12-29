@@ -1,29 +1,30 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Logger } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import * as fs from 'fs';
-
-const uploadDir = './uploads';
 
 @Controller('upload')
 export class UploadController {
+    private readonly logger = new Logger(UploadController.name);
+
     @Post()
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
             destination: (req, file, cb) => {
-                if (!fs.existsSync(uploadDir)) {
-                    fs.mkdirSync(uploadDir, { recursive: true });
+                const uploadPath = join(process.cwd(), 'uploads');
+                if (!fs.existsSync(uploadPath)) {
+                    fs.mkdirSync(uploadPath, { recursive: true });
                 }
-                cb(null, uploadDir);
+                cb(null, uploadPath);
             },
             filename: (req, file, cb) => {
                 const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-                return cb(null, `${randomName}${extname(file.originalname)}`);
+                return cb(null, `${randomName}${extname(file.originalname || '.jpg')}`);
             }
         }),
         limits: {
-            fileSize: 5 * 1024 * 1024, // 5MB limit
+            fileSize: 10 * 1024 * 1024, // Aumentar a 10MB por si acaso
         },
         fileFilter: (req, file, cb) => {
             if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
@@ -32,16 +33,16 @@ export class UploadController {
             cb(null, true);
         },
     }))
-    uploadFile(@UploadedFile() file: Express.Multer.File) {
+    uploadFile(@UploadedFile() file: any) {
         if (!file) {
             throw new BadRequestException('File is required');
         }
-        // Return the URL to access the file
-        // Use RAILWAY_PUBLIC_DOMAIN if available, otherwise API_URL or localhost
+
         const apiUrl = process.env.RAILWAY_PUBLIC_DOMAIN
             ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
             : (process.env.API_URL || 'http://localhost:3000');
 
+        this.logger.log(`File uploaded successfully: ${file.filename}`);
         return { url: `${apiUrl}/uploads/${file.filename}` };
     }
 }

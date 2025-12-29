@@ -97,7 +97,7 @@ import { APP_GUARD } from '@nestjs/core';
     DebugModule,
     KnockoutPhasesModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
   ],

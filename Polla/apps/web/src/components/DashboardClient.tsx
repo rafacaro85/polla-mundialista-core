@@ -638,7 +638,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           }
         </main >
 
-        {activeTab === 'leagues' && (
+        {!isEnterpriseMode && activeTab === 'leagues' && (
           <div className="fixed bottom-24 right-6 z-40">
             <Button className="rounded-full p-4 shadow-lg bg-[var(--brand-primary,#00E676)] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
               <Link href="/leagues/join">
@@ -648,11 +648,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           </div>
         )}
 
-        <BottomNav
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
-        />
+        {!isEnterpriseMode && (
+          <BottomNav
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
+          />
+        )}
 
         <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
       </div >

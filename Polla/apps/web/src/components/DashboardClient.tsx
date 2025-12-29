@@ -93,23 +93,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     props.initialTab || 'home'
   );
 
-  // ... (existing code) ...
 
-  {
-    activeTab === 'ranking' && (
-      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-        <RankingView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
-      </div>
-    )
-  }
-
-  // ... (existing code) ...
-
-  <BottomNav
-    activeTab={activeTab}
-    onTabChange={setActiveTab}
-    showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
-  />
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]); // Para el Home
 

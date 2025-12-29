@@ -82,23 +82,11 @@ export function LeagueHeader() {
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 {/* Logo de la Empresa */}
                 <div className="flex items-center gap-3">
-                    {brand.brandingLogoUrl ? (
-                        <img
-                            src={brand.brandingLogoUrl}
-                            alt={brand.companyName || 'Logo'}
-                            className="h-10 w-auto object-contain"
-                        />
-                    ) : (
-                        <div
-                            className="h-10 px-4 rounded-lg flex items-center justify-center font-bold text-sm"
-                            style={{
-                                backgroundColor: brand.brandColorPrimary,
-                                color: brand.brandColorBg
-                            }}
-                        >
-                            {brand.companyName || 'POLLA'}
-                        </div>
-                    )}
+                    <img
+                        src={brand.brandingLogoUrl || "https://upload.wikimedia.org/wikipedia/en/4/42/2026_FIFA_World_Cup_logo.svg"}
+                        alt={brand.companyName || 'FIFA World Cup 2026'}
+                        className="h-12 w-auto object-contain p-1 bg-white rounded-md"
+                    />
                 </div>
 
                 {/* Avatar & Menu Usuario */}

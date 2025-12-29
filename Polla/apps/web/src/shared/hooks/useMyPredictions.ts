@@ -75,6 +75,7 @@ export const useMyPredictions = () => {
         predictions: predictionsMap,
         loading: isLoading,
         error,
-        savePrediction
+        savePrediction,
+        refresh: () => mutate(PREDICTIONS_ENDPOINT)
     };
 };

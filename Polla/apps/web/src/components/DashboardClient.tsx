@@ -82,7 +82,7 @@ interface DashboardClientProps {
 }
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
-  const { user, selectedLeagueId, setSelectedLeagueId, syncUserFromServer } = useAppStore();
+  const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions();
 
   const [loadingMatches, setLoadingMatches] = useState(true);
@@ -103,12 +103,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // Inicialización desde Props
   useEffect(() => {
     if (props.defaultLeagueId) {
-      setSelectedLeagueId(props.defaultLeagueId);
+      setSelectedLeague(props.defaultLeagueId);
     }
     if (props.initialTab) {
       setActiveTab(props.initialTab);
     }
-  }, [props.defaultLeagueId, props.initialTab, setSelectedLeagueId]);
+  }, [props.defaultLeagueId, props.initialTab, setSelectedLeague]);
 
   // Fetch Participantes para Home
   useEffect(() => {

@@ -12,7 +12,7 @@ import { Header } from './ui/Header';
 import { GroupStageView } from './GroupStageView';
 import { BracketView } from './BracketView';
 import { BonusView } from './BonusView';
-import MatchInfoSheet from './MatchInfoSheet';
+
 import { BottomNav } from './BottomNav';
 
 import { LeaguesList } from '@/modules/core-dashboard/components/LeaguesList';
@@ -87,7 +87,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
-  const [infoMatch, setInfoMatch] = useState<Match | null>(null);
+
   // Estado inicial del tab
   const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>(
     props.initialTab || 'home'
@@ -261,162 +261,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     syncUserFromServer();
   }, [syncUserFromServer]);
 
-  const filteredMatches = useMemo(() =>
-    matches.filter(m => m.displayDate === selectedDate),
-    [matches, selectedDate]
-  );
 
-  const handlePredictionChange = useCallback(async (matchId: string, homeScore: any, awayScore: any, isJoker?: boolean) => {
-    try {
-      // CASO BORRAR: Si ambos son null
-      if (homeScore === null && awayScore === null) {
-        console.log(`🗑️ Eliminando predicción para partido ${matchId}`);
-        await api.delete(`/predictions/${matchId}`);
-        // ... (resto igual)
-
-        setMatches(prevMatches =>
-          prevMatches.map(m =>
-            m.id === matchId
-              ? {
-                ...m,
-                prediction: null,
-                userH: undefined,
-                userA: undefined
-              }
-              : m
-          )
-        );
-        return;
-      }
-
-      // CASO GUARDAR:
-      console.log(`💾 Guardando predicción para partido ${matchId}: ${homeScore} - ${awayScore} Joker:${isJoker}`);
-
-      await api.post('/predictions', {
-        matchId,
-        homeScore: parseInt(homeScore),
-        awayScore: parseInt(awayScore),
-        leagueId: selectedLeagueId !== 'global' ? selectedLeagueId : undefined,
-        isJoker // Pasamos isJoker al backend
-      });
-
-      // ... (feedbacks)
-
-      setMatches(prevMatches =>
-        prevMatches.map(m => {
-          if (m.id === matchId) {
-            const newPred = {
-              homeScore: parseInt(homeScore),
-              awayScore: parseInt(awayScore),
-              points: 0,
-              isJoker: isJoker // Actualizamos localmente
-            };
-            return {
-              ...m,
-              prediction: newPred,
-              userH: homeScore.toString(),
-              userA: awayScore.toString()
-            };
-          }
-          // Si activó joker, desactivar en otros partidos de la misma fase (si tuviéramos fase aqui)
-          // Como no tengo fase fácil, confiaré en el refresh o en la respuesta del backend.
-          // Idealmente recargar data, pero por performance solo actualizamos este.
-          // SI es joker=true, podriamos recorrer y poner false a otros.
-          if (isJoker && m.phase === (prevMatches.find(pm => pm.id === matchId)?.phase)) {
-            if (m.prediction && m.prediction.isJoker) {
-              return { ...m, prediction: { ...m.prediction, isJoker: false } };
-            }
-          }
-          return m;
-        })
-      );
-    } catch (error) {
-      // ...
-    }
-  }, [selectedLeagueId]);
-
-  const handleAiPredictions = (predictions: { [matchId: string]: [number, number] }) => {
-    setMatches(prevMatches => prevMatches.map(match => {
-      // Si ya tiene predicción (guardada o en estado local), no sobrescribir
-      const hasPrediction = (match.prediction?.homeScore != null && match.prediction?.awayScore != null) ||
-        (match.userH && match.userH !== '') ||
-        (match.userA && match.userA !== '');
-
-      if (hasPrediction) return match;
-
-      if (predictions[match.id]) {
-        const [homeScore, awayScore] = predictions[match.id];
-        return {
-          ...match,
-          userH: homeScore.toString(),
-          userA: awayScore.toString()
-        };
-      }
-      return match;
-    }));
-  };
-
-  const handleClearPredictions = () => {
-    setMatches(prevMatches => prevMatches.map(match => {
-      // Solo limpiar si NO hay predicción guardada en BD
-      const savedPrediction = match.prediction?.homeScore != null && match.prediction?.awayScore != null;
-
-      if (!savedPrediction) {
-        return {
-          ...match,
-          userH: '',
-          userA: ''
-        };
-      }
-      return match;
-    }));
-    toast.info('Se han limpiado las sugerencias no guardadas.');
-  };
-
-  const handleSaveAiPredictions = async () => {
-    // Filtrar partidos que tienen predicción local pero no guardada en BD
-    const predictionsToSave = matches.filter(m => {
-      const hasLocalPrediction = m.userH && m.userH !== '' && m.userA && m.userA !== '';
-      const isSaved = m.prediction && m.prediction.homeScore != null && m.prediction.awayScore != null;
-      return hasLocalPrediction && !isSaved;
-    });
-
-    if (predictionsToSave.length === 0) {
-      toast.info('No hay nuevas predicciones para guardar.');
-      return;
-    }
-
-    try {
-      const promises = predictionsToSave.map(m =>
-        api.post('/predictions', {
-          matchId: m.id,
-          homeScore: parseInt(m.userH!),
-          awayScore: parseInt(m.userA!),
-          leagueId: selectedLeagueId !== 'global' ? selectedLeagueId : undefined
-        }).then(() => {
-          setMatches(prev => prev.map(pm => {
-            if (pm.id === m.id) {
-              return {
-                ...pm,
-                prediction: {
-                  ...pm.prediction,
-                  homeScore: parseInt(m.userH!),
-                  awayScore: parseInt(m.userA!)
-                }
-              };
-            }
-            return pm;
-          }));
-        })
-      );
-
-      await Promise.all(promises);
-      toast.success(`Guardadas ${predictionsToSave.length} predicciones exitosamente.`);
-    } catch (error) {
-      console.error('Error guardando predicciones masivas:', error);
-      toast.error('Hubo un error al guardar algunas predicciones.');
-    }
-  };
 
   return (
     <LeagueThemeProvider
@@ -588,7 +433,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           />
         )}
 
-        <MatchInfoSheet match={infoMatch} onClose={() => setInfoMatch(null)} />
+
       </div >
     </LeagueThemeProvider>
   );

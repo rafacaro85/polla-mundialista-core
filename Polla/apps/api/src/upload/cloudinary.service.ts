@@ -21,18 +21,26 @@ export class CloudinaryService {
     }
 
     async uploadImage(file: any): Promise<UploadApiResponse | UploadApiErrorResponse> {
-        if (!process.env.CLOUDINARY_CLOUD_NAME) {
-            throw new InternalServerErrorException('Configuración de Cloudinary no encontrada');
+        const cloudName = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
+        const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim();
+        const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim();
+
+        if (!cloudName || !apiKey || !apiSecret) {
+            this.logger.error('ERROR: Missing Cloudinary credentials in process.env');
+            throw new InternalServerErrorException('Credenciales de Cloudinary incompletas en el servidor');
         }
 
         try {
-            this.logger.log(`Uploading to Cloudinary: ${file.originalname} (${file.size} bytes)`);
+            this.logger.log(`Uploading to Cloudinary [Direct Mode]: ${file.originalname}`);
 
             // Convertir Buffer a Base64 para máxima compatibilidad
             const b64 = Buffer.from(file.buffer).toString('base64');
             const dataURI = `data:${file.mimetype};base64,${b64}`;
 
             const result = await cloudinary.uploader.upload(dataURI, {
+                cloud_name: cloudName,
+                api_key: apiKey,
+                api_secret: apiSecret,
                 folder: 'la-polla-virtual',
                 resource_type: 'auto',
                 transformation: [

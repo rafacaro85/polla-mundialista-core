@@ -186,9 +186,96 @@ export class MatchesService {
                 this.tournamentService.promoteFromGroup(match.group)
                     .catch(err => console.error(`❌ Error promoting from group ${match.group}:`, err));
             }
+
+            // Trigger automático de promoción si es partido de Dieciseisavos (ROUND_32)
+            if (match.phase === 'ROUND_32' && match.nextMatchId) {
+                // Lógica de promoción para llaves de eliminación directa
+                const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
+                if (nextMatch) {
+                    const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
+                    const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
+
+                    // El match.bracketId nos dice si entra por arriba o por abajo del siguiente partido
+                    // Usualmente, bracketId impar es home, par es away del siguiente
+                    if ((match.bracketId % 2) !== 0) {
+                        nextMatch.homeTeam = winner;
+                        nextMatch.homeFlag = winnerFlag;
+                    } else {
+                        nextMatch.awayTeam = winner;
+                        nextMatch.awayFlag = winnerFlag;
+                    }
+                    await this.matchesRepository.save(nextMatch);
+                    console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (Octavos)`);
+                }
+            }
         }
 
         return savedMatch;
+    }
+
+    async seedRound32(): Promise<{ message: string; created: number }> {
+        const count = await this.matchesRepository.count({ where: { phase: 'ROUND_32' } });
+        if (count > 0) return { message: 'ROUND_32 already seeded', created: 0 };
+
+        const baseDate = new Date('2026-06-28T16:00:00Z');
+        const matches = [];
+
+        // Generar 16 partidos para Dieciseisavos
+        for (let i = 1; i <= 16; i++) {
+            const date = new Date(baseDate.getTime() + (Math.floor((i - 1) / 4)) * 24 * 60 * 60 * 1000);
+            matches.push({
+                phase: 'ROUND_32',
+                bracketId: i,
+                date,
+                homeTeam: '',
+                awayTeam: '',
+                homeTeamPlaceholder: `Ganador ${i}`, // Simplificado para demo
+                awayTeamPlaceholder: `Segundo ${i}`,
+                status: 'PENDING',
+            });
+        }
+
+        // Mapeo real de grupos para los primeros partidos
+        const groupMapping = [
+            { h: '1A', a: '3CDE' }, { h: '1B', a: '3FGH' }, { h: '1C', a: '2D' }, { h: '1D', a: '2C' },
+            { h: '1E', a: '3IJK' }, { h: '1F', a: '2E' }, { h: '1G', a: '2F' }, { h: '1H', a: '2G' },
+            { h: '1I', a: '3ABL' }, { h: '1J', a: '2I' }, { h: '1K', a: '2J' }, { h: '1L', a: '2K' },
+            { h: '2A', a: '2B' }, { h: '2H', a: '2L' }, { h: '3...', a: '3...' }, { h: '3...', a: '3...' }
+        ];
+
+        for (let i = 0; i < 16; i++) {
+            if (groupMapping[i]) {
+                matches[i].homeTeamPlaceholder = groupMapping[i].h;
+                matches[i].awayTeamPlaceholder = groupMapping[i].a;
+            }
+        }
+
+        const saved = await this.matchesRepository.save(matches);
+
+        // Crear Octavos (ROUND_16) y conectarlos
+        const round16 = [];
+        for (let i = 1; i <= 8; i++) {
+            round16.push({
+                phase: 'ROUND_16',
+                bracketId: i,
+                date: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000),
+                homeTeam: '',
+                awayTeam: '',
+                status: 'PENDING',
+                homeTeamPlaceholder: `W32-${(i * 2) - 1}`,
+                awayTeamPlaceholder: `W32-${i * 2}`
+            });
+        }
+        const savedR16 = await this.matchesRepository.save(round16);
+
+        // Conectar R32 con R16
+        for (let i = 0; i < 16; i++) {
+            const nextIdx = Math.floor(i / 2);
+            saved[i].nextMatchId = savedR16[nextIdx].id;
+            await this.matchesRepository.save(saved[i]);
+        }
+
+        return { message: 'Round of 32 seeded and connected', created: saved.length };
     }
 
     async seedKnockoutMatches(): Promise<{ message: string; created: number }> {

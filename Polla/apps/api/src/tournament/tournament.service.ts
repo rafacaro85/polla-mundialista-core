@@ -33,19 +33,20 @@ export class TournamentService {
      * Mapeo de placeholders a posiciones de grupo
      */
     private getPlaceholderMapping(): { [key: string]: { group: string; position: number } } {
-        const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
         const mapping: { [key: string]: { group: string; position: number } } = {};
 
         for (const group of groups) {
             mapping[`1${group}`] = { group, position: 1 };
             mapping[`2${group}`] = { group, position: 2 };
+            mapping[`3${group}`] = { group, position: 3 }; // Para los mejores terceros
         }
 
         return mapping;
     }
 
     /**
-     * Promociona automáticamente los equipos clasificados de un grupo a octavos
+     * Promociona automáticamente los equipos clasificados de un grupo a Dieciseisavos (Round of 32)
      * IDEMPOTENTE: Puede ejecutarse múltiples veces sin duplicar datos
      */
     async promoteFromGroup(group: string): Promise<void> {
@@ -68,35 +69,35 @@ export class TournamentService {
 
         const firstPlace = standings[0].team;
         const secondPlace = standings[1].team;
+        const thirdPlace = standings.length >= 3 ? standings[2].team : null;
 
-        this.logger.log(`📊 Group ${group} standings: 1st: ${firstPlace}, 2nd: ${secondPlace}`);
+        this.logger.log(`📊 Group ${group} standings: 1st: ${firstPlace}, 2nd: ${secondPlace}, 3rd: ${thirdPlace}`);
 
-        // 2.5. Buscar banderas de los equipos clasificados desde partidos de grupo
+        // 2.5. Buscar banderas de los equipos clasificados
         const groupMatches = await this.matchesRepository.find({
             where: { phase: 'GROUP', group },
         });
 
-        let firstPlaceFlag: string | null = null;
-        let secondPlaceFlag: string | null = null;
+        let firstPlaceFlag = '';
+        let secondPlaceFlag = '';
+        let thirdPlaceFlag = '';
 
         for (const match of groupMatches) {
-            if (match.homeTeam === firstPlace && match.homeFlag) {
-                firstPlaceFlag = match.homeFlag;
-            } else if (match.awayTeam === firstPlace && match.awayFlag) {
-                firstPlaceFlag = match.awayFlag;
-            }
-            if (match.homeTeam === secondPlace && match.homeFlag) {
-                secondPlaceFlag = match.homeFlag;
-            } else if (match.awayTeam === secondPlace && match.awayFlag) {
-                secondPlaceFlag = match.awayFlag;
+            if (match.homeTeam === firstPlace) firstPlaceFlag = match.homeFlag || '';
+            else if (match.awayTeam === firstPlace) firstPlaceFlag = match.awayFlag || '';
+
+            if (match.homeTeam === secondPlace) secondPlaceFlag = match.homeFlag || '';
+            else if (match.awayTeam === secondPlace) secondPlaceFlag = match.awayFlag || '';
+
+            if (thirdPlace) {
+                if (match.homeTeam === thirdPlace) thirdPlaceFlag = match.homeFlag || '';
+                else if (match.awayTeam === thirdPlace) thirdPlaceFlag = match.awayFlag || '';
             }
         }
 
-        this.logger.log(`🏁 Flags found - ${firstPlace}: ${firstPlaceFlag}, ${secondPlace}: ${secondPlaceFlag}`);
-
-        // 3. Buscar partidos de octavos con placeholders de este grupo
+        // 3. Buscar partidos de ROUND_32 con placeholders de este grupo
         const knockoutMatches = await this.matchesRepository.find({
-            where: { phase: 'ROUND_16' },
+            where: { phase: 'ROUND_32' },
         });
 
         let updatedCount = 0;
@@ -104,34 +105,28 @@ export class TournamentService {
         for (const match of knockoutMatches) {
             let updated = false;
 
-            // Actualizar equipo local si corresponde
-            if (match.homeTeamPlaceholder === `1${group}` && match.homeTeam !== firstPlace) {
-                match.homeTeam = firstPlace;
-                match.homeFlag = firstPlaceFlag || ''; // COPIAR BANDERA (vacío si no hay)
-                match.homeTeamPlaceholder = null; // Limpiar placeholder
-                updated = true;
-                this.logger.log(`✅ Updated match ${match.id}: homeTeam = ${firstPlace} (flag: ${firstPlaceFlag})`);
-            } else if (match.homeTeamPlaceholder === `2${group}` && match.homeTeam !== secondPlace) {
-                match.homeTeam = secondPlace;
-                match.homeFlag = secondPlaceFlag || ''; // COPIAR BANDERA (vacío si no hay)
-                match.homeTeamPlaceholder = null;
-                updated = true;
-                this.logger.log(`✅ Updated match ${match.id}: homeTeam = ${secondPlace} (flag: ${secondPlaceFlag})`);
+            // Auxiliar para actualizar equipo
+            const updateTeam = (side: 'home' | 'away', team: string, flag: string, placeholder: string) => {
+                const teamField = side === 'home' ? 'homeTeam' : 'awayTeam';
+                const flagField = side === 'home' ? 'homeFlag' : 'awayFlag';
+                const placeholderField = side === 'home' ? 'homeTeamPlaceholder' : 'awayTeamPlaceholder';
+
+                if (match[placeholderField] === placeholder && match[teamField] !== team) {
+                    match[teamField] = team;
+                    match[flagField] = flag;
+                    match[placeholderField] = null;
+                    return true;
+                }
+                return false;
             }
 
-            // Actualizar equipo visitante si corresponde
-            if (match.awayTeamPlaceholder === `1${group}` && match.awayTeam !== firstPlace) {
-                match.awayTeam = firstPlace;
-                match.awayFlag = firstPlaceFlag || ''; // COPIAR BANDERA (vacío si no hay)
-                match.awayTeamPlaceholder = null;
-                updated = true;
-                this.logger.log(`✅ Updated match ${match.id}: awayTeam = ${firstPlace} (flag: ${firstPlaceFlag})`);
-            } else if (match.awayTeamPlaceholder === `2${group}` && match.awayTeam !== secondPlace) {
-                match.awayTeam = secondPlace;
-                match.awayFlag = secondPlaceFlag || ''; // COPIAR BANDERA (vacío si no hay)
-                match.awayTeamPlaceholder = null;
-                updated = true;
-                this.logger.log(`✅ Updated match ${match.id}: awayTeam = ${secondPlace} (flag: ${secondPlaceFlag})`);
+            if (updateTeam('home', firstPlace, firstPlaceFlag, `1${group}`)) updated = true;
+            if (updateTeam('away', firstPlace, firstPlaceFlag, `1${group}`)) updated = true;
+            if (updateTeam('home', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
+            if (updateTeam('away', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
+            if (thirdPlace) {
+                if (updateTeam('home', thirdPlace, thirdPlaceFlag, `3${group}`)) updated = true;
+                if (updateTeam('away', thirdPlace, thirdPlaceFlag, `3${group}`)) updated = true;
             }
 
             if (updated) {
@@ -141,18 +136,15 @@ export class TournamentService {
         }
 
         if (updatedCount > 0) {
-            this.logger.log(`🎉 Promotion complete for Group ${group}. Updated ${updatedCount} knockout matches.`);
-        } else {
-            this.logger.log(`ℹ️ No updates needed for Group ${group} (already promoted or no matching placeholders).`);
+            this.logger.log(`🎉 Promotion complete for Group ${group}. Updated ${updatedCount} Round 32 matches.`);
         }
     }
 
     /**
      * Promociona todos los grupos completos
-     * Útil para ejecutar manualmente o en un cron job
      */
     async promoteAllCompletedGroups(): Promise<void> {
-        const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
         for (const group of groups) {
             try {

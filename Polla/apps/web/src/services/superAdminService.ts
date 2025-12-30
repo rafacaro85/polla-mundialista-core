@@ -90,6 +90,11 @@ export const superAdminService = {
         return response.data;
     },
 
+    seedRound32: async () => {
+        const response = await api.post('/matches/seed-r32');
+        return response.data;
+    },
+
     // --- STATS (Calculated on frontend for now) ---
     getDashboardStats: async () => {
         const [users, leagues, transactions] = await Promise.all([

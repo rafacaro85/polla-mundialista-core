@@ -365,6 +365,28 @@ export function MatchesList() {
                     </button>
 
                     <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#6366F1', color: 'white' }}
+                        onClick={async () => {
+                            if (confirm("¿Crear llaves de Dieciseisavos y Octavos para el Mundial 2026?")) {
+                                try {
+                                    setSyncing(true);
+                                    const res = await superAdminService.seedRound32();
+                                    toast.success(res.message);
+                                    loadMatches();
+                                } catch (e) {
+                                    toast.error("Error al inicializar fase final");
+                                } finally {
+                                    setSyncing(false);
+                                }
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                        <Trophy size={14} />
+                        Llaves 2026
+                    </button>
+
+                    <button
                         style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
                         onClick={() => setIsCreateModalOpen(true)}
                     >

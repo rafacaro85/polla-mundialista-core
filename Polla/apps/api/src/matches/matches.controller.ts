@@ -128,4 +128,11 @@ export class MatchesController {
     async resetAllMatches() {
         return this.matchesService.resetAllMatches();
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('seed-r32')
+    async seedRound32() {
+        return this.matchesService.seedRound32();
+    }
 }

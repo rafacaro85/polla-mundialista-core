@@ -356,13 +356,13 @@ export class MatchesService {
                 match.status = 'PENDING';
                 match.isLocked = false;
 
-                // Si es un partido de fase eliminatoria (tiene placeholder), limpiar equipos
-                if (match.homeTeamPlaceholder || match.awayTeamPlaceholder) {
+                // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
+                // Los equipos de grupos son fijos y se pierden si se limpian aquí.
+                if (match.phase !== 'GROUP' && (match.homeTeamPlaceholder || match.awayTeamPlaceholder)) {
                     match.homeTeam = '';
                     match.awayTeam = '';
-                    // También limpiar banderas si son dinámicas
-                    match.homeFlag = '';
-                    match.awayFlag = '';
+                    match.homeFlag = null as any;
+                    match.awayFlag = null as any;
                 }
                 await queryRunner.manager.save(match);
             }

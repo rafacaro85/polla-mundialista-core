@@ -31,4 +31,10 @@ export class PredictionsController {
     async deletePrediction(@Request() req: any, @Param('matchId') matchId: string, @Query('leagueId') leagueId?: string) {
         return this.predictionsService.removePrediction(req.user.id, matchId, leagueId);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('all/clear')
+    async deleteAllPredictions(@Request() req: any, @Query('leagueId') leagueId?: string) {
+        return this.predictionsService.removeAllPredictions(req.user.id, leagueId);
+    }
 }

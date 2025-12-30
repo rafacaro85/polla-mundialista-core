@@ -12,7 +12,7 @@ export class Prediction {
   @ManyToOne(() => User, (user: User) => user.predictions)
   user: User;
 
-  @ManyToOne(() => Match, match => match.predictions)
+  @ManyToOne(() => Match, match => match.predictions, { onDelete: 'CASCADE' })
   match: Match;
 
   @Column({ name: 'league_id', nullable: true })

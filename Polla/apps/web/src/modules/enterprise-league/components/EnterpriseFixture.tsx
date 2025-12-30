@@ -40,7 +40,7 @@ import { getTeamFlagUrl } from '@/shared/utils/flags';
 export const EnterpriseFixture = () => {
     const params = useParams();
     const leagueId = params.id as string;
-    const { predictions, savePrediction, deletePrediction, loading: loadingPredictions } = useMyPredictions(leagueId);
+    const { predictions, savePrediction, deletePrediction, clearAllPredictions, loading: loadingPredictions } = useMyPredictions(leagueId);
 
     // Raw matches from API
     const [rawMatches, setRawMatches] = useState<any[]>([]);
@@ -234,6 +234,16 @@ export const EnterpriseFixture = () => {
                             onClear={handleClearPredictions}
                             onSave={handleSaveAiPredictions}
                         />
+                        <button
+                            onClick={() => {
+                                if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
+                                    clearAllPredictions();
+                                }
+                            }}
+                            className="ml-2 text-red-500 hover:text-red-400 text-sm font-medium transition-colors"
+                        >
+                            Limpiar Todo
+                        </button>
                     </div>
                 </div>
 

@@ -7,6 +7,9 @@ import { ScoringService } from '../scoring/scoring.service';
 import { BracketsService } from '../brackets/brackets.service';
 import { TournamentService } from '../tournament/tournament.service';
 import { KnockoutPhasesService } from '../knockout-phases/knockout-phases.service';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { UserBracket } from '../database/entities/user-bracket.entity';
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 
 @Injectable()
 export class MatchesService {
@@ -187,10 +190,12 @@ export class MatchesService {
                     .catch(err => console.error(`❌ Error promoting from group ${match.group}:`, err));
             }
 
-            // Trigger automático de promoción si es partido de Dieciseisavos (ROUND_32)
-            if (match.phase === 'ROUND_32' && match.nextMatchId) {
+            // Trigger automático de promoción si existe un siguiente partido
+            if (match.nextMatchId) {
                 const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
                 if (nextMatch) {
+                    // Si el bracketId es impar, es Home del siguiente. Si es par, es Away.
+                    // Para ROUND_32 (1-16), 1&2 van al partido 1 de ROUND_16, etc.
                     const isHome = (match.bracketId % 2) !== 0;
                     const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
                     const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
@@ -205,7 +210,7 @@ export class MatchesService {
                         nextMatch.awayTeamPlaceholder = null;
                     }
                     await this.matchesRepository.save(nextMatch);
-                    console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (Octavos)`);
+                    console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (${nextMatch.phase})`);
                 }
             }
         }
@@ -214,61 +219,80 @@ export class MatchesService {
     }
 
     async seedRound32(): Promise<{ message: string; created: number }> {
-        // Eliminar si ya existen para evitar duplicados
+        // Usamos QueryBuilder para borrar cascada manualmente si es necesario o por phase
+        // Nota: onDelete CASCADE ya debería funcionar si el motor DB lo soporta
         await this.matchesRepository.delete({ phase: 'ROUND_32' });
         await this.matchesRepository.delete({ phase: 'ROUND_16' });
+        await this.matchesRepository.delete({ phase: 'QUARTER' });
+        await this.matchesRepository.delete({ phase: 'SEMI' });
+        await this.matchesRepository.delete({ phase: 'FINAL' });
 
         const baseDate = new Date('2026-06-28T16:00:00Z');
 
-        // 1. Crear 16 partidos de ROUND_32
-        const r32Matches = [];
+        // 1. ROUND_32 (16 partidos)
         const groupMapping = [
             { h: '1A', a: '3CDE' }, { h: '1B', a: '3FGH' }, { h: '1C', a: '2D' }, { h: '1D', a: '2C' },
             { h: '1E', a: '3IJK' }, { h: '1F', a: '2E' }, { h: '1G', a: '2F' }, { h: '1H', a: '2G' },
             { h: '1I', a: '3ABL' }, { h: '1J', a: '2I' }, { h: '1K', a: '2J' }, { h: '1L', a: '2K' },
             { h: '2A', a: '2B' }, { h: '2H', a: '2L' }, { h: '2G', a: '2K' }, { h: '2F', a: '2J' }
         ];
-
+        const r32 = [];
         for (let i = 1; i <= 16; i++) {
-            const date = new Date(baseDate.getTime() + (Math.floor((i - 1) / 4)) * 24 * 60 * 60 * 1000);
-            const mapping = groupMapping[i - 1];
-            r32Matches.push(this.matchesRepository.create({
-                phase: 'ROUND_32',
-                bracketId: i,
-                date,
-                homeTeam: '',
-                awayTeam: '',
-                homeTeamPlaceholder: mapping.h,
-                awayTeamPlaceholder: mapping.a,
-                status: 'PENDING',
+            r32.push(this.matchesRepository.create({
+                phase: 'ROUND_32', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: groupMapping[i - 1].h, awayTeamPlaceholder: groupMapping[i - 1].a,
+                date: new Date(baseDate.getTime() + Math.floor((i - 1) / 4) * 86400000)
             }));
         }
-        const savedR32 = await this.matchesRepository.save(r32Matches);
+        const saved32 = await this.matchesRepository.save(r32);
 
-        // 2. Crear 8 partidos de ROUND_16
-        const r16Matches = [];
+        // 2. ROUND_16 (8 partidos)
+        const r16 = [];
         for (let i = 1; i <= 8; i++) {
-            r16Matches.push(this.matchesRepository.create({
-                phase: 'ROUND_16',
-                bracketId: i,
-                date: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000),
-                homeTeam: '',
-                awayTeam: '',
-                homeTeamPlaceholder: `W32-${(i * 2) - 1}`,
-                awayTeamPlaceholder: `W32-${i * 2}`,
-                status: 'PENDING',
+            r16.push(this.matchesRepository.create({
+                phase: 'ROUND_16', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `W32-${(i * 2) - 1}`, awayTeamPlaceholder: `W32-${i * 2}`,
+                date: new Date(baseDate.getTime() + (6 + Math.floor((i - 1) / 4)) * 86400000)
             }));
         }
-        const savedR16 = await this.matchesRepository.save(r16Matches);
+        const saved16 = await this.matchesRepository.save(r16);
 
-        // 3. Conectar R32 -> R16
-        for (let i = 0; i < 16; i++) {
-            const nextIdx = Math.floor(i / 2);
-            savedR32[i].nextMatchId = savedR16[nextIdx].id;
-            await this.matchesRepository.save(savedR32[i]);
+        // 3. QUARTER (4 partidos)
+        const qf = [];
+        for (let i = 1; i <= 4; i++) {
+            qf.push(this.matchesRepository.create({
+                phase: 'QUARTER', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `W16-${(i * 2) - 1}`, awayTeamPlaceholder: `W16-${i * 2}`,
+                date: new Date(baseDate.getTime() + (10 + Math.floor((i - 1) / 2)) * 86400000)
+            }));
         }
+        const savedQF = await this.matchesRepository.save(qf);
 
-        return { message: 'Round of 32 and Round of 16 seeded and connected', created: savedR32.length + savedR16.length };
+        // 4. SEMI (2 partidos)
+        const sf = [];
+        for (let i = 1; i <= 2; i++) {
+            sf.push(this.matchesRepository.create({
+                phase: 'SEMI', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `WQF-${(i * 2) - 1}`, awayTeamPlaceholder: `WQF-${i * 2}`,
+                date: new Date(baseDate.getTime() + (14 + (i - 1)) * 86400000)
+            }));
+        }
+        const savedSF = await this.matchesRepository.save(sf);
+
+        // 5. FINAL
+        const f = await this.matchesRepository.save(this.matchesRepository.create({
+            phase: 'FINAL', bracketId: 1, status: 'PENDING', homeTeam: '', awayTeam: '',
+            homeTeamPlaceholder: 'WSF-1', awayTeamPlaceholder: 'WSF-2',
+            date: new Date(baseDate.getTime() + 18 * 86400000)
+        }));
+
+        // CONEXIONES
+        for (let i = 0; i < 16; i++) { saved32[i].nextMatchId = saved16[Math.floor(i / 2)].id; await this.matchesRepository.save(saved32[i]); }
+        for (let i = 0; i < 8; i++) { saved16[i].nextMatchId = savedQF[Math.floor(i / 2)].id; await this.matchesRepository.save(saved16[i]); }
+        for (let i = 0; i < 4; i++) { savedQF[i].nextMatchId = savedSF[Math.floor(i / 2)].id; await this.matchesRepository.save(savedQF[i]); }
+        for (let i = 0; i < 2; i++) { savedSF[i].nextMatchId = f.id; await this.matchesRepository.save(savedSF[i]); }
+
+        return { message: 'Knockout stages seeded and connected from 1/16 to Final', created: saved32.length + saved16.length + savedQF.length + savedSF.length + 1 };
     }
 
 
@@ -336,23 +360,46 @@ export class MatchesService {
                 if (match.homeTeamPlaceholder || match.awayTeamPlaceholder) {
                     match.homeTeam = '';
                     match.awayTeam = '';
+                    // También limpiar banderas si son dinámicas
+                    (match as any).homeFlag = null;
+                    (match as any).awayFlag = null;
                 }
                 await queryRunner.manager.save(match);
             }
 
-            // 2. Resetear puntos de predicciones
-            await queryRunner.manager.update('predictions', {}, { points: 0 });
+            // 2. Resetear todas las predicciones a 0 puntos
+            await queryRunner.manager.update(Prediction, {}, { points: 0 });
 
-            // 3. Resetear puntos de participantes en todas las ligas
-            await queryRunner.manager.update('league_participants', {}, { totalPoints: 0, currentRank: null, triviaPoints: 0 });
+            // 3. Resetear puntos de participantes
+            await queryRunner.manager.update(LeagueParticipant, {}, {
+                totalPoints: 0,
+                currentRank: undefined,
+                triviaPoints: 0,
+                tieBreakerGuess: undefined
+            } as any);
+
+            // 4. Limpiar Brackets
+            await queryRunner.manager.update(UserBracket, {}, { points: 0 });
+
+            // 5. Resetear estados de fases eliminatorias
+            // Desbloqueamos GROUP, bloqueamos el resto
+            await queryRunner.manager.update(KnockoutPhaseStatus, {}, {
+                isUnlocked: false,
+                allMatchesCompleted: false,
+                unlockedAt: undefined
+            } as any);
+            await queryRunner.manager.update(KnockoutPhaseStatus, { phase: 'GROUP' }, {
+                isUnlocked: true
+            });
 
             await queryRunner.commitTransaction();
 
             return {
-                message: `Sistema reiniciado: ${matches.length} partidos limpios y puntuaciones en cero.`,
+                message: `Sistema reiniciado correctamente: ${matches.length} partidos limpios, rankings reseteados y fases bloqueadas.`,
                 reset: matches.length
             };
         } catch (error) {
+            console.error("❌ Error profundo en resetAllMatches:", error);
             await queryRunner.rollbackTransaction();
             throw error;
         } finally {

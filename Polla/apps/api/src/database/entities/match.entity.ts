@@ -57,6 +57,6 @@ export class Match {
   @Column({ nullable: true })
   stadium: string;
 
-  @OneToMany(() => Prediction, prediction => prediction.match)
+  @OneToMany(() => Prediction, prediction => prediction.match, { cascade: true, onDelete: 'CASCADE' })
   predictions: Prediction[];
 }

@@ -22,7 +22,7 @@ interface SocialFixtureProps {
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
-    const { predictions, savePrediction, deletePrediction, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
+    const { predictions, savePrediction, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -161,6 +161,18 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                         onClear={handleClearPredictions}
                         onSave={handleSaveAiPredictions}
                     />
+                    <Button
+                        onClick={() => {
+                            if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
+                                clearAllPredictions();
+                            }
+                        }}
+                        variant="ghost"
+                        className="ml-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        size="sm"
+                    >
+                        Limpiar Todo
+                    </Button>
                 </div>
             </div>
 

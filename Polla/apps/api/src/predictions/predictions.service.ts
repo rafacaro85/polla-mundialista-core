@@ -121,4 +121,23 @@ export class PredictionsService {
 
         return { message: 'Prediction deleted' };
     }
+
+    async removeAllPredictions(userId: string, leagueId?: string) {
+        const where: any = { user: { id: userId } };
+        where.leagueId = leagueId ? leagueId : IsNull();
+
+        // Solo borrar partidos que no han empezado
+        const predictions = await this.predictionsRepository.find({
+            where,
+            relations: ['match']
+        });
+
+        const toDelete = predictions.filter(p => p.match.date > new Date());
+
+        if (toDelete.length > 0) {
+            await this.predictionsRepository.remove(toDelete);
+        }
+
+        return { message: `${toDelete.length} predicciones eliminadas`, count: toDelete.length };
+    }
 }

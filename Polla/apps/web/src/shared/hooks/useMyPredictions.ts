@@ -127,12 +127,37 @@ export const useMyPredictions = (leagueId?: string) => {
         }
     };
 
+    const clearAllPredictions = async () => {
+        const targetLeagueId = leagueId || null;
+
+        // Mutate local cache immediately (optimistic)
+        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
+            const list = Array.isArray(currentData) ? [...currentData] : [];
+            // Remove all matches where leagueId matches targetLeagueId
+            return list.filter((p: any) => (p.leagueId || null) !== targetLeagueId);
+        }, false);
+
+        try {
+            const url = targetLeagueId
+                ? `/predictions/all/clear?leagueId=${targetLeagueId}`
+                : `/predictions/all/clear`;
+            await api.delete(url);
+            mutate(PREDICTIONS_ENDPOINT);
+            toast.success('Todas las predicciones han sido eliminadas');
+        } catch (err: any) {
+            console.error(err);
+            toast.error('Error al limpiar predicciones');
+            mutate(PREDICTIONS_ENDPOINT); // Rollback
+        }
+    };
+
     return {
         predictions: predictionsMap,
         loading: isLoading,
         error,
         savePrediction,
         deletePrediction,
+        clearAllPredictions,
         refresh: () => mutate(PREDICTIONS_ENDPOINT)
     };
 };

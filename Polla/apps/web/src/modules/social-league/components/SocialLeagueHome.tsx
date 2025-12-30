@@ -37,14 +37,10 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#00E676] opacity-10 blur-[60px] rounded-full"></div>
 
-                {/* Logo de la Polla / FIFA 2026 */}
+                {/* Icono de la Polla */}
                 <div className="relative z-10 flex flex-col items-center gap-2">
-                    <div className="w-24 h-24 bg-white rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-500 p-2">
-                        <img
-                            src={league.brandingLogoUrl || "https://upload.wikimedia.org/wikipedia/en/4/42/2026_FIFA_World_Cup_logo.svg"}
-                            alt="FIFA World Cup 2026"
-                            className="w-full h-full object-contain"
-                        />
+                    <div className="w-20 h-20 bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <Shield className="w-12 h-12 text-[#00E676] drop-shadow-[0_0_15px_rgba(0,230,118,0.5)]" strokeWidth={1.5} />
                     </div>
                     <div className="mt-4">
                         <h2 className="text-xl font-black text-white uppercase tracking-[0.1em]">{league.name}</h2>

@@ -69,11 +69,29 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
     }
   };
 
+  // Hook para auto-scroll al cambiar fecha seleccionada
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      const activeItem = scrollRef.current.querySelector('[data-active="true"]') as HTMLElement;
+      if (activeItem) {
+        const container = scrollRef.current;
+        const scrollLeft = activeItem.offsetLeft - (container.offsetWidth / 2) + (activeItem.offsetWidth / 2);
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [selectedDate]);
+
   // Validación de seguridad por si dates no es un array
   const safeDates = Array.isArray(dates) ? dates : [];
 
   return (
     <div
+      ref={scrollRef}
       style={STYLES.scrollContainer as React.CSSProperties}
       className="no-scrollbar"
       onTouchStart={(e) => e.stopPropagation()}
@@ -97,6 +115,7 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
         return (
           <button
             key={date}
+            data-active={isActive}
             onClick={() => onSelect && onSelect(date)}
             style={buttonStyle}
             // Eventos para hover simple (opcional en JS puro)

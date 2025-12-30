@@ -58,6 +58,13 @@ export function PhaseProgressDashboard({ onPhaseClick }: PhaseProgressDashboardP
     const unlockedCount = phases.filter(p => p.isUnlocked).length;
     const completedCount = phases.filter(p => p.allMatchesCompleted).length;
 
+    const handleIndicatorClick = (phase: string) => {
+        setIsExpanded(false);
+        if (onPhaseClick) {
+            onPhaseClick(phase);
+        }
+    };
+
     return (
         <div className="bg-[#1E293B] rounded-xl border border-gray-700 overflow-hidden">
             {/* Header - Always Visible - Clickable */}
@@ -101,7 +108,7 @@ export function PhaseProgressDashboard({ onPhaseClick }: PhaseProgressDashboardP
                                 phase={phase.phase}
                                 isUnlocked={phase.isUnlocked}
                                 isCompleted={phase.allMatchesCompleted}
-                                onClick={onPhaseClick}
+                                onClick={handleIndicatorClick}
                             />
                         ))}
                     </div>

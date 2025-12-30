@@ -188,11 +188,17 @@ export default function AdminDashboardPage() {
 
     const allModules = [
         {
+            icon: <Settings size={24} />,
+            title: 'Configuración',
+            description: 'Ajusta límites, códigos de acceso y permisos',
+            href: `/leagues/${params.id}/admin/settings`,
+            variant: 'primary' as const, // Added primary variant to highlight it as requested
+        },
+        {
             icon: <Palette size={24} />,
             title: 'Diseño & Marca',
             description: 'Personaliza colores, logos y textos de la interfaz',
             href: `/leagues/${params.id}/studio`,
-            variant: 'primary' as const,
             hidden: !isEnterprise,
         },
         {
@@ -215,22 +221,6 @@ export default function AdminDashboardPage() {
             href: `/leagues/${params.id}/admin/analytics`,
             disabled: !league.isEnterpriseActive,
             hidden: !isEnterprise,
-        },
-        {
-            icon: <FileBarChart2 size={24} />,
-            title: 'Exportar Datos',
-            description: 'Descarga el ranking y predicciones en formato Excel',
-            onClick: () => {
-                // TODO: Implement export functionality
-                alert('Función de exportación en desarrollo');
-            },
-            disabled: true,
-        },
-        {
-            icon: <Settings size={24} />,
-            title: 'Configuración',
-            description: 'Ajusta límites, códigos de acceso y permisos',
-            href: `/leagues/${params.id}/admin/settings`,
         },
     ];
 

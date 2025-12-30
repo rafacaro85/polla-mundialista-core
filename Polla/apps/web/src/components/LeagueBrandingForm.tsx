@@ -117,6 +117,8 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
     });
     const [loading, setLoading] = useState(false);
 
+    const [uploadingField, setUploadingField] = useState<string | null>(null);
+
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -124,14 +126,12 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
     const handleSubmit = async () => {
         try {
             setLoading(true);
-
-            // Usar api instance (base URL y token ya configurados)
             await api.patch(`/leagues/${leagueId}`, formData);
-            alert('Configuración guardada correctamente');
+            alert('¡Configuración guardada! Los cambios ya son visibles.');
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error('Error saving league branding:', error);
-            alert('Error al guardar la configuración');
+            alert('Error al guardar los cambios finales.');
         } finally {
             setLoading(false);
         }
@@ -147,8 +147,6 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-
-                    // Redimensionar si es muy grande (max 1200px)
                     const MAX_SIZE = 1200;
                     if (width > height) {
                         if (width > MAX_SIZE) {
@@ -161,49 +159,35 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                             height = MAX_SIZE;
                         }
                     }
-
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    if (!ctx) {
-                        reject(new Error('Could not get canvas context'));
-                        return;
-                    }
+                    if (!ctx) return reject(new Error('Canvas context failed'));
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    // Comprimir a JPEG con calidad 0.7
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob) resolve(blob);
-                            else reject(new Error('Canvas to Blob failed'));
-                        },
-                        'image/jpeg',
-                        0.7
-                    );
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Blob creation failed'));
+                    }, 'image/jpeg', 0.8);
                 };
-                img.onerror = (err) => reject(new Error('Failed to load image for compression'));
+                img.onerror = () => reject(new Error('Image load failed'));
                 img.src = event.target?.result as string;
             };
-            reader.onerror = (err) => reject(new Error('Failed to read file'));
+            reader.onerror = () => reject(new Error('File read failed'));
         });
     };
 
     const handleFileUpload = async (file: File, field: string) => {
         try {
-            setLoading(true);
-
+            setUploadingField(field);
             let fileToUpload: File | Blob = file;
             let filename = file.name;
 
             try {
-                // Intentar comprimir
-                const compressedBlob = await compressImage(file);
-                fileToUpload = compressedBlob;
-                // Forzar extensión .jpg para el blob comprimido
-                filename = file.name.split('.')[0] + '_comp.jpg';
-            } catch (compError) {
-                console.warn('Compresión fallida, subiendo original:', compError);
-                // Si falla la compresión, seguimos con el original (fallback)
+                const compressed = await compressImage(file);
+                fileToUpload = compressed;
+                filename = `upload_${Date.now()}.jpg`;
+            } catch (e) {
+                console.warn('Usando original (compresión falló)');
             }
 
             const uploadData = new FormData();
@@ -211,125 +195,148 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
 
             const response = await api.post('/upload', uploadData);
 
-            handleChange(field, response.data.url);
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            alert('No se pudo subir la imagen. Intenta con un archivo más pequeño o de otro formato.');
+            if (response.data && response.data.url) {
+                handleChange(field, response.data.url);
+            } else {
+                throw new Error('No URL in response');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const msg = error.response?.data?.message || 'Error de conexión con el servidor de imágenes.';
+            alert(`Error: ${msg}`);
         } finally {
-            setLoading(false);
+            setUploadingField(null);
         }
     };
+
+    const UploadButton = ({ field, label }: { field: string, label: string }) => (
+        <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            padding: '12px',
+            backgroundColor: uploadingField === field ? '#1E293B' : '#0F172A',
+            border: `2px dashed ${uploadingField === field ? '#00E676' : '#334155'}`,
+            borderRadius: '12px',
+            cursor: uploadingField ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            width: '100%',
+            color: uploadingField === field ? '#00E676' : 'white',
+            fontSize: '13px',
+            fontWeight: 'bold'
+        }} className="hover:border-[#00E676] group">
+            {uploadingField === field ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#00E676] border-t-transparent"></div>
+            ) : (
+                <Image size={18} className="text-[#00E676]" />
+            )}
+            <span>{uploadingField === field ? 'SUBIENDO...' : label}</span>
+            <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], field)}
+                style={{ display: 'none' }}
+                disabled={!!uploadingField}
+            />
+        </label>
+    );
 
     return (
         <div style={STYLES.container}>
             <div style={STYLES.title}>
-                <Gift size={20} /> Personalización de Liga
+                <div style={{ padding: '8px', backgroundColor: '#00E67620', borderRadius: '8px' }}>
+                    <Gift size={20} />
+                </div>
+                Personalización Visual
             </div>
 
-            {/* LOGO URL */}
+            {/* LOGO DE LA LIGA */}
             <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><Image size={14} /> Logo de la Liga</label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
-                        style={{ ...STYLES.input, padding: '8px' }}
-                    />
-                </div>
+                <label style={STYLES.label}>Logo Identitario de la Polla</label>
+                <UploadButton field="brandingLogoUrl" label="CAMBIAR LOGO" />
                 {formData.brandingLogoUrl && (
-                    <div style={STYLES.preview}>
-                        <img src={formData.brandingLogoUrl} alt="Logo Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} />
+                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640' }}>
+                        <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
                     </div>
                 )}
             </div>
 
-            {/* PREMIO IMAGE URL */}
+            {/* IMAGEN DEL PREMIO */}
             <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><Image size={14} /> Imagen del Premio</label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
-                        style={{ ...STYLES.input, padding: '8px' }}
-                    />
-                </div>
+                <label style={STYLES.label}>Imagen del Premio Principal</label>
+                <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
                 {formData.prizeImageUrl && (
-                    <div style={STYLES.preview}>
-                        <img src={formData.prizeImageUrl} alt="Prize Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} />
+                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640' }}>
+                        <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
                     </div>
                 )}
             </div>
 
             {/* DESCRIPCIÓN DEL PREMIO */}
             <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><Gift size={14} /> Descripción del Premio</label>
+                <label style={STYLES.label}><Gift size={14} /> Detalles del Premio</label>
                 <textarea
                     value={formData.prizeDetails}
                     onChange={(e) => handleChange('prizeDetails', e.target.value)}
                     style={STYLES.textarea}
-                    placeholder="Describe el premio para el ganador..."
-                    onFocus={(e) => e.target.style.borderColor = '#00E676'}
-                    onBlur={(e) => e.target.style.borderColor = '#334155'}
+                    placeholder="Ej: Viaje a San Andrés para 2 personas..."
                 />
             </div>
 
             {/* MENSAJE DE BIENVENIDA */}
             <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida (Opcional)</label>
+                <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
                 <textarea
                     value={formData.welcomeMessage}
                     onChange={(e) => handleChange('welcomeMessage', e.target.value)}
                     style={STYLES.textarea}
-                    placeholder="Mensaje para los participantes al unirse..."
-                    onFocus={(e) => e.target.style.borderColor = '#00E676'}
-                    onBlur={(e) => e.target.style.borderColor = '#334155'}
+                    placeholder="Escribe un saludo para tus jugadores..."
                 />
             </div>
 
             {/* SECCIÓN ENTERPRISE */}
             {showEnterpriseFields && (
-                <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '20px' }}>
-                    <div style={STYLES.title}>
-                        <Briefcase size={20} /> Branding Corporativo
+                <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '30px' }}>
+                    <div style={{ ...STYLES.title, fontSize: '15px' }}>
+                        <Briefcase size={18} /> Configuración Corporativa
                     </div>
 
-                    <div style={{ paddingLeft: '10px', marginLeft: '9px' }}>
-                        <div style={STYLES.fieldGroup}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div>
                             <label style={STYLES.label}>Nombre de la Empresa</label>
                             <input
                                 type="text"
                                 value={formData.companyName || ''}
                                 onChange={(e) => handleChange('companyName', e.target.value)}
                                 style={STYLES.input}
-                                placeholder="Ej. TechCorp Solutions"
+                                placeholder="Nombre comercial..."
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: '20px' }}>
+                        <div style={{ display: 'flex', gap: '15px' }}>
                             <div style={{ flex: 1 }}>
-                                <label style={STYLES.label}>Color Primario (Botones/Acentos)</label>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <label style={STYLES.label}>Color Principal</label>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#0F172A', padding: '6px', borderRadius: '8px', border: '1px solid #334155' }}>
                                     <input
                                         type="color"
                                         value={formData.brandColorPrimary || '#00E676'}
                                         onChange={(e) => handleChange('brandColorPrimary', e.target.value)}
-                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                                     />
-                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorPrimary}</span>
+                                    <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'monospace' }}>{formData.brandColorPrimary}</span>
                                 </div>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <label style={STYLES.label}>Color Secundario (Fondo Página)</label>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <label style={STYLES.label}>Color Fondo</label>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#0F172A', padding: '6px', borderRadius: '8px', border: '1px solid #334155' }}>
                                     <input
                                         type="color"
                                         value={formData.brandColorSecondary || '#1E293B'}
                                         onChange={(e) => handleChange('brandColorSecondary', e.target.value)}
-                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                                     />
-                                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>{formData.brandColorSecondary}</span>
+                                    <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'monospace' }}>{formData.brandColorSecondary}</span>
                                 </div>
                             </div>
                         </div>
@@ -339,10 +346,15 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
 
             <button
                 onClick={handleSubmit}
-                disabled={loading}
-                style={{ ...STYLES.button, opacity: loading ? 0.7 : 1 }}
+                disabled={loading || !!uploadingField}
+                style={{
+                    ...STYLES.button,
+                    opacity: (loading || uploadingField) ? 0.6 : 1,
+                    boxShadow: '0 4px 14px 0 rgba(0, 230, 118, 0.39)',
+                    marginTop: '20px'
+                }}
             >
-                <Save size={18} /> {loading ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
+                {loading ? 'GUARDANDO...' : 'GUARDAR TODA LA CONFIGURACIÓN'}
             </button>
         </div>
     );

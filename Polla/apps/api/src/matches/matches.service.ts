@@ -284,4 +284,87 @@ export class MatchesService {
             reset: resetCount,
         };
     }
+
+    async simulateResults(): Promise<{ message: string; updated: number }> {
+        // Obtenemos partidos que tienen equipos y no están finalizados
+        const matches = await this.matchesRepository.find();
+        let updatedCount = 0;
+
+        for (const match of matches) {
+            // Solo simular si tiene equipos y no está finalizado
+            if (match.homeTeam && match.awayTeam && match.status !== 'FINISHED') {
+                // Resultados realistas (promedio de goles en mundial es ~2.5)
+                // Usamos una distribución que favorezca 0, 1, 2 goles
+                const generateScore = () => {
+                    const r = Math.random();
+                    if (r < 0.2) return 0;
+                    if (r < 0.5) return 1;
+                    if (r < 0.8) return 2;
+                    if (r < 0.95) return 3;
+                    return 4;
+                };
+
+                const homeScore = generateScore();
+                const awayScore = generateScore();
+
+                // Intentar evitar empates en fases eliminatorias si es necesario, 
+                // pero updateMatch maneja lo básico.
+
+                await this.updateMatch(match.id, {
+                    homeScore,
+                    awayScore,
+                    status: 'FINISHED',
+                    isLocked: true
+                });
+                updatedCount++;
+            }
+        }
+
+        return {
+            message: `Simulación completada: ${updatedCount} partidos finalizados con resultados realistas.`,
+            updated: updatedCount
+        };
+    }
+
+    async resetAllMatches(): Promise<{ message: string; reset: number }> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 1. Limpiar todos los partidos
+            const matches = await this.matchesRepository.find();
+            for (const match of matches) {
+                match.homeScore = null;
+                match.awayScore = null;
+                match.status = 'PENDING';
+                match.isLocked = false;
+
+                // Si es un partido de fase eliminatoria (tiene placeholder), limpiar equipos
+                if (match.homeTeamPlaceholder || match.awayTeamPlaceholder) {
+                    match.homeTeam = '';
+                    match.awayTeam = '';
+                }
+                await queryRunner.manager.save(match);
+            }
+
+            // 2. Resetear puntos de predicciones
+            await queryRunner.manager.update('predictions', {}, { points: 0 });
+
+            // 3. Resetear puntos de participantes en todas las ligas
+            await queryRunner.manager.update('league_participants', {}, { totalPoints: 0, currentRank: null, triviaPoints: 0 });
+
+            await queryRunner.commitTransaction();
+
+            return {
+                message: `Sistema reiniciado: ${matches.length} partidos limpios y puntuaciones en cero.`,
+                reset: matches.length
+            };
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }

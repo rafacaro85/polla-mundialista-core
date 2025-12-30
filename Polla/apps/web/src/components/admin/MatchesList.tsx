@@ -319,7 +319,51 @@ export function MatchesList() {
                 <div style={STYLES.title}>
                     <Shield size={20} color="#00E676" /> Gestión de Partidos
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: '#0F172A' }}
+                        onClick={async () => {
+                            if (confirm("¿Simular resultados aleatorios para todos los partidos pendientes?")) {
+                                try {
+                                    setSyncing(true);
+                                    const res = await superAdminService.simulateMatches();
+                                    toast.success(res.message);
+                                    loadMatches();
+                                } catch (e) {
+                                    toast.error("Error al simular resultados");
+                                } finally {
+                                    setSyncing(false);
+                                }
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                        <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                        Simular
+                    </button>
+
+                    <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#475569', color: 'white' }}
+                        onClick={async () => {
+                            if (confirm("¿Estás seguro de REINICIAR TODO el sistema? Se borrarán marcadores y puntos.")) {
+                                try {
+                                    setSyncing(true);
+                                    const res = await superAdminService.resetAllMatches();
+                                    toast.success(res.message);
+                                    loadMatches();
+                                } catch (e) {
+                                    toast.error("Error al resetear sistema");
+                                } finally {
+                                    setSyncing(false);
+                                }
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                        <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                        Limpiar
+                    </button>
+
                     <button
                         style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
                         onClick={() => setIsCreateModalOpen(true)}

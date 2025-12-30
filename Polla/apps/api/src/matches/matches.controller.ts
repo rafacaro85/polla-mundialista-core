@@ -114,4 +114,18 @@ export class MatchesController {
             dataProcessed: true
         };
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('simulate-results')
+    async simulateResults() {
+        return this.matchesService.simulateResults();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('reset-all')
+    async resetAllMatches() {
+        return this.matchesService.resetAllMatches();
+    }
 }

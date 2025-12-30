@@ -80,6 +80,16 @@ export const superAdminService = {
         return response.data;
     },
 
+    simulateMatches: async () => {
+        const response = await api.post('/matches/simulate-results');
+        return response.data;
+    },
+
+    resetAllMatches: async () => {
+        const response = await api.post('/matches/reset-all');
+        return response.data;
+    },
+
     // --- STATS (Calculated on frontend for now) ---
     getDashboardStats: async () => {
         const [users, leagues, transactions] = await Promise.all([

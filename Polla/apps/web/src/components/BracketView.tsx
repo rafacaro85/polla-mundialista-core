@@ -3,23 +3,7 @@ import { Save, RefreshCw, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
-/* =============================================================================
-   1. HELPER: BANDERAS (FALLBACK)
-   ============================================================================= */
-const getFallbackFlagUrl = (teamCode: string) => {
-    if (!teamCode || teamCode === '-' || teamCode.includes('W32') || teamCode.includes('W16') || teamCode === 'TBD') {
-        return "https://flagcdn.com/h24/un.png";
-    }
-    const codeMap: { [key: string]: string } = {
-        'COL': 'co', 'ARG': 'ar', 'BRA': 'br', 'USA': 'us', 'ESP': 'es', 'FRA': 'fr', 'GER': 'de', 'JPN': 'jp',
-        'ENG': 'gb-eng', 'POR': 'pt', 'URU': 'uy', 'MEX': 'mx', 'CAN': 'ca', 'MAR': 'ma', 'SEN': 'sn', 'NED': 'nl',
-        'ECU': 'ec', 'QAT': 'qa', 'IRN': 'ir', 'WAL': 'gb-wls', 'KOR': 'kr', 'AUS': 'au', 'CRC': 'cr', 'BEL': 'be',
-        'CRO': 'hr', 'EGY': 'eg', 'SRB': 'rs', 'SCO': 'gb-sct', 'KSA': 'sa', 'POL': 'pl',
-        'Netherlands': 'nl', 'United States': 'us', 'South Korea': 'kr'
-    };
-    const isoCode = codeMap[teamCode] || teamCode?.substring(0, 2).toLowerCase();
-    return `https://flagcdn.com/h24/${isoCode}.png`;
-};
+import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 /* =============================================================================
    INTERFACES
@@ -38,6 +22,7 @@ interface Match {
     homeFlag?: string;
     awayFlag?: string;
     nextMatchId?: string;
+    date: string;
 }
 
 /* =============================================================================
@@ -137,10 +122,10 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     }, [matches]);
 
     const getTeamFlag = (teamName: string) => {
-        return teamFlags[teamName] || getFallbackFlagUrl(teamName);
+        return getTeamFlagUrl(teamName);
     };
 
-    // Cargar bracket guardado desde la API
+    // Cargar bracket guardado desde la API (Siempre global para consistencia entre ligas)
     useEffect(() => {
         const loadBracket = async () => {
             try {
@@ -222,8 +207,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         }
         try {
             const { data } = await api.post('/brackets', {
-                picks: winners,
-                leagueId: leagueId !== 'global' ? leagueId : undefined
+                picks: winners
+                // No enviamos leagueId para que sea global y consistente en todos los módulos
             });
             setBracketPoints(data.points || 0);
             toast.success('Bracket guardado exitosamente! 🏆');

@@ -939,10 +939,15 @@ export class LeaguesService {
     const matches = await matchesQuery.getMany();
 
     // Formatear la respuesta
+    // Formatear la respuesta para mantener consistencia con Match entity
     return matches.map(match => ({
       id: match.id,
-      homeTeam: match.homeTeam || match.homeTeamPlaceholder,
-      awayTeam: match.awayTeam || match.awayTeamPlaceholder,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      homeTeamPlaceholder: match.homeTeamPlaceholder,
+      awayTeamPlaceholder: match.awayTeamPlaceholder,
+      homeFlag: match.homeFlag,
+      awayFlag: match.awayFlag,
       date: match.date,
       status: match.status,
       homeScore: match.homeScore,
@@ -950,6 +955,8 @@ export class LeaguesService {
       phase: match.phase,
       group: match.group,
       stadium: match.stadium,
+      bracketId: match.bracketId,
+      nextMatchId: match.nextMatchId,
       prediction: match.predictions?.[0] ? {
         homeScore: match.predictions[0].homeScore,
         awayScore: match.predictions[0].awayScore,

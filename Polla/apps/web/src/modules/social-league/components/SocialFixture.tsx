@@ -18,57 +18,7 @@ interface SocialFixtureProps {
     isRefreshing: boolean;
 }
 
-const getFlag = (teamName: string) => {
-    if (!teamName || teamName === 'TBD' || teamName === '-' || teamName.includes('W32') || teamName.includes('W16')) {
-        return 'https://flagcdn.com/h80/un.png';
-    }
-
-    const flags: { [key: string]: string } = {
-        'Colombia': 'co', 'COL': 'co',
-        'Argentina': 'ar', 'ARG': 'ar',
-        'Brasil': 'br', 'BRA': 'br',
-        'Francia': 'fr', 'FRA': 'fr',
-        'España': 'es', 'ESP': 'es',
-        'Alemania': 'de', 'GER': 'de',
-        'USA': 'us', 'Estados Unidos': 'us',
-        'México': 'mx', 'MEX': 'mx',
-        'Inglaterra': 'gb-eng', 'ENG': 'gb-eng',
-        'Italia': 'it', 'ITA': 'it',
-        'Portugal': 'pt', 'POR': 'pt',
-        'Uruguay': 'uy', 'URU': 'uy',
-        'Chile': 'cl', 'CHI': 'cl',
-        'Ecuador': 'ec', 'ECU': 'ec',
-        'Perú': 'pe', 'PER': 'pe',
-        'Paraguay': 'py', 'PAR': 'py',
-        'Venezuela': 've', 'VEN': 've',
-        'Bolivia': 'bo', 'BOL': 'bo',
-        'Canadá': 'ca', 'CAN': 'ca',
-        'Costa Rica': 'cr', 'CRC': 'cr',
-        'Jamaica': 'jm', 'JAM': 'jm',
-        'Panamá': 'pa', 'PAN': 'pa',
-        'Haití': 'ht', 'HAI': 'ht', 'Haiti': 'ht',
-        'Australia': 'au', 'AUS': 'au',
-        'Catar': 'qa', 'CAT': 'qa', 'Qatar': 'qa',
-        'Sudáfrica': 'za', 'RSA': 'za',
-        'Corea del Sur': 'kr', 'KOR': 'kr', 'República de Corea': 'kr',
-        'Japón': 'jp', 'JPN': 'jp',
-        'Marruecos': 'ma', 'MAR': 'ma',
-        'Senegal': 'sn', 'SEN': 'sn',
-        'Países Bajos': 'nl', 'NED': 'nl',
-        'Irán': 'ir', 'IRN': 'ir',
-        'Gales': 'gb-wls', 'WAL': 'gb-wls',
-        'Bélgica': 'be', 'BEL': 'be',
-        'Croacia': 'hr', 'CRO': 'hr',
-        'Egipto': 'eg', 'EGY': 'eg',
-        'Serbia': 'rs', 'SRB': 'rs',
-        'Escocia': 'gb-sct', 'SCO': 'gb-sct',
-        'Arabia Saudita': 'sa', 'KSA': 'sa',
-        'Polonia': 'pl', 'POL': 'pl'
-    };
-
-    const code = flags[teamName] || teamName?.substring(0, 2).toLowerCase();
-    return `https://flagcdn.com/h80/${code}.png`;
-};
+import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing }) => {
     const { predictions, savePrediction, refresh: refreshPredictions } = useMyPredictions();
@@ -106,8 +56,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 ...m,
                 dateStr,
                 displayDate,
-                homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
-                awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
+                homeTeam: m.homeTeam,
+                awayTeam: m.awayTeam,
+                homeFlag: m.homeFlag || getTeamFlagUrl(m.homeTeam || m.homeTeamPlaceholder),
+                awayFlag: m.awayFlag || getTeamFlagUrl(m.awayTeam || m.awayTeamPlaceholder),
                 status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
                 scoreH: m.homeScore,
                 scoreA: m.awayScore,

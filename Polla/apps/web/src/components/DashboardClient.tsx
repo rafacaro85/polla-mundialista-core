@@ -23,6 +23,7 @@ import { SocialRankingTable } from '@/modules/social-league/components/SocialRan
 import { SocialFixture } from '@/modules/social-league/components/SocialFixture';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { toast } from 'sonner';
+import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 interface Match {
   id: string;
@@ -55,24 +56,6 @@ interface Prediction {
   homeScore?: number | null;
   awayScore?: number | null;
 }
-
-const getFlag = (teamName: string) => {
-  const flags: { [key: string]: string } = {
-    'Colombia': 'https://flagcdn.com/h80/co.png',
-    'Argentina': 'https://flagcdn.com/h80/ar.png',
-    'Brasil': 'https://flagcdn.com/h80/br.png',
-    'Francia': 'https://flagcdn.com/h80/fr.png',
-    'España': 'https://flagcdn.com/h80/es.png',
-    'Alemania': 'https://flagcdn.com/h80/de.png',
-    'USA': 'https://flagcdn.com/h80/us.png',
-    'México': 'https://flagcdn.com/h80/mx.png',
-    'Inglaterra': 'https://flagcdn.com/h80/gb-eng.png',
-    'Italia': 'https://flagcdn.com/h80/it.png',
-    'Portugal': 'https://flagcdn.com/h80/pt.png',
-    'Uruguay': 'https://flagcdn.com/h80/uy.png',
-  };
-  return flags[teamName] || 'https://flagcdn.com/h80/un.png';
-};
 
 // Modular views imported above
 
@@ -159,12 +142,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
       const pred = predictions[m.id];
 
+
+
       return {
         ...m,
         dateStr,
         displayDate,
-        homeTeam: { code: m.homeTeam || 'LOC', flag: m.homeFlag || getFlag(m.homeTeam) },
-        awayTeam: { code: m.awayTeam || 'VIS', flag: m.awayFlag || getFlag(m.awayTeam) },
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeFlag: m.homeFlag || getTeamFlagUrl(m.homeTeam || m.homeTeamPlaceholder),
+        awayFlag: m.awayFlag || getTeamFlagUrl(m.awayTeam || m.awayTeamPlaceholder),
         status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
         scoreH: m.homeScore,
         scoreA: m.awayScore,

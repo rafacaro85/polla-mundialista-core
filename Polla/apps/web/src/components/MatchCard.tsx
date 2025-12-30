@@ -22,64 +22,25 @@ const formatMatchDate = (isoDate: string) => {
   }
 };
 
-// HELPER 2: OBTENER BANDERA POR CÓDIGO FIFA
-const getFlagUrl = (teamCode: any, providedFlag: any) => {
-  if (providedFlag) return providedFlag;
-  if (!teamCode || teamCode === 'TBD' || teamCode === 'LOC' || teamCode === 'VIS') {
-    return 'https://flagcdn.com/w40/un.png';
-  }
+import { getTeamFlagUrl } from '@/shared/utils/flags';
 
-  const code = teamCode.toLowerCase();
-  const flagMap: any = {
-    COL: 'co', ARG: 'ar', BRA: 'br', USA: 'us', ESP: 'es', FRA: 'fr',
-    GER: 'de', JPN: 'jp', ENG: 'gb-eng', POR: 'pt', URU: 'uy', MEX: 'mx',
-    CAN: 'ca', MAR: 'ma', SEN: 'sn', NED: 'nl', ECU: 'ec', QAT: 'qa',
-    IRN: 'ir', WAL: 'gb-wls', SAU: 'sa', DEN: 'dk', TUN: 'tn', AUS: 'au',
-    POL: 'pl', CRO: 'hr', BEL: 'be', SUI: 'ch', CMR: 'cm', SRB: 'rs',
-    KOR: 'kr', GHA: 'gh', CRC: 'cr'
-  };
-
-  return `https://flagcdn.com/w40/${flagMap[teamCode.toUpperCase()] || code}.png`;
-};
-
-// HELPER 3: CONVERTIR NOMBRE A CÓDIGO FIFA
-const getTeamCode = (teamName: any) => {
-  if (!teamName) return 'TBD';
-  if (teamName.length === 3 && teamName === teamName.toUpperCase()) return teamName;
-
-  const nameToCode: any = {
-    'Colombia': 'COL', 'Argentina': 'ARG', 'Brazil': 'BRA', 'Brasil': 'BRA',
-    'United States': 'USA', 'USA': 'USA', 'Spain': 'ESP', 'España': 'ESP',
-    'France': 'FRA', 'Francia': 'FRA', 'Germany': 'GER', 'Alemania': 'GER',
-    'Japan': 'JPN', 'Japón': 'JPN', 'England': 'ENG', 'Inglaterra': 'ENG',
-    'Portugal': 'POR', 'Uruguay': 'URU', 'Mexico': 'MEX', 'México': 'MEX',
-    'Canada': 'CAN', 'Canadá': 'CAN', 'Morocco': 'MAR', 'Marruecos': 'MAR',
-    'Senegal': 'SEN', 'Netherlands': 'NED', 'Países Bajos': 'NED', 'Holanda': 'NED',
-    'Ecuador': 'ECU', 'Qatar': 'QAT', 'Iran': 'IRN', 'Irán': 'IRN',
-    'Wales': 'WAL', 'Gales': 'WAL', 'Saudi Arabia': 'SAU', 'Arabia Saudita': 'SAU',
-    'Denmark': 'DEN', 'Dinamarca': 'DEN', 'Tunisia': 'TUN', 'Túnez': 'TUN',
-    'Australia': 'AUS', 'Poland': 'POL', 'Polonia': 'POL', 'Croatia': 'CRO', 'Croacia': 'CRO',
-    'Belgium': 'BEL', 'Bélgica': 'BEL', 'Switzerland': 'SUI', 'Suiza': 'SUI',
-    'Cameroon': 'CMR', 'Camerún': 'CMR', 'Serbia': 'SRB', 'South Korea': 'KOR', 'Corea del Sur': 'KOR',
-    'Ghana': 'GHA', 'Costa Rica': 'CRC', 'Italy': 'ITA', 'Italia': 'ITA',
-    'Chile': 'CHI', 'Peru': 'PER', 'Perú': 'PER', 'Paraguay': 'PAR',
-    'Venezuela': 'VEN', 'Bolivia': 'BOL'
-  };
-
-  const code = nameToCode[teamName] || nameToCode[teamName.trim()];
-  return code ? code : teamName.substring(0, 3).toUpperCase();
+// HELPER 2: OBTENER CÓDIGO VISUAL (3 LETRAS)
+const getVisualCode = (name: string) => {
+  if (!name) return 'TBD';
+  if (name.length === 3 && name === name.toUpperCase()) return name;
+  return name.substring(0, 3).toUpperCase();
 };
 
 export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) {
   // 1. EXTRAER DATOS DEL PARTIDO
-  const homeTeamName = match.homeTeam?.code || match.home || 'LOC';
-  const awayTeamName = match.awayTeam?.code || match.away || 'VIS';
+  const homeTeamName = match.homeTeam || match.homeTeamPlaceholder || 'LOC';
+  const awayTeamName = match.awayTeam || match.awayTeamPlaceholder || 'VIS';
 
-  const homeCode = getTeamCode(homeTeamName);
-  const awayCode = getTeamCode(awayTeamName);
+  const homeCode = getVisualCode(homeTeamName);
+  const awayCode = getVisualCode(awayTeamName);
 
-  const homeFlagUrl = getFlagUrl(homeCode, match.homeTeam?.flag || match.homeFlag);
-  const awayFlagUrl = getFlagUrl(awayCode, match.awayTeam?.flag || match.awayFlag);
+  const homeFlagUrl = match.homeFlag || getTeamFlagUrl(homeTeamName);
+  const awayFlagUrl = match.awayFlag || getTeamFlagUrl(awayTeamName);
 
   const groupName = match.group || 'A';
   const stadium = match.stadium || 'Estadio TBD';

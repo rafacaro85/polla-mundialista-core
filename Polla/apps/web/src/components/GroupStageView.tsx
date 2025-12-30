@@ -5,14 +5,32 @@ import { Users, ChevronRight, Calculator } from 'lucide-react';
    HELPER: BANDERAS
    ============================================================================= */
 const getFlagUrl = (teamCode: string) => {
+    if (!teamCode || teamCode === 'TBD' || teamCode === '-' || teamCode.includes('W32') || teamCode.includes('W16')) {
+        return "https://flagcdn.com/h24/un.png";
+    }
+
     const codeMap: { [key: string]: string } = {
         'COL': 'co', 'ARG': 'ar', 'BRA': 'br', 'USA': 'us', 'ESP': 'es',
         'FRA': 'fr', 'GER': 'de', 'JPN': 'jp', 'ENG': 'gb-eng', 'POR': 'pt',
         'URU': 'uy', 'MEX': 'mx', 'CAN': 'ca', 'MAR': 'ma', 'SEN': 'sn',
         'NED': 'nl', 'ECU': 'ec', 'QAT': 'qa', 'IRN': 'ir', 'WAL': 'gb-wls',
         'KOR': 'kr', 'AUS': 'au', 'CRC': 'cr', 'BEL': 'be', 'CRO': 'hr',
-        'EGY': 'eg', 'SRB': 'rs', 'SCO': 'gb-sct', 'KSA': 'sa', 'POL': 'pl'
+        'EGY': 'eg', 'SRB': 'rs', 'SCO': 'gb-sct', 'KSA': 'sa', 'POL': 'pl',
+        'México': 'mx', 'Mexico': 'mx',
+        'Sudáfrica': 'za', 'South Africa': 'za',
+        'República de Corea': 'kr', 'South Korea': 'kr',
+        'Canadá': 'ca', 'Canada': 'ca',
+        'España': 'es', 'Spain': 'es',
+        'Alemania': 'de', 'Germany': 'de',
+        'Francia': 'fr', 'France': 'fr',
+        'Inglaterra': 'gb-eng', 'England': 'gb-eng',
+        'Estados Unidos': 'us',
+        'Países Bajos': 'nl', 'Netherlands': 'nl',
+        'Catar': 'qa', 'Qatar': 'qa',
+        'Haití': 'ht', 'Haiti': 'ht',
+        'Australia': 'au'
     };
+
     const isoCode = codeMap[teamCode] || teamCode?.substring(0, 2).toLowerCase();
     return `https://flagcdn.com/h24/${isoCode}.png`;
 };
@@ -196,9 +214,11 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
         };
 
         matches.forEach(match => {
-            if (match.phase !== 'group' && !match.group) return;
+            const phase = match.phase?.toUpperCase();
+            if (phase !== 'GROUP') return;
+            if (!match.group) return;
 
-            const groupName = match.group || 'Desconocido';
+            const groupName = match.group;
             const homeCode = typeof match.homeTeam === 'object' ? match.homeTeam.code : match.homeTeam;
             const awayCode = typeof match.awayTeam === 'object' ? match.awayTeam.code : match.awayTeam;
 

@@ -36,31 +36,59 @@ interface Match {
 }
 
 const getFlag = (teamName: string) => {
+    if (!teamName || teamName === 'TBD' || teamCodeMatchesPlaceholder(teamName)) {
+        return 'https://flagcdn.com/h80/un.png';
+    }
+
     const flags: { [key: string]: string } = {
-        'Colombia': 'https://flagcdn.com/h80/co.png',
-        'Argentina': 'https://flagcdn.com/h80/ar.png',
-        'Brasil': 'https://flagcdn.com/h80/br.png',
-        'Francia': 'https://flagcdn.com/h80/fr.png',
-        'España': 'https://flagcdn.com/h80/es.png',
-        'Alemania': 'https://flagcdn.com/h80/de.png',
-        'USA': 'https://flagcdn.com/h80/us.png',
-        'México': 'https://flagcdn.com/h80/mx.png',
-        'Inglaterra': 'https://flagcdn.com/h80/gb-eng.png',
-        'Italia': 'https://flagcdn.com/h80/it.png',
-        'Portugal': 'https://flagcdn.com/h80/pt.png',
-        'Uruguay': 'https://flagcdn.com/h80/uy.png',
-        'Chile': 'https://flagcdn.com/h80/cl.png',
-        'Ecuador': 'https://flagcdn.com/h80/ec.png',
-        'Perú': 'https://flagcdn.com/h80/pe.png',
-        'Paraguay': 'https://flagcdn.com/h80/py.png',
-        'Venezuela': 'https://flagcdn.com/h80/ve.png',
-        'Bolivia': 'https://flagcdn.com/h80/bo.png',
-        'Canadá': 'https://flagcdn.com/h80/ca.png',
-        'Costa Rica': 'https://flagcdn.com/h80/cr.png',
-        'Jamaica': 'https://flagcdn.com/h80/jm.png',
-        'Panamá': 'https://flagcdn.com/h80/pa.png',
+        'Colombia': 'co', 'COL': 'co',
+        'Argentina': 'ar', 'ARG': 'ar',
+        'Brasil': 'br', 'BRA': 'br',
+        'Francia': 'fr', 'FRA': 'fr',
+        'España': 'es', 'ESP': 'es',
+        'Alemania': 'de', 'GER': 'de',
+        'USA': 'us', 'Estados Unidos': 'us',
+        'México': 'mx', 'MEX': 'mx',
+        'Inglaterra': 'gb-eng', 'ENG': 'gb-eng',
+        'Italia': 'it', 'ITA': 'it',
+        'Portugal': 'pt', 'POR': 'pt',
+        'Uruguay': 'uy', 'URU': 'uy',
+        'Chile': 'cl', 'CHI': 'cl',
+        'Ecuador': 'ec', 'ECU': 'ec',
+        'Perú': 'pe', 'PER': 'pe',
+        'Paraguay': 'py', 'PAR': 'py',
+        'Venezuela': 've', 'VEN': 've',
+        'Bolivia': 'bo', 'BOL': 'bo',
+        'Canadá': 'ca', 'CAN': 'ca',
+        'Costa Rica': 'cr', 'CRC': 'cr',
+        'Jamaica': 'jm', 'JAM': 'jm',
+        'Panamá': 'pa', 'PAN': 'pa',
+        'Haití': 'ht', 'HAI': 'ht', 'Haiti': 'ht',
+        'Australia': 'au', 'AUS': 'au',
+        'Catar': 'qa', 'CAT': 'qa', 'Qatar': 'qa',
+        'Sudáfrica': 'za', 'RSA': 'za',
+        'Corea del Sur': 'kr', 'KOR': 'kr', 'República de Corea': 'kr',
+        'Japón': 'jp', 'JPN': 'jp',
+        'Marruecos': 'ma', 'MAR': 'ma',
+        'Senegal': 'sn', 'SEN': 'sn',
+        'Países Bajos': 'nl', 'NED': 'nl',
+        'Irán': 'ir', 'IRN': 'ir',
+        'Gales': 'gb-wls', 'WAL': 'gb-wls',
+        'Bélgica': 'be', 'BEL': 'be',
+        'Croacia': 'hr', 'CRO': 'hr',
+        'Egipto': 'eg', 'EGY': 'eg',
+        'Serbia': 'rs', 'SRB': 'rs',
+        'Escocia': 'gb-sct', 'SCO': 'gb-sct',
+        'Arabia Saudita': 'sa', 'KSA': 'sa',
+        'Polonia': 'pl', 'POL': 'pl'
     };
-    return flags[teamName] || 'https://flagcdn.com/h80/un.png';
+
+    const code = flags[teamName] || teamName?.substring(0, 2).toLowerCase();
+    return `https://flagcdn.com/h80/${code}.png`;
+};
+
+const teamCodeMatchesPlaceholder = (code: string) => {
+    return code === '-' || code.includes('W32') || code.includes('W16') || code.includes('1A') || code.includes('2B');
 };
 
 export const EnterpriseFixture = () => {

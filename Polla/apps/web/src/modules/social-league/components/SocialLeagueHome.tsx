@@ -26,7 +26,8 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                     ¡HOLA, {nickname.toUpperCase()}!
                 </p>
                 <h1 className="text-2xl font-black text-white uppercase tracking-tight leading-none italic">
-                    BIENVENIDO A LA {league.name.toUpperCase()} <br />
+                    BIENVENIDO A LA <span className="text-[#00E676]">POLLA</span> <br />
+                    {league.name.toUpperCase()} <br />
                     <span className="text-slate-500 text-sm italic tracking-widest font-russo uppercase">Mundialista 2026</span>
                 </h1>
             </div>

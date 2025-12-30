@@ -202,8 +202,9 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             }
         } catch (error: any) {
             console.error('Upload error:', error);
-            const msg = error.response?.data?.message || 'Error de conexión con el servidor de imágenes.';
-            alert(`Error: ${msg}`);
+            const msg = error.response?.data?.message || 'Error de conexión';
+            const detail = error.response?.data?.detail ? ` (${error.response.data.detail})` : '';
+            alert(`Error: ${msg}${detail}`);
         } finally {
             setUploadingField(null);
         }

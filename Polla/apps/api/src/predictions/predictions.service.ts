@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Prediction } from '../database/entities/prediction.entity';
 import { Match } from '../database/entities/match.entity';
 import { User } from '../database/entities/user.entity';
@@ -43,12 +43,13 @@ export class PredictionsService {
             throw new BadRequestException('Cannot predict on a match that has already started');
         }
 
-        // JOKER LOGIC: Only one joker per phase allowed
+        // JOKER LOGIC: Only one joker per phase allowed PER LEAGUE
         if (isJoker) {
             const previousJokers = await this.predictionsRepository.find({
                 where: {
                     user: { id: userId },
                     isJoker: true,
+                    leagueId: leagueId ? leagueId : IsNull(),
                     match: { phase: match.phase }
                 },
                 relations: ['match']
@@ -66,6 +67,7 @@ export class PredictionsService {
             where: {
                 user: { id: userId },
                 match: { id: matchId },
+                leagueId: leagueId ? leagueId : IsNull()
             },
         });
 
@@ -77,6 +79,7 @@ export class PredictionsService {
             prediction = this.predictionsRepository.create({
                 user: { id: userId } as User,
                 match: { id: matchId } as Match,
+                leagueId: leagueId || undefined,
                 homeScore,
                 awayScore,
                 isJoker: isJoker || false
@@ -93,7 +96,7 @@ export class PredictionsService {
         });
     }
 
-    async removePrediction(userId: string, matchId: string) {
+    async removePrediction(userId: string, matchId: string, leagueId?: string) {
         const match = await this.matchesRepository.findOne({ where: { id: matchId } });
         if (!match) {
             throw new NotFoundException('Match not found');
@@ -108,6 +111,7 @@ export class PredictionsService {
             where: {
                 user: { id: userId },
                 match: { id: matchId },
+                leagueId: leagueId ? leagueId : IsNull()
             },
         });
 

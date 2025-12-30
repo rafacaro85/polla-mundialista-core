@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { BonusService } from './bonus.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
@@ -22,8 +22,8 @@ export class BonusController {
 
     // Listar preguntas activas (usuario)
     @Get('questions')
-    async getActiveQuestions() {
-        return this.bonusService.getActiveQuestions();
+    async getActiveQuestions(@Query('leagueId') leagueId?: string) {
+        return this.bonusService.getActiveQuestions(leagueId);
     }
 
     // Admin: Listar todas las preguntas
@@ -42,8 +42,8 @@ export class BonusController {
 
     // Usuario: Obtener mis respuestas
     @Get('my-answers')
-    async getMyAnswers(@Request() req: any) {
-        return this.bonusService.getUserAnswers(req.user.id);
+    async getMyAnswers(@Request() req: any, @Query('leagueId') leagueId?: string) {
+        return this.bonusService.getUserAnswers(req.user.id, leagueId);
     }
 
     // Admin: Calificar pregunta

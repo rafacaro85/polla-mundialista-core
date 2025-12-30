@@ -16,12 +16,13 @@ interface SocialFixtureProps {
     loading: boolean;
     onRefresh: () => void;
     isRefreshing: boolean;
+    leagueId?: string;
 }
 
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
-export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing }) => {
-    const { predictions, savePrediction, refresh: refreshPredictions } = useMyPredictions();
+export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
+    const { predictions, savePrediction, deletePrediction, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -115,11 +116,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         }
 
         if (homeScore === null && awayScore === null) {
-            try {
-                await api.delete(`/predictions/${matchId}`);
-                toast.success('Predicción eliminada');
-                refreshPredictions();
-            } catch (e) { toast.error('Error al eliminar'); }
+            await deletePrediction(matchId);
             return;
         }
 

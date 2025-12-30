@@ -4,7 +4,7 @@ import { Match } from './match.entity';
 
 @Entity('predictions')
 @Index(['match']) // Fast lookup for match scoring
-@Index(['user', 'match'], { unique: true }) // Prevent duplicate predictions per match
+@Index(['user', 'match', 'leagueId'], { unique: true }) // Prevent duplicate predictions per match + league
 export class Prediction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -14,6 +14,9 @@ export class Prediction {
 
   @ManyToOne(() => Match, match => match.predictions)
   match: Match;
+
+  @Column({ name: 'league_id', nullable: true })
+  leagueId: string;
 
   @Column()
   homeScore: number;

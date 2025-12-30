@@ -24,7 +24,11 @@ interface UserAnswer {
 /* =============================================================================
    COMPONENTE: BONUS VIEW (DESAFÍOS)
    ============================================================================= */
-export const BonusView = () => {
+interface BonusViewProps {
+    leagueId?: string;
+}
+
+export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
     // ESTADO
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [userAnswers, setUserAnswers] = useState<Record<string, UserAnswer>>({});
@@ -39,9 +43,10 @@ export const BonusView = () => {
 
     const loadData = async () => {
         try {
+            const queryParam = leagueId ? `?leagueId=${leagueId}` : '';
             const [questionsRes, answersRes] = await Promise.all([
-                api.get('/bonus/questions'),
-                api.get('/bonus/my-answers')
+                api.get(`/bonus/questions${queryParam}`),
+                api.get(`/bonus/my-answers${queryParam}`)
             ]);
 
             setQuestions(questionsRes.data);

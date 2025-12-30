@@ -438,6 +438,9 @@ export class LeaguesService {
 
   async getLeagueRanking(leagueId: string) {
     // Obtener IDs de participantes de la liga
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    if (!league) throw new NotFoundException('League not found');
+
     const participants = await this.leagueParticipantsRepository.find({
       where: { league: { id: leagueId } },
       relations: ['user'],
@@ -465,8 +468,9 @@ export class LeaguesService {
     const realGoals = Number(totalGoals || 0);
 
     // Obtener puntos de predicciones y brackets
+    const isGlobal = league.type === LeagueType.GLOBAL;
     const ranking = await this.userRepository.createQueryBuilder('user')
-      .leftJoin('user.predictions', 'prediction')
+      .leftJoin('user.predictions', 'prediction', isGlobal ? 'prediction.leagueId IS NULL' : 'prediction.leagueId = :leagueId', { leagueId })
       .leftJoin('prediction.match', 'm_pred')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
       .leftJoin('user.leagueParticipants', 'lp', 'lp.league = :leagueId', { leagueId })
@@ -920,6 +924,9 @@ export class LeaguesService {
     // Para ligas empresariales, retornar todos los partidos del torneo FIFA 2026
     // con las predicciones del usuario si está autenticado
 
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    const isGlobal = league?.type === LeagueType.GLOBAL;
+
     const matchesQuery = this.leaguesRepository.manager
       .getRepository(Match)
       .createQueryBuilder('match')
@@ -931,8 +938,10 @@ export class LeaguesService {
         .leftJoinAndSelect(
           'match.predictions',
           'prediction',
-          'prediction.userId = :userId',
-          { userId }
+          isGlobal
+            ? 'prediction.userId = :userId AND prediction.leagueId IS NULL'
+            : 'prediction.userId = :userId AND prediction.leagueId = :leagueId',
+          { userId, leagueId }
         );
     }
 

@@ -36,10 +36,21 @@ export class BonusService {
         return this.bonusQuestionRepository.save(question);
     }
 
-    // Listar preguntas activas
-    async getActiveQuestions(): Promise<BonusQuestion[]> {
+    // Listar preguntas activas filtradas por liga
+    async getActiveQuestions(leagueId?: string): Promise<BonusQuestion[]> {
+        const where: any = { isActive: true };
+        if (leagueId) {
+            where.leagueId = leagueId;
+        } else {
+            // Si no hay liga, buscamos la GLOBAL por defecto para la vista general
+            const globalLeague = await this.leagueRepository.findOne({ where: { type: LeagueType.GLOBAL } });
+            if (globalLeague) {
+                where.leagueId = globalLeague.id;
+            }
+        }
+
         return this.bonusQuestionRepository.find({
-            where: { isActive: true },
+            where,
             order: { createdAt: 'DESC' },
         });
     }
@@ -93,12 +104,22 @@ export class BonusService {
         return this.userBonusAnswerRepository.save(userAnswer);
     }
 
-    // Obtener respuestas del usuario
-    async getUserAnswers(userId: string): Promise<UserBonusAnswer[]> {
-        return this.userBonusAnswerRepository.find({
-            where: { userId },
-            relations: ['question'],
-        });
+    // Obtener respuestas del usuario filtradas por liga
+    async getUserAnswers(userId: string, leagueId?: string): Promise<UserBonusAnswer[]> {
+        const query = this.userBonusAnswerRepository.createQueryBuilder('answer')
+            .leftJoinAndSelect('answer.question', 'question')
+            .where('answer.userId = :userId', { userId });
+
+        if (leagueId) {
+            query.andWhere('question.leagueId = :leagueId', { leagueId });
+        } else {
+            const globalLeague = await this.leagueRepository.findOne({ where: { type: LeagueType.GLOBAL } });
+            if (globalLeague) {
+                query.andWhere('question.leagueId = :leagueId', { leagueId: globalLeague.id });
+            }
+        }
+
+        return query.getMany();
     }
 
     // Admin: Calificar pregunta

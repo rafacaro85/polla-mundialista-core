@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Delete, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Delete, Param, Query } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -28,7 +28,7 @@ export class PredictionsController {
 
     @UseGuards(JwtAuthGuard)
     @Delete(':matchId')
-    async deletePrediction(@Request() req: any, @Param('matchId') matchId: string) {
-        return this.predictionsService.removePrediction(req.user.id, matchId);
+    async deletePrediction(@Request() req: any, @Param('matchId') matchId: string, @Query('leagueId') leagueId?: string) {
+        return this.predictionsService.removePrediction(req.user.id, matchId, leagueId);
     }
 }

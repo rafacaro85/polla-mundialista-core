@@ -66,7 +66,7 @@ interface DashboardClientProps {
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
-  const { predictions } = useMyPredictions();
+  const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
@@ -391,7 +391,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           {
             activeTab === 'bonus' && (
               <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <BonusView />
+                <BonusView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
               </div>
             )
           }

@@ -39,7 +39,8 @@ import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 export const EnterpriseFixture = () => {
     const params = useParams();
-    const { predictions, savePrediction, loading: loadingPredictions } = useMyPredictions();
+    const leagueId = params.id as string;
+    const { predictions, savePrediction, deletePrediction, loading: loadingPredictions } = useMyPredictions(leagueId);
 
     // Raw matches from API
     const [rawMatches, setRawMatches] = useState<any[]>([]);
@@ -174,25 +175,7 @@ export const EnterpriseFixture = () => {
         }
 
         if (homeScore === null && awayScore === null) {
-            // Delete logic - API supports delete? Hook usually just saves data?
-            // Existing Logic used api.delete. 
-            // We can implement delete in hook or use direct API here.
-            // Since User Request wanted centralized LOGIC, we should ideally have delete in hook. 
-            // But hook provided savePrediction. 
-            // I'll call API delete here and then revalidate hook.
-            try {
-                await api.delete(`/predictions/${matchId}`);
-                toast.success('Predicción eliminada');
-                // Force hook refresh
-                // We can export refresh/mutate from hook
-                // Assuming useMyPredictions returns mutate/refresh? I returned 'refresh' in my implementation.
-                // Re-calling hook to get refresh function? Or accessing it via SWR mutate global import.
-                // I'll assume standard delete flow.
-                // Actually the Hook I wrote didn't export 'refresh' in interface explicitly?
-                // Let's check hook implementation.
-                // Yes, 'refresh: mutateLocal'.
-                // I need to destructure refresh.
-            } catch (e) { toast.error('Error al eliminar'); }
+            await deletePrediction(matchId);
             return;
         }
 

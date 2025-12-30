@@ -8,9 +8,10 @@ import { PrizeHero } from '@/components/PrizeHero';
 interface GlobalHomeProps {
     userName?: string;
     onNavigateToLeagues: () => void;
+    onNavigateToGames: () => void;
 }
 
-export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLeagues }) => {
+export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLeagues, onNavigateToGames }) => {
     return (
         <div className="flex flex-col space-y-6 pb-20">
             {/* Welcome Section */}
@@ -79,7 +80,10 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
             </div>
 
             {/* Rules / Info Banner */}
-            <div className="mx-2 p-4 bg-gradient-to-r from-indigo-900/50 to-purple-900/50 rounded-xl border border-indigo-500/30 relative overflow-hidden">
+            <button
+                onClick={onNavigateToGames}
+                className="mx-2 p-4 bg-gradient-to-r from-indigo-900/50 to-purple-900/50 rounded-xl border border-indigo-500/30 relative overflow-hidden text-left transition-all hover:scale-[1.02] active:scale-[0.98] group"
+            >
                 <div className="relative z-10">
                     <h3 className="text-white font-bold mb-1 flex items-center gap-2">
                         <Calendar size={16} className="text-indigo-400" />
@@ -88,17 +92,15 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                     <p className="text-xs text-indigo-200 mb-3">
                         No olvides realizar tus predicciones antes de que inicien los juegos.
                     </p>
-                    <Button
-                        size="sm"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white border-none text-xs"
-                        onClick={() => document.getElementById('tab-btn-game')?.click()}
+                    <div
+                        className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8 px-3 bg-indigo-600 hover:bg-indigo-700 text-white border-none"
                     >
                         Predecir Ahora <ArrowRight size={12} className="ml-1" />
-                    </Button>
+                    </div>
                 </div>
                 {/* Decoration */}
-                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-xl"></div>
-            </div>
+                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-xl group-hover:bg-indigo-500/30 transition-colors"></div>
+            </button>
 
         </div>
     );

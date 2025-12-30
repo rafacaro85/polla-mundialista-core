@@ -325,6 +325,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 <GlobalHome
                   userName={user?.nickname || user?.fullName?.split(' ')[0]}
                   onNavigateToLeagues={() => setActiveTab('leagues')}
+                  onNavigateToGames={() => setActiveTab('game')}
                 />
               ) : (
                 <SocialLeagueHome
@@ -382,7 +383,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                     <GroupStageView matches={matches} />
                   ) : (
                     <BracketView
-                      matches={matches.map(m => ({
+                      matches={matches.map((m: any) => ({
                         ...m,
                         homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
                         awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,

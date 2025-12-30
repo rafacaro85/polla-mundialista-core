@@ -7,13 +7,15 @@ import { api } from '@/lib/api';
    1. HELPER: BANDERAS (FALLBACK)
    ============================================================================= */
 const getFallbackFlagUrl = (teamCode: string) => {
-    if (!teamCode) return "https://flagcdn.com/w40/un.png";
+    if (!teamCode || teamCode === '-' || teamCode.includes('W32') || teamCode.includes('W16') || teamCode === 'TBD') {
+        return "https://flagcdn.com/h24/un.png";
+    }
     const codeMap: { [key: string]: string } = {
         'COL': 'co', 'ARG': 'ar', 'BRA': 'br', 'USA': 'us', 'ESP': 'es', 'FRA': 'fr', 'GER': 'de', 'JPN': 'jp',
         'ENG': 'gb-eng', 'POR': 'pt', 'URU': 'uy', 'MEX': 'mx', 'CAN': 'ca', 'MAR': 'ma', 'SEN': 'sn', 'NED': 'nl',
         'ECU': 'ec', 'QAT': 'qa', 'IRN': 'ir', 'WAL': 'gb-wls', 'KOR': 'kr', 'AUS': 'au', 'CRC': 'cr', 'BEL': 'be',
         'CRO': 'hr', 'EGY': 'eg', 'SRB': 'rs', 'SCO': 'gb-sct', 'KSA': 'sa', 'POL': 'pl',
-        'Netherlands': 'nl', 'United States': 'us', 'South Korea': 'kr' // Fix for full names
+        'Netherlands': 'nl', 'United States': 'us', 'South Korea': 'kr'
     };
     const isoCode = codeMap[teamCode] || teamCode?.substring(0, 2).toLowerCase();
     return `https://flagcdn.com/h24/${isoCode}.png`;
@@ -294,8 +296,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                     team2={m.away}
                                     placeholder1={m.homePlaceholder}
                                     placeholder2={m.awayPlaceholder}
-                                    nextId={`m${Math.ceil(m.bracketId / 2)}`}
-                                    slot={m.bracketId % 2 !== 0 ? 0 : 1}
+                                    nextId={`m${Math.ceil((m.bracketId || 0) / 2)}`}
+                                    slot={(m.bracketId || 0) % 2 !== 0 ? 0 : 1}
                                 />
                             ))}
                         </div>

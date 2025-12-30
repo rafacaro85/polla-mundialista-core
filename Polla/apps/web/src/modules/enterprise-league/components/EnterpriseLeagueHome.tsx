@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PrizeHero } from '@/components/PrizeHero';
 import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
+import { useRouter } from 'next/navigation';
 
 interface EnterpriseLeagueHomeProps {
     league: any;
@@ -11,6 +12,12 @@ interface EnterpriseLeagueHomeProps {
 }
 
 export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueHomeProps) {
+    const router = useRouter();
+
+    const handlePhaseClick = () => {
+        router.push(`/leagues/${league.id}/predictions`);
+    };
+
     return (
         <div className="min-h-screen bg-transparent flex flex-col font-sans">
 
@@ -70,7 +77,7 @@ export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueH
 
             {/* 2.5 PHASE PROGRESS */}
             <div className="w-full max-w-4xl mx-auto px-4 mt-8">
-                <PhaseProgressDashboard />
+                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
             </div>
 
             {/* 3. PARTICIPANTS LIST (Read Only - Summary) */}

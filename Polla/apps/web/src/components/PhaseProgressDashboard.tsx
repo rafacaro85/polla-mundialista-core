@@ -5,7 +5,11 @@ import { useKnockoutPhases } from '@/hooks/useKnockoutPhases';
 import { PhaseStatusIndicator } from '@/components/PhaseStatusIndicator';
 import { Loader2, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 
-export function PhaseProgressDashboard() {
+interface PhaseProgressDashboardProps {
+    onPhaseClick?: (phase: string) => void;
+}
+
+export function PhaseProgressDashboard({ onPhaseClick }: PhaseProgressDashboardProps) {
     const { phases, nextPhaseInfo, loading, error } = useKnockoutPhases();
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -97,6 +101,7 @@ export function PhaseProgressDashboard() {
                                 phase={phase.phase}
                                 isUnlocked={phase.isUnlocked}
                                 isCompleted={phase.allMatchesCompleted}
+                                onClick={onPhaseClick}
                             />
                         ))}
                     </div>

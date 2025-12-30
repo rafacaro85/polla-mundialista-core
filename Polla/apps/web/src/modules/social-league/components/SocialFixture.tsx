@@ -117,6 +117,19 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         [matches, selectedDate]
     );
 
+    const handlePhaseClick = (phase: string) => {
+        // Find the first match of this phase
+        const phaseMatches = matches.filter(m => m.phase === phase);
+        if (phaseMatches.length > 0) {
+            // Sort by actual date to pick the earliest
+            const firstMatch = phaseMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+            setSelectedDate(firstMatch.displayDate);
+            toast.info(`Navegando a ${phase}`);
+        } else {
+            toast.error('No hay partidos para esta fase');
+        }
+    };
+
     const handlePredictionChange = async (matchId: string, homeScore: any, awayScore: any, isJoker?: boolean) => {
         if (aiSuggestions[matchId]) {
             const next = { ...aiSuggestions };
@@ -165,7 +178,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
             <div className="mb-6">
-                <PhaseProgressDashboard />
+                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
                 <div className="mt-4 flex justify-center">
                     <AiSuggestionsButton
                         matches={matches}

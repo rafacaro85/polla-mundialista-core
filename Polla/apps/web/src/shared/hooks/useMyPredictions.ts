@@ -34,11 +34,11 @@ export const useMyPredictions = () => {
         return map;
     }, [data]);
 
-    const savePrediction = async (matchId: string, homeScore: number, awayScore: number, isJoker: boolean = false) => {
+    const savePrediction = async (matchId: string, homeScore: number, awayScore: number, isJoker: boolean = false, phase?: string) => {
         // Optimistic object
         const optimisticPrediction = {
             matchId,
-            match: { id: matchId },
+            match: { id: matchId, phase },
             homeScore,
             awayScore,
             isJoker,
@@ -47,14 +47,28 @@ export const useMyPredictions = () => {
 
         // Mutate local cache immediately
         mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
-            const list = Array.isArray(currentData) ? [...currentData] : [];
+            let list = Array.isArray(currentData) ? [...currentData] : [];
+
+            // If setting joker, optimistically unset others in same phase
+            if (isJoker) {
+                list = list.map((p: any) => {
+                    const pMatchId = p.matchId || p.match?.id;
+                    if (pMatchId !== matchId) {
+                        // If we have phase info, only unset same phase. 
+                        // If no phase provided, we might unset all (safer for optimistic UI)
+                        if (!phase || p.match?.phase === phase) {
+                            return { ...p, isJoker: false };
+                        }
+                    }
+                    return p;
+                });
+            }
+
             const index = list.findIndex((p: any) => (p.matchId === matchId || p.match?.id === matchId));
 
             if (index >= 0) {
-                // Update
                 list[index] = { ...list[index], ...optimisticPrediction };
             } else {
-                // Insert
                 list.push(optimisticPrediction);
             }
             return list;

@@ -63,15 +63,19 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const [homeScore, setHomeScore] = useState(initialHome);
   const [awayScore, setAwayScore] = useState(initialAway);
 
-  // Sincronizar estado local si cambian las props (ej: predicción IA)
+  // Sincronizar estado local si cambian las props (ej: predicción IA, o unsets de joker en otros partidos)
   React.useEffect(() => {
     const newHome = match.prediction?.homeScore?.toString() ?? match.userH ?? '';
     const newAway = match.prediction?.awayScore?.toString() ?? match.userA ?? '';
+    const newJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker);
+
     if (newHome !== homeScore) setHomeScore(newHome);
     if (newAway !== awayScore) setAwayScore(newAway);
-  }, [match.prediction, match.userH, match.userA]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (newJoker !== isJoker) setIsJoker(newJoker);
+  }, [match.prediction, match.userH, match.userA, match.isJoker]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Estado local Joker
-  const [isJoker, setIsJoker] = useState(match.prediction?.isJoker || (match.prediction as any)?.isJoker || (match.isJoker) || false);
+  const [isJoker, setIsJoker] = useState(!!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker));
 
   const handleInputChange = (value: any, setter: any) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 2);

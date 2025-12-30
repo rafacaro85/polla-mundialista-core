@@ -158,6 +158,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
         prediction: pred ? {
           homeScore: pred.homeScore,
           awayScore: pred.awayScore,
+          isJoker: pred.isJoker,
           points: pred.points || 0
         } : undefined,
         userH: pred?.homeScore?.toString() || '',

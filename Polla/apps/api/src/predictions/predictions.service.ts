@@ -45,7 +45,7 @@ export class PredictionsService {
 
         // JOKER LOGIC: Only one joker per phase allowed
         if (isJoker) {
-            const existingJoker = await this.predictionsRepository.findOne({
+            const previousJokers = await this.predictionsRepository.find({
                 where: {
                     user: { id: userId },
                     isJoker: true,
@@ -54,9 +54,11 @@ export class PredictionsService {
                 relations: ['match']
             });
 
-            if (existingJoker && existingJoker.match.id !== matchId) {
-                existingJoker.isJoker = false;
-                await this.predictionsRepository.save(existingJoker);
+            for (const joker of previousJokers) {
+                if (joker.match.id !== matchId) {
+                    joker.isJoker = false;
+                    await this.predictionsRepository.save(joker);
+                }
             }
         }
 

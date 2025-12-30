@@ -115,6 +115,7 @@ export const EnterpriseFixture = () => {
                 prediction: pred ? {
                     homeScore: pred.homeScore,
                     awayScore: pred.awayScore,
+                    isJoker: pred.isJoker,
                     points: pred.points || 0
                 } : undefined,
                 userH,
@@ -195,7 +196,8 @@ export const EnterpriseFixture = () => {
             return;
         }
 
-        await savePrediction(matchId, parseInt(homeScore), parseInt(awayScore), isJoker);
+        const match = matches.find(m => m.id === matchId);
+        await savePrediction(matchId, parseInt(homeScore), parseInt(awayScore), isJoker, match?.phase);
     };
 
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {

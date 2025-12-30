@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Trophy, Calendar, Users, ArrowRight, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PrizeCard from '@/components/PrizeCard';
@@ -68,13 +69,11 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                         size="sm"
                         variant="outline"
                         className="w-full mt-2 border-amber-600/30 hover:bg-amber-600/10 text-amber-500 text-xs h-8"
-                        onClick={() => {
-                            // Link to create a league but focused on enterprise or WhatsApp support
-                            const text = `Hola, quiero información sobre una Polla Empresarial personalizada.`;
-                            window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
-                        }}
+                        asChild
                     >
-                        Solicitar Info
+                        <Link href="/business/new">
+                            Crear Aquí
+                        </Link>
                     </Button>
                 </div>
             </div>

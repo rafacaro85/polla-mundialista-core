@@ -189,20 +189,20 @@ export class MatchesService {
 
             // Trigger automático de promoción si es partido de Dieciseisavos (ROUND_32)
             if (match.phase === 'ROUND_32' && match.nextMatchId) {
-                // Lógica de promoción para llaves de eliminación directa
                 const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
                 if (nextMatch) {
+                    const isHome = (match.bracketId % 2) !== 0;
                     const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
                     const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
 
-                    // El match.bracketId nos dice si entra por arriba o por abajo del siguiente partido
-                    // Usualmente, bracketId impar es home, par es away del siguiente
-                    if ((match.bracketId % 2) !== 0) {
+                    if (isHome) {
                         nextMatch.homeTeam = winner;
                         nextMatch.homeFlag = winnerFlag;
+                        nextMatch.homeTeamPlaceholder = null;
                     } else {
                         nextMatch.awayTeam = winner;
                         nextMatch.awayFlag = winnerFlag;
+                        nextMatch.awayTeamPlaceholder = null;
                     }
                     await this.matchesRepository.save(nextMatch);
                     console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (Octavos)`);
@@ -214,163 +214,63 @@ export class MatchesService {
     }
 
     async seedRound32(): Promise<{ message: string; created: number }> {
-        const count = await this.matchesRepository.count({ where: { phase: 'ROUND_32' } });
-        if (count > 0) return { message: 'ROUND_32 already seeded', created: 0 };
+        // Eliminar si ya existen para evitar duplicados
+        await this.matchesRepository.delete({ phase: 'ROUND_32' });
+        await this.matchesRepository.delete({ phase: 'ROUND_16' });
 
         const baseDate = new Date('2026-06-28T16:00:00Z');
-        const matches = [];
 
-        // Generar 16 partidos para Dieciseisavos
+        // 1. Crear 16 partidos de ROUND_32
+        const r32Matches = [];
+        const groupMapping = [
+            { h: '1A', a: '3CDE' }, { h: '1B', a: '3FGH' }, { h: '1C', a: '2D' }, { h: '1D', a: '2C' },
+            { h: '1E', a: '3IJK' }, { h: '1F', a: '2E' }, { h: '1G', a: '2F' }, { h: '1H', a: '2G' },
+            { h: '1I', a: '3ABL' }, { h: '1J', a: '2I' }, { h: '1K', a: '2J' }, { h: '1L', a: '2K' },
+            { h: '2A', a: '2B' }, { h: '2H', a: '2L' }, { h: '2G', a: '2K' }, { h: '2F', a: '2J' }
+        ];
+
         for (let i = 1; i <= 16; i++) {
             const date = new Date(baseDate.getTime() + (Math.floor((i - 1) / 4)) * 24 * 60 * 60 * 1000);
-            matches.push({
+            const mapping = groupMapping[i - 1];
+            r32Matches.push(this.matchesRepository.create({
                 phase: 'ROUND_32',
                 bracketId: i,
                 date,
                 homeTeam: '',
                 awayTeam: '',
-                homeTeamPlaceholder: `Ganador ${i}`, // Simplificado para demo
-                awayTeamPlaceholder: `Segundo ${i}`,
+                homeTeamPlaceholder: mapping.h,
+                awayTeamPlaceholder: mapping.a,
                 status: 'PENDING',
-            });
+            }));
         }
+        const savedR32 = await this.matchesRepository.save(r32Matches);
 
-        // Mapeo real de grupos para los primeros partidos
-        const groupMapping = [
-            { h: '1A', a: '3CDE' }, { h: '1B', a: '3FGH' }, { h: '1C', a: '2D' }, { h: '1D', a: '2C' },
-            { h: '1E', a: '3IJK' }, { h: '1F', a: '2E' }, { h: '1G', a: '2F' }, { h: '1H', a: '2G' },
-            { h: '1I', a: '3ABL' }, { h: '1J', a: '2I' }, { h: '1K', a: '2J' }, { h: '1L', a: '2K' },
-            { h: '2A', a: '2B' }, { h: '2H', a: '2L' }, { h: '3...', a: '3...' }, { h: '3...', a: '3...' }
-        ];
-
-        for (let i = 0; i < 16; i++) {
-            if (groupMapping[i]) {
-                matches[i].homeTeamPlaceholder = groupMapping[i].h;
-                matches[i].awayTeamPlaceholder = groupMapping[i].a;
-            }
-        }
-
-        const saved = await this.matchesRepository.save(matches);
-
-        // Crear Octavos (ROUND_16) y conectarlos
-        const round16 = [];
+        // 2. Crear 8 partidos de ROUND_16
+        const r16Matches = [];
         for (let i = 1; i <= 8; i++) {
-            round16.push({
+            r16Matches.push(this.matchesRepository.create({
                 phase: 'ROUND_16',
                 bracketId: i,
                 date: new Date(baseDate.getTime() + 6 * 24 * 60 * 60 * 1000),
                 homeTeam: '',
                 awayTeam: '',
-                status: 'PENDING',
                 homeTeamPlaceholder: `W32-${(i * 2) - 1}`,
-                awayTeamPlaceholder: `W32-${i * 2}`
-            });
+                awayTeamPlaceholder: `W32-${i * 2}`,
+                status: 'PENDING',
+            }));
         }
-        const savedR16 = await this.matchesRepository.save(round16);
+        const savedR16 = await this.matchesRepository.save(r16Matches);
 
-        // Conectar R32 con R16
+        // 3. Conectar R32 -> R16
         for (let i = 0; i < 16; i++) {
             const nextIdx = Math.floor(i / 2);
-            saved[i].nextMatchId = savedR16[nextIdx].id;
-            await this.matchesRepository.save(saved[i]);
+            savedR32[i].nextMatchId = savedR16[nextIdx].id;
+            await this.matchesRepository.save(savedR32[i]);
         }
 
-        return { message: 'Round of 32 seeded and connected', created: saved.length };
+        return { message: 'Round of 32 and Round of 16 seeded and connected', created: savedR32.length + savedR16.length };
     }
 
-    async seedKnockoutMatches(): Promise<{ message: string; created: number }> {
-        // Verificar si ya existen partidos de octavos
-        const existingKnockout = await this.matchesRepository.count({
-            where: { phase: 'ROUND_16' },
-        });
-
-        if (existingKnockout > 0) {
-            return {
-                message: `Ya existen ${existingKnockout} partidos de octavos. No se crearon nuevos.`,
-                created: 0,
-            };
-        }
-
-        const baseDate = new Date('2026-07-01T16:00:00Z');
-
-        const knockoutMatches = [
-            { homeTeamPlaceholder: '1A', awayTeamPlaceholder: '2B', phase: 'ROUND_16', bracketId: 1, date: new Date(baseDate.getTime() + 0 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1C', awayTeamPlaceholder: '2D', phase: 'ROUND_16', bracketId: 2, date: new Date(baseDate.getTime() + 0 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1E', awayTeamPlaceholder: '2F', phase: 'ROUND_16', bracketId: 3, date: new Date(baseDate.getTime() + 1 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1G', awayTeamPlaceholder: '2H', phase: 'ROUND_16', bracketId: 4, date: new Date(baseDate.getTime() + 1 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1B', awayTeamPlaceholder: '2A', phase: 'ROUND_16', bracketId: 5, date: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1D', awayTeamPlaceholder: '2C', phase: 'ROUND_16', bracketId: 6, date: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1F', awayTeamPlaceholder: '2E', phase: 'ROUND_16', bracketId: 7, date: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000) },
-            { homeTeamPlaceholder: '1H', awayTeamPlaceholder: '2G', phase: 'ROUND_16', bracketId: 8, date: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000) },
-        ];
-
-        for (const matchData of knockoutMatches) {
-            const match = this.matchesRepository.create({
-                ...matchData,
-                homeTeam: '',
-                awayTeam: '',
-                homeScore: null,
-                awayScore: null,
-                status: 'PENDING',
-            });
-            await this.matchesRepository.save(match);
-        }
-
-        return {
-            message: `Se crearon ${knockoutMatches.length} partidos de octavos exitosamente.`,
-            created: knockoutMatches.length,
-        };
-    }
-
-    async resetKnockoutMatches(): Promise<{ message: string; reset: number }> {
-        // Buscar todos los partidos de octavos
-        const knockoutMatches = await this.matchesRepository.find({
-            where: { phase: 'ROUND_16' },
-        });
-
-        if (knockoutMatches.length === 0) {
-            return {
-                message: 'No hay partidos de octavos para resetear.',
-                reset: 0,
-            };
-        }
-
-        // Mapeo de placeholders según bracketId
-        const placeholderMap: { [key: number]: { home: string; away: string } } = {
-            1: { home: '1A', away: '2B' },
-            2: { home: '1C', away: '2D' },
-            3: { home: '1E', away: '2F' },
-            4: { home: '1G', away: '2H' },
-            5: { home: '1B', away: '2A' },
-            6: { home: '1D', away: '2C' },
-            7: { home: '1F', away: '2E' },
-            8: { home: '1H', away: '2G' },
-        };
-
-        let resetCount = 0;
-
-        for (const match of knockoutMatches) {
-            const bracketId = match.bracketId || 0;
-            const placeholders = placeholderMap[bracketId];
-
-            if (placeholders) {
-                match.homeTeam = '';
-                match.awayTeam = '';
-                match.homeTeamPlaceholder = placeholders.home;
-                match.awayTeamPlaceholder = placeholders.away;
-                match.homeScore = null;
-                match.awayScore = null;
-                match.status = 'PENDING';
-                await this.matchesRepository.save(match);
-                resetCount++;
-            }
-        }
-
-        return {
-            message: `Se resetearon ${resetCount} partidos de octavos a sus placeholders originales.`,
-            reset: resetCount,
-        };
-    }
 
     async simulateResults(): Promise<{ message: string; updated: number }> {
         // Obtenemos partidos que tienen equipos y no están finalizados

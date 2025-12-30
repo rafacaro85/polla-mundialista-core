@@ -87,21 +87,6 @@ export class MatchesController {
         return this.matchesService.finishMatch(id, body.homeScore, body.awayScore);
     }
 
-    // Endpoint para poblar partidos de octavos (solo ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
-    @Post('seed-knockout')
-    async seedKnockoutMatches() {
-        return this.matchesService.seedKnockoutMatches();
-    }
-
-    // Endpoint para resetear partidos de octavos a placeholders (solo ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
-    @Post('reset-knockout')
-    async resetKnockoutMatches() {
-        return this.matchesService.resetKnockoutMatches();
-    }
 
     // Endpoint de prueba/simulación para validar sincronización (solo ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)

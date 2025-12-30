@@ -124,9 +124,18 @@ export class TournamentService {
             if (updateTeam('away', firstPlace, firstPlaceFlag, `1${group}`)) updated = true;
             if (updateTeam('home', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
             if (updateTeam('away', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
+
+            // Handle third places: they might be exact (3A) or partial (3ABC)
             if (thirdPlace) {
-                if (updateTeam('home', thirdPlace, thirdPlaceFlag, `3${group}`)) updated = true;
-                if (updateTeam('away', thirdPlace, thirdPlaceFlag, `3${group}`)) updated = true;
+                const homePlaceholder = match.homeTeamPlaceholder || '';
+                const awayPlaceholder = match.awayTeamPlaceholder || '';
+
+                if (homePlaceholder.startsWith('3') && homePlaceholder.includes(group)) {
+                    if (updateTeam('home', thirdPlace, thirdPlaceFlag, homePlaceholder)) updated = true;
+                }
+                if (awayPlaceholder.startsWith('3') && awayPlaceholder.includes(group)) {
+                    if (updateTeam('away', thirdPlace, thirdPlaceFlag, awayPlaceholder)) updated = true;
+                }
             }
 
             if (updated) {

@@ -164,7 +164,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         if (r32.length === 0) return null;
         const dates = r32.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
         if (dates.length === 0) return null;
-        return new Date(Math.min(...dates));
+        // El bloqueo ocurre 30 minutos antes del primer partido
+        return new Date(Math.min(...dates) - (30 * 60 * 1000));
     }, [matches]);
 
     const isLocked = useMemo(() => {

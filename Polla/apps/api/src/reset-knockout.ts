@@ -7,10 +7,10 @@ async function resetKnockout() {
     const matchesService = app.get(MatchesService);
 
     try {
-        console.log('🔄 Reseteando partidos de octavos...');
-        const result = await matchesService.resetKnockoutMatches();
+        console.log('🔄 Reseteando llaves (R32 y R16)...');
+        const result = await matchesService.seedRound32();
         console.log('✅', result.message);
-        console.log(`📊 Partidos reseteados: ${result.reset}`);
+        console.log(`📊 Partidos reseteados/creados: ${result.created}`);
     } catch (error) {
         console.error('❌ Error durante el reseteo:', error);
     } finally {

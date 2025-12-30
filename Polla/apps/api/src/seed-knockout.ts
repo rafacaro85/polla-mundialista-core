@@ -7,8 +7,8 @@ async function seedKnockout() {
     const matchesService = app.get(MatchesService);
 
     try {
-        console.log('🌱 Iniciando seeding de partidos de octavos...');
-        const result = await matchesService.seedKnockoutMatches();
+        console.log('🌱 Iniciando seeding de llaves (R32 y R16)...');
+        const result = await matchesService.seedRound32();
         console.log('✅', result.message);
         console.log(`📊 Partidos creados: ${result.created}`);
     } catch (error) {

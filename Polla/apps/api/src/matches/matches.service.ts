@@ -361,36 +361,50 @@ export class MatchesService {
                     match.homeTeam = '';
                     match.awayTeam = '';
                     // También limpiar banderas si son dinámicas
-                    (match as any).homeFlag = null;
-                    (match as any).awayFlag = null;
+                    match.homeFlag = '';
+                    match.awayFlag = '';
                 }
                 await queryRunner.manager.save(match);
             }
 
             // 2. Resetear todas las predicciones a 0 puntos
-            await queryRunner.manager.update(Prediction, {}, { points: 0 });
+            await queryRunner.manager.createQueryBuilder()
+                .update(Prediction)
+                .set({ points: 0 })
+                .execute();
 
             // 3. Resetear puntos de participantes
-            await queryRunner.manager.update(LeagueParticipant, {}, {
-                totalPoints: 0,
-                currentRank: undefined,
-                triviaPoints: 0,
-                tieBreakerGuess: undefined
-            } as any);
+            await queryRunner.manager.createQueryBuilder()
+                .update(LeagueParticipant)
+                .set({
+                    totalPoints: 0,
+                    currentRank: null as any,
+                    triviaPoints: 0,
+                    tieBreakerGuess: null as any
+                })
+                .execute();
 
             // 4. Limpiar Brackets
-            await queryRunner.manager.update(UserBracket, {}, { points: 0 });
+            await queryRunner.manager.createQueryBuilder()
+                .update(UserBracket)
+                .set({ points: 0 })
+                .execute();
 
             // 5. Resetear estados de fases eliminatorias
-            // Desbloqueamos GROUP, bloqueamos el resto
-            await queryRunner.manager.update(KnockoutPhaseStatus, {}, {
-                isUnlocked: false,
-                allMatchesCompleted: false,
-                unlockedAt: undefined
-            } as any);
-            await queryRunner.manager.update(KnockoutPhaseStatus, { phase: 'GROUP' }, {
-                isUnlocked: true
-            });
+            await queryRunner.manager.createQueryBuilder()
+                .update(KnockoutPhaseStatus)
+                .set({
+                    isUnlocked: false,
+                    allMatchesCompleted: false,
+                    unlockedAt: null as any
+                })
+                .execute();
+
+            await queryRunner.manager.createQueryBuilder()
+                .update(KnockoutPhaseStatus)
+                .set({ isUnlocked: true })
+                .where("phase = :p", { p: 'GROUP' })
+                .execute();
 
             await queryRunner.commitTransaction();
 

@@ -12,10 +12,19 @@ import { KnockoutPhasesModule } from '../knockout-phases/knockout-phases.module'
 import { HttpModule } from '@nestjs/axios';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MatchSyncService } from './match-sync.service';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { UserBracket } from '../database/entities/user-bracket.entity';
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Match, Prediction]),
+        TypeOrmModule.forFeature([
+            Match,
+            Prediction,
+            LeagueParticipant,
+            UserBracket,
+            KnockoutPhaseStatus
+        ]),
         BracketsModule,
         TournamentModule,
         KnockoutPhasesModule,

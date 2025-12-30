@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase } from 'lucide-react';
+import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
@@ -257,8 +257,15 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 <label style={STYLES.label}>Logo Identitario de la Polla</label>
                 <UploadButton field="brandingLogoUrl" label="CAMBIAR LOGO" />
                 {formData.brandingLogoUrl && (
-                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640' }}>
+                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
                         <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                        <button
+                            onClick={() => handleChange('brandingLogoUrl', '')}
+                            style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                            title="Eliminar imagen"
+                        >
+                            <Trash2 size={16} />
+                        </button>
                     </div>
                 )}
             </div>
@@ -268,8 +275,15 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 <label style={STYLES.label}>Imagen del Premio Principal</label>
                 <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
                 {formData.prizeImageUrl && (
-                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640' }}>
+                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
                         <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                        <button
+                            onClick={() => handleChange('prizeImageUrl', '')}
+                            style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                            title="Eliminar imagen"
+                        >
+                            <Trash2 size={16} />
+                        </button>
                     </div>
                 )}
             </div>

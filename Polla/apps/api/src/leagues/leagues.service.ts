@@ -934,45 +934,58 @@ export class LeaguesService {
 
     // Si hay userId, incluir sus predicciones
     if (userId) {
-      matchesQuery
-        .leftJoinAndSelect(
+      if (isGlobal) {
+        matchesQuery.leftJoinAndSelect(
           'match.predictions',
           'prediction',
-          isGlobal
-            ? 'prediction.userId = :userId AND prediction.leagueId IS NULL'
-            : 'prediction.userId = :userId AND prediction.leagueId = :leagueId',
+          'prediction.userId = :userId AND prediction.leagueId IS NULL',
+          { userId }
+        );
+      } else {
+        matchesQuery.leftJoinAndSelect(
+          'match.predictions',
+          'prediction',
+          'prediction.userId = :userId AND (prediction.leagueId = :leagueId OR prediction.leagueId IS NULL)',
           { userId, leagueId }
         );
+      }
     }
 
     const matches = await matchesQuery.getMany();
 
-    // Formatear la respuesta
-    // Formatear la respuesta para mantener consistencia con Match entity
-    return matches.map(match => ({
-      id: match.id,
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
-      homeTeamPlaceholder: match.homeTeamPlaceholder,
-      awayTeamPlaceholder: match.awayTeamPlaceholder,
-      homeFlag: match.homeFlag,
-      awayFlag: match.awayFlag,
-      date: match.date,
-      status: match.status,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
-      phase: match.phase,
-      group: match.group,
-      stadium: match.stadium,
-      bracketId: match.bracketId,
-      nextMatchId: match.nextMatchId,
-      prediction: match.predictions?.[0] ? {
-        homeScore: match.predictions[0].homeScore,
-        awayScore: match.predictions[0].awayScore,
-        isJoker: match.predictions[0].isJoker,
-        points: match.predictions[0].points,
-      } : null,
-    }));
+    return matches.map(match => {
+      let finalPrediction = null;
+      if (match.predictions?.length > 0) {
+        finalPrediction = isGlobal
+          ? match.predictions[0]
+          : (match.predictions.find(p => p.leagueId === leagueId) || match.predictions.find(p => p.leagueId === null));
+      }
+
+      return {
+        id: match.id,
+        homeTeam: match.homeTeam,
+        awayTeam: match.awayTeam,
+        homeTeamPlaceholder: match.homeTeamPlaceholder,
+        awayTeamPlaceholder: match.awayTeamPlaceholder,
+        homeFlag: match.homeFlag,
+        awayFlag: match.awayFlag,
+        date: match.date,
+        status: match.status,
+        homeScore: match.homeScore,
+        awayScore: match.awayScore,
+        phase: match.phase,
+        group: match.group,
+        stadium: match.stadium,
+        bracketId: match.bracketId,
+        nextMatchId: match.nextMatchId,
+        prediction: finalPrediction ? {
+          homeScore: finalPrediction.homeScore,
+          awayScore: finalPrediction.awayScore,
+          isJoker: finalPrediction.isJoker,
+          points: finalPrediction.points || 0
+        } : null,
+      };
+    });
   }
 
   async getWoodenSpoon(leagueId: string) {

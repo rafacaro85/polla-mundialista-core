@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { Match } from '../database/entities/match.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
@@ -70,16 +70,21 @@ export class BracketsService {
     }
 
     async getMyBracket(userId: string, leagueId?: string): Promise<UserBracket | null> {
-        const whereClause: any = { userId };
-        if (leagueId) {
-            whereClause.leagueId = leagueId;
-        } else {
-            whereClause.leagueId = null;
+        if (!leagueId) {
+            return this.userBracketRepository.findOne({
+                where: { userId, leagueId: IsNull() },
+            });
         }
 
-        return this.userBracketRepository.findOne({
-            where: whereClause,
+        // Smart Fallback: Intentar traer el de la liga, si no existe, traer el general (NULL)
+        const brackets = await this.userBracketRepository.find({
+            where: { userId },
         });
+
+        const leagueBracket = brackets.find(b => b.leagueId === leagueId);
+        const generalBracket = brackets.find(b => b.leagueId === null);
+
+        return leagueBracket || generalBracket || null;
     }
 
     async clearBracket(userId: string, leagueId?: string): Promise<void> {

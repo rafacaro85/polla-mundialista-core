@@ -67,9 +67,19 @@ export class MatchSyncService {
                 return false;
             }
 
-            // Detectar cambios
-            const hasChanged = match.homeScore !== homeScore || match.awayScore !== awayScore || match.status !== 'COMPLETED';
+            // Detectar cambios o necesidad de restaurar nombres/banderas
+            const needsNames = !match.homeTeam || !match.awayTeam || !match.homeFlag || !match.awayFlag;
+            const hasChanged = match.homeScore !== homeScore || match.awayScore !== awayScore || match.status !== 'COMPLETED' || needsNames;
+
             if (!hasChanged) return false;
+
+            // Update teams/flags if missing
+            if (needsNames) {
+                match.homeTeam = fixture.teams.home.name;
+                match.awayTeam = fixture.teams.away.name;
+                match.homeFlag = fixture.teams.home.logo;
+                match.awayFlag = fixture.teams.away.logo;
+            }
 
             // Update scores
             match.homeScore = homeScore;

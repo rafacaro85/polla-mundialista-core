@@ -4,6 +4,7 @@ import {
     Calendar, RefreshCw, Edit, Lock, Unlock, Save, X, Shield, Clock, CheckCircle, Trophy
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { api } from '@/lib/api';
 
 const STYLES = {
     container: {
@@ -205,6 +206,7 @@ export function MatchesList() {
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isLocked: false, status: '' });
+    const [filterPhase, setFilterPhase] = useState<string>('ALL');
 
     // Create Match State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -310,6 +312,16 @@ export function MatchesList() {
         }));
     };
 
+    const filteredMatches = matches
+        .filter(m => filterPhase === 'ALL' || m.phase === filterPhase)
+        .sort((a, b) => {
+            // Ordenar por fecha, pero si son iguales, por bracketId
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateA !== dateB) return dateA - dateB;
+            return (a.bracketId || 0) - (b.bracketId || 0);
+        });
+
     if (loading) return <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div></div>;
 
     return (
@@ -365,6 +377,26 @@ export function MatchesList() {
                     </button>
 
                     <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
+                        onClick={async () => {
+                            try {
+                                setSyncing(true);
+                                await api.post('/matches/promote-groups');
+                                toast.success("Promoción verificada");
+                                loadMatches();
+                            } catch (e) {
+                                toast.error("Error al promover grupos");
+                            } finally {
+                                setSyncing(false);
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                        <Trophy size={14} />
+                        Avance Grupos
+                    </button>
+
+                    <button
                         style={{ ...STYLES.syncBtn, backgroundColor: '#6366F1', color: 'white' }}
                         onClick={async () => {
                             if (confirm("¿Crear llaves de Dieciseisavos y Octavos para el Mundial 2026?")) {
@@ -403,9 +435,35 @@ export function MatchesList() {
                 </div>
             </div>
 
-            {/* GRID DE TARJETAS */}
+            {/* FILTROS DE FASE */}
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+                {['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'].map(phase => (
+                    <button
+                        key={phase}
+                        onClick={() => setFilterPhase(phase)}
+                        style={{
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            backgroundColor: filterPhase === phase ? '#3B82F6' : '#334155',
+                            color: 'white',
+                            border: 'none',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        {phase === 'ALL' ? 'Todos' :
+                            phase === 'GROUP' ? 'Grupos' :
+                                phase === 'ROUND_32' ? '1/16' :
+                                    phase === 'ROUND_16' ? 'Octavos' :
+                                        phase === 'QUARTER' ? 'Cuartos' :
+                                            phase === 'SEMI' ? 'Semis' : 'Final'}
+                    </button>
+                ))}
+            </div>
             <div style={STYLES.grid}>
-                {matches.map(match => (
+                {filteredMatches.map(match => (
                     <div key={match.id} style={STYLES.card}>
                         {/* Header Tarjeta */}
                         <div style={STYLES.cardHeader}>
@@ -413,9 +471,9 @@ export function MatchesList() {
                                 <Calendar size={12} />
                                 {new Date(match.date).toLocaleDateString()}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Clock size={12} />
-                                {new Date(match.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#334155', padding: '2px 6px', borderRadius: '4px' }}>
+                                <Trophy size={10} />
+                                {match.phase} {match.group ? `(${match.group})` : ''}
                             </div>
                         </div>
 

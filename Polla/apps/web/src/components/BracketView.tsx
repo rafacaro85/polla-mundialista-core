@@ -85,6 +85,26 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         loadBracket();
     }, []);
 
+    // Filtrar y ordenar partidos de Dieciseisavos (ROUND_32)
+    const round32Matches = useMemo(() => {
+        return matches
+            .filter(m => m.phase === 'ROUND_32')
+            .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0))
+            .map((m, index) => {
+                const logicalId = `r32_${index + 1}`;
+                const nextMatchSlot = (index % 2) === 0 ? 0 : 1;
+                return {
+                    id: logicalId,
+                    realId: m.id,
+                    bracketId: m.bracketId,
+                    home: m.homeTeam,
+                    away: m.awayTeam,
+                    homePlaceholder: m.homeTeamPlaceholder,
+                    awayPlaceholder: m.awayTeamPlaceholder
+                };
+            });
+    }, [matches]);
+
     // Filtrar y ordenar partidos de Octavos
     const round16Matches = useMemo(() => {
         return matches
@@ -95,18 +115,24 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                 const nextMatchId = `q${Math.ceil((index + 1) / 2)}`;
                 const slot = (index + 1) % 2 === 1 ? 0 : 1;
 
+                // En el bracket del usuario, el equipo viene de la selección en ROUND_32
+                // Pero si el partido real ya tiene equipos, los usamos.
+                // Usamos r32_1, r32_2 para alimentar m1
+                const r32_a = winners[`r32_${(index * 2) + 1}`];
+                const r32_b = winners[`r32_${(index * 2) + 2}`];
+
                 return {
                     id: logicalId,
                     realId: m.id,
                     nextMatchId,
                     slot,
-                    home: m.homeTeam,
-                    away: m.awayTeam,
+                    home: m.homeTeam || r32_a,
+                    away: m.awayTeam || r32_b,
                     homePlaceholder: m.homeTeamPlaceholder,
                     awayPlaceholder: m.awayTeamPlaceholder
                 };
             });
-    }, [matches]);
+    }, [matches, winners]);
 
     // FUNCIÓN: Seleccionar Ganador
     const pickWinner = (matchId: string, teamCode: string, nextMatchId: string | null, nextMatchSlot: number | null) => {
@@ -197,6 +223,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     };
 
     // --- CONSTRUCCIÓN DE LAS RONDAS ---
+    // ROUND_16 se alimenta de winners de ROUND_32 (si no hay equipos reales)
+    // round16Matches ya maneja esto en su useMemo
+
     const q1 = { id: 'q1', nextId: 's1', team1: winners['m1'], team2: winners['m2'] };
     const q2 = { id: 'q2', nextId: 's1', team1: winners['m3'], team2: winners['m4'] };
     const q3 = { id: 'q3', nextId: 's2', team1: winners['m5'], team2: winners['m6'] };
@@ -253,8 +282,27 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
             <div className="overflow-x-auto p-4 custom-scrollbar">
                 <div className="flex gap-8 min-w-max pb-10 pl-2">
 
+                    {/* COLUMNA 0: DIECISEISAVOS (ROUND_32) */}
+                    {round32Matches.length > 0 && (
+                        <div className="flex flex-col justify-around gap-1">
+                            <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Dieciseisavos</span></div>
+                            {round32Matches.map((m) => (
+                                <MatchNode
+                                    key={m.id}
+                                    matchId={m.id}
+                                    team1={m.home}
+                                    team2={m.away}
+                                    placeholder1={m.homePlaceholder}
+                                    placeholder2={m.awayPlaceholder}
+                                    nextId={`m${Math.ceil(m.bracketId / 2)}`}
+                                    slot={m.bracketId % 2 !== 0 ? 0 : 1}
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     {/* COLUMNA 1: OCTAVOS */}
-                    <div className="flex flex-col justify-around gap-2">
+                    <div className="flex flex-col justify-around gap-4 pt-4">
                         <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Octavos</span></div>
                         {round16Matches.length > 0 ? round16Matches.map((m) => (
                             <MatchNode
@@ -273,7 +321,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     </div>
 
                     {/* COLUMNA 2: CUARTOS */}
-                    <div className="flex flex-col justify-around gap-8 pt-6">
+                    <div className="flex flex-col justify-around gap-8 pt-8">
                         <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Cuartos</span></div>
                         <MatchNode matchId="q1" team1={q1.team1} team2={q1.team2} nextId="s1" slot={0} />
                         <MatchNode matchId="q2" team1={q2.team1} team2={q2.team2} nextId="s1" slot={1} />

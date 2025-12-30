@@ -116,6 +116,14 @@ export class MatchesController {
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
+    @Post('promote-groups')
+    async promoteGroups() {
+        await this.matchesService.promoteAllGroups();
+        return { message: 'Verificación de promoción completada para todos los grupos' };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
     @Post('seed-r32')
     async seedRound32() {
         return this.matchesService.seedRound32();

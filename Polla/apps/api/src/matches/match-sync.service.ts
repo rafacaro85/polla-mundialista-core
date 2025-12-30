@@ -77,8 +77,8 @@ export class MatchSyncService {
 
             // Check if match finished
             if (['FT', 'AET', 'PEN'].includes(statusShort)) {
-                if (match.status !== 'COMPLETED') {
-                    match.status = 'COMPLETED';
+                if (match.status !== 'FINISHED') {
+                    match.status = 'FINISHED';
                     await this.matchesRepository.save(match);
 
                     this.logger.log(`Partido ${match.id} finalizado. Calculando puntos...`);

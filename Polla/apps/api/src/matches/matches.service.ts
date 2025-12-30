@@ -272,6 +272,11 @@ export class MatchesService {
     }
 
 
+    async promoteAllGroups(): Promise<void> {
+        return this.tournamentService.promoteAllCompletedGroups();
+    }
+
+
     async simulateResults(): Promise<{ message: string; updated: number }> {
         // Obtenemos partidos que tienen equipos y no están finalizados
         const matches = await this.matchesRepository.find();

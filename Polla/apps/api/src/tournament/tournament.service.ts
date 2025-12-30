@@ -22,10 +22,14 @@ export class TournamentService {
             where: { phase: 'GROUP', group },
         });
 
-        const finishedMatches = await this.matchesRepository.count({
-            where: { phase: 'GROUP', group, status: 'FINISHED' },
-        });
+        // Contar acabados (aceptamos FINISHED o COMPLETED por compatibilidad)
+        const finishedMatches = await this.matchesRepository.createQueryBuilder('match')
+            .where('match.phase = :phase', { phase: 'GROUP' })
+            .andWhere('match.group = :group', { group })
+            .andWhere('match.status IN (:...statuses)', { statuses: ['FINISHED', 'COMPLETED', 'FINALIZADO'] })
+            .getCount();
 
+        this.logger.log(`Group ${group}: ${finishedMatches}/${totalMatches} matches finished.`);
         return totalMatches > 0 && totalMatches === finishedMatches;
     }
 

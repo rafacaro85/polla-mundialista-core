@@ -5,18 +5,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-    Settings, Trash2, Loader2, Copy, Share2, Users,
-    AlertTriangle, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift
+    Settings, Trash2, Loader2, Copy, Share2,
+    AlertTriangle, Save, Gem, Check,
+    Edit, Gift
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 import LeagueBrandingForm from '@/components/LeagueBrandingForm';
-import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 import { useRouter } from 'next/navigation';
 
 interface Participant {
@@ -63,9 +61,6 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
     const [loading, setLoading] = useState(false);
     const [loadingParticipants, setLoadingParticipants] = useState(false);
     const [copied, setCopied] = useState(false);
-
-    // State for viewing user details
-    const [selectedUser, setSelectedUser] = useState<{ id: string, name: string, avatar?: string } | null>(null);
 
     useEffect(() => {
         if (leagueId && leagueId !== 'global') {
@@ -131,22 +126,14 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
         if (!confirm('¿ESTÁS SEGURO? Esta acción es irreversible y eliminará TODOS los datos de la liga.')) return;
         setLoading(true);
         try {
-            console.log('🗑️ Eliminando liga:', currentLeague.id);
             const { data } = await api.delete(`/leagues/${currentLeague.id}`);
-
-            // Check if deletion was successful
             if (data.success) {
-                console.log('✅ Liga eliminada exitosamente');
                 toast({
                     title: 'Liga eliminada',
                     description: data.message || 'La liga ha sido eliminada correctamente.'
                 });
-
-                // CRITICAL: Redirect immediately to avoid zombie state
                 router.push('/dashboard');
             } else {
-                // If success is false, show error
-                console.error('❌ Error en la eliminación:', data);
                 toast({
                     title: 'Error',
                     description: data.error || 'No se pudo eliminar la liga',
@@ -154,44 +141,12 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                 });
             }
         } catch (error: any) {
-            console.error('❌ Error eliminando liga:', error);
-            const msg = error.response?.data?.message || 'Error al eliminar la liga. Verifica las dependencias de datos.';
+            const msg = error.response?.data?.message || 'Error al eliminar la liga.';
             toast({
                 title: 'Error',
                 description: msg,
                 variant: 'destructive'
             });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleBlockParticipant = async (userId: string, nickname: string, isBlocked: boolean) => {
-        if (!currentLeague) return;
-        const action = isBlocked ? 'desbloquear' : 'bloquear';
-        if (!confirm(`¿${action.toUpperCase()} a ${nickname}?`)) return;
-        setLoading(true);
-        try {
-            const { data } = await api.patch(`/leagues/${currentLeague.id}/participants/${userId}/toggle-block`);
-            setParticipants(participants.map(p => p.user.id === userId ? { ...p, isBlocked: data.isBlocked } : p));
-            toast({ title: 'Actualizado', description: `${nickname} ha sido ${action}do.` });
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRemoveParticipant = async (userId: string, nickname: string) => {
-        if (!currentLeague || !confirm(`¿Expulsar a ${nickname}?`)) return;
-        setLoading(true);
-        try {
-            await api.delete(`/leagues/${currentLeague.id}/participants/${userId}`);
-            setParticipants(participants.filter(p => p.user.id !== userId));
-            toast({ title: 'Expulsado', description: `${nickname} fuera de la liga.` });
-            loadLeagueData();
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
         } finally {
             setLoading(false);
         }
@@ -249,17 +204,11 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                     <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col">
                         <div className="bg-[#1E293B] rounded-full p-1 mb-6 border border-slate-700 sticky top-[90px] z-10 shadow-xl">
                             <TabsList className="flex bg-transparent w-full">
-                                <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A]">
+                                <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
                                     <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
                                 </TabsTrigger>
-                                <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A]">
+                                <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
                                     <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
-                                </TabsTrigger>
-                                <TabsTrigger value="bonus" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A]">
-                                    <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
-                                </TabsTrigger>
-                                <TabsTrigger value="usuarios" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A]">
-                                    <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
                                 </TabsTrigger>
                             </TabsList>
                         </div>
@@ -386,103 +335,10 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                                     </Button>
                                 )}
                             </TabsContent>
-
-                            {/* --- BONUS --- */}
-                            <TabsContent value="bonus" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-4">
-                                    <LeagueBonusQuestions leagueId={currentLeague.id} />
-                                </div>
-                                <div className="border-t border-slate-700 pt-6">
-                                    <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4 text-emerald-500" /> Consolidado de Puntos
-                                    </h3>
-                                    <div className="overflow-hidden rounded-lg border border-slate-700">
-                                        <table className="w-full text-xs text-left">
-                                            <thead className="bg-[#1E293B] text-slate-400 font-bold uppercase">
-                                                <tr>
-                                                    <th className="p-3">Usuario</th>
-                                                    <th className="p-3 text-right">Partidos</th>
-                                                    <th className="p-3 text-right">Bonus</th>
-                                                    <th className="p-3 text-right text-white">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-700 bg-slate-900/50">
-                                                {participants.map((p) => (
-                                                    <tr key={p.user.id} className="hover:bg-slate-800/50">
-                                                        <td className="p-3 font-medium text-slate-300">{p.user.nickname}</td>
-                                                        <td className="p-3 text-right text-slate-400">{p.predictionPoints}</td>
-                                                        <td className="p-3 text-right text-emerald-400 font-bold">{p.bonusPoints}</td>
-                                                        <td className="p-3 text-right font-bold text-white">{p.totalPoints}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </TabsContent>
-
-                            {/* --- USUARIOS --- */}
-                            <TabsContent value="usuarios" className="mt-0 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase">Lista de Participantes</h3>
-                                    <span className="text-xs text-slate-500">{participants.length} usuarios</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {participants.map((p) => (
-                                        <div key={p.user.id} className="bg-[#1E293B] border border-slate-700 rounded-xl p-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10 border border-slate-600">
-                                                    <AvatarImage src={p.user.avatarUrl} />
-                                                    <AvatarFallback>{p.user.nickname.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-bold text-sm text-white flex items-center gap-2">
-                                                        {p.user.nickname}
-                                                        {p.user.id === user?.id && <span className="bg-amber-500 text-black text-[9px] px-1 rounded font-bold">TU</span>}
-                                                        {p.isBlocked && <span className="text-red-500 text-[9px] border border-red-500 px-1 rounded uppercase">Bloqueado</span>}
-                                                    </div>
-                                                    <div className="text-[10px] text-slate-400">ID: {p.user.id.substring(0, 6)}...</div>
-                                                </div>
-                                            </div>
-                                            {p.user.id !== user?.id && (
-                                                <div className="flex items-center gap-1">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10"
-                                                        onClick={() => setSelectedUser({ id: p.user.id, name: p.user.nickname, avatar: p.user.avatarUrl })}
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className={`h-8 w-8 ${p.isBlocked ? 'text-green-500' : 'text-amber-500'} hover:bg-slate-800`}
-                                                        onClick={() => handleBlockParticipant(p.user.id, p.user.nickname, !!p.isBlocked)}
-                                                    >
-                                                        {p.isBlocked ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-500/10"
-                                                        onClick={() => handleRemoveParticipant(p.user.id, p.user.nickname)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </TabsContent>
                         </div>
                     </Tabs>
                 </div>
             ) : null}
-
-            {/* MODAL DETALLE USUARIO */}
-            {selectedUser && (
-                <UserPredictionsDialog
-                    open={!!selectedUser}
-                    onOpenChange={(val: boolean) => !val && setSelectedUser(null)}
-                    leagueId={currentLeague?.id || ''}
-                    userId={selectedUser.id}
-                    userName={selectedUser.name}
-                    userAvatar={selectedUser.avatar}
-                />
-            )}
         </div>
     );
 }

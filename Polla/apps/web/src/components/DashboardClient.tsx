@@ -389,6 +389,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                         awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
                         homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
                         awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
+                        homeTeamPlaceholder: m.homeTeamPlaceholder,
+                        awayTeamPlaceholder: m.awayTeamPlaceholder,
                       }))}
                       leagueId={selectedLeagueId}
                     />

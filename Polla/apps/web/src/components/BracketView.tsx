@@ -26,6 +26,8 @@ interface Match {
     id: string;
     homeTeam: string;
     awayTeam: string;
+    homeTeamPlaceholder?: string;
+    awayTeamPlaceholder?: string;
     homeScore?: number | null;
     awayScore?: number | null;
     phase?: string;
@@ -99,7 +101,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     nextMatchId,
                     slot,
                     home: m.homeTeam,
-                    away: m.awayTeam
+                    away: m.awayTeam,
+                    homePlaceholder: m.homeTeamPlaceholder,
+                    awayPlaceholder: m.awayTeamPlaceholder
                 };
             });
     }, [matches]);
@@ -142,35 +146,45 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     };
 
     // --- RENDERIZADO DE PARTIDO (NODO DEL ÁRBOL) ---
-    // --- RENDERIZADO DE PARTIDO (NODO DEL ÁRBOL) ---
-    const MatchNode = ({ matchId, team1, team2, nextId, slot }: { matchId: string, team1: string, team2: string, nextId: string | null, slot: number | null }) => {
+    const MatchNode = ({ matchId, team1, team2, placeholder1, placeholder2, nextId, slot }: {
+        matchId: string,
+        team1: string,
+        team2: string,
+        placeholder1?: string,
+        placeholder2?: string,
+        nextId: string | null,
+        slot: number | null
+    }) => {
         const winner = winners[matchId];
+
+        const displayTeam1 = (team1 && team1 !== 'LOC') ? team1 : (placeholder1 || '-');
+        const displayTeam2 = (team2 && team2 !== 'VIS') ? team2 : (placeholder2 || '-');
 
         return (
             <div className="relative flex flex-col justify-center my-1 select-none">
                 <div className="bg-transparent border border-slate-700 rounded-md overflow-hidden w-32 shadow-md z-10 backdrop-blur-sm">
                     {/* EQUIPO 1 */}
                     <button
-                        onClick={() => pickWinner(matchId, team1, nextId, slot)}
-                        className={`w-full flex items-center gap-2 px-2 py-1.5 border-b border-slate-700/50 hover:bg-slate-700/50 transition-colors ${winner === team1 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'}`}
+                        onClick={() => pickWinner(matchId, displayTeam1, nextId, slot)}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 border-b border-slate-700/50 hover:bg-slate-700/50 transition-colors ${winner === displayTeam1 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'}`}
                     >
-                        <img src={getTeamFlag(team1)} alt={team1} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
-                        <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === team1 ? 'text-[#00E676]' : 'text-slate-300'}`}>
-                            {team1 || '-'}
+                        <img src={getTeamFlag(displayTeam1)} alt={displayTeam1} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
+                        <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === displayTeam1 ? 'text-[#00E676]' : 'text-slate-300'}`}>
+                            {displayTeam1}
                         </span>
-                        {winner === team1 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
+                        {winner === displayTeam1 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
                     </button>
 
                     {/* EQUIPO 2 */}
                     <button
-                        onClick={() => pickWinner(matchId, team2, nextId, slot)}
-                        className={`w-full flex items-center gap-2 px-2 py-1.5 hover:bg-slate-700/50 transition-colors ${winner === team2 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'}`}
+                        onClick={() => pickWinner(matchId, displayTeam2, nextId, slot)}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 hover:bg-slate-700/50 transition-colors ${winner === displayTeam2 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'}`}
                     >
-                        <img src={getTeamFlag(team2)} alt={team2} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
-                        <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === team2 ? 'text-[#00E676]' : 'text-slate-300'}`}>
-                            {team2 || '-'}
+                        <img src={getTeamFlag(displayTeam2)} alt={displayTeam2} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
+                        <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === displayTeam2 ? 'text-[#00E676]' : 'text-slate-300'}`}>
+                            {displayTeam2}
                         </span>
-                        {winner === team2 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
+                        {winner === displayTeam2 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
                     </button>
                 </div>
 
@@ -243,7 +257,16 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     <div className="flex flex-col justify-around gap-2">
                         <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Octavos</span></div>
                         {round16Matches.length > 0 ? round16Matches.map((m) => (
-                            <MatchNode key={m.id} matchId={m.id} team1={m.home} team2={m.away} nextId={m.nextMatchId} slot={m.slot} />
+                            <MatchNode
+                                key={m.id}
+                                matchId={m.id}
+                                team1={m.home}
+                                team2={m.away}
+                                placeholder1={m.homePlaceholder}
+                                placeholder2={m.awayPlaceholder}
+                                nextId={m.nextMatchId}
+                                slot={m.slot}
+                            />
                         )) : (
                             <div className="text-gray-500 text-xs p-4">Sin partidos</div>
                         )}

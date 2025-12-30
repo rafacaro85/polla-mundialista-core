@@ -296,7 +296,7 @@ export default function SuperAdminDashboard() {
                     <span style={STYLES.subtitle}>Control Central</span>
                 </div>
                 <a
-                    href="/"
+                    href="/dashboard"
                     style={{
                         ...STYLES.systemBadge,
                         textDecoration: 'none',

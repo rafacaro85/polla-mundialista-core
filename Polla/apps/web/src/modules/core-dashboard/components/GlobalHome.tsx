@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Calendar, Users, ArrowRight } from 'lucide-react';
+import { Trophy, Calendar, Users, ArrowRight, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PrizeCard from '@/components/PrizeCard';
 import { PrizeHero } from '@/components/PrizeHero';
@@ -25,7 +25,7 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
             {/* Prize Hero Section */}
             <div className="animate-in fade-in scale-95 duration-500 delay-100">
                 <PrizeHero league={{
-                    prizeImageUrl: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?auto=format&fit=crop&q=80&w=1000',
+                    prizeImageUrl: '/images/wc2026_hero.png',
                     prizeDetails: 'Premios Exclusivos',
                     welcomeMessage: 'Participa en la polla global y gana increíbles recompensas.',
                     isEnterprise: false
@@ -35,13 +35,13 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
             {/* Quick Actions / Info */}
             <div className="grid grid-cols-2 gap-4 px-2">
                 <div className="bg-[#1E293B] p-4 rounded-xl border border-[#334155] flex flex-col items-center text-center gap-2 shadow-lg">
-                    <div className="p-3 bg-blue-500/10 rounded-full text-blue-400">
+                    <div className="p-3 bg-emerald-500/10 rounded-full text-emerald-400">
                         <Users size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm">Gestionar Pollas</h3>
+                        <h3 className="font-bold text-white text-sm">Polla Social</h3>
                         <p className="text-[10px] text-slate-400 leading-tight mt-1">
-                            Crea o únete a nuevos torneos
+                            Crea una liga para tus amigos y familiares
                         </p>
                     </div>
                     <Button
@@ -50,27 +50,31 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                         className="w-full mt-2 border-slate-600 hover:bg-slate-700 text-xs h-8"
                         onClick={onNavigateToLeagues}
                     >
-                        Ir a Pollas
+                        Gestionar Pollas
                     </Button>
                 </div>
 
                 <div className="bg-[#1E293B] p-4 rounded-xl border border-[#334155] flex flex-col items-center text-center gap-2 shadow-lg">
-                    <div className="p-3 bg-[var(--brand-primary,#00E676)]/10 rounded-full text-[var(--brand-primary,#00E676)]">
-                        <Trophy size={24} />
+                    <div className="p-3 bg-amber-500/10 rounded-full text-amber-500">
+                        <Briefcase size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm">Ranking Global</h3>
+                        <h3 className="font-bold text-white text-sm">Polla Empresarial</h3>
                         <p className="text-[10px] text-slate-400 leading-tight mt-1">
-                            Consulta tu posición mundial
+                            Personalización total para tu empresa o marca
                         </p>
                     </div>
                     <Button
                         size="sm"
                         variant="outline"
-                        className="w-full mt-2 border-slate-600 hover:bg-slate-700 text-xs h-8"
-                        onClick={() => document.getElementById('tab-btn-ranking')?.click()}
+                        className="w-full mt-2 border-amber-600/30 hover:bg-amber-600/10 text-amber-500 text-xs h-8"
+                        onClick={() => {
+                            // Link to create a league but focused on enterprise or WhatsApp support
+                            const text = `Hola, quiero información sobre una Polla Empresarial personalizada.`;
+                            window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                        }}
                     >
-                        Ver Ranking
+                        Solicitar Info
                     </Button>
                 </div>
             </div>

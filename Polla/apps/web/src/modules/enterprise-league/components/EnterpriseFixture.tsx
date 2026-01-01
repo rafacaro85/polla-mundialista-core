@@ -235,9 +235,12 @@ export const EnterpriseFixture = () => {
                             onSave={handleSaveAiPredictions}
                         />
                         <button
-                            onClick={() => {
+                            onClick={async () => {
                                 if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                    clearAllPredictions();
+                                    await clearAllPredictions();
+                                    if (dates.length > 0) {
+                                        setSelectedDate(dates[0]);
+                                    }
                                 }
                             }}
                             className="ml-2 text-red-500 hover:text-red-400 text-sm font-medium transition-colors"

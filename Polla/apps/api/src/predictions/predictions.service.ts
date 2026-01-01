@@ -6,6 +6,8 @@ import { Match } from '../database/entities/match.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 
+import { BracketsService } from '../brackets/brackets.service';
+
 @Injectable()
 export class PredictionsService {
     constructor(
@@ -15,6 +17,7 @@ export class PredictionsService {
         private matchesRepository: Repository<Match>,
         @InjectRepository(LeagueParticipant)
         private leagueParticipantRepository: Repository<LeagueParticipant>,
+        private bracketsService: BracketsService,
     ) { }
 
     async upsertPrediction(userId: string, matchId: string, homeScore: number, awayScore: number, leagueId?: string, isJoker?: boolean): Promise<Prediction> {
@@ -123,6 +126,11 @@ export class PredictionsService {
     }
 
     async removeAllPredictions(userId: string, leagueId?: string) {
+        // 1. Limpiar el Bracket (llaves eliminatorias)
+        await this.bracketsService.clearBracket(userId, leagueId);
+        console.log(`🧹 Bracket para usuario ${userId} y liga ${leagueId} limpiado.`);
+
+        // 2. Limpiar predicciones de partidos (Scores)
         const where: any = { user: { id: userId } };
         where.leagueId = leagueId ? leagueId : IsNull();
 
@@ -132,12 +140,15 @@ export class PredictionsService {
             relations: ['match']
         });
 
-        const toDelete = predictions.filter(p => p.match.date > new Date());
+        const toDelete = predictions.filter(p => !p.match.date || p.match.date > new Date());
 
         if (toDelete.length > 0) {
             await this.predictionsRepository.remove(toDelete);
         }
 
-        return { message: `${toDelete.length} predicciones eliminadas`, count: toDelete.length };
+        return {
+            message: `Sistema de predicciones reseteado: Bracket borrado y ${toDelete.length} marcadores eliminados.`,
+            count: toDelete.length
+        };
     }
 }

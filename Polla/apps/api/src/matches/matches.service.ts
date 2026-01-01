@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { ScoringService } from '../scoring/scoring.service';
@@ -18,6 +18,8 @@ export class MatchesService {
         private matchesRepository: Repository<Match>,
         @InjectRepository(Prediction)
         private predictionsRepository: Repository<Prediction>,
+        @InjectRepository(KnockoutPhaseStatus)
+        private phaseStatusRepository: Repository<KnockoutPhaseStatus>,
         private scoringService: ScoringService,
         private dataSource: DataSource,
         private bracketsService: BracketsService,
@@ -25,16 +27,37 @@ export class MatchesService {
         private knockoutPhasesService: KnockoutPhasesService,
     ) { }
 
-    async findAll(userId?: string): Promise<Match[]> {
+    async findAll(userId?: string, isAdmin: boolean = false): Promise<Match[]> {
         const query = this.matchesRepository.createQueryBuilder('match')
-            .leftJoinAndSelect('match.predictions', 'prediction', 'prediction.userId = :userId', { userId })
-            .orderBy('match.date', 'ASC');
+            .leftJoinAndSelect('match.predictions', 'prediction', 'prediction.userId = :userId', { userId });
 
-        return query.getMany();
+        if (!isAdmin) {
+            // Obtenemos solo las fases desbloqueadas para usuarios normales
+            const unlockedPhases = await this.phaseStatusRepository.find({
+                where: { isUnlocked: true }
+            });
+            const phaseNames = unlockedPhases.map(p => p.phase);
+            query.andWhere('match.phase IN (:...phases)', { phases: phaseNames });
+        }
+
+        return query.orderBy('match.date', 'ASC').getMany();
     }
 
-    async findLive(): Promise<Match[]> {
+    async findLive(isAdmin: boolean = false): Promise<Match[]> {
+        if (isAdmin) {
+            return this.matchesRepository.find({
+                order: { date: 'ASC' }
+            });
+        }
+
+        // Obtenemos solo las fases desbloqueadas para que no aparezcan en el fixture antes de tiempo
+        const unlockedPhases = await this.phaseStatusRepository.find({
+            where: { isUnlocked: true }
+        });
+        const phaseNames = unlockedPhases.map(p => p.phase);
+
         return this.matchesRepository.find({
+            where: { phase: In(phaseNames) },
             order: { date: 'ASC' }
         });
     }

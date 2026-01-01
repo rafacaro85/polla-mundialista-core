@@ -17,14 +17,16 @@ export class MatchesController {
     @UseGuards(JwtAuthGuard)
     @Get()
     async findAll(@Request() req: any): Promise<Match[]> {
-        return this.matchesService.findAll(req.user.id);
+        const isAdmin = req.user.role === 'ADMIN';
+        return this.matchesService.findAll(req.user.id, isAdmin);
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('live')
     @Header('Cache-Control', 'public, max-age=30')
-    async findLive(): Promise<Match[]> {
-        return this.matchesService.findLive();
+    async findLive(@Request() req: any): Promise<Match[]> {
+        const isAdmin = req.user?.role === 'ADMIN';
+        return this.matchesService.findLive(isAdmin);
     }
 
 

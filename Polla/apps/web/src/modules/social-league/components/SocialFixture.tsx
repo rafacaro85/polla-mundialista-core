@@ -162,9 +162,13 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                         onSave={handleSaveAiPredictions}
                     />
                     <Button
-                        onClick={() => {
+                        onClick={async () => {
                             if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                clearAllPredictions();
+                                await clearAllPredictions();
+                                // Forzar el salto a la primera fecha disponible (Grupos)
+                                if (dates.length > 0) {
+                                    setSelectedDate(dates[0]);
+                                }
                             }
                         }}
                         variant="ghost"

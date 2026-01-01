@@ -16,25 +16,47 @@ export const useMyPredictions = (leagueId?: string) => {
     const predictionsMap = React.useMemo(() => {
         const map: Record<string, any> = {};
         if (Array.isArray(data)) {
+            const targetLeagueId = leagueId || null;
+
+            // 1. Cargar todas las predicciones globales (sin liga) como base
             data.forEach((p: any) => {
                 const mId = p.matchId || p.match?.id;
                 const pLeagueId = p.leagueId || null;
-                const targetLeagueId = leagueId || null;
 
-                // Solo mapear si coincide la liga (o es la predicción global)
-                if (mId && pLeagueId === targetLeagueId) {
+                if (mId && pLeagueId === null) {
                     map[mId] = {
                         matchId: mId,
                         homeScore: p.homeScore,
                         awayScore: p.awayScore,
                         points: p.points,
-                        isJoker: p.isJoker,
+                        isJoker: targetLeagueId === null ? p.isJoker : false, // El comodín es por liga, no se hereda del global
                         scoreH: p.homeScore,
                         scoreA: p.awayScore,
                         leagueId: pLeagueId
                     };
                 }
             });
+
+            // 2. Si estamos en una liga específica, sobreescribir con las predicciones de esa liga
+            if (targetLeagueId !== null) {
+                data.forEach((p: any) => {
+                    const mId = p.matchId || p.match?.id;
+                    const pLeagueId = p.leagueId || null;
+
+                    if (mId && pLeagueId === targetLeagueId) {
+                        map[mId] = {
+                            matchId: mId,
+                            homeScore: p.homeScore,
+                            awayScore: p.awayScore,
+                            points: p.points,
+                            isJoker: p.isJoker,
+                            scoreH: p.homeScore,
+                            scoreA: p.awayScore,
+                            leagueId: pLeagueId
+                        };
+                    }
+                });
+            }
         }
         return map;
     }, [data, leagueId]);

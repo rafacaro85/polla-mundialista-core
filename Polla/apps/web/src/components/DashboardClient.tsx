@@ -345,6 +345,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
               loading={isLoadingMatchesSWR}
               onRefresh={handleManualRefresh}
               isRefreshing={isRefreshing}
+              leagueId={selectedLeagueId}
             />
           )}
 

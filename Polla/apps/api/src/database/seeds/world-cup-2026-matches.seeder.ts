@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Match } from '../entities/match.entity';
+import { Prediction } from '../entities/prediction.entity';
+import { User } from '../entities/user.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -826,7 +828,7 @@ async function main() {
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'polla_mundialista',
-        entities: [Match],
+        entities: [Match, Prediction, User],
         synchronize: false,
     });
 

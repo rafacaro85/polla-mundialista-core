@@ -19,13 +19,15 @@ export async function generateAiPredictions(matches: MatchInput[]) {
 Actúa como "SoccerBet Strategist", un agente de inteligencia artificial de élite.
 Analiza los siguientes partidos del Mundial 2026 y genera un resultado realista (marcador exacto) para cada uno.
 
+IMPORTANTE: Sé creativo y varía tus predicciones. No des siempre los mismos marcadores (como 2-1 o 1-1). Considera posibles empates, goleadas ocasionales y sorpresas tácticas basadas en la historia de los equipos.
+
 Partidos a analizar:
 ${JSON.stringify(matches, null, 2)}
 
 INSTRUCCIONES DE SALIDA:
 Devuelve ÚNICAMENTE un objeto JSON válido donde la clave sea el matchId y el valor sea [golesLocal, golesVisitante].
 NO añadas texto extra, ni markdown, solo el JSON puro.
-Ejemplo: { "id1": [2, 1], "id2": [0, 0] }
+Ejemplo: { "id1": [2, 1], "id2": [3, 0], "id3": [0, 2] }
 `;
 
     const requestBody = {
@@ -37,7 +39,10 @@ Ejemplo: { "id1": [2, 1], "id2": [0, 0] }
             }
         ],
         generationConfig: {
-            responseMimeType: "application/json"
+            responseMimeType: "application/json",
+            temperature: 1.0, // Aumentamos la temperatura para mayor aleatoriedad
+            topP: 0.95,
+            topK: 40
         }
     };
 

@@ -142,6 +142,35 @@ export class LeaguesController {
     return this.leaguesService.updateTieBreaker(leagueId, userPayload.id, dto.guess);
   }
 
+  // --- SOCIAL WALL ENDPOINTS ---
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/comments')
+  async createComment(
+    @Param('id') leagueId: string,
+    @Body() data: { content: string, imageUrl?: string },
+    @Req() req: Request
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.createComment(leagueId, userPayload.id, data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/comments')
+  async getComments(@Param('id') leagueId: string) {
+    return this.leaguesService.getComments(leagueId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/comments/:commentId/toggle-like')
+  async toggleCommentLike(
+    @Param('commentId') commentId: string,
+    @Req() req: Request
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.toggleCommentLike(commentId, userPayload.id);
+  }
+
   // --- ADMIN ENDPOINTS ---
 
   @UseGuards(JwtAuthGuard)

@@ -11,6 +11,7 @@ import { AccessCode } from '../database/entities/access-code.entity';
 import { Transaction } from '../database/entities/transaction.entity';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
+import { LeagueComment } from '../database/entities/league-comment.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -30,6 +31,8 @@ export class LeaguesService {
     private userRepository: Repository<User>,
     @InjectRepository(Prediction)
     private predictionRepository: Repository<Prediction>,
+    @InjectRepository(LeagueComment)
+    private leagueCommentsRepository: Repository<LeagueComment>,
     private transactionsService: TransactionsService,
     private pdfService: PdfService,
   ) { }
@@ -1005,6 +1008,54 @@ export class LeaguesService {
       .orderBy('lp.totalPoints', 'ASC') // Orden ascendente para obtener el menor puntaje
       .limit(1) // Solo traer 1 registro
       .getOne();
+  }
+
+  // --- SOCIAL WALL METHODS ---
+
+  async createComment(leagueId: string, userId: string, data: { content: string, imageUrl?: string }) {
+    const participant = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } }
+    });
+
+    if (!participant) throw new ForbiddenException('No eres participante de esta liga');
+    if (participant.isBlocked) throw new ForbiddenException('Estás bloqueado en esta liga');
+
+    const comment = this.leagueCommentsRepository.create({
+      league: { id: leagueId },
+      user: { id: userId },
+      content: data.content,
+      imageUrl: data.imageUrl,
+      likes: []
+    });
+
+    return this.leagueCommentsRepository.save(comment);
+  }
+
+  async getComments(leagueId: string) {
+    return this.leagueCommentsRepository.find({
+      where: { league: { id: leagueId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+      take: 20
+    });
+  }
+
+  async toggleCommentLike(commentId: string, userId: string) {
+    const comment = await this.leagueCommentsRepository.findOne({ where: { id: commentId } });
+    if (!comment) throw new NotFoundException('Comentario no encontrado');
+
+    const likes = comment.likes || [];
+    const index = likes.indexOf(userId);
+
+    if (index === -1) {
+      likes.push(userId);
+    } else {
+      likes.splice(index, 1);
+    }
+
+    comment.likes = likes;
+    await this.leagueCommentsRepository.save(comment);
+    return { likes: comment.likes.length, isLiked: index === -1 };
   }
 }
 

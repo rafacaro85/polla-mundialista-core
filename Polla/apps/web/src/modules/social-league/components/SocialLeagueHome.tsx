@@ -177,7 +177,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                             <RankingIcon size={16} className="text-[#00E676]" />
-                            <h3 className="text-white text-xs font-black uppercase tracking-widest italic">Muro de la Polla</h3>
+                            <h3 className="text-white text-xs font-black uppercase tracking-widest italic">MURO SOCIAL</h3>
                         </div>
                         {!isWallEnabled && (
                             <span className="flex items-center gap-1 text-[10px] text-amber-500 font-bold uppercase">

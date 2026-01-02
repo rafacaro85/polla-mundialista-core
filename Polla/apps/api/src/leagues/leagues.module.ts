@@ -12,10 +12,11 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { PdfModule } from '../common/pdf/pdf.module';
 
 import { Prediction } from '../database/entities/prediction.entity';
+import { LeagueComment } from '../database/entities/league-comment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode, Prediction]),
+    TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode, Prediction, LeagueComment]),
     TransactionsModule,
     PdfModule,
   ],

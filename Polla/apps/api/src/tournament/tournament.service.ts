@@ -129,16 +129,74 @@ export class TournamentService {
             if (updateTeam('home', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
             if (updateTeam('away', secondPlace, secondPlaceFlag, `2${group}`)) updated = true;
 
-            // Handle third places: they might be exact (3A) or partial (3ABC)
-            if (thirdPlace) {
-                const homePlaceholder = match.homeTeamPlaceholder || '';
-                const awayPlaceholder = match.awayTeamPlaceholder || '';
+            if (updated) {
+                await this.matchesRepository.save(match);
+                updatedCount++;
+            }
+        }
 
-                if (homePlaceholder.startsWith('3') && homePlaceholder.includes(group)) {
-                    if (updateTeam('home', thirdPlace, thirdPlaceFlag, homePlaceholder)) updated = true;
+        if (updatedCount > 0) {
+            this.logger.log(`🎉 Promotion complete for Group ${group}. Updated ${updatedCount} Round 32 matches.`);
+        }
+    }
+
+    /**
+     * Promociona los 8 mejores terceros a los partidos correspondientes
+     * basados en el ranking global de terceros.
+     */
+    async promoteBestThirds(): Promise<void> {
+        this.logger.log(`🔄 Checking promotion for Best Thirds...`);
+
+        // 1. Obtener ranking de mejores terceros
+        const bestThirds = await this.standingsService.calculateBestThirdsRanking();
+
+        // Solo tomamos los 8 mejores
+        const qualifiers = bestThirds.slice(0, 8);
+
+        if (qualifiers.length === 0) return;
+
+        // 2. Buscar banderas para estos equipos
+        // (Necesitamos las banderas para actualizarlas en los partidos de knockout)
+        const teamFlags: Record<string, string> = {};
+        for (const q of qualifiers) {
+            const match = await this.matchesRepository.findOne({
+                where: [
+                    { homeTeam: q.team, phase: 'GROUP' },
+                    { awayTeam: q.team, phase: 'GROUP' }
+                ]
+            });
+            if (match) {
+                teamFlags[q.team] = match.homeTeam === q.team ? match.homeFlag || '' : match.awayFlag || '';
+            }
+        }
+
+        // 3. Buscar partidos de ROUND_32 con placeholders de 3RD-X
+        const knockoutMatches = await this.matchesRepository.find({
+            where: { phase: 'ROUND_32' },
+        });
+
+        let updatedCount = 0;
+
+        for (const match of knockoutMatches) {
+            let updated = false;
+
+            for (let i = 0; i < qualifiers.length; i++) {
+                const team = qualifiers[i].team;
+                const flag = teamFlags[team] || '';
+                const placeholder = `3RD-${i + 1}`;
+
+                // Ayudante para actualizar
+                if (match.homeTeamPlaceholder === placeholder && match.homeTeam !== team) {
+                    match.homeTeam = team;
+                    match.homeFlag = flag;
+                    match.homeTeamPlaceholder = null;
+                    updated = true;
                 }
-                if (awayPlaceholder.startsWith('3') && awayPlaceholder.includes(group)) {
-                    if (updateTeam('away', thirdPlace, thirdPlaceFlag, awayPlaceholder)) updated = true;
+                if (match.awayTeamPlaceholder === placeholder && match.awayTeam !== team) {
+                    match.awayTeam = team;
+                    match.awayFlag = flag;
+                    match.awayTeamPlaceholder = null;
+                    updated = true;
                 }
             }
 
@@ -149,7 +207,7 @@ export class TournamentService {
         }
 
         if (updatedCount > 0) {
-            this.logger.log(`🎉 Promotion complete for Group ${group}. Updated ${updatedCount} Round 32 matches.`);
+            this.logger.log(`🎉 Best Thirds promotion complete. Updated ${updatedCount} Round 32 matches.`);
         }
     }
 
@@ -165,6 +223,13 @@ export class TournamentService {
             } catch (error) {
                 this.logger.error(`❌ Error promoting Group ${group}:`, error);
             }
+        }
+
+        // Promover mejores terceros después de actualizar todos los grupos
+        try {
+            await this.promoteBestThirds();
+        } catch (error) {
+            this.logger.error(`❌ Error promoting Best Thirds:`, error);
         }
     }
 }

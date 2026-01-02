@@ -255,11 +255,13 @@ export class MatchesService {
         const baseDate = new Date('2026-06-28T16:00:00Z');
 
         // 1. ROUND_32 (16 partidos)
+        // Mapeo corregido: 32 equipos (12 primeros, 12 segundos, 8 mejores terceros)
+        // Se usan placeholders genéricos 3RD-1..8 para ser llenados por el Ranking de Mejores Terceros
         const groupMapping = [
-            { h: '1A', a: '3CDE' }, { h: '1B', a: '3FGH' }, { h: '1C', a: '2D' }, { h: '1D', a: '2C' },
-            { h: '1E', a: '3IJK' }, { h: '1F', a: '2E' }, { h: '1G', a: '2F' }, { h: '1H', a: '2G' },
-            { h: '1I', a: '3ABL' }, { h: '1J', a: '2I' }, { h: '1K', a: '2J' }, { h: '1L', a: '2K' },
-            { h: '2A', a: '2B' }, { h: '2H', a: '2L' }, { h: '2G', a: '2K' }, { h: '2F', a: '2J' }
+            { h: '1A', a: '3RD-1' }, { h: '1B', a: '3RD-2' }, { h: '1C', a: '3RD-3' }, { h: '1D', a: '3RD-4' },
+            { h: '1E', a: '3RD-5' }, { h: '1F', a: '3RD-6' }, { h: '1G', a: '3RD-7' }, { h: '1H', a: '3RD-8' },
+            { h: '1I', a: '2A' }, { h: '1J', a: '2B' }, { h: '1K', a: '2C' }, { h: '1L', a: '2D' },
+            { h: '2E', a: '2F' }, { h: '2G', a: '2H' }, { h: '2I', a: '2J' }, { h: '2K', a: '2L' }
         ];
         const r32 = [];
         for (let i = 1; i <= 16; i++) {

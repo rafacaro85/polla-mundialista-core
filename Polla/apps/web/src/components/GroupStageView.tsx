@@ -245,7 +245,21 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             };
         });
 
-        return result;
+        // CALCULAR RANKING DE MEJORES TERCEROS
+        const thirdPlaces: (TeamStats & { group: string })[] = [];
+        result.forEach(group => {
+            if (group.teams.length >= 3) {
+                thirdPlaces.push({ ...group.teams[2], group: group.name.replace('GRUPO ', '') });
+            }
+        });
+
+        thirdPlaces.sort((a, b) => {
+            if (b.pts !== a.pts) return b.pts - a.pts;
+            if (b.dg !== a.dg) return b.dg - a.dg;
+            return b.gf - a.gf;
+        });
+
+        return { groups: result, bestThirds: thirdPlaces };
     }, [matches]);
 
     return (
@@ -259,8 +273,8 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             </div>
 
             <div style={STYLES.grid}>
-                {groups.length > 0 ? (
-                    groups.map((group, idx) => (
+                {groups.groups.length > 0 ? (
+                    groups.groups.map((group, idx) => (
                         <div key={idx} style={STYLES.groupCard}>
                             <div style={STYLES.groupHeader}>
                                 <span style={STYLES.groupTitle}>{group.name}</span>
@@ -321,6 +335,53 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
                     </div>
                 )}
             </div>
+
+            {/* TABLA DE MEJORES TERCEROS */}
+            {groups.bestThirds.length > 0 && (
+                <div style={{ marginTop: '40px', maxWidth: '600px', margin: '40px auto 0' }}>
+                    <div style={{ ...STYLES.groupHeader, borderRadius: '12px 12px 0 0', backgroundColor: '#1E293B' }}>
+                        <span style={STYLES.groupTitle}>RANKING MEJORES TERCEROS (TOP 8 CLASIFICAN)</span>
+                    </div>
+                    <div style={{ ...STYLES.groupCard, borderRadius: '0 0 16px 16px', borderTop: 'none' }}>
+                        <table style={STYLES.table}>
+                            <thead>
+                                <tr>
+                                    <th style={{ ...STYLES.th, textAlign: 'left', paddingLeft: '16px' }}>EQUIPO (GRUPO)</th>
+                                    <th style={STYLES.th}>PJ</th>
+                                    <th style={STYLES.th}>DG</th>
+                                    <th style={STYLES.th}>GF</th>
+                                    <th style={STYLES.th}>PTS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {groups.bestThirds.map((team, idx) => {
+                                    const isTop8 = idx < 8;
+                                    return (
+                                        <tr key={team.code} style={{
+                                            ...STYLES.row,
+                                            backgroundColor: isTop8 ? 'rgba(0, 230, 118, 0.03)' : 'transparent',
+                                            opacity: isTop8 ? 1 : 0.6
+                                        }}>
+                                            <td style={STYLES.teamCell}>
+                                                {isTop8 && <div style={STYLES.qualifiedIndicator} />}
+                                                <span style={{ color: COLORS.dim, fontSize: '10px', width: '15px' }}>
+                                                    {idx + 1}
+                                                </span>
+                                                <img src={getTeamFlagUrl(team.code)} alt={team.code} style={STYLES.flag} />
+                                                <span>{team.code} <span style={{ fontSize: '9px', color: COLORS.dim }}>({team.group})</span></span>
+                                            </td>
+                                            <td style={STYLES.cell}>{team.pj}</td>
+                                            <td style={STYLES.cell}>{team.dg > 0 ? `+${team.dg}` : team.dg}</td>
+                                            <td style={STYLES.cell}>{team.gf}</td>
+                                            <td style={{ ...STYLES.cell, ...STYLES.points }}>{team.pts}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

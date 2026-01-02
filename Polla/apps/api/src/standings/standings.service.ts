@@ -150,4 +150,34 @@ export class StandingsService {
 
         return allStandings;
     }
+
+    /**
+     * Calcula el ranking de los mejores terceros de todos los grupos
+     */
+    async calculateBestThirdsRanking(): Promise<TeamStanding[]> {
+        const allGroupStandings = await this.getAllGroupStandings();
+        const thirdPlaces: TeamStanding[] = [];
+
+        for (const group in allGroupStandings) {
+            const standings = allGroupStandings[group];
+            if (standings.length >= 3) {
+                // Agregar el tercer lugar de este grupo
+                thirdPlaces.push(standings[2]);
+            }
+        }
+
+        // Ordenar los terceros según reglas FIFA
+        thirdPlaces.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            return b.goalsFor - a.goalsFor;
+        });
+
+        // Asignar posiciones en el sub-ranking
+        thirdPlaces.forEach((standing, index) => {
+            standing.position = index + 1;
+        });
+
+        return thirdPlaces;
+    }
 }

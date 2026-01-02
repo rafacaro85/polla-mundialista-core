@@ -868,7 +868,7 @@ async function main() {
 
         // Limpiar partidos existentes (opcional - comenta si no quieres borrar)
         console.log('🗑️  Limpiando partidos existentes...');
-        await matchRepository.delete({});
+        await matchRepository.createQueryBuilder().delete().execute();
         console.log('✅ Partidos eliminados\n');
 
         // Insertar partidos

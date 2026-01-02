@@ -293,7 +293,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'D',
-        date: '2026-06-25T22:00:00.000Z',
+        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun)
         homeTeam: 'Estados Unidos',
         awayTeam: 'Finlandia',
         homeFlag: 'us',
@@ -303,7 +303,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'D',
-        date: '2026-06-25T22:00:00.000Z',
+        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun)
         homeTeam: 'Paraguay',
         awayTeam: 'Australia',
         homeFlag: 'py',
@@ -357,7 +357,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'E',
-        date: '2026-06-25T16:00:00.000Z',
+        date: '2026-06-25T20:00:00.000Z', // 16:00 ET
         homeTeam: 'Alemania',
         awayTeam: 'Ecuador',
         homeFlag: 'de',
@@ -367,7 +367,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'E',
-        date: '2026-06-25T16:00:00.000Z',
+        date: '2026-06-25T20:00:00.000Z', // 16:00 ET
         homeTeam: 'Curazao',
         awayTeam: 'Costa de Marfil',
         homeFlag: 'cw',
@@ -421,7 +421,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'F',
-        date: '2026-06-25T19:00:00.000Z',
+        date: '2026-06-25T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Países Bajos',
         awayTeam: 'Túnez',
         homeFlag: 'nl',
@@ -431,7 +431,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'F',
-        date: '2026-06-25T19:00:00.000Z',
+        date: '2026-06-25T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Japón',
         awayTeam: 'Suecia',
         homeFlag: 'jp',
@@ -485,7 +485,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'G',
-        date: '2026-06-26T23:00:00.000Z',
+        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun)
         homeTeam: 'Bélgica',
         awayTeam: 'Nueva Zelanda',
         homeFlag: 'be',
@@ -495,7 +495,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'G',
-        date: '2026-06-26T23:00:00.000Z',
+        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun)
         homeTeam: 'Egipto',
         awayTeam: 'Irán',
         homeFlag: 'eg',
@@ -549,7 +549,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'H',
-        date: '2026-06-26T20:00:00.000Z',
+        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun)
         homeTeam: 'España',
         awayTeam: 'Uruguay',
         homeFlag: 'es',
@@ -559,7 +559,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'H',
-        date: '2026-06-26T20:00:00.000Z',
+        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun)
         homeTeam: 'Cabo Verde',
         awayTeam: 'Arabia Saudí',
         homeFlag: 'cv',
@@ -613,7 +613,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'I',
-        date: '2026-06-26T15:00:00.000Z',
+        date: '2026-06-26T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Francia',
         awayTeam: 'Noruega',
         homeFlag: 'fr',
@@ -623,7 +623,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'I',
-        date: '2026-06-26T15:00:00.000Z',
+        date: '2026-06-26T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Senegal',
         awayTeam: 'Bolivia',
         homeFlag: 'sn',
@@ -677,7 +677,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'J',
-        date: '2026-06-27T22:00:00.000Z',
+        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun)
         homeTeam: 'Argentina',
         awayTeam: 'Jordania',
         homeFlag: 'ar',
@@ -687,7 +687,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'J',
-        date: '2026-06-27T22:00:00.000Z',
+        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun)
         homeTeam: 'Argelia',
         awayTeam: 'Austria',
         homeFlag: 'dz',
@@ -741,7 +741,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'K',
-        date: '2026-06-27T19:30:00.000Z',
+        date: '2026-06-27T23:30:00.000Z', // 19:30 ET
         homeTeam: 'Portugal',
         awayTeam: 'Colombia',
         homeFlag: 'pt',
@@ -751,7 +751,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'K',
-        date: '2026-06-27T19:30:00.000Z',
+        date: '2026-06-27T23:30:00.000Z', // 19:30 ET
         homeTeam: 'Honduras',
         awayTeam: 'Uzbekistán',
         homeFlag: 'hn',
@@ -805,7 +805,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'L',
-        date: '2026-06-27T17:00:00.000Z',
+        date: '2026-06-27T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Inglaterra',
         awayTeam: 'Panamá',
         homeFlag: 'gb-eng',
@@ -815,7 +815,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'L',
-        date: '2026-06-27T17:00:00.000Z',
+        date: '2026-06-27T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Croacia',
         awayTeam: 'Ghana',
         homeFlag: 'hr',

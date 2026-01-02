@@ -45,10 +45,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const groupName = match.group || 'A';
   const stadium = match.stadium || 'Estadio TBD';
 
-  // Formatear hora en zona horaria de Colombia (UTC-5)
+  // Formatear hora en zona horaria local del dispositivo
   const matchDate = new Date(match.date);
-  const timeDisplay = matchDate.toLocaleTimeString('es-CO', {
-    timeZone: 'America/Bogota',
+  const timeDisplay = matchDate.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false

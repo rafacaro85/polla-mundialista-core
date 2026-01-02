@@ -10,5 +10,5 @@ export default function LeagueAdminBonusPage() {
 
     if (!leagueId) return null;
 
-    return <LeagueSettingsPanel leagueId={leagueId} defaultTab="bonus" />;
+    return <LeagueSettingsPanel leagueId={leagueId} defaultTab="bonus" hideTabs={true} />;
 }

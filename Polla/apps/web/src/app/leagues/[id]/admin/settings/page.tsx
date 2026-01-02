@@ -11,5 +11,5 @@ export default function LeagueAdminSettingsPage() {
 
     if (!leagueId) return null;
 
-    return <LeagueSettingsPanel leagueId={leagueId} defaultTab="editar" />;
+    return <LeagueSettingsPanel leagueId={leagueId} defaultTab="editar" hideTabs={true} />;
 }

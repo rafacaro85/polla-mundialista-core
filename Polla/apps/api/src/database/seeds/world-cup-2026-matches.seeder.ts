@@ -4,6 +4,8 @@ import { Prediction } from '../entities/prediction.entity';
 import { User } from '../entities/user.entity';
 import * as dotenv from 'dotenv';
 
+import { join } from 'path';
+
 dotenv.config();
 
 /**
@@ -828,7 +830,7 @@ async function main() {
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'polla_mundialista',
-        entities: [Match, Prediction, User],
+        entities: [join(__dirname, '..', 'entities', '*.entity.ts')],
         synchronize: false,
     });
 

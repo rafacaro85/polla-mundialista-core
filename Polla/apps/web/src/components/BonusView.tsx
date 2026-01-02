@@ -39,7 +39,7 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
     // CARGAR DATOS
     useEffect(() => {
         loadData();
-    }, []);
+    }, [leagueId]);
 
     const loadData = async () => {
         try {

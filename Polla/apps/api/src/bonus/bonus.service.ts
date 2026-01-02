@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -46,6 +46,8 @@ export class BonusService {
             const globalLeague = await this.leagueRepository.findOne({ where: { type: LeagueType.GLOBAL } });
             if (globalLeague) {
                 where.leagueId = globalLeague.id;
+            } else {
+                where.leagueId = IsNull();
             }
         }
 
@@ -116,6 +118,8 @@ export class BonusService {
             const globalLeague = await this.leagueRepository.findOne({ where: { type: LeagueType.GLOBAL } });
             if (globalLeague) {
                 query.andWhere('question.leagueId = :leagueId', { leagueId: globalLeague.id });
+            } else {
+                query.andWhere('question.leagueId IS NULL');
             }
         }
 

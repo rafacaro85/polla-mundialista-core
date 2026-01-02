@@ -231,17 +231,18 @@ export class LeaguesService {
 
   async getGlobalRanking() {
     // Primero obtener puntos de predicciones y brackets
-    // Primero obtener puntos de predicciones y brackets
     const ranking = await this.userRepository.createQueryBuilder('user')
       .leftJoin('user.predictions', 'prediction')
       .leftJoin('prediction.match', 'm_pred')
-      .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND bracket.leagueId IS NULL')
-      .select('user.id', 'id')
-      .addSelect('user.nickname', 'nickname')
-      .addSelect('user.fullName', 'fullName')
-      .addSelect('user.avatarUrl', 'avatarUrl')
-      .addSelect("COALESCE(SUM(CASE WHEN m_pred.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0)", 'predictionPoints')
-      .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
+      .leftJoin(UserBracket, 'bracket', 'bracket.userId = user.id AND bracket.leagueId IS NULL')
+      .select([
+        'user.id AS id',
+        'user.nickname AS nickname',
+        'user.fullName AS "fullName"',
+        'user.avatarUrl AS "avatarUrl"',
+        "COALESCE(SUM(CASE WHEN m_pred.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0) AS \"predictionPoints\"",
+        'COALESCE(MAX(bracket.points), 0) AS "bracketPoints"'
+      ])
       .groupBy('user.id')
       .addGroupBy('user.nickname')
       .addGroupBy('user.fullName')
@@ -249,26 +250,33 @@ export class LeaguesService {
       .getRawMany();
 
     // Calcular bonus points por separado para CADA usuario usando QueryBuilder de Entidad
-    // Esto asegura que los nombres de columnas se mapeen correctamente (camelCase vs snake_case)
-    const finalRanking = await Promise.all(ranking.map(async (user) => {
+    const finalRanking = await Promise.all(ranking.map(async (row) => {
+      // Normalizar acceso (Postgres devuelve minúsculas)
+      const r_id = row.id || row.ID;
+      const r_nickname = row.nickname || row.NICKNAME;
+      const r_fullName = row.fullName || row.fullname || row.FULLNAME;
+      const r_avatarUrl = row.avatarUrl || row.avatarurl || row.AVATARURL;
+      const r_predictionPoints = row.predictionPoints || row.predictionpoints || 0;
+      const r_bracketPoints = row.bracketPoints || row.bracketpoints || 0;
+
       // Obtener bonus points solo de preguntas globales (sin leagueId)
       const bonusResult = await this.userRepository.manager
         .createQueryBuilder(UserBonusAnswer, 'uba')
         .leftJoin('uba.question', 'bq')
         .select('SUM(uba.pointsEarned)', 'bonusPoints')
-        .where('uba.userId = :userId', { userId: user.id })
+        .where('uba.userId = :userId', { userId: r_id })
         .andWhere('bq.leagueId IS NULL')
         .getRawOne();
 
-      const predictionPoints = Number(user.predictionPoints);
-      const bracketPoints = Number(user.bracketPoints);
-      const bonusPoints = Number(bonusResult?.bonusPoints || 0);
+      const predictionPoints = Number(r_predictionPoints);
+      const bracketPoints = Number(r_bracketPoints);
+      const bonusPoints = Number(bonusResult?.bonusPoints || bonusResult?.bonuspoints || 0);
       const totalPoints = predictionPoints + bracketPoints + bonusPoints;
 
       return {
-        id: user.id,
-        nickname: user.nickname || user.fullName?.split(' ')[0] || 'Usuario',
-        avatarUrl: user.avatarUrl,
+        id: r_id,
+        nickname: r_nickname || r_fullName?.split(' ')[0] || 'Usuario',
+        avatarUrl: r_avatarUrl,
         predictionPoints,
         bracketPoints,
         bonusPoints,
@@ -464,29 +472,32 @@ export class LeaguesService {
     }
 
     // Calcular Total Goles Mundial (Real) para TieBreaker
-    const { totalGoals } = await this.leaguesRepository.manager
+    const goalsResult = await this.leaguesRepository.manager
       .createQueryBuilder(Match, 'm')
-      .select('SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))', 'totalGoals')
+      .select('SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))', 'total_goals')
       .where("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawOne();
-    const realGoals = Number(totalGoals || 0);
+
+    const realGoals = Number(goalsResult?.total_goals || goalsResult?.totalGoals || goalsResult?.totalgoals || 0);
 
     // Obtener puntos de predicciones y brackets
     const isGlobal = league.type === LeagueType.GLOBAL;
     const rawRanking = await this.leagueParticipantsRepository.createQueryBuilder('lp')
-      .leftJoin('lp.user', 'user')
+      .innerJoin('lp.user', 'user') // Cambiado a inner para mayor seguridad
       .leftJoin('user.predictions', 'prediction', isGlobal ? 'prediction.leagueId IS NULL' : 'prediction.leagueId = :leagueId', { leagueId })
       .leftJoin('prediction.match', 'm_pred')
       .leftJoin(UserBracket, 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
-      .select('user.id', 'id')
-      .addSelect('user.nickname', 'nickname')
-      .addSelect('user.fullName', 'fullName')
-      .addSelect('user.avatarUrl', 'avatarUrl')
-      .addSelect("COALESCE(SUM(CASE WHEN m_pred.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0)", 'predictionPoints')
-      .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
-      .addSelect('COALESCE(lp.triviaPoints, 0)', 'triviaPoints')
-      .addSelect('lp.tieBreakerGuess', 'tieBreakerGuess')
-      .where('lp.leagueId = :leagueId', { leagueId })
+      .select([
+        'user.id AS id',
+        'user.nickname AS nickname',
+        'user.fullName AS "fullName"',
+        'user.avatarUrl AS "avatarUrl"',
+        "COALESCE(SUM(CASE WHEN m_pred.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0) AS \"predictionPoints\"",
+        'COALESCE(MAX(bracket.points), 0) AS "bracketPoints"',
+        'COALESCE(lp.triviaPoints, 0) AS "triviaPoints"',
+        'lp.tieBreakerGuess AS "tieBreakerGuess"'
+      ])
+      .where('lp.league = :leagueId', { leagueId }) // Usamos .league que es la propiedad relación
       .andWhere('lp.isBlocked = false')
       .groupBy('user.id')
       .addGroupBy('user.nickname')
@@ -501,26 +512,35 @@ export class LeaguesService {
 
     // Calcular bonus points por separado usando QueryBuilder de Entidad
     const finalRanking = await Promise.all(rawRanking.map(async (row) => {
+      // Normalizar acceso a las columnas (Postgres puede devolver minúsculas)
+      const r_id = row.id || row.ID;
+      const r_nickname = row.nickname || row.NICKNAME;
+      const r_avatarUrl = row.avatarUrl || row.avatarurl || row.AVATARURL;
+      const r_predictionPoints = row.predictionPoints || row.predictionpoints || 0;
+      const r_bracketPoints = row.bracketPoints || row.bracketpoints || 0;
+      const r_triviaPoints = row.triviaPoints || row.triviapoints || 0;
+      const r_tieBreakerGuess = row.tieBreakerGuess !== undefined ? row.tieBreakerGuess : row.tiebreakerguess;
+
       // Obtener bonus points solo de preguntas de esta liga
       const bonusResult = await this.userRepository.manager
         .createQueryBuilder(UserBonusAnswer, 'uba')
         .leftJoin('uba.question', 'bq')
         .select('SUM(uba.pointsEarned)', 'bonusPoints')
-        .where('uba.userId = :userId', { userId: row.id })
+        .where('uba.userId = :userId', { userId: r_id })
         .andWhere('bq.leagueId = :leagueId', { leagueId })
         .getRawOne();
 
-      const predictionPoints = Number(row.predictionPoints);
-      const bracketPoints = Number(row.bracketPoints);
-      const triviaPoints = Number(row.triviaPoints);
-      const bonusPoints = Number(bonusResult?.bonusPoints || 0);
+      const predictionPoints = Number(r_predictionPoints);
+      const bracketPoints = Number(r_bracketPoints);
+      const triviaPoints = Number(r_triviaPoints);
+      const bonusPoints = Number(bonusResult?.bonusPoints || bonusResult?.bonuspoints || 0);
       const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
-      const tieBreakerGuess = row.tieBreakerGuess !== null ? Number(row.tieBreakerGuess) : null;
+      const tieBreakerGuess = r_tieBreakerGuess !== null && r_tieBreakerGuess !== undefined ? Number(r_tieBreakerGuess) : null;
 
       return {
-        id: row.id,
-        nickname: row.nickname || row.fullName?.split(' ')[0] || 'Usuario',
-        avatarUrl: row.avatarUrl,
+        id: r_id,
+        nickname: r_nickname || row.fullName?.split(' ')[0] || 'Usuario',
+        avatarUrl: r_avatarUrl,
         predictionPoints,
         bracketPoints,
         bonusPoints,

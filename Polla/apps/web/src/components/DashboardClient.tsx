@@ -229,6 +229,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   }, [selectedLeagueId]);
 
   const isEnterpriseMode = currentLeague && (currentLeague.type === 'COMPANY' || currentLeague.isEnterprise);
+  const isWallEnabled = currentLeague && ['lider', 'influencer', 'pro', 'elite', 'legend'].includes((currentLeague.packageType || '').toLowerCase());
+
+  // Redirigir si está en el muro y no está habilitado
+  useEffect(() => {
+    if (activeTab === 'muro' && (selectedLeagueId === 'global' || !isWallEnabled)) {
+      setActiveTab('home');
+    }
+  }, [activeTab, selectedLeagueId, isWallEnabled]);
 
   // Legacy Load Data Effect removed (replaced by SWR)
   // Mantener solo syncUserFromServer si es necesario para auth
@@ -422,7 +430,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
-            showMuroTab={selectedLeagueId !== 'global'}
+            showMuroTab={!!isWallEnabled}
           />
         )}
 

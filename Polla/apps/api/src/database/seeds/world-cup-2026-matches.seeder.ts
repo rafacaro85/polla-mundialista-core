@@ -5,6 +5,17 @@ import { User } from '../entities/user.entity';
 import * as dotenv from 'dotenv';
 
 import { join } from 'path';
+import { AccessCode } from '../entities/access-code.entity';
+import { BonusQuestion } from '../entities/bonus-question.entity';
+import { KnockoutPhaseStatus } from '../entities/knockout-phase-status.entity';
+import { LeagueComment } from '../entities/league-comment.entity';
+import { LeagueParticipant } from '../entities/league-participant.entity';
+import { League } from '../entities/league.entity';
+import { Organization } from '../entities/organization.entity';
+import { SystemConfig } from '../entities/system-config.entity';
+import { Transaction } from '../entities/transaction.entity';
+import { UserBonusAnswer } from '../entities/user-bonus-answer.entity';
+import { UserBracket } from '../entities/user-bracket.entity';
 
 dotenv.config();
 
@@ -830,7 +841,22 @@ async function main() {
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'polla_mundialista',
-        entities: [join(__dirname, '..', 'entities', '*.entity.ts')],
+        entities: [
+            Match,
+            Prediction,
+            User,
+            AccessCode,
+            BonusQuestion,
+            KnockoutPhaseStatus,
+            LeagueComment,
+            LeagueParticipant,
+            League,
+            Organization,
+            SystemConfig,
+            Transaction,
+            UserBonusAnswer,
+            UserBracket
+        ],
         synchronize: false,
     });
 

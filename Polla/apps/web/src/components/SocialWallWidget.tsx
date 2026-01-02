@@ -21,7 +21,7 @@ interface Comment {
     };
 }
 
-export function SocialWallWidget({ leagueId }: { leagueId: string }) {
+export function SocialWallWidget({ leagueId, limit }: { leagueId: string, limit?: number }) {
     const { user } = useAppStore();
     const { toast } = useToast();
     const [comments, setComments] = useState<Comment[]>([]);
@@ -33,6 +33,7 @@ export function SocialWallWidget({ leagueId }: { leagueId: string }) {
     const [uploadingImage, setUploadingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const displayedComments = limit ? comments.slice(0, limit) : comments;
     useEffect(() => {
         fetchComments();
     }, [leagueId]);
@@ -194,7 +195,7 @@ export function SocialWallWidget({ leagueId }: { leagueId: string }) {
             </div>
 
             {/* Feed */}
-            <div className="max-h-[500px] overflow-y-auto custom-scrollbar p-4 space-y-6">
+            <div className={`overflow-y-auto custom-scrollbar p-4 space-y-6 ${limit ? 'max-h-[400px]' : 'h-[calc(100vh-280px)]'}`}>
                 {loading ? (
                     <div className="flex flex-col items-center py-10 gap-3">
                         <Loader2 className="animate-spin text-emerald-500" size={30} />
@@ -208,7 +209,7 @@ export function SocialWallWidget({ leagueId }: { leagueId: string }) {
                         </p>
                     </div>
                 ) : (
-                    comments.map(comment => (
+                    displayedComments.map(comment => (
                         <div key={comment.id} className="flex gap-3 items-start animate-in slide-in-from-bottom-2 duration-300">
                             <Avatar className="w-9 h-9 border border-slate-700 shadow-lg">
                                 <AvatarImage src={comment.user.avatarUrl} />
@@ -239,8 +240,8 @@ export function SocialWallWidget({ leagueId }: { leagueId: string }) {
                                     <button
                                         onClick={() => handleLike(comment.id)}
                                         className={`flex items-center gap-1.5 text-[10px] font-bold uppercase transition-all ${comment.likes.includes(user?.id || '')
-                                                ? 'text-emerald-400 scale-110'
-                                                : 'text-slate-500 hover:text-white'
+                                            ? 'text-emerald-400 scale-110'
+                                            : 'text-slate-500 hover:text-white'
                                             }`}
                                     >
                                         <Heart size={14} fill={comment.likes.includes(user?.id || '') ? 'currentColor' : 'none'} />

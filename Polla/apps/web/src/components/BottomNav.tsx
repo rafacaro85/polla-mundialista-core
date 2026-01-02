@@ -1,13 +1,14 @@
 import React from 'react';
-import { Calendar, Trophy, Activity, Star, Users, Home } from 'lucide-react';
+import { Calendar, Trophy, Activity, Star, Users, Home, MessageSquare } from 'lucide-react';
 
 interface BottomNavProps {
-    activeTab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus';
-    onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus') => void;
+    activeTab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro';
+    onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro') => void;
     showLeaguesTab?: boolean;
+    showMuroTab?: boolean;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, showMuroTab = false }) => {
     return (
         <nav
             className="fixed bottom-0 left-0 right-0 w-full bg-[#0F172A]/95 backdrop-blur-xl border-t border-[#1E293B] z-[9999] shadow-[0_-4px_20px_rgba(0,0,0,0.5)]"
@@ -72,10 +73,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                     onClick={() => onTabChange('bonus')}
                     className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'bonus' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}
                 >
-                    {activeTab === 'bonus' && <div className="absolute -top-4 w-10 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
                     <Star size={24} strokeWidth={activeTab === 'bonus' ? 2.5 : 2} />
                     <span className="text-[10px] font-black tracking-widest uppercase">Bonus</span>
                 </button>
+
+                {/* 6. MURO (SOCIAL) */}
+                {showMuroTab && (
+                    <button
+                        onClick={() => onTabChange('muro')}
+                        className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 bg-transparent border-none outline-none p-0 ${activeTab === 'muro' ? 'text-[#00E676] -translate-y-1' : 'text-[#94A3B8] hover:text-white'}`}
+                    >
+                        {activeTab === 'muro' && <div className="absolute -top-4 w-10 h-1 bg-[#00E676] rounded-b-full shadow-[0_0_10px_#00E676]"></div>}
+                        <MessageSquare size={24} strokeWidth={activeTab === 'muro' ? 2.5 : 2} />
+                        <span className="text-[10px] font-black tracking-widest uppercase">Muro</span>
+                    </button>
+                )}
 
             </div>
         </nav>

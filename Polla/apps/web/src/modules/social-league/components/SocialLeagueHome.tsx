@@ -9,7 +9,7 @@ import { SocialWallWidget } from '@/components/SocialWallWidget';
 interface SocialLeagueHomeProps {
     league: any;
     participants: any[];
-    onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus') => void;
+    onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro') => void;
 }
 
 export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, participants, onTabChange }) => {
@@ -188,7 +188,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
 
                     <div className="relative">
                         <div className={!isWallEnabled ? 'opacity-20 pointer-events-none grayscale' : ''}>
-                            <SocialWallWidget leagueId={league.id} />
+                            <SocialWallWidget leagueId={league.id} limit={2} />
                         </div>
 
                         {!isWallEnabled && (
@@ -203,8 +203,17 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                             </div>
                         )}
                     </div>
-                </div>
 
+                    {isWallEnabled && (
+                        <button
+                            onClick={() => onTabChange('muro')}
+                            className="w-full bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] hover:bg-slate-700 transition-colors"
+                        >
+                            Ver conversación completa
+                        </button>
+                    )}
+
+                </div>
             </div>
         </div>
     );

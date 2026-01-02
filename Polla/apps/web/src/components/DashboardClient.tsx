@@ -12,6 +12,7 @@ import { Header } from './ui/Header';
 import { GroupStageView } from './GroupStageView';
 import { BracketView } from './BracketView';
 import { BonusView } from './BonusView';
+import { SocialWallWidget } from './SocialWallWidget';
 
 import { BottomNav } from './BottomNav';
 
@@ -61,7 +62,7 @@ interface Prediction {
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
-  initialTab?: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus';
+  initialTab?: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro';
 }
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
@@ -72,7 +73,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
 
   // Estado inicial del tab
-  const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus'>(
+  const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro'>(
     props.initialTab || 'home'
   );
 
@@ -396,6 +397,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
               </div>
             )
           }
+
+          {
+            activeTab === 'muro' && selectedLeagueId !== 'global' && (
+              <div className="mt-4 animate-in fade-in slide-in-from-bottom-4 duration-300 custom-scrollbar overflow-y-auto max-h-screen pb-32">
+                <SocialWallWidget leagueId={selectedLeagueId} />
+              </div>
+            )
+          }
         </main >
 
         {!isEnterpriseMode && activeTab === 'leagues' && (
@@ -413,6 +422,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
+            showMuroTab={selectedLeagueId !== 'global'}
           />
         )}
 

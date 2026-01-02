@@ -290,7 +290,7 @@ export class LeaguesService {
     console.log('🔍 getAllLeagues called');
     try {
       const leagues = await this.leaguesRepository.find({
-        relations: ['creator'],
+        relations: ['creator', 'participants'],
         order: { name: 'ASC' }
       });
 
@@ -307,7 +307,7 @@ export class LeaguesService {
           nickname: l.creator?.nickname || l.creator?.fullName || 'Desconocido',
           avatarUrl: l.creator?.avatarUrl
         },
-        participantCount: 0, // Temporarily hardcoded to 0
+        participantCount: l.participants?.length || 0,
         isEnterprise: !!l.isEnterprise,
         isEnterpriseActive: !!l.isEnterpriseActive,
         brandingLogoUrl: l.brandingLogoUrl,
@@ -328,7 +328,7 @@ export class LeaguesService {
     console.log('getMyLeagues - userId:', userId);
     const participants = await this.leagueParticipantsRepository.find({
       where: { user: { id: userId } },
-      relations: ['league', 'league.creator'],
+      relations: ['league', 'league.creator', 'league.participants'],
     });
     console.log('getMyLeagues - participants found:', participants.length);
     console.log('getMyLeagues - participants:', JSON.stringify(participants, null, 2));
@@ -340,7 +340,7 @@ export class LeaguesService {
       type: p.league.type,
       isAdmin: p.isAdmin,
       creatorName: p.league.creator.nickname || p.league.creator.fullName,
-      participantCount: 0,
+      participantCount: p.league.participants?.length || 0,
       isEnterprise: p.league.isEnterprise,
       isEnterpriseActive: p.league.isEnterpriseActive,
       companyName: p.league.companyName,
@@ -401,7 +401,7 @@ export class LeaguesService {
   async getLeagueForUser(leagueId: string, userId: string) {
     const participant = await this.leagueParticipantsRepository.findOne({
       where: { league: { id: leagueId }, user: { id: userId } },
-      relations: ['league', 'league.creator'],
+      relations: ['league', 'league.creator', 'league.participants'],
     });
 
     if (!participant) {
@@ -415,7 +415,7 @@ export class LeaguesService {
       type: participant.league.type,
       isAdmin: participant.isAdmin,
       creatorName: participant.league.creator.nickname || participant.league.creator.fullName,
-      participantCount: 0, // Frontend handles calling ranking/participants separately if needed, or we could count here.
+      participantCount: participant.league.participants?.length || 0,
       isEnterprise: participant.league.isEnterprise,
       isEnterpriseActive: participant.league.isEnterpriseActive,
       companyName: participant.league.companyName,
@@ -437,25 +437,29 @@ export class LeaguesService {
   }
 
   async getLeagueRanking(leagueId: string) {
+    console.log(`📊 [getLeagueRanking] Solicitando ranking para liga: ${leagueId}`);
     // Obtener IDs de participantes de la liga
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
-    if (!league) throw new NotFoundException('League not found');
+    if (!league) {
+      console.error(`❌ [getLeagueRanking] Liga no encontrada: ${leagueId}`);
+      throw new NotFoundException('League not found');
+    }
 
     const participants = await this.leagueParticipantsRepository.find({
       where: { league: { id: leagueId } },
       relations: ['user'],
     });
 
-    console.log(`[DEBUG] Ranking League ${leagueId}: Found ${participants.length} participants`);
+    console.log(`👥 [getLeagueRanking] Participantes encontrados en DB: ${participants.length}`);
 
     const userIds = participants
       .filter(p => !p.isBlocked)
       .map(p => p.user.id);
 
-    console.log(`[DEBUG] User IDs: ${userIds.join(', ')}`);
+    console.log(`🆔 [getLeagueRanking] User IDs para ranking: ${userIds.join(', ')}`);
 
     if (userIds.length === 0) {
-      console.log(`[DEBUG] No active participants found.`);
+      console.log(`⚠️ [getLeagueRanking] No hay participantes activos. Retornando vacío.`);
       return [];
     }
 
@@ -469,49 +473,54 @@ export class LeaguesService {
 
     // Obtener puntos de predicciones y brackets
     const isGlobal = league.type === LeagueType.GLOBAL;
-    const ranking = await this.userRepository.createQueryBuilder('user')
+    const rawRanking = await this.leagueParticipantsRepository.createQueryBuilder('lp')
+      .leftJoin('lp.user', 'user')
       .leftJoin('user.predictions', 'prediction', isGlobal ? 'prediction.leagueId IS NULL' : 'prediction.leagueId = :leagueId', { leagueId })
       .leftJoin('prediction.match', 'm_pred')
       .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
-      .leftJoin('user.leagueParticipants', 'lp', 'lp.league = :leagueId', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')
       .addSelect('user.avatarUrl', 'avatarUrl')
-      // Sumar puntos SOLO si el partido está finalizado
       .addSelect("COALESCE(SUM(CASE WHEN m_pred.status IN ('FINISHED', 'COMPLETED') THEN prediction.points ELSE 0 END), 0)", 'predictionPoints')
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
-      .addSelect('COALESCE(MAX(lp.trivia_points), 0)', 'triviaPoints')
-      .addSelect('MAX(lp.tie_breaker_guess)', 'tieBreakerGuess')
-      .where('user.id IN (:...userIds)', { userIds })
+      .addSelect('COALESCE(lp.triviaPoints, 0)', 'triviaPoints')
+      .addSelect('lp.tieBreakerGuess', 'tieBreakerGuess')
+      .where('lp.league = :leagueId', { leagueId })
+      .andWhere('lp.isBlocked = false')
       .groupBy('user.id')
       .addGroupBy('user.nickname')
       .addGroupBy('user.fullName')
       .addGroupBy('user.avatarUrl')
+      .addGroupBy('lp.id')
+      .addGroupBy('lp.triviaPoints')
+      .addGroupBy('lp.tieBreakerGuess')
       .getRawMany();
 
+    console.log(`📊 [getLeagueRanking] Resultados brutos encontrados: ${rawRanking.length}`);
+
     // Calcular bonus points por separado usando QueryBuilder de Entidad
-    const finalRanking = await Promise.all(ranking.map(async (user) => {
+    const finalRanking = await Promise.all(rawRanking.map(async (row) => {
       // Obtener bonus points solo de preguntas de esta liga
       const bonusResult = await this.userRepository.manager
         .createQueryBuilder(UserBonusAnswer, 'uba')
         .leftJoin('uba.question', 'bq')
         .select('SUM(uba.pointsEarned)', 'bonusPoints')
-        .where('uba.userId = :userId', { userId: user.id })
+        .where('uba.userId = :userId', { userId: row.id })
         .andWhere('bq.leagueId = :leagueId', { leagueId })
         .getRawOne();
 
-      const predictionPoints = Number(user.predictionPoints);
-      const bracketPoints = Number(user.bracketPoints);
-      const triviaPoints = Number(user.triviaPoints);
+      const predictionPoints = Number(row.predictionPoints);
+      const bracketPoints = Number(row.bracketPoints);
+      const triviaPoints = Number(row.triviaPoints);
       const bonusPoints = Number(bonusResult?.bonusPoints || 0);
       const totalPoints = predictionPoints + bracketPoints + triviaPoints + bonusPoints;
-      const tieBreakerGuess = user.tieBreakerGuess !== null ? Number(user.tieBreakerGuess) : null;
+      const tieBreakerGuess = row.tieBreakerGuess !== null ? Number(row.tieBreakerGuess) : null;
 
       return {
-        id: user.id,
-        nickname: user.nickname || user.fullName?.split(' ')[0] || 'Usuario',
-        avatarUrl: user.avatarUrl,
+        id: row.id,
+        nickname: row.nickname || row.fullName?.split(' ')[0] || 'Usuario',
+        avatarUrl: row.avatarUrl,
         predictionPoints,
         bracketPoints,
         bonusPoints,

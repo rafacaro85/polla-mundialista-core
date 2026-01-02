@@ -21,6 +21,13 @@ interface SocialFixtureProps {
 
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
+// Helper to ensure flag is a URL
+const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
+    if (flag && (flag.startsWith('http') || flag.startsWith('/'))) return flag;
+    if (flag && flag.length <= 3) return `https://flagcdn.com/h80/${flag}.png`;
+    return getTeamFlagUrl(teamName);
+};
+
 export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
     const { predictions, savePrediction, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
@@ -59,8 +66,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 displayDate,
                 homeTeam: m.homeTeam,
                 awayTeam: m.awayTeam,
-                homeFlag: m.homeFlag || getTeamFlagUrl(m.homeTeam || m.homeTeamPlaceholder),
-                awayFlag: m.awayFlag || getTeamFlagUrl(m.awayTeam || m.awayTeamPlaceholder),
+                homeFlag: ensureFlagUrl(m.homeFlag, m.homeTeam || m.homeTeamPlaceholder),
+                awayFlag: ensureFlagUrl(m.awayFlag, m.awayTeam || m.awayTeamPlaceholder),
                 status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
                 scoreH: m.homeScore,
                 scoreA: m.awayScore,

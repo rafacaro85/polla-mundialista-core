@@ -466,7 +466,7 @@ export class LeaguesService {
     // Calcular Total Goles Mundial (Real) para TieBreaker
     const { totalGoals } = await this.leaguesRepository.manager
       .createQueryBuilder(Match, 'm')
-      .select('SUM(m.homeScore + m.awayScore)', 'totalGoals')
+      .select('SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))', 'totalGoals')
       .where("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawOne();
     const realGoals = Number(totalGoals || 0);
@@ -477,7 +477,7 @@ export class LeaguesService {
       .leftJoin('lp.user', 'user')
       .leftJoin('user.predictions', 'prediction', isGlobal ? 'prediction.leagueId IS NULL' : 'prediction.leagueId = :leagueId', { leagueId })
       .leftJoin('prediction.match', 'm_pred')
-      .leftJoin('user_brackets', 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
+      .leftJoin(UserBracket, 'bracket', 'bracket.userId = user.id AND (bracket.leagueId = :leagueId OR bracket.leagueId IS NULL)', { leagueId })
       .select('user.id', 'id')
       .addSelect('user.nickname', 'nickname')
       .addSelect('user.fullName', 'fullName')
@@ -486,7 +486,7 @@ export class LeaguesService {
       .addSelect('COALESCE(MAX(bracket.points), 0)', 'bracketPoints')
       .addSelect('COALESCE(lp.triviaPoints, 0)', 'triviaPoints')
       .addSelect('lp.tieBreakerGuess', 'tieBreakerGuess')
-      .where('lp.league = :leagueId', { leagueId })
+      .where('lp.leagueId = :leagueId', { leagueId })
       .andWhere('lp.isBlocked = false')
       .groupBy('user.id')
       .addGroupBy('user.nickname')

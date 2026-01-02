@@ -7,15 +7,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2,
     AlertTriangle, Save, Gem, Check,
-    Edit, Gift
+    Edit, Gift, Trophy, Users, BarChart3,
+    Palette, Shield, Lock, Eye, X
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
 import LeagueBrandingForm from '@/components/LeagueBrandingForm';
+import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from 'next/navigation';
+import { EnterpriseLock } from '@/components/admin/EnterpriseLock';
+import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
+import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 
 interface Participant {
     user: {
@@ -48,6 +53,7 @@ interface League {
     companyName?: string;
     brandColorPrimary?: string;
     brandColorSecondary?: string;
+    type?: string;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagueId: string, defaultTab?: string }) {
@@ -61,6 +67,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
     const [loading, setLoading] = useState(false);
     const [loadingParticipants, setLoadingParticipants] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<{ id: string, name: string, avatar?: string } | null>(null);
 
     useEffect(() => {
         if (leagueId && leagueId !== 'global') {
@@ -166,6 +173,36 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
         }
     };
 
+    const handleBlockParticipant = async (userId: string, nickname: string, isBlocked: boolean) => {
+        if (!currentLeague) return;
+        const action = isBlocked ? 'desbloquear' : 'bloquear';
+        if (!confirm(`¿${action.toUpperCase()} a ${nickname}?`)) return;
+        setLoading(true);
+        try {
+            const { data } = await api.patch(`/leagues/${currentLeague.id}/participants/${userId}/toggle-block`);
+            setParticipants(participants.map(p => p.user.id === userId ? { ...p, isBlocked: data.isBlocked } : p));
+            toast({ title: 'Actualizado', description: `${nickname} ha sido ${action}do.` });
+        } catch (error) {
+            toast({ title: 'Error', variant: 'destructive' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRemoveParticipant = async (userId: string, nickname: string) => {
+        if (!currentLeague || !confirm(`¿Expulsar a ${nickname}?`)) return;
+        setLoading(true);
+        try {
+            await api.delete(`/leagues/${currentLeague.id}/participants/${userId}`);
+            setParticipants(participants.filter(p => p.user.id !== userId));
+            toast({ title: 'Expulsado', description: `${nickname} fuera de la liga.` });
+        } catch (error) {
+            toast({ title: 'Error', variant: 'destructive' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleCopyCode = () => {
         if (!currentLeague) return;
         navigator.clipboard.writeText(currentLeague.code);
@@ -207,8 +244,17 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                                 <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
                                     <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
                                 </TabsTrigger>
+                                <TabsTrigger value="bonus" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
+                                </TabsTrigger>
+                                <TabsTrigger value="usuarios" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
+                                </TabsTrigger>
                                 <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
                                     <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
+                                </TabsTrigger>
+                                <TabsTrigger value="analytics" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Data
                                 </TabsTrigger>
                             </TabsList>
                         </div>
@@ -279,6 +325,95 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                                 </div>
                             </TabsContent>
 
+                            {/* --- BONUS --- */}
+                            <TabsContent value="bonus" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <LeagueBonusQuestions leagueId={currentLeague.id} />
+
+                                <div className="border-t border-slate-700 pt-6">
+                                    <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4 text-emerald-500" /> Consolidado de Puntos
+                                    </h3>
+                                    <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900/30">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-xs text-left">
+                                                <thead className="bg-[#1E293B] text-slate-400 font-bold uppercase">
+                                                    <tr>
+                                                        <th className="p-3">Usuario</th>
+                                                        <th className="p-3 text-right">Partidos</th>
+                                                        <th className="p-3 text-right">Bonus</th>
+                                                        <th className="p-3 text-right text-white">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-700">
+                                                    {participants.map((p) => (
+                                                        <tr key={p.user.id} className="hover:bg-slate-800/50">
+                                                            <td className="p-3 font-medium text-slate-300">{p.user.nickname}</td>
+                                                            <td className="p-3 text-right text-slate-400">{p.predictionPoints}</td>
+                                                            <td className="p-3 text-right text-emerald-400 font-bold">{p.bonusPoints}</td>
+                                                            <td className="p-3 text-right font-bold text-white">{p.totalPoints}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            {/* --- USUARIOS --- */}
+                            <TabsContent value="usuarios" className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase">Lista de Participantes</h3>
+                                    <span className="text-xs text-slate-500">{participants.length} usuarios</span>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {participants.map((p) => (
+                                        <div key={p.user.id} className="bg-[#1E293B] border border-slate-700 rounded-xl p-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10 border border-slate-600">
+                                                    <AvatarImage src={p.user.avatarUrl} />
+                                                    <AvatarFallback>{p.user.nickname?.charAt(0) || 'U'}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-bold text-sm text-white flex items-center gap-2">
+                                                        {p.user.nickname}
+                                                        {p.user.id === user?.id && <span className="bg-amber-500 text-black text-[9px] px-1 rounded font-bold">TU</span>}
+                                                        {p.isBlocked && <span className="text-red-500 text-[9px] border border-red-500 px-1 rounded uppercase">Bloqueado</span>}
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-400">ID: {p.user.id.substring(0, 8)}...</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10"
+                                                    onClick={() => setSelectedUser({ id: p.user.id, name: p.user.nickname, avatar: p.user.avatarUrl })}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+
+                                                {p.user.id !== user?.id && (
+                                                    <>
+                                                        <Button variant="ghost" size="icon"
+                                                            className={`h-8 w-8 ${p.isBlocked ? 'text-green-500' : 'text-amber-500'} hover:bg-slate-800`}
+                                                            onClick={() => handleBlockParticipant(p.user.id, p.user.nickname, !!p.isBlocked)}
+                                                        >
+                                                            {p.isBlocked ? <Shield className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                                        </Button>
+
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-500/10"
+                                                            onClick={() => handleRemoveParticipant(p.user.id, p.user.nickname)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+
                             {/* --- PLAN --- */}
                             <TabsContent value="plan" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div style={STYLES.card}>
@@ -335,8 +470,29 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar" }: { leagu
                                     </Button>
                                 )}
                             </TabsContent>
+
+                            {/* --- ANALYTICS --- */}
+                            <TabsContent value="analytics" className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {!currentLeague.isEnterpriseActive ? (
+                                    <EnterpriseLock featureName="Analítica Avanzada" />
+                                ) : (
+                                    <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                )}
+                            </TabsContent>
                         </div>
                     </Tabs>
+
+                    {/* MODAL DETALLE USUARIO */}
+                    {selectedUser && (
+                        <UserPredictionsDialog
+                            open={!!selectedUser}
+                            onOpenChange={(val) => !val && setSelectedUser(null)}
+                            leagueId={currentLeague?.id || ''}
+                            userId={selectedUser.id}
+                            userName={selectedUser.name}
+                            userAvatar={selectedUser.avatar}
+                        />
+                    )}
                 </div>
             ) : null}
         </div>

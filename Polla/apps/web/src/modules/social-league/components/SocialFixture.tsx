@@ -127,7 +127,9 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {
         const suggestionsMap: Record<string, { h: number, a: number }> = {};
         Object.entries(newPredictions).forEach(([mId, [h, a]]) => {
-            if (!predictions[mId]) {
+            const existing = predictions[mId];
+            // Sugerir si NO tiene predicción O si la que tiene es GLOBAL (queremos una específica para esta liga)
+            if (!existing || existing.leagueId === null) {
                 suggestionsMap[mId] = { h, a };
             }
         });

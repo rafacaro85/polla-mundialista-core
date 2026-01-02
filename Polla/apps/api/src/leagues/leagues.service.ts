@@ -477,19 +477,44 @@ export class LeaguesService {
       .getRawOne();
     const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
 
-    // Prediction Points
+    // Prediction Points (Improved to include Global Fallback)
     const isGlobal = league.type === LeagueType.GLOBAL;
-    const predictionPointsRows = await this.predictionRepository.createQueryBuilder('p')
+    const allPredictions = await this.predictionRepository.createQueryBuilder('p')
       .innerJoin('p.match', 'm')
-      .select('p.userId', 'userId')
-      .addSelect('SUM(p.points)', 'points')
+      .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId'])
       .where('p.userId IN (:...userIds)', { userIds })
-      .andWhere(isGlobal ? 'p.leagueId IS NULL' : 'p.leagueId = :leagueId', { leagueId })
+      .andWhere(isGlobal ? 'p.leagueId IS NULL' : '(p.leagueId = :leagueId OR p.leagueId IS NULL)', { leagueId })
       .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
-      .groupBy('p.userId')
       .getRawMany();
 
-    const predMap = new Map(predictionPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    // Map to keep track of points: { userId: { matchId: points } }
+    // We prioritize league-specific predictions over global fallback
+    const userPointsMap = new Map<string, Map<string, number>>();
+
+    allPredictions.forEach(r => {
+      const uId = r.userId || r.userid || r.p_user_id;
+      const mId = r.matchId || r.matchid || r.p_match_id;
+      const points = Number(r.points || r.p_points || 0);
+      const pLeagueId = r.leagueId || r.leagueid || r.p_league_id;
+
+      if (!userPointsMap.has(uId)) {
+        userPointsMap.set(uId, new Map());
+      }
+
+      const userMatches = userPointsMap.get(uId)!;
+
+      // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
+      if (!userMatches.has(mId) || (pLeagueId === leagueId)) {
+        userMatches.set(mId, points);
+      }
+    });
+
+    const predMap = new Map<string, number>();
+    userPointsMap.forEach((matchesMap, uId) => {
+      let total = 0;
+      matchesMap.forEach(pts => total += pts);
+      predMap.set(uId, total);
+    });
 
     // Bracket Points
     const bracketPointsRows = await this.userRepository.manager.createQueryBuilder(UserBracket, 'b')

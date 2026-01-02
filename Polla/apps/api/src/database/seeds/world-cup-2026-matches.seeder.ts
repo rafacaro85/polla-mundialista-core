@@ -57,11 +57,11 @@ interface MatchData {
 
 const matchesData: MatchData[] = [
     // =========================================================================
-    // GRUPO A: México, Sudáfrica, Corea del Sur, UEFA Playoff D
+    // GRUPO A
     // =========================================================================
     {
         group: 'A',
-        date: '2026-06-11T20:00:00.000Z', // 11 de junio, 3:00 PM ET
+        date: '2026-06-11T20:00:00.000Z', // 16:00 ET
         homeTeam: 'México',
         awayTeam: 'Sudáfrica',
         homeFlag: 'mx',
@@ -71,63 +71,63 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'A',
-        date: '2026-06-12T01:00:00.000Z',
+        date: '2026-06-12T01:00:00.000Z', // 21:00 ET (11 Jun) -> 12 Jun UTC
         homeTeam: 'Corea del Sur',
-        awayTeam: 'Grecia', // Ficticio por UEFA Playoff D
+        awayTeam: 'Grecia',
         homeFlag: 'kr',
         awayFlag: 'gr',
-        stadium: 'TBD',
+        stadium: 'Estadio Akron, Guadalajara',
         phase: 'GROUP',
     },
     {
         group: 'A',
-        date: '2026-06-16T20:00:00.000Z',
+        date: '2026-06-18T01:00:00.000Z', // 21:00 ET (17 Jun) -> 18 Jun UTC
         homeTeam: 'México',
         awayTeam: 'Corea del Sur',
         homeFlag: 'mx',
         awayFlag: 'kr',
-        stadium: 'TBD',
+        stadium: 'Estadio BBVA, Monterrey',
         phase: 'GROUP',
     },
     {
         group: 'A',
-        date: '2026-06-16T23:00:00.000Z',
+        date: '2026-06-18T01:00:00.000Z', // 21:00 ET (17 Jun) -> 18 Jun UTC
         homeTeam: 'Sudáfrica',
         awayTeam: 'Grecia',
         homeFlag: 'za',
         awayFlag: 'gr',
-        stadium: 'TBD',
+        stadium: 'Estadio Azteca, Ciudad de México',
         phase: 'GROUP',
     },
     {
         group: 'A',
-        date: '2026-06-21T20:00:00.000Z',
+        date: '2026-06-24T21:00:00.000Z', // 17:00 ET
         homeTeam: 'México',
         awayTeam: 'Grecia',
         homeFlag: 'mx',
         awayFlag: 'gr',
-        stadium: 'TBD',
+        stadium: 'Estadio Azteca, Ciudad de México',
         phase: 'GROUP',
     },
     {
         group: 'A',
-        date: '2026-06-21T20:00:00.000Z',
+        date: '2026-06-24T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Sudáfrica',
         awayTeam: 'Corea del Sur',
         homeFlag: 'za',
         awayFlag: 'kr',
-        stadium: 'TBD',
+        stadium: 'Estadio BBVA, Monterrey',
         phase: 'GROUP',
     },
 
     // =========================================================================
-    // GRUPO B: Canadá, UEFA Playoff A, Qatar, Suiza
+    // GRUPO B
     // =========================================================================
     {
         group: 'B',
-        date: '2026-06-12T18:00:00.000Z',
+        date: '2026-06-12T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Canadá',
-        awayTeam: 'Italia', // Ficticio por UEFA Playoff A
+        awayTeam: 'Italia',
         homeFlag: 'ca',
         awayFlag: 'it',
         stadium: 'BMO Field, Toronto',
@@ -135,7 +135,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'B',
-        date: '2026-06-13T21:00:00.000Z',
+        date: '2026-06-13T01:00:00.000Z', // 21:00 ET (12 Jun) -> 13 Jun UTC
         homeTeam: 'Qatar',
         awayTeam: 'Suiza',
         homeFlag: 'qa',
@@ -145,155 +145,155 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'B',
-        date: '2026-06-17T18:00:00.000Z',
+        date: '2026-06-18T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Canadá',
         awayTeam: 'Qatar',
         homeFlag: 'ca',
         awayFlag: 'qa',
-        stadium: 'TBD',
+        stadium: 'BC Place, Vancouver',
         phase: 'GROUP',
     },
     {
         group: 'B',
-        date: '2026-06-17T21:00:00.000Z',
+        date: '2026-06-19T01:00:00.000Z', // 21:00 ET (18 Jun) -> 19 Jun UTC
         homeTeam: 'Italia',
         awayTeam: 'Suiza',
         homeFlag: 'it',
         awayFlag: 'ch',
-        stadium: 'TBD',
+        stadium: 'Lumen Field, Seattle',
         phase: 'GROUP',
     },
     {
         group: 'B',
-        date: '2026-06-22T18:00:00.000Z',
+        date: '2026-06-24T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Canadá',
         awayTeam: 'Suiza',
         homeFlag: 'ca',
         awayFlag: 'ch',
-        stadium: 'TBD',
+        stadium: 'BC Place, Vancouver',
         phase: 'GROUP',
     },
     {
         group: 'B',
-        date: '2026-06-22T18:00:00.000Z',
+        date: '2026-06-24T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Italia',
         awayTeam: 'Qatar',
         homeFlag: 'it',
         awayFlag: 'qa',
-        stadium: 'TBD',
+        stadium: 'Lumen Field, Seattle',
         phase: 'GROUP',
     },
 
     // =========================================================================
-    // GRUPO C: Brasil, Marruecos, Haití, Escocia
+    // GRUPO C
     // =========================================================================
     {
         group: 'C',
-        date: '2026-06-12T23:00:00.000Z',
+        date: '2026-06-14T01:00:00.000Z', // 21:00 ET (13 Jun) -> 14 Jun UTC
         homeTeam: 'Brasil',
         awayTeam: 'Marruecos',
         homeFlag: 'br',
         awayFlag: 'ma',
-        stadium: 'TBD',
+        stadium: 'SoFi Stadium, Los Angeles',
         phase: 'GROUP',
     },
     {
         group: 'C',
-        date: '2026-06-13T18:00:00.000Z',
+        date: '2026-06-13T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Haití',
         awayTeam: 'Escocia',
         homeFlag: 'ht',
         awayFlag: 'sco',
-        stadium: 'TBD',
+        stadium: 'Gillette Stadium, Boston',
         phase: 'GROUP',
     },
     {
         group: 'C',
-        date: '2026-06-17T23:00:00.000Z',
-        homeTeam: 'Brasil',
-        awayTeam: 'Haití',
-        homeFlag: 'br',
-        awayFlag: 'ht',
-        stadium: 'TBD',
-        phase: 'GROUP',
-    },
-    {
-        group: 'C',
-        date: '2026-06-18T02:00:00.000Z',
-        homeTeam: 'Marruecos',
-        awayTeam: 'Escocia',
-        homeFlag: 'ma',
-        awayFlag: 'sco',
-        stadium: 'TBD',
-        phase: 'GROUP',
-    },
-    {
-        group: 'C',
-        date: '2026-06-22T23:00:00.000Z',
+        date: '2026-06-19T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Brasil',
         awayTeam: 'Escocia',
         homeFlag: 'br',
         awayFlag: 'sco',
-        stadium: 'TBD',
+        stadium: 'Hard Rock Stadium, Miami',
         phase: 'GROUP',
     },
     {
         group: 'C',
-        date: '2026-06-22T23:00:00.000Z',
+        date: '2026-06-19T16:00:00.000Z', // 12:00 ET
         homeTeam: 'Marruecos',
         awayTeam: 'Haití',
         homeFlag: 'ma',
         awayFlag: 'ht',
-        stadium: 'TBD',
+        stadium: 'Mercedes-Benz Stadium, Atlanta',
+        phase: 'GROUP',
+    },
+    {
+        group: 'C',
+        date: '2026-06-24T22:00:00.000Z', // 18:00 ET
+        homeTeam: 'Brasil',
+        awayTeam: 'Haití',
+        homeFlag: 'br',
+        awayFlag: 'ht',
+        stadium: 'Hard Rock Stadium, Miami',
+        phase: 'GROUP',
+    },
+    {
+        group: 'C',
+        date: '2026-06-24T22:00:00.000Z', // 18:00 ET
+        homeTeam: 'Marruecos',
+        awayTeam: 'Escocia',
+        homeFlag: 'ma',
+        awayFlag: 'sco',
+        stadium: 'Mercedes-Benz Stadium, Atlanta',
         phase: 'GROUP',
     },
 
     // =========================================================================
-    // GRUPO D: Estados Unidos, Paraguay, Australia, UEFA Playoff C
+    // GRUPO D
     // =========================================================================
     {
         group: 'D',
-        date: '2026-06-13T02:00:00.000Z',
+        date: '2026-06-13T01:00:00.000Z', // 21:00 ET (12 Jun) -> 13 Jun UTC
         homeTeam: 'Estados Unidos',
         awayTeam: 'Paraguay',
         homeFlag: 'us',
         awayFlag: 'py',
-        stadium: 'TBD',
+        stadium: 'SoFi Stadium, Los Angeles',
         phase: 'GROUP',
     },
     {
         group: 'D',
-        date: '2026-06-14T18:00:00.000Z',
+        date: '2026-06-14T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Australia',
-        awayTeam: 'Finlandia', // Ficticio por UEFA Playoff C
+        awayTeam: 'Finlandia',
         homeFlag: 'au',
         awayFlag: 'fi',
-        stadium: 'TBD',
+        stadium: 'BC Place, Vancouver',
         phase: 'GROUP',
     },
     {
         group: 'D',
-        date: '2026-06-18T18:00:00.000Z',
+        date: '2026-06-20T02:00:00.000Z', // 22:00 ET (19 Jun) -> 20 Jun UTC
         homeTeam: 'Estados Unidos',
         awayTeam: 'Australia',
         homeFlag: 'us',
         awayFlag: 'au',
-        stadium: 'TBD',
+        stadium: 'Lumen Field, Seattle',
         phase: 'GROUP',
     },
     {
         group: 'D',
-        date: '2026-06-18T21:00:00.000Z',
+        date: '2026-06-19T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Paraguay',
         awayTeam: 'Finlandia',
         homeFlag: 'py',
         awayFlag: 'fi',
-        stadium: 'TBD',
+        stadium: 'Levi\'s Stadium, San Francisco Bay Area',
         phase: 'GROUP',
     },
     {
         group: 'D',
-        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun)
+        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun) -> 26 Jun UTC
         homeTeam: 'Estados Unidos',
         awayTeam: 'Finlandia',
         homeFlag: 'us',
@@ -303,7 +303,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'D',
-        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun)
+        date: '2026-06-26T02:00:00.000Z', // 22:00 ET (25 Jun) -> 26 Jun UTC
         homeTeam: 'Paraguay',
         awayTeam: 'Australia',
         homeFlag: 'py',
@@ -313,46 +313,46 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO E: Alemania, Curazao, Costa de Marfil, Ecuador
+    // GRUPO E
     // =========================================================================
     {
         group: 'E',
-        date: '2026-06-14T21:00:00.000Z',
+        date: '2026-06-14T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Alemania',
         awayTeam: 'Curazao',
         homeFlag: 'de',
         awayFlag: 'cw',
-        stadium: 'TBD',
+        stadium: 'Lincoln Financial Field, Philadelphia',
         phase: 'GROUP',
     },
     {
         group: 'E',
-        date: '2026-06-15T00:00:00.000Z',
+        date: '2026-06-15T00:00:00.000Z', // 20:00 ET (14 Jun) -> 15 Jun UTC
         homeTeam: 'Costa de Marfil',
         awayTeam: 'Ecuador',
         homeFlag: 'ci',
         awayFlag: 'ec',
-        stadium: 'TBD',
+        stadium: 'MetLife Stadium, New York/New Jersey',
         phase: 'GROUP',
     },
     {
         group: 'E',
-        date: '2026-06-19T18:00:00.000Z',
+        date: '2026-06-20T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Alemania',
         awayTeam: 'Costa de Marfil',
         homeFlag: 'de',
         awayFlag: 'ci',
-        stadium: 'TBD',
+        stadium: 'BMO Field, Toronto',
         phase: 'GROUP',
     },
     {
         group: 'E',
-        date: '2026-06-19T21:00:00.000Z',
+        date: '2026-06-20T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Curazao',
         awayTeam: 'Ecuador',
         homeFlag: 'cw',
         awayFlag: 'ec',
-        stadium: 'TBD',
+        stadium: 'Lincoln Financial Field, Philadelphia',
         phase: 'GROUP',
     },
     {
@@ -377,46 +377,46 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO F: Países Bajos, Japón, UEFA Playoff B, Túnez
+    // GRUPO F
     // =========================================================================
     {
         group: 'F',
-        date: '2026-06-15T18:00:00.000Z',
+        date: '2026-06-14T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Países Bajos',
         awayTeam: 'Japón',
         homeFlag: 'nl',
         awayFlag: 'jp',
-        stadium: 'TBD',
+        stadium: 'AT&T Stadium, Dallas',
         phase: 'GROUP',
     },
     {
         group: 'F',
-        date: '2026-06-15T21:00:00.000Z',
-        homeTeam: 'Suecia', // Ficticio por UEFA Playoff B
+        date: '2026-06-16T00:00:00.000Z', // 20:00 ET (15 Jun) -> 16 Jun UTC
+        homeTeam: 'Suecia',
         awayTeam: 'Túnez',
         homeFlag: 'se',
         awayFlag: 'tn',
-        stadium: 'TBD',
+        stadium: 'NRG Stadium, Houston',
         phase: 'GROUP',
     },
     {
         group: 'F',
-        date: '2026-06-20T00:00:00.000Z',
+        date: '2026-06-20T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Países Bajos',
         awayTeam: 'Suecia',
         homeFlag: 'nl',
         awayFlag: 'se',
-        stadium: 'TBD',
+        stadium: 'Arrowhead Stadium, Kansas City',
         phase: 'GROUP',
     },
     {
         group: 'F',
-        date: '2026-06-20T03:00:00.000Z',
+        date: '2026-06-20T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Japón',
         awayTeam: 'Túnez',
         homeFlag: 'jp',
         awayFlag: 'tn',
-        stadium: 'TBD',
+        stadium: 'NRG Stadium, Houston',
         phase: 'GROUP',
     },
     {
@@ -441,51 +441,51 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO G: Bélgica, Egipto, Irán, Nueva Zelanda
+    // GRUPO G
     // =========================================================================
     {
         group: 'G',
-        date: '2026-06-16T00:00:00.000Z',
+        date: '2026-06-15T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Bélgica',
         awayTeam: 'Egipto',
         homeFlag: 'be',
         awayFlag: 'eg',
-        stadium: 'TBD',
+        stadium: 'Lumen Field, Seattle',
         phase: 'GROUP',
     },
     {
         group: 'G',
-        date: '2026-06-16T03:00:00.000Z',
+        date: '2026-06-16T02:00:00.000Z', // 22:00 ET (15 Jun) -> 16 Jun UTC
         homeTeam: 'Irán',
         awayTeam: 'Nueva Zelanda',
         homeFlag: 'ir',
         awayFlag: 'nz',
-        stadium: 'TBD',
+        stadium: 'BC Place, Vancouver',
         phase: 'GROUP',
     },
     {
         group: 'G',
-        date: '2026-06-20T18:00:00.000Z',
+        date: '2026-06-20T20:00:00.000Z', // 16:00 ET
         homeTeam: 'Bélgica',
         awayTeam: 'Irán',
         homeFlag: 'be',
         awayFlag: 'ir',
-        stadium: 'TBD',
+        stadium: 'Lumen Field, Seattle',
         phase: 'GROUP',
     },
     {
         group: 'G',
-        date: '2026-06-20T21:00:00.000Z',
+        date: '2026-06-20T19:00:00.000Z', // 15:00 ET
         homeTeam: 'Egipto',
         awayTeam: 'Nueva Zelanda',
         homeFlag: 'eg',
         awayFlag: 'nz',
-        stadium: 'TBD',
+        stadium: 'BC Place, Vancouver',
         phase: 'GROUP',
     },
     {
         group: 'G',
-        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun)
+        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun) -> 27 Jun UTC
         homeTeam: 'Bélgica',
         awayTeam: 'Nueva Zelanda',
         homeFlag: 'be',
@@ -495,7 +495,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'G',
-        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun)
+        date: '2026-06-27T03:00:00.000Z', // 23:00 ET (26 Jun) -> 27 Jun UTC
         homeTeam: 'Egipto',
         awayTeam: 'Irán',
         homeFlag: 'eg',
@@ -505,51 +505,51 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO H: España, Cabo Verde, Arabia Saudita, Uruguay
+    // GRUPO H
     // =========================================================================
     {
         group: 'H',
-        date: '2026-06-14T00:00:00.000Z',
+        date: '2026-06-13T20:00:00.000Z', // 16:00 ET
         homeTeam: 'España',
         awayTeam: 'Cabo Verde',
         homeFlag: 'es',
         awayFlag: 'cv',
-        stadium: 'TBD',
+        stadium: 'Estadio Akron, Guadalajara',
         phase: 'GROUP',
     },
     {
         group: 'H',
-        date: '2026-06-14T03:00:00.000Z',
-        homeTeam: 'Arabia Saudí', // Normalizar nombre
+        date: '2026-06-14T01:00:00.000Z', // 21:00 ET (13 Jun) -> 14 Jun UTC
+        homeTeam: 'Arabia Saudí',
         awayTeam: 'Uruguay',
         homeFlag: 'sa',
         awayFlag: 'uy',
-        stadium: 'TBD',
+        stadium: 'Estadio BBVA, Monterrey',
         phase: 'GROUP',
     },
     {
         group: 'H',
-        date: '2026-06-19T00:00:00.000Z',
+        date: '2026-06-19T21:00:00.000Z', // 17:00 ET
         homeTeam: 'España',
         awayTeam: 'Arabia Saudí',
         homeFlag: 'es',
         awayFlag: 'sa',
-        stadium: 'TBD',
+        stadium: 'Estadio BBVA, Monterrey',
         phase: 'GROUP',
     },
     {
         group: 'H',
-        date: '2026-06-19T03:00:00.000Z',
+        date: '2026-06-19T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Cabo Verde',
         awayTeam: 'Uruguay',
         homeFlag: 'cv',
         awayFlag: 'uy',
-        stadium: 'TBD',
+        stadium: 'Estadio Akron, Guadalajara',
         phase: 'GROUP',
     },
     {
         group: 'H',
-        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun)
+        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun) -> 27 Jun UTC
         homeTeam: 'España',
         awayTeam: 'Uruguay',
         homeFlag: 'es',
@@ -559,7 +559,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'H',
-        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun)
+        date: '2026-06-27T00:00:00.000Z', // 20:00 ET (26 Jun) -> 27 Jun UTC
         homeTeam: 'Cabo Verde',
         awayTeam: 'Arabia Saudí',
         homeFlag: 'cv',
@@ -569,46 +569,46 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO I: Francia, Senegal, Playoff 2, Noruega
+    // GRUPO I
     // =========================================================================
     {
         group: 'I',
-        date: '2026-06-13T23:00:00.000Z',
+        date: '2026-06-14T00:00:00.000Z', // 20:00 ET (13 Jun) -> 14 Jun UTC
         homeTeam: 'Francia',
         awayTeam: 'Senegal',
         homeFlag: 'fr',
         awayFlag: 'sn',
-        stadium: 'TBD',
+        stadium: 'Estadio Azteca, Ciudad de México',
         phase: 'GROUP',
     },
     {
         group: 'I',
-        date: '2026-06-14T02:00:00.000Z',
-        homeTeam: 'Bolivia', // Ficticio por Playoff 2
+        date: '2026-06-14T19:00:00.000Z', // 15:00 ET
+        homeTeam: 'Bolivia',
         awayTeam: 'Noruega',
         homeFlag: 'bo',
         awayFlag: 'no',
-        stadium: 'TBD',
+        stadium: 'Gillette Stadium, Boston',
         phase: 'GROUP',
     },
     {
         group: 'I',
-        date: '2026-06-18T23:00:00.000Z',
+        date: '2026-06-19T01:00:00.000Z', // 21:00 ET (18 Jun) -> 19 Jun UTC
         homeTeam: 'Francia',
         awayTeam: 'Bolivia',
         homeFlag: 'fr',
         awayFlag: 'bo',
-        stadium: 'TBD',
+        stadium: 'MetLife Stadium, New York/New Jersey',
         phase: 'GROUP',
     },
     {
         group: 'I',
-        date: '2026-06-19T02:00:00.000Z',
+        date: '2026-06-19T18:00:00.000Z', // 14:00 ET
         homeTeam: 'Senegal',
         awayTeam: 'Noruega',
         homeFlag: 'sn',
         awayFlag: 'no',
-        stadium: 'TBD',
+        stadium: 'BMO Field, Toronto',
         phase: 'GROUP',
     },
     {
@@ -633,51 +633,51 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO J: Argentina, Argelia, Austria, Jordania
+    // GRUPO J
     // =========================================================================
     {
         group: 'J',
-        date: '2026-06-15T02:00:00.000Z',
+        date: '2026-06-14T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Argentina',
         awayTeam: 'Argelia',
         homeFlag: 'ar',
         awayFlag: 'dz',
-        stadium: 'TBD',
+        stadium: 'Arrowhead Stadium, Kansas City',
         phase: 'GROUP',
     },
     {
         group: 'J',
-        date: '2026-06-15T23:00:00.000Z',
+        date: '2026-06-16T01:00:00.000Z', // 21:00 ET (15 Jun) -> 16 Jun UTC
         homeTeam: 'Austria',
         awayTeam: 'Jordania',
         homeFlag: 'at',
         awayFlag: 'jo',
-        stadium: 'TBD',
+        stadium: 'Levi\'s Stadium, San Francisco Bay Area',
         phase: 'GROUP',
     },
     {
         group: 'J',
-        date: '2026-06-20T02:00:00.000Z',
+        date: '2026-06-20T21:00:00.000Z', // 17:00 ET
         homeTeam: 'Argentina',
         awayTeam: 'Austria',
         homeFlag: 'ar',
         awayFlag: 'at',
-        stadium: 'TBD',
+        stadium: 'AT&T Stadium, Dallas',
         phase: 'GROUP',
     },
     {
         group: 'J',
-        date: '2026-06-20T23:00:00.000Z',
+        date: '2026-06-21T01:00:00.000Z', // 21:00 ET (20 Jun) -> 21 Jun UTC
         homeTeam: 'Argelia',
         awayTeam: 'Jordania',
         homeFlag: 'dz',
         awayFlag: 'jo',
-        stadium: 'TBD',
+        stadium: 'SoFi Stadium, Los Angeles',
         phase: 'GROUP',
     },
     {
         group: 'J',
-        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun)
+        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun) -> 28 Jun UTC
         homeTeam: 'Argentina',
         awayTeam: 'Jordania',
         homeFlag: 'ar',
@@ -687,7 +687,7 @@ const matchesData: MatchData[] = [
     },
     {
         group: 'J',
-        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun)
+        date: '2026-06-28T02:00:00.000Z', // 22:00 ET (27 Jun) -> 28 Jun UTC
         homeTeam: 'Argelia',
         awayTeam: 'Austria',
         homeFlag: 'dz',
@@ -697,46 +697,46 @@ const matchesData: MatchData[] = [
     },
 
     // =========================================================================
-    // GRUPO K: Portugal, Playoff 1, Uzbekistán, Colombia
+    // GRUPO K
     // =========================================================================
     {
         group: 'K',
-        date: '2026-06-16T02:00:00.000Z',
+        date: '2026-06-15T22:00:00.000Z', // 18:00 ET
         homeTeam: 'Portugal',
-        awayTeam: 'Honduras', // Ficticio por Playoff 1
-        homeFlag: 'pt',
-        awayFlag: 'hn',
-        stadium: 'TBD',
+        awayTeam: 'Repechaje K', // Corregido: Honduras eliminado
+        homeFlag: 'fifa', // Flag genérico o el que desees
+        awayFlag: 'un', // Flag intercontinental
+        stadium: 'Gillette Stadium, Boston',
         phase: 'GROUP',
     },
     {
         group: 'K',
-        date: '2026-06-16T18:00:00.000Z',
+        date: '2026-06-16T18:00:00.000Z', // 14:00 ET
         homeTeam: 'Uzbekistán',
         awayTeam: 'Colombia',
         homeFlag: 'uz',
         awayFlag: 'co',
-        stadium: 'TBD',
+        stadium: 'MetLife Stadium, New York/New Jersey',
         phase: 'GROUP',
     },
     {
         group: 'K',
-        date: '2026-06-21T02:00:00.000Z',
+        date: '2026-06-21T01:00:00.000Z', // 21:00 ET (20 Jun) -> 21 Jun UTC
         homeTeam: 'Portugal',
         awayTeam: 'Uzbekistán',
         homeFlag: 'pt',
         awayFlag: 'uz',
-        stadium: 'TBD',
+        stadium: 'Arrowhead Stadium, Kansas City',
         phase: 'GROUP',
     },
     {
         group: 'K',
-        date: '2026-06-21T18:00:00.000Z',
-        homeTeam: 'Honduras',
+        date: '2026-06-21T22:00:00.000Z', // 18:00 ET
+        homeTeam: 'Repechaje K',
         awayTeam: 'Colombia',
-        homeFlag: 'hn',
+        homeFlag: 'un',
         awayFlag: 'co',
-        stadium: 'TBD',
+        stadium: 'Estadio BBVA, Monterrey',
         phase: 'GROUP',
     },
     {
@@ -752,55 +752,55 @@ const matchesData: MatchData[] = [
     {
         group: 'K',
         date: '2026-06-27T23:30:00.000Z', // 19:30 ET
-        homeTeam: 'Honduras',
+        homeTeam: 'Repechaje K',
         awayTeam: 'Uzbekistán',
-        homeFlag: 'hn',
+        homeFlag: 'un',
         awayFlag: 'uz',
         stadium: 'Mercedes-Benz Stadium, Atlanta',
         phase: 'GROUP',
     },
 
     // =========================================================================
-    // GRUPO L: Inglaterra, Croacia, Ghana, Panamá
+    // GRUPO L
     // =========================================================================
     {
         group: 'L',
-        date: '2026-06-12T20:00:00.000Z',
+        date: '2026-06-12T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Inglaterra',
         awayTeam: 'Croacia',
         homeFlag: 'gb-eng',
         awayFlag: 'hr',
-        stadium: 'TBD',
+        stadium: 'Lincoln Financial Field, Philadelphia',
         phase: 'GROUP',
     },
     {
         group: 'L',
-        date: '2026-06-13T20:00:00.000Z',
+        date: '2026-06-13T23:00:00.000Z', // 19:00 ET
         homeTeam: 'Ghana',
         awayTeam: 'Panamá',
         homeFlag: 'gh',
         awayFlag: 'pa',
-        stadium: 'TBD',
+        stadium: 'Estadio Akron, Guadalajara',
         phase: 'GROUP',
     },
     {
         group: 'L',
-        date: '2026-06-17T20:00:00.000Z',
+        date: '2026-06-18T20:00:00.000Z', // 16:00 ET
         homeTeam: 'Inglaterra',
         awayTeam: 'Ghana',
         homeFlag: 'gb-eng',
         awayFlag: 'gh',
-        stadium: 'TBD',
+        stadium: 'NRG Stadium, Houston',
         phase: 'GROUP',
     },
     {
         group: 'L',
-        date: '2026-06-18T20:00:00.000Z',
+        date: '2026-06-19T01:00:00.000Z', // 21:00 ET (18 Jun) -> 19 Jun UTC
         homeTeam: 'Croacia',
         awayTeam: 'Panamá',
         homeFlag: 'hr',
         awayFlag: 'pa',
-        stadium: 'TBD',
+        stadium: 'Estadio Azteca, Ciudad de México',
         phase: 'GROUP',
     },
     {

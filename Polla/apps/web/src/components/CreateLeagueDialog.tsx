@@ -10,59 +10,50 @@ import { toast } from 'sonner';
    ============================================================================= */
 const PLANS = [
     {
-        id: 'starter',
-        name: 'Bronce',
+        id: 'familia',
+        name: 'Familia',
         price: 'GRATIS',
-        members: 3,
+        members: 5,
         icon: <Shield size={20} />,
-        color: '#CD7F32', // Bronze
-        features: ['Ranking Básico', 'Hasta 3 amigos']
+        color: '#94A3B8', // Slate
+        features: ['Hasta 5 jugadores', 'Texto del premio']
     },
     {
-        id: 'amateur',
-        name: 'Plata',
-        price: '$60.000',
+        id: 'parche',
+        name: 'Parche',
+        price: '$30.000',
         members: 15,
         icon: <Star size={20} />,
-        color: '#C0C0C0', // Silver
-        features: ['Ranking en Vivo', 'Hasta 15 miembros']
+        color: '#CD7F32', // Bronze
+        features: ['Hasta 15 jugadores', 'Imagen y texto del premio']
     },
     {
-        id: 'semi-pro',
-        name: 'Oro',
-        price: '$130.000',
-        members: 35,
+        id: 'amigos',
+        name: 'Amigos',
+        price: '$80.000',
+        members: 50,
         icon: <Zap size={20} />,
-        color: '#FFD700', // Gold
-        features: ['Soporte Prioritario', 'Hasta 35 miembros']
-    },
-    {
-        id: 'pro',
-        name: 'Platino',
-        price: '$220.000',
-        members: 60,
-        icon: <Trophy size={20} />,
-        color: '#E5E4E2', // Platinum
-        features: ['Gestor de Torneo', 'Hasta 60 miembros'],
+        color: '#C0C0C0', // Silver
+        features: ['Hasta 50 jugadores', 'Logo, imagen y texto'],
         recommended: true
     },
     {
-        id: 'elite',
-        name: 'Diamante',
-        price: '$520.000',
-        members: 150,
-        icon: <Crown size={20} />,
-        color: '#B9F2FF', // Diamond
-        features: ['Marca Blanca', 'Hasta 150 miembros']
+        id: 'lider',
+        name: 'Líder',
+        price: '$180.000',
+        members: 100,
+        icon: <Trophy size={20} />,
+        color: '#FFD700', // Gold
+        features: ['Hasta 100 jugadores', 'Muro de comentarios']
     },
     {
-        id: 'legend',
-        name: 'Esmeralda',
-        price: '$960.000',
-        members: 300,
-        icon: <Gem size={20} />,
-        color: '#50C878', // Emerald
-        features: ['Soporte 24/7', 'Hasta 300 miembros']
+        id: 'influencer',
+        name: 'Influencer',
+        price: '$350.000',
+        members: 200,
+        icon: <Crown size={20} />,
+        color: '#B9F2FF', // Diamond
+        features: ['Hasta 200 jugadores', 'Redes Sociales']
     }
 ];
 
@@ -77,7 +68,7 @@ interface CreateLeagueDialogProps {
 export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeagueCreated, children }) => {
     const [open, setOpen] = useState(false);
     const [leagueName, setLeagueName] = useState('');
-    const [selectedPlan, setSelectedPlan] = useState('pro'); // Por defecto el Pro
+    const [selectedPlan, setSelectedPlan] = useState('amigos'); // Por defecto el Amigos (recomendado)
     const [loading, setLoading] = useState(false);
     const [createdLeagueId, setCreatedLeagueId] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
@@ -85,8 +76,6 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const [copied, setCopied] = useState(false);
     const [processingPayment, setProcessingPayment] = useState(false);
 
-    const [isEnterprise, setIsEnterprise] = useState(false);
-    const [companyName, setCompanyName] = useState('');
 
     const handleCreate = async () => {
         if (!leagueName.trim()) {
@@ -101,8 +90,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         console.log('🚀 [CreateLeague] Iniciando creación:', {
             name: leagueName.trim(),
             planId: selectedPlan,
-            planName: plan.name,
-            isEnterprise
+            planName: plan.name
         });
         try {
             const response = await api.post('/leagues', {
@@ -110,8 +98,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 type: 'LIBRE',
                 maxParticipants: plan.members,
                 packageType: selectedPlan,
-                isEnterprise,
-                companyName: isEnterprise ? companyName : undefined
+                isEnterprise: false,
             });
 
             console.log('✅ [CreateLeague] Respuesta servidor:', response.data);
@@ -175,13 +162,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const handleClose = () => {
         setOpen(false);
         setLeagueName('');
-        setIsEnterprise(false);
-        setCompanyName('');
         setCreatedCode(null);
         setCreatedLeagueName(null);
         setCreatedLeagueId(null);
         setCopied(false);
-        setSelectedPlan('pro');
+        setSelectedPlan('amigos');
     };
 
     // SISTEMA DE DISEÑO BLINDADO
@@ -504,41 +489,6 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         />
                                     </div>
 
-                                    {/* Enterprise Checkbox */}
-                                    <div style={{ ...STYLES.inputSection, marginTop: 16, marginBottom: 16 }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'white', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Russo One", sans-serif' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={isEnterprise}
-                                                onChange={(e) => setIsEnterprise(e.target.checked)}
-                                                style={{ width: '20px', height: '20px', accentColor: '#00E676', cursor: 'pointer' }}
-                                            />
-                                            ACTIVAR MODO EMPRESA
-                                        </label>
-
-                                        {isEnterprise && (
-                                            <div style={{ marginTop: '12px' }} className="animate-in fade-in slide-in-from-top-2">
-                                                <div className="bg-amber-900/20 border border-amber-500/30 p-3 rounded-lg flex items-start gap-3 mb-4">
-                                                    <Crown size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                                                    <div className="space-y-1">
-                                                        <p className="text-[11px] font-bold text-amber-500 uppercase">Verificación Requerida</p>
-                                                        <p className="text-[10px] text-amber-200/80 leading-relaxed">
-                                                            Las funciones avanzadas (Branding, Analítica, Deptos) se habilitarán manualmente tras validar tu cuenta de empresa.
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <label style={STYLES.label}>Nombre de la Empresa</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Ej: Ferretería La Troncal"
-                                                    value={companyName}
-                                                    onChange={(e) => setCompanyName(e.target.value)}
-                                                    style={{ ...STYLES.input, fontSize: '14px', padding: '12px' }}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
 
                                     {/* Selector de Planes */}
                                     <div>
@@ -589,10 +539,10 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 <div style={STYLES.successBox}>
                                     <p className="text-tactical text-center text-sm">Comparte este código con tus amigos para que se unan:</p>
 
-                                    {/* SOLO mostrar botones de compartir si es Starter (Gratis) */}
-                                    {selectedPlan === 'starter' ? (
-                                        // Wait, PLANS[0] is starter (Free). Others are paid.
-                                        // Use selectedPlan === 'starter' check.
+                                    {/* SOLO mostrar botones de compartir si es Familia (Gratis) */}
+                                    {selectedPlan === 'familia' ? (
+                                        // Wait, PLANS[0] is familia (Free). Others are paid.
+                                        // Use selectedPlan === 'familia' check.
                                         <>
                                             <div style={STYLES.codeDisplay}>
                                                 {createdCode}
@@ -645,7 +595,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         </div>
                                     )}
 
-                                    {selectedPlan !== 'starter' && (
+                                    {selectedPlan !== 'familia' && (
                                         <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
                                             <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '8px' }}>
                                                 Para activar tu plan <strong>{PLANS.find(p => p.id === selectedPlan)?.name}</strong>, envía el comprobante de pago:

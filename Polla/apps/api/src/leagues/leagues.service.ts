@@ -77,18 +77,17 @@ export class LeaguesService {
         maxParticipants,
         creator,
         accessCodePrefix: code,
-        // Si es 'starter' (gratis), se considera pagado/activo. Si es Premium, empieza como NO pagado.
-        isPaid: packageType === 'starter' || packageType === 'FREE',
-        packageType, // <--- FALTABA ESTO
+        // Si es 'familia' o 'starter' (gratis), se considera pagado/activo.
+        isPaid: ['familia', 'starter', 'FREE'].includes(packageType),
+        packageType,
         isEnterprise: !!isEnterprise,
         companyName: companyName,
       });
 
       const savedLeague = await this.leaguesRepository.save(league);
 
-      // Create Transaction only for FREE plans (starter)
-      // Paid plans will have their transaction created via the frontend payment flow
-      if (packageType === 'starter') {
+      // Create Transaction only for FREE plans
+      if (['familia', 'starter', 'FREE'].includes(packageType)) {
         await this.transactionsService.createTransaction(
           creator,
           0,
@@ -326,6 +325,7 @@ export class LeaguesService {
         participantCount: l.participants?.length || 0,
         isEnterprise: !!l.isEnterprise,
         isEnterpriseActive: !!l.isEnterpriseActive,
+        packageType: l.packageType,
         brandingLogoUrl: l.brandingLogoUrl,
         prizeImageUrl: l.prizeImageUrl,
         prizeDetails: l.prizeDetails,
@@ -369,6 +369,7 @@ export class LeaguesService {
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
       isPaid: p.league.isPaid,
+      packageType: p.league.packageType,
     }));
 
     console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));
@@ -448,6 +449,7 @@ export class LeaguesService {
       status: participant.league.status,
       isPaid: participant.league.isPaid,
       maxParticipants: participant.league.maxParticipants,
+      packageType: participant.league.packageType,
     };
   }
 

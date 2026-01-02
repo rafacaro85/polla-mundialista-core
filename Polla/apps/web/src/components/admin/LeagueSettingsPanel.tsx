@@ -54,6 +54,7 @@ interface League {
     brandColorPrimary?: string;
     brandColorSecondary?: string;
     type?: string;
+    packageType?: string;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs = false }: { leagueId: string, defaultTab?: string, hideTabs?: boolean }) {
@@ -293,6 +294,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                         brandColorPrimary: currentLeague.brandColorPrimary,
                                         brandColorSecondary: currentLeague.brandColorSecondary,
                                     }}
+                                    packageType={currentLeague.packageType}
                                     onSuccess={() => {
                                         toast({ title: 'Guardado', description: 'Personalización actualizada.' });
                                         loadLeagueData();

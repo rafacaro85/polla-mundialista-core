@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2 } from 'lucide-react';
+import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2, Lock, Share2 } from 'lucide-react';
 import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
@@ -17,6 +17,7 @@ interface LeagueBrandingFormProps {
         brandColorPrimary?: string;
         brandColorSecondary?: string;
     };
+    packageType?: string;
     onSuccess?: () => void;
 }
 
@@ -104,7 +105,42 @@ const STYLES = {
     }
 };
 
-export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = false }: LeagueBrandingFormProps) {
+const PlanLock = ({ featureName, planNeeded }: { featureName: string, planNeeded: string }) => (
+    <div className="bg-slate-900/80 border border-slate-700/50 p-4 rounded-xl flex items-center justify-between gap-4 mt-2 mb-4">
+        <div className="flex items-center gap-3">
+            <div className="bg-slate-800 p-2 rounded-lg">
+                <Lock size={16} className="text-slate-500" />
+            </div>
+            <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Función Bloqueada</p>
+                <p className="text-xs text-slate-400">El {featureName} requiere el plan <strong>{planNeeded}</strong></p>
+            </div>
+        </div>
+        <button
+            onClick={() => {
+                const text = `Hola, quiero subir de plan para desbloquear la función "${featureName}".`;
+                window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+            }}
+            className="text-[10px] font-bold text-emerald-500 uppercase hover:underline"
+        >
+            Mejorar Plan
+        </button>
+    </div>
+);
+
+export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = false, packageType = 'familia' }: LeagueBrandingFormProps) {
+    const isFeatureEnabled = (feature: 'logo' | 'prizeImage') => {
+        // Mapeo de compatibilidad con planes antiguos
+        const plan = packageType.toLowerCase();
+
+        if (feature === 'prizeImage') {
+            return !['familia', 'starter'].includes(plan);
+        }
+        if (feature === 'logo') {
+            return !['familia', 'starter', 'parche', 'amateur'].includes(plan);
+        }
+        return true;
+    };
     const [formData, setFormData] = useState({
         brandingLogoUrl: initialData.brandingLogoUrl || '',
         prizeImageUrl: initialData.prizeImageUrl || '',
@@ -255,36 +291,48 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             {/* LOGO DE LA LIGA */}
             <div style={STYLES.fieldGroup}>
                 <label style={STYLES.label}>Logo Identitario de la Polla</label>
-                <UploadButton field="brandingLogoUrl" label="CAMBIAR LOGO" />
-                {formData.brandingLogoUrl && (
-                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
-                        <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
-                        <button
-                            onClick={() => handleChange('brandingLogoUrl', '')}
-                            style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
-                            title="Eliminar imagen"
-                        >
-                            <Trash2 size={16} />
-                        </button>
-                    </div>
+                {!isFeatureEnabled('logo') ? (
+                    <PlanLock featureName="Logo de Liga" planNeeded="Amigos" />
+                ) : (
+                    <>
+                        <UploadButton field="brandingLogoUrl" label="CAMBIAR LOGO" />
+                        {formData.brandingLogoUrl && (
+                            <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
+                                <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                                <button
+                                    onClick={() => handleChange('brandingLogoUrl', '')}
+                                    style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                                    title="Eliminar imagen"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             {/* IMAGEN DEL PREMIO */}
             <div style={STYLES.fieldGroup}>
                 <label style={STYLES.label}>Imagen del Premio Principal</label>
-                <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
-                {formData.prizeImageUrl && (
-                    <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
-                        <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
-                        <button
-                            onClick={() => handleChange('prizeImageUrl', '')}
-                            style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
-                            title="Eliminar imagen"
-                        >
-                            <Trash2 size={16} />
-                        </button>
-                    </div>
+                {!isFeatureEnabled('prizeImage') ? (
+                    <PlanLock featureName="Imagen del Premio" planNeeded="Parche" />
+                ) : (
+                    <>
+                        <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
+                        {formData.prizeImageUrl && (
+                            <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
+                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                                <button
+                                    onClick={() => handleChange('prizeImageUrl', '')}
+                                    style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                                    title="Eliminar imagen"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -308,6 +356,30 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                     style={STYLES.textarea}
                     placeholder="Escribe un saludo para tus jugadores..."
                 />
+            </div>
+
+            {/* MURO DE COMENTARIOS */}
+            <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px' }}>
+                <label style={STYLES.label}><MessageSquare size={14} /> Muro de Comentarios</label>
+                {!['lider', 'influencer', 'pro', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
+                    <PlanLock featureName="Muro de Comentarios" planNeeded="Líder" />
+                ) : (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
+                        ✅ El Muro de Comentarios está Habilitado
+                    </div>
+                )}
+            </div>
+
+            {/* REDES SOCIALES */}
+            <div style={STYLES.fieldGroup}>
+                <label style={STYLES.label}><Share2 size={14} /> Enlaces a Redes Sociales</label>
+                {!['influencer', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
+                    <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
+                ) : (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
+                        ✅ Redes Sociales Habilitadas
+                    </div>
+                )}
             </div>
 
             {/* SECCIÓN ENTERPRISE */}

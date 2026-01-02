@@ -45,13 +45,24 @@ const TEAM_TO_ISO: Record<string, string> = {
     'Egipto': 'eg', 'EGY': 'eg', 'Egypt': 'eg',
     'Serbia': 'rs', 'SRB': 'rs',
     'Escocia': 'gb-sct', 'SCO': 'gb-sct', 'Scotland': 'gb-sct',
-    'Arabia Saudita': 'sa', 'KSA': 'sa', 'Saudi Arabia': 'sa',
+    'Arabia Saudita': 'sa', 'Arabia Saudí': 'sa', 'KSA': 'sa', 'Saudi Arabia': 'sa',
     'Polonia': 'pl', 'POL': 'pl', 'Poland': 'pl',
     'Túnez': 'tn', 'TUN': 'tn', 'Tunisia': 'tn',
     'Austria': 'at', 'AUT': 'at',
     'Nueva Zelanda': 'nz', 'NZL': 'nz', 'New Zealand': 'nz',
     'Costa del Marfil': 'ci', 'CIV': 'ci', 'Ivory Coast': 'ci',
-    'QAT': 'qa', 'SAU': 'sa', 'SUI': 'ch', 'DEN': 'dk', 'CMR': 'cm', 'GHA': 'gh'
+    'Noruega': 'no', 'NOR': 'no', 'Norway': 'no',
+    'Argelia': 'dz', 'ALG': 'dz', 'Algeria': 'dz',
+    'Uzbekistán': 'uz', 'UZB': 'uz', 'Uzbekistan': 'uz',
+    'Ghana': 'gh', 'GHA': 'gh',
+    'Cabo Verde': 'cv', 'CPV': 'cv', 'Cape Verde': 'cv',
+    'Curazao': 'cw', 'CUW': 'cw', 'Curacao': 'cw',
+    'Suiza': 'ch', 'SUI': 'ch', 'Switzerland': 'ch',
+    'Grecia': 'gr', 'GRE': 'gr', 'Greece': 'gr',
+    'Finlandia': 'fi', 'FIN': 'fi', 'Finland': 'fi',
+    'Suecia': 'se', 'SWE': 'se', 'Sweden': 'se',
+    'Honduras': 'hn', 'HON': 'hn',
+    'QAT': 'qa', 'SAU': 'sa', 'DEN': 'dk', 'CMR': 'cm'
 };
 
 export const getTeamFlagUrl = (teamName: string) => {

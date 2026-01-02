@@ -109,14 +109,23 @@ export class StandingsService {
         const standings = Array.from(teamStats.values());
 
         standings.sort((a, b) => {
-            // Primero por puntos (descendente)
+            // 1. Mayor número de puntos obtenidos en todos los partidos de grupo
             if (b.points !== a.points) return b.points - a.points;
 
-            // Luego por diferencia de goles (descendente)
+            // 2. Mayor diferencia de goles en todos los partidos de grupo
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
 
-            // Finalmente por goles a favor (descendente)
-            return b.goalsFor - a.goalsFor;
+            // 3. Mayor número de goles marcados en todos los partidos de grupo
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+
+            // --- Criterios adicionales FIFA ---
+            // 4. Mayor número de puntos obtenidos en los partidos entre los equipos empatados
+            // 5. Mayor diferencia de goles en los partidos entre los equipos empatados
+            // 6. Mayor número de goles marcados en los partidos entre los equipos empatados
+            // 7. Puntos por deportividad (Fair Play - se puede implementar con datos de tarjetas)
+            // 8. Sorteo por la FIFA
+
+            return 0; // Se mantiene el orden actual si hay empate total (sorteo implícito)
         });
 
         // 4. Asignar posiciones

@@ -329,77 +329,84 @@ export class MatchesService {
 
 
     async simulateResults(phase?: string): Promise<{ message: string; updated: number }> {
-        // Determinamos qué fase simular
-        let targetPhase = phase;
+        try {
+            // Determinamos qué fase simular
+            let targetPhase = phase;
 
-        if (!targetPhase) {
-            // Si no se especifica, buscamos la primera fase desbloqueada que tenga partidos pendientes
-            const unlockedPhases = await this.phaseStatusRepository.find({
-                where: { isUnlocked: true, allMatchesCompleted: false },
-                order: { phase: 'ASC' } // Esto asume un orden alfabético que puede no ser ideal, pero es una base
+            if (!targetPhase) {
+                // Si no se especifica, buscamos la primera fase desbloqueada que tenga partidos pendientes
+                const unlockedPhases = await this.phaseStatusRepository.find({
+                    where: { isUnlocked: true, allMatchesCompleted: false }
+                });
+
+                // Orden real de las fases
+                const phaseOrder = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+                const sortedUnlocked = unlockedPhases.sort((a, b) => phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase));
+
+                if (sortedUnlocked.length > 0) {
+                    targetPhase = sortedUnlocked[0].phase;
+                } else {
+                    targetPhase = 'GROUP'; // Default a grupos si no hay nada desbloqueado
+                }
+            }
+
+            console.log(`🤖 [SIMULATOR] Iniciando simulación para fase: ${targetPhase}`);
+
+            // Obtenemos partidos de esa fase que no estén finalizados
+            const matches = await this.matchesRepository.find({
+                where: {
+                    phase: targetPhase,
+                    status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS', 'NOT_STARTED'])
+                }
             });
 
-            // Orden real de las fases
-            const phaseOrder = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
-            const sortedUnlocked = unlockedPhases.sort((a, b) => phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase));
+            console.log(`🤖 [SIMULATOR] Encontrados ${matches.length} partidos pendientes en fase ${targetPhase}`);
 
-            if (sortedUnlocked.length > 0) {
-                targetPhase = sortedUnlocked[0].phase;
-            } else {
-                targetPhase = 'GROUP'; // Default
-            }
-        }
+            let updatedCount = 0;
 
-        console.log(`🤖 Simulación iniciada para la fase: ${targetPhase}`);
+            for (const match of matches) {
+                // Solo simular si tiene equipos definidos (no placeholders vacíos)
+                // Nota: En knockout, los placeholders como '1A' cuentan como homeTeam en la DB si el seeder fue así
+                // pero para simular necesitamos que tengan equipos reales o que el usuario quiera simular placeholders
+                if (match.homeTeam && match.awayTeam) {
+                    const generateScore = () => {
+                        const r = Math.random();
+                        if (r < 0.2) return 0;
+                        if (r < 0.5) return 1;
+                        if (r < 0.8) return 2;
+                        if (r < 0.95) return 3;
+                        return 4;
+                    };
 
-        // Obtenemos partidos de esa fase que no estén finalizados
-        const matches = await this.matchesRepository.find({
-            where: {
-                phase: targetPhase,
-                status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS'])
-            }
-        });
+                    let homeScore = generateScore();
+                    let awayScore = generateScore();
 
-        let updatedCount = 0;
+                    // En fases eliminatorias, NO permitimos empates en la simulación para que el torneo avance
+                    if (targetPhase !== 'GROUP' && homeScore === awayScore) {
+                        // Desempatar al azar
+                        if (Math.random() > 0.5) homeScore++;
+                        else awayScore++;
+                    }
 
-        for (const match of matches) {
-            // Solo simular si tiene equipos definidos (no placeholders vacíos)
-            // Nota: En knockout, los placeholders como '1A' cuentan como homeTeam en la DB si el seeder fue así
-            // pero para simular necesitamos que tengan equipos reales o que el usuario quiera simular placeholders
-            if (match.homeTeam && match.awayTeam) {
-                const generateScore = () => {
-                    const r = Math.random();
-                    if (r < 0.2) return 0;
-                    if (r < 0.5) return 1;
-                    if (r < 0.8) return 2;
-                    if (r < 0.95) return 3;
-                    return 4;
-                };
-
-                let homeScore = generateScore();
-                let awayScore = generateScore();
-
-                // En fases eliminatorias, NO permitimos empates en la simulación para que el torneo avance
-                if (targetPhase !== 'GROUP' && homeScore === awayScore) {
-                    // Desempatar al azar
-                    if (Math.random() > 0.5) homeScore++;
-                    else awayScore++;
+                    await this.updateMatch(match.id, {
+                        homeScore,
+                        awayScore,
+                        status: 'FINISHED',
+                        isLocked: true
+                    });
+                    updatedCount++;
                 }
-
-                await this.updateMatch(match.id, {
-                    homeScore,
-                    awayScore,
-                    status: 'FINISHED',
-                    isLocked: true
-                });
-                updatedCount++;
             }
-        }
 
-        return {
-            message: `Simulación de ${targetPhase} completada: ${updatedCount} partidos finalizados.`,
-            updated: updatedCount
-        };
+            return {
+                message: `Simulación de ${targetPhase} completada: ${updatedCount} partidos finalizados.`,
+                updated: updatedCount
+            };
+
+        } catch (error) {
+            console.error(`❌ [SIMULATOR ERROR] Error simulando resultados para fase ${phase}:`, error);
+            throw error;
+        }
     }
 
     async resetAllMatches(): Promise<{ message: string; reset: number }> {
@@ -417,7 +424,6 @@ export class MatchesService {
                 match.isLocked = false;
 
                 // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
-                // Los equipos de grupos son fijos y se pierden si se limpian aquí.
                 if (match.phase !== 'GROUP' && (match.homeTeamPlaceholder || match.awayTeamPlaceholder)) {
                     match.homeTeam = '';
                     match.awayTeam = '';
@@ -469,7 +475,7 @@ export class MatchesService {
             await queryRunner.commitTransaction();
 
             return {
-                message: `Sistema reiniciado correctamente: ${matches.length} partidos limpios, rankings reseteados y fases bloqueadas.`,
+                message: `Sistema reiniciado correctamente: ${matches.length} partidos limpios.`,
                 reset: matches.length
             };
         } catch (error) {

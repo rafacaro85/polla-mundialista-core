@@ -395,6 +395,10 @@ export class MatchesService {
                         isLocked: true
                     });
                     updatedCount++;
+
+                    if (updatedCount % 10 === 0) {
+                        console.log(`🤖 [SIMULATOR] Progreso: ${updatedCount}/${matches.length} partidos procesados...`);
+                    }
                 }
             }
 

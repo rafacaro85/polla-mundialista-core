@@ -119,20 +119,23 @@ export class BracketsService {
 
         // Find all brackets that predicted this winner for this match
         const allBrackets = await this.userBracketRepository.find();
+        const bracketsToUpdate: UserBracket[] = [];
 
-        let updatedCount = 0;
         for (const bracket of allBrackets) {
             // Check if this bracket has a pick for this match
             if (bracket.picks && bracket.picks[matchId] === winnerTeamName) {
                 // User predicted correctly! Add points
                 bracket.points += points;
-                await this.userBracketRepository.save(bracket);
-                updatedCount++;
-                console.log(`✅ Added ${points}pts to user ${bracket.userId} for correct ${match.phase} prediction`);
+                bracketsToUpdate.push(bracket);
             }
         }
 
-        console.log(`🏆 Updated ${updatedCount} brackets with ${points}pts for match ${matchId}`);
+        if (bracketsToUpdate.length > 0) {
+            await this.userBracketRepository.save(bracketsToUpdate);
+            console.log(`✅ Bulk updated ${bracketsToUpdate.length} brackets for ${match.phase} prediction`);
+        }
+
+        console.log(`🏆 Updated ${bracketsToUpdate.length} brackets with ${points}pts for match ${matchId}`);
     }
 
     async recalculateAllBracketPoints(): Promise<void> {

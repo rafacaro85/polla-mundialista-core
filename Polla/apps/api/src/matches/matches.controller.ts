@@ -109,6 +109,14 @@ export class MatchesController {
         return this.matchesService.simulateResults(body.phase);
     }
 
+    // Alias con guion bajo para compatibilidad con el componente frontend
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('simulate_results')
+    async simulateResultsUnderscore(@Body() body: { phase?: string }) {
+        return this.matchesService.simulateResults(body.phase);
+    }
+
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Post('reset-all')

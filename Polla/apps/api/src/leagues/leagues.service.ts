@@ -242,7 +242,7 @@ export class LeaguesService {
     const userIds = users.map(u => u.id);
 
     // 2. Fetch Prediction Points (Global - Máximo por partido entre todas las ligas)
-    const predictionPointsRows = await this.predictionRepository.manager.query(`
+    const predictionPointsRows = (await this.predictionRepository.manager.query(`
       SELECT "userId", SUM(match_points) as points
       FROM (
         SELECT "userId", "matchId", MAX(points) as match_points
@@ -251,12 +251,12 @@ export class LeaguesService {
         GROUP BY "userId", "matchId"
       ) as sub
       GROUP BY "userId"
-    `, [userIds]);
+    `, [userIds])) as any[];
 
-    const predMap = new Map(predictionPointsRows.map(r => [r.userId || r.userid, Number(r.points || 0)]));
+    const predMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || 0)]));
 
     // 3. Fetch Bracket Points (Global - Máximo por bracket entre todas las ligas)
-    const bracketPointsRows = await this.userRepository.manager.query(`
+    const bracketPointsRows = (await this.userRepository.manager.query(`
       SELECT "userId", SUM(bracket_points) as points
       FROM (
         SELECT "userId", "leagueId", MAX(points) as bracket_points
@@ -265,9 +265,9 @@ export class LeaguesService {
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
-    `, [userIds]);
+    `, [userIds])) as any[];
 
-    const bracketMap = new Map(bracketPointsRows.map(r => [r.userId || r.userid, Number(r.points || 0)]));
+    const bracketMap = new Map<string, number>(bracketPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || 0)]));
 
     // 4. Fetch Bonus Points (Global)
     const bonusPointsRows = await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
@@ -279,14 +279,14 @@ export class LeaguesService {
       .groupBy('uba.userId')
       .getRawMany();
 
-    const bonusMap = new Map(bonusPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const bonusMap = new Map<string, number>(bonusPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
 
     // 5. Combinar
     const finalRanking = users.map(u => {
-      const predictionPoints = predMap.get(u.id) || 0;
-      const bracketPoints = bracketMap.get(u.id) || 0;
-      const bonusPoints = bonusMap.get(u.id) || 0;
-      const totalPoints = predictionPoints + bracketPoints + bonusPoints;
+      const predictionPoints: number = predMap.get(u.id) || 0;
+      const bracketPoints: number = bracketMap.get(u.id) || 0;
+      const bonusPoints: number = bonusMap.get(u.id) || 0;
+      const totalPoints = Number(predictionPoints) + Number(bracketPoints) + Number(bonusPoints);
 
       return {
         id: u.id,

@@ -95,48 +95,48 @@ const matchesData = [
     { group: 'L', date: '2026-06-27 21:00:00', home_team: 'Croacia', away_team: 'Ghana', home_flag: 'hr', away_flag: 'gh', stadium: 'Estadio Filadelfia', phase: 'GROUP' },
 
     // --- DIECISEISAVOS (ROUND_32) 28 JUN - 3 JUL ---
-    { phase: 'ROUND_32', date: '2026-06-28 18:00:00', home_team: '2A', away_team: '2B', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 73, home_placeholder: '2A', away_placeholder: '2B' },
-    { phase: 'ROUND_32', date: '2026-06-29 16:00:00', home_team: '1E', away_team: '3A/B/C/D/F', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Boston', bracket_id: 74, home_placeholder: '1E', away_placeholder: '3A/B/C/D/F' },
-    { phase: 'ROUND_32', date: '2026-06-29 19:00:00', home_team: '1F', away_team: '2C', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Monterrey', bracket_id: 75, home_placeholder: '1F', away_placeholder: '2C' },
-    { phase: 'ROUND_32', date: '2026-06-29 22:00:00', home_team: '1E', away_team: '2F', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Houston', bracket_id: 76, home_placeholder: '1E', away_placeholder: '2F' },
-    { phase: 'ROUND_32', date: '2026-06-30 16:00:00', home_team: '1I', away_team: '3C/D/F/G/H', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 77, home_placeholder: '1I', away_placeholder: '3C/D/F/G/H' },
-    { phase: 'ROUND_32', date: '2026-06-30 19:00:00', home_team: '2E', away_team: '2I', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 78, home_placeholder: '2E', away_placeholder: '2I' },
-    { phase: 'ROUND_32', date: '2026-06-30 22:00:00', home_team: '1A', away_team: '3C/E/F/H/I', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Cd México', bracket_id: 79, home_placeholder: '1A', away_placeholder: '3C/E/F/H/I' },
-    { phase: 'ROUND_32', date: '2026-07-01 16:00:00', home_team: '1L', away_team: '3E/H/I/J/K', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 80, home_placeholder: '1L', away_placeholder: '3E/H/I/J/K' },
-    { phase: 'ROUND_32', date: '2026-07-01 19:00:00', home_team: '1D', away_team: '3B/E/F/I/J', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Bahía SF', bracket_id: 81, home_placeholder: '1D', away_placeholder: '3B/E/F/I/J' },
-    { phase: 'ROUND_32', date: '2026-07-01 22:00:00', home_team: '1G', away_team: '3A/E/H/I/J', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Seattle', bracket_id: 82, home_placeholder: '1G', away_placeholder: '3A/E/H/I/J' },
-    { phase: 'ROUND_32', date: '2026-07-02 16:00:00', home_team: '2K', away_team: '2L', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Toronto', bracket_id: 83, home_placeholder: '2K', away_placeholder: '2L' },
-    { phase: 'ROUND_32', date: '2026-07-02 19:00:00', home_team: '1H', away_team: '2J', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 84, home_placeholder: '1H', away_placeholder: '2J' },
-    { phase: 'ROUND_32', date: '2026-07-02 22:00:00', home_team: '1B', away_team: '3E/F/G/I/J', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Vancouver', bracket_id: 85, home_placeholder: '1B', away_placeholder: '3E/F/G/I/J' },
-    { phase: 'ROUND_32', date: '2026-07-03 16:00:00', home_team: '1J', away_team: '2H', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 86, home_placeholder: '1J', away_placeholder: '2H' },
-    { phase: 'ROUND_32', date: '2026-07-03 19:00:00', home_team: '1K', away_team: '3D/E/I/J/L', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Kansas City', bracket_id: 87, home_placeholder: '1K', away_placeholder: '3D/E/I/J/L' },
-    { phase: 'ROUND_32', date: '2026-07-03 22:00:00', home_team: '2D', away_team: '2G', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 88, home_placeholder: '2D', away_placeholder: '2G' },
+    { phase: 'ROUND_32', date: '2026-06-28 18:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 73, home_placeholder: '2A', away_placeholder: '2B' },
+    { phase: 'ROUND_32', date: '2026-06-29 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Boston', bracket_id: 74, home_placeholder: '1E', away_placeholder: '3A/B/C/D/F' },
+    { phase: 'ROUND_32', date: '2026-06-29 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Monterrey', bracket_id: 75, home_placeholder: '1F', away_placeholder: '2C' },
+    { phase: 'ROUND_32', date: '2026-06-29 22:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Houston', bracket_id: 76, home_placeholder: '1E', away_placeholder: '2F' },
+    { phase: 'ROUND_32', date: '2026-06-30 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 77, home_placeholder: '1I', away_placeholder: '3C/D/F/G/H' },
+    { phase: 'ROUND_32', date: '2026-06-30 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 78, home_placeholder: '2E', away_placeholder: '2I' },
+    { phase: 'ROUND_32', date: '2026-06-30 22:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Cd México', bracket_id: 79, home_placeholder: '1A', away_placeholder: '3C/E/F/H/I' },
+    { phase: 'ROUND_32', date: '2026-07-01 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 80, home_placeholder: '1L', away_placeholder: '3E/H/I/J/K' },
+    { phase: 'ROUND_32', date: '2026-07-01 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Bahía SF', bracket_id: 81, home_placeholder: '1D', away_placeholder: '3B/E/F/I/J' },
+    { phase: 'ROUND_32', date: '2026-07-01 22:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Seattle', bracket_id: 82, home_placeholder: '1G', away_placeholder: '3A/E/H/I/J' },
+    { phase: 'ROUND_32', date: '2026-07-02 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Toronto', bracket_id: 83, home_placeholder: '2K', away_placeholder: '2L' },
+    { phase: 'ROUND_32', date: '2026-07-02 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 84, home_placeholder: '1H', away_placeholder: '2J' },
+    { phase: 'ROUND_32', date: '2026-07-02 22:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Vancouver', bracket_id: 85, home_placeholder: '1B', away_placeholder: '3E/F/G/I/J' },
+    { phase: 'ROUND_32', date: '2026-07-03 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 86, home_placeholder: '1J', away_placeholder: '2H' },
+    { phase: 'ROUND_32', date: '2026-07-03 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Kansas City', bracket_id: 87, home_placeholder: '1K', away_placeholder: '3D/E/I/J/L' },
+    { phase: 'ROUND_32', date: '2026-07-03 22:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 88, home_placeholder: '2D', away_placeholder: '2G' },
 
     // --- OCTAVOS ---
-    { phase: 'ROUND_16', date: '2026-07-04 16:00:00', home_team: 'W74', away_team: 'W77', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Filadelfia', bracket_id: 89, home_placeholder: 'Ganador 74', away_placeholder: 'Ganador 77' },
-    { phase: 'ROUND_16', date: '2026-07-04 19:00:00', home_team: 'W73', away_team: 'W75', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Houston', bracket_id: 90, home_placeholder: 'Ganador 73', away_placeholder: 'Ganador 75' },
-    { phase: 'ROUND_16', date: '2026-07-05 17:00:00', home_team: 'W76', away_team: 'W78', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 91, home_placeholder: 'Ganador 76', away_placeholder: 'Ganador 78' },
-    { phase: 'ROUND_16', date: '2026-07-05 20:00:00', home_team: 'W79', away_team: 'W80', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Cd México', bracket_id: 92, home_placeholder: 'Ganador 79', away_placeholder: 'Ganador 80' },
-    { phase: 'ROUND_16', date: '2026-07-06 17:00:00', home_team: 'W83', away_team: 'W84', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 93, home_placeholder: 'Ganador 83', away_placeholder: 'Ganador 84' },
-    { phase: 'ROUND_16', date: '2026-07-06 20:00:00', home_team: 'W81', away_team: 'W82', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Seattle', bracket_id: 94, home_placeholder: 'Ganador 81', away_placeholder: 'Ganador 82' },
-    { phase: 'ROUND_16', date: '2026-07-07 17:00:00', home_team: 'W86', away_team: 'W88', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 95, home_placeholder: 'Ganador 86', away_placeholder: 'Ganador 88' },
-    { phase: 'ROUND_16', date: '2026-07-07 20:00:00', home_team: 'W85', away_team: 'W87', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Vancouver', bracket_id: 96, home_placeholder: 'Ganador 85', away_placeholder: 'Ganador 87' },
+    { phase: 'ROUND_16', date: '2026-07-04 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Filadelfia', bracket_id: 89, home_placeholder: 'Ganador 74', away_placeholder: 'Ganador 77' },
+    { phase: 'ROUND_16', date: '2026-07-04 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Houston', bracket_id: 90, home_placeholder: 'Ganador 73', away_placeholder: 'Ganador 75' },
+    { phase: 'ROUND_16', date: '2026-07-05 17:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 91, home_placeholder: 'Ganador 76', away_placeholder: 'Ganador 78' },
+    { phase: 'ROUND_16', date: '2026-07-05 20:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Cd México', bracket_id: 92, home_placeholder: 'Ganador 79', away_placeholder: 'Ganador 80' },
+    { phase: 'ROUND_16', date: '2026-07-06 17:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 93, home_placeholder: 'Ganador 83', away_placeholder: 'Ganador 84' },
+    { phase: 'ROUND_16', date: '2026-07-06 20:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Seattle', bracket_id: 94, home_placeholder: 'Ganador 81', away_placeholder: 'Ganador 82' },
+    { phase: 'ROUND_16', date: '2026-07-07 17:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 95, home_placeholder: 'Ganador 86', away_placeholder: 'Ganador 88' },
+    { phase: 'ROUND_16', date: '2026-07-07 20:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Vancouver', bracket_id: 96, home_placeholder: 'Ganador 85', away_placeholder: 'Ganador 87' },
 
     // --- CUARTOS ---
-    { phase: 'QUARTER', date: '2026-07-09 18:00:00', home_team: 'W89', away_team: 'W90', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Boston', bracket_id: 97, home_placeholder: 'Ganador 89', away_placeholder: 'Ganador 90' },
-    { phase: 'QUARTER', date: '2026-07-10 18:00:00', home_team: 'W93', away_team: 'W94', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 98, home_placeholder: 'Ganador 93', away_placeholder: 'Ganador 94' },
-    { phase: 'QUARTER', date: '2026-07-11 14:00:00', home_team: 'W91', away_team: 'W92', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 99, home_placeholder: 'Ganador 91', away_placeholder: 'Ganador 92' },
-    { phase: 'QUARTER', date: '2026-07-11 19:00:00', home_team: 'W95', away_team: 'W96', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Kansas City', bracket_id: 100, home_placeholder: 'Ganador 95', away_placeholder: 'Ganador 96' },
+    { phase: 'QUARTER', date: '2026-07-09 18:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Boston', bracket_id: 97, home_placeholder: 'Ganador 89', away_placeholder: 'Ganador 90' },
+    { phase: 'QUARTER', date: '2026-07-10 18:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Los Ángeles', bracket_id: 98, home_placeholder: 'Ganador 93', away_placeholder: 'Ganador 94' },
+    { phase: 'QUARTER', date: '2026-07-11 14:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 99, home_placeholder: 'Ganador 91', away_placeholder: 'Ganador 92' },
+    { phase: 'QUARTER', date: '2026-07-11 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Kansas City', bracket_id: 100, home_placeholder: 'Ganador 95', away_placeholder: 'Ganador 96' },
 
     // --- SEMIS ---
-    { phase: 'SEMI', date: '2026-07-14 19:00:00', home_team: 'W97', away_team: 'W98', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 101, home_placeholder: 'Ganador 97', away_placeholder: 'Ganador 98' },
-    { phase: 'SEMI', date: '2026-07-15 19:00:00', home_team: 'W99', away_team: 'W100', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 102, home_placeholder: 'Ganador 99', away_placeholder: 'Ganador 100' },
+    { phase: 'SEMI', date: '2026-07-14 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Dallas', bracket_id: 101, home_placeholder: 'Ganador 97', away_placeholder: 'Ganador 98' },
+    { phase: 'SEMI', date: '2026-07-15 19:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Atlanta', bracket_id: 102, home_placeholder: 'Ganador 99', away_placeholder: 'Ganador 100' },
 
     // --- TERCER PUESTO ---
-    { phase: '3RD_PLACE', date: '2026-07-18 16:00:00', home_team: 'L101', away_team: 'L102', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 103, home_placeholder: 'Perdedor 101', away_placeholder: 'Perdedor 102' },
+    { phase: '3RD_PLACE', date: '2026-07-18 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio Miami', bracket_id: 103, home_placeholder: 'Perdedor 101', away_placeholder: 'Perdedor 102' },
 
     // --- FINAL ---
-    { phase: 'FINAL', date: '2026-07-19 16:00:00', home_team: 'W101', away_team: 'W102', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 104, home_placeholder: 'Ganador 101', away_placeholder: 'Ganador 102' },
+    { phase: 'FINAL', date: '2026-07-19 16:00:00', home_team: '', away_team: '', home_flag: 'un', away_flag: 'un', stadium: 'Estadio NY/NJ', bracket_id: 104, home_placeholder: 'Ganador 101', away_placeholder: 'Ganador 102' },
 ];
 
 async function main() {

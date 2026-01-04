@@ -328,16 +328,45 @@ export class MatchesService {
     }
 
 
-    async simulateResults(): Promise<{ message: string; updated: number }> {
-        // Obtenemos partidos que tienen equipos y no están finalizados
-        const matches = await this.matchesRepository.find();
+    async simulateResults(phase?: string): Promise<{ message: string; updated: number }> {
+        // Determinamos qué fase simular
+        let targetPhase = phase;
+
+        if (!targetPhase) {
+            // Si no se especifica, buscamos la primera fase desbloqueada que tenga partidos pendientes
+            const unlockedPhases = await this.phaseStatusRepository.find({
+                where: { isUnlocked: true, allMatchesCompleted: false },
+                order: { phase: 'ASC' } // Esto asume un orden alfabético que puede no ser ideal, pero es una base
+            });
+
+            // Orden real de las fases
+            const phaseOrder = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+            const sortedUnlocked = unlockedPhases.sort((a, b) => phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase));
+
+            if (sortedUnlocked.length > 0) {
+                targetPhase = sortedUnlocked[0].phase;
+            } else {
+                targetPhase = 'GROUP'; // Default
+            }
+        }
+
+        console.log(`🤖 Simulación iniciada para la fase: ${targetPhase}`);
+
+        // Obtenemos partidos de esa fase que no estén finalizados
+        const matches = await this.matchesRepository.find({
+            where: {
+                phase: targetPhase,
+                status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS'])
+            }
+        });
+
         let updatedCount = 0;
 
         for (const match of matches) {
-            // Solo simular si tiene equipos y no está finalizado
-            if (match.homeTeam && match.awayTeam && match.status !== 'FINISHED') {
-                // Resultados realistas (promedio de goles en mundial es ~2.5)
-                // Usamos una distribución que favorezca 0, 1, 2 goles
+            // Solo simular si tiene equipos definidos (no placeholders vacíos)
+            // Nota: En knockout, los placeholders como '1A' cuentan como homeTeam en la DB si el seeder fue así
+            // pero para simular necesitamos que tengan equipos reales o que el usuario quiera simular placeholders
+            if (match.homeTeam && match.awayTeam) {
                 const generateScore = () => {
                     const r = Math.random();
                     if (r < 0.2) return 0;
@@ -347,11 +376,15 @@ export class MatchesService {
                     return 4;
                 };
 
-                const homeScore = generateScore();
-                const awayScore = generateScore();
+                let homeScore = generateScore();
+                let awayScore = generateScore();
 
-                // Intentar evitar empates en fases eliminatorias si es necesario, 
-                // pero updateMatch maneja lo básico.
+                // En fases eliminatorias, NO permitimos empates en la simulación para que el torneo avance
+                if (targetPhase !== 'GROUP' && homeScore === awayScore) {
+                    // Desempatar al azar
+                    if (Math.random() > 0.5) homeScore++;
+                    else awayScore++;
+                }
 
                 await this.updateMatch(match.id, {
                     homeScore,
@@ -364,7 +397,7 @@ export class MatchesService {
         }
 
         return {
-            message: `Simulación completada: ${updatedCount} partidos finalizados con resultados realistas.`,
+            message: `Simulación de ${targetPhase} completada: ${updatedCount} partidos finalizados.`,
             updated: updatedCount
         };
     }

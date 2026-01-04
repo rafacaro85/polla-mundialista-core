@@ -105,8 +105,8 @@ export class MatchesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Post('simulate-results')
-    async simulateResults() {
-        return this.matchesService.simulateResults();
+    async simulateResults(@Body() body: { phase?: string }) {
+        return this.matchesService.simulateResults(body.phase);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

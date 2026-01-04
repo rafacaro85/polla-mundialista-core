@@ -18,18 +18,20 @@ export const useMyPredictions = (leagueId?: string) => {
         if (Array.isArray(data)) {
             const targetLeagueId = leagueId || null;
 
-            // 1. Cargar todas las predicciones globales (sin liga) como base
+            // 1. Cargar TODAS las predicciones como base (si hay varias para un partido, se irán sobreescribiendo)
             data.forEach((p: any) => {
                 const mId = p.matchId || p.match?.id;
                 const pLeagueId = p.leagueId || null;
 
-                if (mId && pLeagueId === null) {
+                if (mId) {
+                    // Si estamos en Dash General (targetLeagueId === null), aceptamos CUALQUIER liga como visualización
+                    // Si estamos en una liga específica, el punto 2 la sobreescribirá
                     map[mId] = {
                         matchId: mId,
                         homeScore: p.homeScore,
                         awayScore: p.awayScore,
                         points: p.points,
-                        isJoker: targetLeagueId === null ? p.isJoker : false, // El comodín es por liga, no se hereda del global
+                        isJoker: p.isJoker,
                         scoreH: p.homeScore,
                         scoreA: p.awayScore,
                         leagueId: pLeagueId
@@ -173,11 +175,37 @@ export const useMyPredictions = (leagueId?: string) => {
         }
     };
 
+    const saveBulkPredictions = async (aiPredictions: Record<string, { h: number, a: number }>) => {
+        const targetLeagueId = leagueId || null;
+        const entries = Object.entries(aiPredictions);
+
+        // Save all without intermediate revalidations
+        const promises = entries.map(([mId, { h, a }]) => {
+            return api.post('/predictions', {
+                matchId: mId,
+                homeScore: h,
+                awayScore: a,
+                leagueId: targetLeagueId
+            });
+        });
+
+        try {
+            await Promise.all(promises);
+            await mutate(PREDICTIONS_ENDPOINT);
+            toast.success(`${entries.length} predicciones guardadas correctamente`);
+        } catch (err) {
+            console.error(err);
+            toast.error('Error al guardar predicciones masivas');
+            mutate(PREDICTIONS_ENDPOINT);
+        }
+    };
+
     return {
         predictions: predictionsMap,
         loading: isLoading,
         error,
         savePrediction,
+        saveBulkPredictions,
         deletePrediction,
         clearAllPredictions,
         refresh: () => mutate(PREDICTIONS_ENDPOINT)

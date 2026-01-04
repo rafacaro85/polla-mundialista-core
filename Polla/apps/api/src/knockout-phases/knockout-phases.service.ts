@@ -5,7 +5,7 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
 import { Match } from '../database/entities/match.entity';
 
 // Phase order for unlocking
-const PHASE_ORDER = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'];
+const PHASE_ORDER = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
 
 // Next phase mapping
 const NEXT_PHASE: { [key: string]: string | null } = {
@@ -13,7 +13,8 @@ const NEXT_PHASE: { [key: string]: string | null } = {
     'ROUND_32': 'ROUND_16',
     'ROUND_16': 'QUARTER',
     'QUARTER': 'SEMI',
-    'SEMI': 'FINAL',
+    'SEMI': '3RD_PLACE',
+    '3RD_PLACE': 'FINAL',
     'FINAL': null,
 };
 

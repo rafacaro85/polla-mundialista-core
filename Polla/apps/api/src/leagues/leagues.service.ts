@@ -241,29 +241,33 @@ export class LeaguesService {
 
     const userIds = users.map(u => u.id);
 
-    // 2. Fetch Prediction Points (Global)
-    const predictionPointsRows = await this.predictionRepository.createQueryBuilder('p')
-      .innerJoin('p.match', 'm')
-      .select('p.userId', 'userId')
-      .addSelect('SUM(p.points)', 'points')
-      .where('p.userId IN (:...userIds)', { userIds })
-      .andWhere('p.leagueId IS NULL')
-      .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
-      .groupBy('p.userId')
-      .getRawMany();
+    // 2. Fetch Prediction Points (Global - Máximo por partido entre todas las ligas)
+    const predictionPointsRows = await this.predictionRepository.manager.query(`
+      SELECT "userId", SUM(match_points) as points
+      FROM (
+        SELECT "userId", "matchId", MAX(points) as match_points
+        FROM predictions
+        WHERE "userId" = ANY($1)
+        GROUP BY "userId", "matchId"
+      ) as sub
+      GROUP BY "userId"
+    `, [userIds]);
 
-    const predMap = new Map(predictionPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const predMap = new Map(predictionPointsRows.map(r => [r.userId || r.userid, Number(r.points || 0)]));
 
-    // 3. Fetch Bracket Points (Global)
-    const bracketPointsRows = await this.userRepository.manager.createQueryBuilder(UserBracket, 'b')
-      .select('b.userId', 'userId')
-      .addSelect('MAX(b.points)', 'points')
-      .where('b.userId IN (:...userIds)', { userIds })
-      .andWhere('b.leagueId IS NULL')
-      .groupBy('b.userId')
-      .getRawMany();
+    // 3. Fetch Bracket Points (Global - Máximo por bracket entre todas las ligas)
+    const bracketPointsRows = await this.userRepository.manager.query(`
+      SELECT "userId", SUM(bracket_points) as points
+      FROM (
+        SELECT "userId", "leagueId", MAX(points) as bracket_points
+        FROM user_brackets
+        WHERE "userId" = ANY($1)
+        GROUP BY "userId", "leagueId"
+      ) as sub
+      GROUP BY "userId"
+    `, [userIds]);
 
-    const bracketMap = new Map(bracketPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const bracketMap = new Map(bracketPointsRows.map(r => [r.userId || r.userid, Number(r.points || 0)]));
 
     // 4. Fetch Bonus Points (Global)
     const bonusPointsRows = await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
@@ -271,7 +275,7 @@ export class LeaguesService {
       .select('uba.userId', 'userId')
       .addSelect('SUM(uba.pointsEarned)', 'points')
       .where('uba.userId IN (:...userIds)', { userIds })
-      .andWhere('bq.leagueId IS NULL')
+      // Eliminado el filtro bq.leagueId IS NULL
       .groupBy('uba.userId')
       .getRawMany();
 

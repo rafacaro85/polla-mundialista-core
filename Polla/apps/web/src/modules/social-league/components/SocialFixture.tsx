@@ -29,7 +29,7 @@ const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
 };
 
 export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
-    const { predictions, savePrediction, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
+    const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -150,12 +150,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     };
 
     const handleSaveAiPredictions = async () => {
-        const promises = Object.entries(aiSuggestions).map(([mId, { h, a }]) => {
-            return savePrediction(mId, h, a);
-        });
-        await Promise.all(promises);
+        await saveBulkPredictions(aiSuggestions);
         setAiSuggestions({});
-        toast.success(`${promises.length} predicciones guardadas`);
     };
 
     return (

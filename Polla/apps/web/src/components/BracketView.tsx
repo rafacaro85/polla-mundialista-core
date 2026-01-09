@@ -170,6 +170,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     const quarterMatches = useMemo(() => getMatchesByPhase('QUARTER'), [matches]);
     const semiMatches = useMemo(() => getMatchesByPhase('SEMI'), [matches]);
     const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
+    const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
     // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
@@ -376,7 +377,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                         ))}
                     </div>
 
-                    {/* COLUMNA 4: FINAL & CAMPEÓN */}
+                    {/* COLUMNA 4: FINAL y 3ER PUESTO */}
                     <div className="flex flex-col justify-center items-center gap-6 pt-16 pr-4">
                         {/* COPA */}
                         <div className={`transition-all duration-500 ${champion ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
@@ -401,6 +402,28 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                 />
                             ))}
                         </div>
+
+                        {/* 3ER PUESTO */}
+                        {thirdPlaceMatches.length > 0 && (
+                            <div className="mt-4">
+                                <div className="text-center mb-2"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-700">3er Puesto</span></div>
+                                {thirdPlaceMatches.map(m => (
+                                    <MatchNode
+                                        key={m.id}
+                                        matchId={m.id}
+                                        team1={m.homeTeam || ''}
+                                        team2={m.awayTeam || ''}
+                                        placeholder1={m.homeTeamPlaceholder}
+                                        placeholder2={m.awayTeamPlaceholder}
+                                        winner={winners[m.id]}
+                                        onPickWinner={pickWinner}
+                                        getTeamFlag={getTeamFlag}
+                                        nextId={null}
+                                        isLocked={isLocked}
+                                    />
+                                ))}
+                            </div>
+                        )}
 
                         {/* CAMPEÓN CARD */}
                         {champion && (

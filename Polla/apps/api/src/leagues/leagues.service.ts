@@ -39,7 +39,7 @@ export class LeaguesService {
 
   async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {
     try {
-      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName } = createLeagueDto;
+      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone } = createLeagueDto;
 
       console.log('--- CREATE LEAGUE DEBUG ---');
       console.log('Package Type:', packageType);
@@ -85,9 +85,19 @@ export class LeaguesService {
         packageType,
         isEnterprise: !!isEnterprise,
         companyName: companyName,
+        adminName: adminName,
+        adminPhone: adminPhone,
       });
 
       const savedLeague = await this.leaguesRepository.save(league);
+
+      // ACTUALIZAR DATOS DEL USUARIO (Fidelización)
+      // Si el usuario proporcionó un teléfono de contacto para la liga, lo guardamos en su perfil
+      if (adminPhone) {
+        creator.phoneNumber = adminPhone;
+        await this.userRepository.save(creator);
+        console.log(`📞 [CreateLeague] Actualizado teléfono del usuario ${creator.id}: ${adminPhone}`);
+      }
 
       // Create Transaction only for FREE plans
       if (['familia', 'starter', 'FREE'].includes(packageType)) {
@@ -581,6 +591,35 @@ export class LeaguesService {
 
 
 
+
+  async updateParticipantScore(
+    leagueId: string,
+    userId: string,
+    totalPoints?: number,
+    triviaPoints?: number,
+    predictionPoints?: number,
+    bracketPoints?: number,
+    jokerPoints?: number
+  ) {
+    const participant = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } }
+    });
+
+    if (!participant) {
+      throw new NotFoundException('Participant not found');
+    }
+
+    if (totalPoints !== undefined) participant.totalPoints = totalPoints;
+    if (triviaPoints !== undefined) participant.triviaPoints = triviaPoints;
+    if (predictionPoints !== undefined) participant.predictionPoints = predictionPoints;
+    if (bracketPoints !== undefined) participant.bracketPoints = bracketPoints;
+    if (jokerPoints !== undefined) participant.jokerPoints = jokerPoints;
+
+    console.log(`✏️ [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`);
+
+    return this.leagueParticipantsRepository.save(participant);
+  }
+
   async updateLeague(
     leagueId: string,
     userId: string,
@@ -970,6 +1009,13 @@ export class LeaguesService {
       .getRepository(Match)
       .createQueryBuilder('match')
       .orderBy('match.date', 'ASC');
+
+    // Filter by unlocked phases for normal users
+    // Filter by unlocked phases for all users in this view (Predictions)
+    // to prevent AI simulation of locked phases and show a clean player experience.
+    // 🔥 HARD-LOCK: Filtro estricto por fecha para asegurar que no se vea nada después de grupos
+    // Esto es una medida de fuerza mayor para garantizar que el usuario solo vea la fase de grupos.
+    matchesQuery.andWhere('match.date <= :limitDate', { limitDate: '2026-06-28 12:00:00' });
 
     // Si hay userId, incluir sus predicciones
     if (userId) {

@@ -1,9 +1,66 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Trophy, Users, Save, X, Loader2, Lock, Globe, Crown, Image, Gift, MessageSquare } from 'lucide-react';
+import { X, Shield, Zap, Crown, Check, Plus, Trophy, Copy, Loader2, Star } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+
+/* =============================================================================
+   DATOS MOCK (PLANES - Sincronizados con CreateLeagueDialog público)
+   ============================================================================= */
+const PLANS = [
+    {
+        id: 'familia',
+        name: 'Familia',
+        price: 'GRATIS',
+        numericPrice: 0,
+        members: 5,
+        icon: <Shield size={20} />,
+        color: '#94A3B8', // Slate
+        features: ['Hasta 5 jugadores', 'Texto del premio']
+    },
+    {
+        id: 'parche',
+        name: 'Parche',
+        price: '$30.000',
+        numericPrice: 30000,
+        members: 15,
+        icon: <Star size={20} />,
+        color: '#CD7F32', // Bronze
+        features: ['Hasta 15 jugadores', 'Imagen y texto del premio']
+    },
+    {
+        id: 'amigos',
+        name: 'Amigos',
+        price: '$80.000',
+        numericPrice: 80000,
+        members: 50,
+        icon: <Zap size={20} />,
+        color: '#C0C0C0', // Silver
+        features: ['Hasta 50 jugadores', 'Logo, imagen y texto'],
+        recommended: true
+    },
+    {
+        id: 'lider',
+        name: 'Líder',
+        price: '$180.000',
+        numericPrice: 180000,
+        members: 100,
+        icon: <Trophy size={20} />,
+        color: '#FFD700', // Gold
+        features: ['Hasta 100 jugadores', 'Muro de comentarios']
+    },
+    {
+        id: 'influencer',
+        name: 'Influencer',
+        price: '$350.000',
+        numericPrice: 350000,
+        members: 200,
+        icon: <Crown size={20} />,
+        color: '#B9F2FF', // Diamond
+        features: ['Hasta 200 jugadores', 'Redes Sociales']
+    }
+];
 
 interface CreateLeagueDialogProps {
     open: boolean;
@@ -11,123 +68,99 @@ interface CreateLeagueDialogProps {
     onSuccess: () => void;
 }
 
+/* =============================================================================
+   COMPONENTE: CREAR LIGA (ADMIN VERSION)
+   ============================================================================= */
 export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeagueDialogProps) {
+    const [leagueName, setLeagueName] = useState('');
+    const [selectedPlan, setSelectedPlan] = useState('amigos'); // Por defecto el Amigos
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<{
-        name: string;
-        type: string;
-        maxParticipants: number | string;
-        accessCodePrefix: string;
-        brandingLogoUrl: string;
-        prizeImageUrl: string;
-        prizeDetails: string;
-        welcomeMessage: string;
-    }>({
-        name: '',
-        type: 'LIBRE', // LIBRE (Public), VIP
-        maxParticipants: 50,
-        accessCodePrefix: '',
-        brandingLogoUrl: '',
-        prizeImageUrl: '',
-        prizeDetails: '',
-        welcomeMessage: ''
-    });
+    const [createdCode, setCreatedCode] = useState<string | null>(null);
+    const [createdLeagueName, setCreatedLeagueName] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     if (!open) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'maxParticipants' ? (value === '' ? '' : parseInt(value)) : value
-        }));
-    };
-
-    const handleTypeSelect = (type: string) => {
-        let max = 50;
-        if (type === 'VIP') max = 5;
-        setFormData(prev => ({ ...prev, type, maxParticipants: max }));
-    };
-
-    const generateCode = () => {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return code;
-    };
-
-    const handleFileUpload = async (file: File, field: string) => {
-        try {
-            setLoading(true);
-            const uploadData = new FormData();
-            uploadData.append('file', file);
-
-            const response = await api.post('/upload', uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            setFormData(prev => ({ ...prev, [field]: response.data.url }));
-            toast.success('Imagen subida correctamente');
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            toast.error('Error al subir la imagen');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!formData.name.trim()) {
-            toast.error('El nombre de la liga es obligatorio');
+    const handleCreate = async () => {
+        if (!leagueName.trim()) {
+            toast.error('Por favor ingresa un nombre para la liga');
             return;
         }
 
-        const max = typeof formData.maxParticipants === 'string' ? parseInt(formData.maxParticipants) || 0 : formData.maxParticipants;
-
-        if (max < 2) {
-            toast.error('El límite debe ser al menos 2 participantes');
-            return;
-        }
-
-        if (formData.type === 'VIP' && max > 5) {
-            toast.error('Las ligas VIP tienen un máximo de 5 participantes');
-            return;
-        }
+        const plan = PLANS.find(p => p.id === selectedPlan);
+        if (!plan) return;
 
         setLoading(true);
         try {
-            // Generate a code if not present (though we send it)
-            const payload = {
-                ...formData,
-                accessCodePrefix: generateCode(),
-                packageType: 'custom'
-            };
-
-            await api.post('/leagues', payload);
-            toast.success('¡Liga creada exitosamente!');
-            onSuccess();
-            onOpenChange(false);
-            // Reset form
-            setFormData({
-                name: '',
+            // 1. Crear la liga
+            const response = await api.post('/leagues', {
+                name: leagueName.trim(),
                 type: 'LIBRE',
-                maxParticipants: 50,
-                accessCodePrefix: '',
-                brandingLogoUrl: '',
-                prizeImageUrl: '',
-                prizeDetails: '',
-                welcomeMessage: ''
+                maxParticipants: plan.members,
+                packageType: selectedPlan,
+                isEnterprise: false,
             });
+
+            const newLeagueId = response.data.id;
+            setCreatedCode(response.data.accessCodePrefix);
+            setCreatedLeagueName(leagueName.trim());
+
+            // 2. CREAR Y ACTIVAR TRANSACCIÓN (Para registro en Ventas)
+            try {
+                // Crear transacción (Queda PENDING)
+                const txResponse = await api.post('/transactions', {
+                    packageType: selectedPlan,
+                    amount: plan.numericPrice,
+                    leagueId: newLeagueId
+                });
+
+                // Aprobar transacción (Esto activa la liga y establece límites)
+                await api.patch(`/transactions/${txResponse.data.id}/approve`);
+
+                toast.success('¡Polla creada y activada correctamente!');
+            } catch (txError: any) {
+                console.error("Error en proceso de transacción:", txError);
+                toast.error(`Fallo Venta: ${txError.message}`);
+
+                // Fallback: Activar liga manualmente si falla transacción
+                try {
+                    await api.patch(`/leagues/${newLeagueId}`, { isPaid: true });
+                    toast.warning('Polla activada, pero sin registro de venta.');
+                } catch (e) {
+                    toast.error('Error crítico activando la polla.');
+                }
+            }
+
+            // Notificamos éxito al padre para recargar la tabla
+            await onSuccess();
+
         } catch (error: any) {
-            console.error(error);
-            toast.error(error.response?.data?.message || 'No se pudo crear la liga');
+            console.error('Error creando liga:', error);
+            toast.error(error.response?.data?.message || 'Error al crear la liga');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCopyCode = () => {
+        if (createdCode) {
+            navigator.clipboard.writeText(createdCode);
+            setCopied(true);
+            toast.success('Código copiado');
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    const handleClose = () => {
+        onOpenChange(false);
+        // Reset states
+        setTimeout(() => {
+            setLeagueName('');
+            setCreatedCode(null);
+            setCreatedLeagueName(null);
+            setCopied(false);
+            setSelectedPlan('amigos');
+        }, 200);
     };
 
     // SISTEMA DE DISEÑO BLINDADO
@@ -135,7 +168,7 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
         overlay: {
             position: 'fixed' as const,
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo muy oscuro para inmersión
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -146,52 +179,61 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
         card: {
             backgroundColor: '#1E293B', // Carbon
             width: '100%',
-            maxWidth: '600px',
-            maxHeight: '90vh',
+            maxWidth: '500px',
             borderRadius: '24px',
             border: '1px solid #334155',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
             display: 'flex',
             flexDirection: 'column' as const,
-            overflow: 'hidden',
+            maxHeight: '90vh',
             fontFamily: 'sans-serif',
-            position: 'relative' as const
+            position: 'relative' as const,
+            overflow: 'hidden'
         },
+        // Estilos dinámicos para plan seleccionado
+        selectedPlanCard: (color: string) => ({
+            borderColor: color,
+            backgroundColor: `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.1)`,
+            transform: 'translateY(-4px)',
+            boxShadow: `0 10px 20px -5px ${color}40`
+        }),
 
         // HEADER
         header: {
             padding: '24px',
             borderBottom: '1px solid #334155',
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(180deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 1) 100%)',
+            flexShrink: 0
+        },
+        titleGroup: {
             display: 'flex',
             alignItems: 'center',
             gap: '12px'
         },
         iconBox: {
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
             backgroundColor: '#0F172A',
             border: '1px solid #00E676',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#00E676'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#00E676',
+            boxShadow: '0 0 15px rgba(0, 230, 118, 0.2)'
         },
-        titleBox: {
-            flex: 1
-        },
-        title: {
+        titleText: {
             fontFamily: "'Russo One', sans-serif",
+            fontSize: '20px',
             color: 'white',
             textTransform: 'uppercase' as const,
-            fontSize: '18px',
-            lineHeight: '1.2'
+            lineHeight: '1'
         },
-        subtitle: {
+        subtitleText: {
             fontSize: '11px',
             color: '#94A3B8',
-            marginTop: '2px'
+            marginTop: '4px'
         },
         closeBtn: {
             background: 'transparent',
@@ -206,157 +248,171 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
             padding: '24px',
             display: 'flex',
             flexDirection: 'column' as const,
-            gap: '24px',
-            overflowY: 'auto' as const
+            gap: '32px',
+            overflowY: 'auto' as const,
+            flex: 1
         },
 
-        // INPUTS
-        inputGroup: {
+        // INPUT NOMBRE
+        inputSection: {
             display: 'flex',
             flexDirection: 'column' as const,
             gap: '8px'
         },
         label: {
             fontSize: '11px',
-            fontWeight: 'bold',
             color: '#94A3B8',
+            fontWeight: 'bold',
             textTransform: 'uppercase' as const,
             letterSpacing: '1px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-        },
-        inputWrapper: {
-            position: 'relative' as const,
-            display: 'flex',
-            alignItems: 'center'
+            marginLeft: '4px'
         },
         input: {
             width: '100%',
             backgroundColor: '#0F172A',
-            border: '1px solid #334155',
+            border: '2px solid #334155',
             borderRadius: '12px',
-            padding: '14px',
+            padding: '16px',
             color: 'white',
-            fontSize: '14px',
-            fontWeight: '500',
+            fontSize: '18px',
+            fontWeight: 'bold',
             outline: 'none',
-            fontFamily: 'sans-serif'
-        },
-        textarea: {
-            width: '100%',
-            backgroundColor: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            padding: '14px',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: '500',
-            outline: 'none',
-            fontFamily: 'sans-serif',
-            minHeight: '80px',
-            resize: 'vertical' as const
-        },
-        inputIcon: {
-            position: 'absolute' as const,
-            right: '16px',
-            color: '#64748B'
-        },
-        fileInput: {
-            display: 'none'
-        },
-        fileLabel: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: '#0F172A',
-            border: '1px dashed #334155',
-            borderRadius: '12px',
-            padding: '12px 20px',
-            color: '#94A3B8',
-            fontSize: '12px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            width: '100%',
-            justifyContent: 'center'
-        },
-        previewBox: {
-            marginTop: '8px',
-            width: '100%',
-            height: '120px',
-            backgroundColor: '#0F172A',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            border: '1px solid #334155'
+            transition: 'border-color 0.2s',
+            fontFamily: '"Russo One", sans-serif',
         },
 
-        // TYPE SELECTOR
-        typeGrid: {
+        // SELECTOR DE PLANES (GRID)
+        plansLabel: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px'
+        },
+        plansGrid: {
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '12px'
         },
-        typeCard: (isActive: boolean) => ({
-            backgroundColor: isActive ? 'rgba(0, 230, 118, 0.1)' : '#0F172A',
-            border: `1px solid ${isActive ? '#00E676' : '#334155'}`,
-            borderRadius: '12px',
-            padding: '16px',
+        planCard: {
+            backgroundColor: '#0F172A',
+            borderRadius: '16px',
+            border: '1px solid #334155',
+            padding: '12px',
+            cursor: 'pointer',
+            position: 'relative' as const,
+            transition: 'all 0.2s ease',
             display: 'flex',
             flexDirection: 'column' as const,
             alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-        }),
-        typeTitle: (isActive: boolean) => ({
-            fontSize: '12px',
+            textAlign: 'center' as const,
+            overflow: 'hidden'
+        },
+        planIcon: {
+            marginBottom: '8px',
+            padding: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#1E293B'
+        },
+        planName: {
+            fontSize: '14px',
             fontWeight: 'bold',
-            color: isActive ? '#00E676' : 'white',
-            textTransform: 'uppercase' as const
-        }),
-        typeIcon: (isActive: boolean) => ({
-            color: isActive ? '#00E676' : '#64748B'
-        }),
+            color: 'white',
+            marginBottom: '4px',
+            fontFamily: "'Russo One', sans-serif"
+        },
+        planPrice: {
+            fontSize: '12px',
+            color: '#94A3B8',
+            marginBottom: '12px'
+        },
+        featureList: {
+            fontSize: '9px',
+            color: '#64748B',
+            lineHeight: '1.4'
+        },
+        recommendedBadge: {
+            position: 'absolute' as const,
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#00E676',
+            color: '#0F172A',
+            fontSize: '8px',
+            fontWeight: '900',
+            padding: '2px 8px',
+            borderRadius: '0 0 6px 6px',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.5px'
+        },
+        checkCircle: {
+            position: 'absolute' as const,
+            top: '8px',
+            right: '8px',
+            color: '#00E676'
+        },
 
         // FOOTER
         footer: {
-            padding: '20px 24px',
+            padding: '24px',
             borderTop: '1px solid #334155',
             display: 'flex',
             gap: '12px',
-            backgroundColor: '#1E293B'
-        },
-        saveBtn: {
-            flex: 1,
-            backgroundColor: '#00E676',
-            color: '#0F172A',
-            border: 'none',
-            padding: '14px',
-            borderRadius: '12px',
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '14px',
-            textTransform: 'uppercase' as const,
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 0 15px rgba(0, 230, 118, 0.3)'
+            backgroundColor: '#1E293B',
+            flexShrink: 0
         },
         cancelBtn: {
             flex: 1,
             backgroundColor: 'transparent',
             color: '#94A3B8',
             border: '1px solid #334155',
-            padding: '14px',
+            padding: '16px',
             borderRadius: '12px',
             fontWeight: 'bold',
             fontSize: '12px',
             textTransform: 'uppercase' as const,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            type: 'button' as const
+        },
+        createBtn: {
+            flex: 2,
+            backgroundColor: '#00E676',
+            color: '#0F172A',
+            border: 'none',
+            padding: '16px',
+            borderRadius: '12px',
+            fontWeight: '900',
+            fontFamily: '"Russo One", sans-serif',
+            fontSize: '14px',
+            textTransform: 'uppercase' as const,
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 0 20px rgba(0, 230, 118, 0.4)',
+            transition: 'all 0.2s',
+            opacity: 1
+        },
+        // SUCCESS STATE
+        successBox: {
+            backgroundColor: '#0F172A',
+            border: '1px solid #00E676',
+            borderRadius: '16px',
+            padding: '24px',
+            textAlign: 'center' as const,
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'center',
+            gap: '16px'
+        },
+        codeDisplay: {
+            fontSize: '32px',
+            fontFamily: 'monospace',
+            fontWeight: 'bold',
+            color: '#00E676',
+            letterSpacing: '4px',
+            margin: '8px 0',
+            textShadow: '0 0 20px rgba(0, 230, 118, 0.3)'
         }
     };
 
@@ -366,157 +422,128 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
 
                 {/* 1. HEADER */}
                 <div style={STYLES.header}>
-                    <div style={STYLES.iconBox}>
-                        <Trophy size={20} />
+                    <div style={STYLES.titleGroup}>
+                        <div style={STYLES.iconBox}>
+                            <Trophy size={24} />
+                        </div>
+                        <div>
+                            <div style={STYLES.titleText}>{createdCode ? '¡Polla Creada!' : 'NUEVA POLLA'}</div>
+                            <div style={STYLES.subtitleText}>{createdCode ? 'Lista para jugar' : 'Configura tu torneo (Modo Admin)'}</div>
+                        </div>
                     </div>
-                    <div style={STYLES.titleBox}>
-                        <div style={STYLES.title}>Crear Nueva Polla</div>
-                        <div style={STYLES.subtitle}>Configura los detalles de la competencia</div>
-                    </div>
-                    <button onClick={() => onOpenChange(false)} style={STYLES.closeBtn}>
-                        <X size={20} />
+                    <button onClick={handleClose} style={STYLES.closeBtn}>
+                        <X size={24} />
                     </button>
                 </div>
 
                 {/* 2. BODY */}
-                <div style={STYLES.body} className="no-scrollbar">
+                <div style={STYLES.body}>
 
-                    {/* Nombre */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}>Nombre de la Liga</label>
-                        <div style={STYLES.inputWrapper}>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Ej: Torneo Empresarial 2026"
-                                style={STYLES.input}
-                                autoFocus
-                            />
-                            <Trophy size={18} style={STYLES.inputIcon} />
-                        </div>
-                    </div>
-
-                    {/* Branding Logo */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Image size={14} /> Logo de la Empresa / Liga</label>
-                        <label style={STYLES.fileLabel}>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={STYLES.fileInput}
-                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
-                            />
-                            {formData.brandingLogoUrl ? 'Cambiar Logo' : 'Subir Logo'}
-                        </label>
-                        {formData.brandingLogoUrl && (
-                            <div style={STYLES.previewBox}>
-                                <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                    {!createdCode ? (
+                        <>
+                            {/* Input Nombre */}
+                            <div style={STYLES.inputSection}>
+                                <label style={STYLES.label}>Nombre de la Polla</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej: Oficina 2026"
+                                    value={leagueName}
+                                    onChange={(e) => setLeagueName(e.target.value)}
+                                    style={STYLES.input}
+                                    onFocus={(e) => e.target.style.borderColor = '#00E676'}
+                                    onBlur={(e) => e.target.style.borderColor = '#334155'}
+                                    autoFocus
+                                    disabled={loading}
+                                />
                             </div>
-                        )}
-                    </div>
 
-                    {/* Premio Imagen */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Gift size={14} /> Imagen del Premio</label>
-                        <label style={STYLES.fileLabel}>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={STYLES.fileInput}
-                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
-                            />
-                            {formData.prizeImageUrl ? 'Cambiar Imagen' : 'Subir Imagen del Premio'}
-                        </label>
-                        {formData.prizeImageUrl && (
-                            <div style={STYLES.previewBox}>
-                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover' }} />
+                            {/* Selector de Planes */}
+                            <div>
+                                <div style={STYLES.plansLabel}>
+                                    <span style={STYLES.label}>Selecciona un Plan</span>
+                                    <span style={{ fontSize: '10px', color: '#00E676', fontWeight: 'bold' }}>Activación Automática</span>
+                                </div>
+
+                                <div style={STYLES.plansGrid}>
+                                    {PLANS.map(plan => {
+                                        const isSelected = selectedPlan === plan.id;
+                                        // Combinar estilos base con seleccionados
+                                        const cardStyle = {
+                                            ...STYLES.planCard,
+                                            ...(isSelected ? STYLES.selectedPlanCard(plan.color) : {})
+                                        };
+
+                                        return (
+                                            <div
+                                                key={plan.id}
+                                                style={cardStyle}
+                                                onClick={() => !loading && setSelectedPlan(plan.id)}
+                                            >
+                                                {/* Badge Recomendado */}
+                                                {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>}
+
+                                                {/* Icono Check si seleccionado */}
+                                                {isSelected && <Check size={16} style={{ ...STYLES.checkCircle, color: plan.color }} />}
+
+                                                <div style={{ ...STYLES.planIcon, color: plan.color }}>
+                                                    {plan.icon}
+                                                </div>
+
+                                                <div style={STYLES.planName}>{plan.name}</div>
+                                                <div style={{ ...STYLES.planPrice, color: isSelected ? 'white' : '#94A3B8' }}>{plan.members} Cupos</div>
+
+                                                <div style={STYLES.featureList}>
+                                                    <span style={{ color: '#00E676', fontWeight: 'bold' }}>ACTIVADO</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        )}
-                    </div>
+                        </>
+                    ) : (
+                        <div style={STYLES.successBox}>
+                            <p style={{ color: 'white', fontSize: '14px' }}>¡Liga creada y activada correctamente!</p>
+                            <p style={{ color: '#94A3B8', fontSize: '12px' }}>Código de acceso para compartir:</p>
 
-                    {/* Premio Detalles */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Gift size={14} /> Descripción del Premio</label>
-                        <textarea
-                            name="prizeDetails"
-                            value={formData.prizeDetails}
-                            onChange={handleChange}
-                            placeholder="Ej: Camiseta oficial autografiada..."
-                            style={STYLES.textarea}
-                        />
-                    </div>
+                            <div style={STYLES.codeDisplay}>
+                                {createdCode}
+                            </div>
 
-                    {/* Mensaje Bienvenida */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
-                        <textarea
-                            name="welcomeMessage"
-                            value={formData.welcomeMessage}
-                            onChange={handleChange}
-                            placeholder="Mensaje para los participantes..."
-                            style={STYLES.textarea}
-                        />
-                    </div>
-
-                    {/* Tipo de Liga */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}>Tipo de Liga</label>
-                        <div style={STYLES.typeGrid}>
-                            <div
-                                style={STYLES.typeCard(formData.type === 'LIBRE')}
-                                onClick={() => handleTypeSelect('LIBRE')}
+                            <button
+                                onClick={handleCopyCode}
+                                style={{ ...STYLES.cancelBtn, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', color: 'white', borderColor: '#475569' }}
                             >
-                                <Globe size={24} style={STYLES.typeIcon(formData.type === 'LIBRE')} />
-                                <span style={STYLES.typeTitle(formData.type === 'LIBRE')}>Pública</span>
-                            </div>
-                            <div
-                                style={STYLES.typeCard(formData.type === 'VIP')}
-                                onClick={() => handleTypeSelect('VIP')}
-                            >
-                                <Crown size={24} style={STYLES.typeIcon(formData.type === 'VIP')} />
-                                <span style={STYLES.typeTitle(formData.type === 'VIP')}>VIP (Max 5)</span>
-                            </div>
+                                {copied ? <Check size={16} color="#00E676" /> : <Copy size={16} />}
+                                {copied ? '¡Copiado!' : 'Copiar Código'}
+                            </button>
                         </div>
-                    </div>
-
-                    {/* Capacidad */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}>Capacidad Máxima</label>
-                        <div style={STYLES.inputWrapper}>
-                            <input
-                                type="number"
-                                name="maxParticipants"
-                                value={formData.maxParticipants}
-                                onChange={handleChange}
-                                style={STYLES.input}
-                                min={2}
-                                max={formData.type === 'VIP' ? 5 : 1000}
-                            />
-                            <Users size={18} style={STYLES.inputIcon} />
-                        </div>
-                        <p style={{ fontSize: '10px', color: '#64748B' }}>
-                            {formData.type === 'VIP' ? 'Máximo 5 participantes para ligas VIP.' : 'Define el límite de usuarios permitidos.'}
-                        </p>
-                    </div>
+                    )}
 
                 </div>
 
                 {/* 3. FOOTER */}
-                <div style={STYLES.footer}>
-                    <button onClick={() => onOpenChange(false)} style={STYLES.cancelBtn}>
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        style={STYLES.saveBtn}
-                    >
-                        {loading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                        Crear Liga
-                    </button>
-                </div>
+                {!createdCode && (
+                    <div style={STYLES.footer}>
+                        <button onClick={handleClose} style={STYLES.cancelBtn} disabled={loading}>
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            style={{
+                                ...STYLES.createBtn,
+                                backgroundColor: leagueName.trim() ? '#00E676' : '#334155',
+                                color: leagueName.trim() ? '#0F172A' : '#94A3B8',
+                                cursor: leagueName.trim() && !loading ? 'pointer' : 'not-allowed',
+                                boxShadow: leagueName.trim() ? '0 0 20px rgba(0, 230, 118, 0.4)' : 'none'
+                            }}
+                        >
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} strokeWidth={3} />}
+                            {loading ? 'CREANDO...' : 'CREAR POLLA'}
+                        </button>
+                    </div>
+                )}
 
             </div>
         </div>

@@ -106,7 +106,21 @@ export class MatchesController {
     @Roles('ADMIN')
     @Post('simulate-results')
     async simulateResults(@Body() body: { phase?: string }) {
-        return this.matchesService.simulateResults(body.phase);
+        try {
+            // body puede ser undefined si el request no tiene JSON
+            const phase = body?.phase;
+            return await this.matchesService.simulateResults(phase);
+        } catch (e: any) {
+            const fs = require('fs');
+            fs.writeFileSync('controller_error.log', JSON.stringify({
+                message: e.message,
+                stack: e.stack,
+                name: e.name,
+                detail: e
+            }, null, 2));
+            console.error("CONTROLLER CAUGHT ERROR:", e);
+            throw e;
+        }
     }
 
     // Alias con guion bajo para compatibilidad con el componente frontend
@@ -138,4 +152,5 @@ export class MatchesController {
     async seedRound32() {
         return this.matchesService.seedRound32();
     }
+
 }

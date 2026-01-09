@@ -99,7 +99,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         }
 
         toast.success('¡Cuenta verificada exitosamente!');
-        window.location.href = '/';
+        window.location.href = '/dashboard';
 
       } else if (view === 'forgot') {
         // FORGOT PASSWORD FLOW

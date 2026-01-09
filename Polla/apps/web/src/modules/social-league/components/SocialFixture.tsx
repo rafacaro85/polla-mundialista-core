@@ -37,51 +37,54 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     // Merge Logic
     const matches = useMemo(() => {
         if (!matchesData) return [];
-        return matchesData.map((m: any) => {
-            const date = new Date(m.date);
-            const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-                'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-            const month = monthNames[date.getMonth()];
-            const day = date.getDate();
-            const dateStr = `${month} ${day}`;
-            const displayDate = dateStr;
+        // Filtro eliminado para permitir ver fases siguientes cuando se desbloquean desde el backend
+        return matchesData
+            // .filter((m: any) => new Date(m.date) <= new Date('2026-06-28T12:00:00Z'))
+            .map((m: any) => {
+                const date = new Date(m.date);
+                const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                    'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+                const month = monthNames[date.getMonth()];
+                const day = date.getDate();
+                const dateStr = `${month} ${day}`;
+                const displayDate = dateStr;
 
-            const pred = predictions[m.id];
-            const suggestion = aiSuggestions[m.id];
+                const pred = predictions[m.id];
+                const suggestion = aiSuggestions[m.id];
 
-            let userH = '';
-            let userA = '';
+                let userH = '';
+                let userA = '';
 
-            if (suggestion) {
-                userH = suggestion.h.toString();
-                userA = suggestion.a.toString();
-            } else if (pred) {
-                userH = pred.homeScore?.toString() ?? '';
-                userA = pred.awayScore?.toString() ?? '';
-            }
+                if (suggestion) {
+                    userH = suggestion.h.toString();
+                    userA = suggestion.a.toString();
+                } else if (pred) {
+                    userH = pred.homeScore?.toString() ?? '';
+                    userA = pred.awayScore?.toString() ?? '';
+                }
 
-            return {
-                ...m,
-                dateStr,
-                displayDate,
-                homeTeam: m.homeTeam,
-                awayTeam: m.awayTeam,
-                homeFlag: ensureFlagUrl(m.homeFlag, m.homeTeam || m.homeTeamPlaceholder),
-                awayFlag: ensureFlagUrl(m.awayFlag, m.awayTeam || m.awayTeamPlaceholder),
-                status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
-                scoreH: m.homeScore,
-                scoreA: m.awayScore,
-                prediction: pred ? {
-                    homeScore: pred.homeScore,
-                    awayScore: pred.awayScore,
-                    isJoker: pred.isJoker,
-                    points: pred.points || 0
-                } : undefined,
-                userH,
-                userA,
-                points: pred?.points || 0
-            };
-        });
+                return {
+                    ...m,
+                    dateStr,
+                    displayDate,
+                    homeTeam: m.homeTeam,
+                    awayTeam: m.awayTeam,
+                    homeFlag: ensureFlagUrl(m.homeFlag, m.homeTeam || m.homeTeamPlaceholder),
+                    awayFlag: ensureFlagUrl(m.awayFlag, m.awayTeam || m.awayTeamPlaceholder),
+                    status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
+                    scoreH: m.homeScore,
+                    scoreA: m.awayScore,
+                    prediction: pred ? {
+                        homeScore: pred.homeScore,
+                        awayScore: pred.awayScore,
+                        isJoker: pred.isJoker,
+                        points: pred.points || 0
+                    } : undefined,
+                    userH,
+                    userA,
+                    points: pred?.points || 0
+                };
+            });
     }, [matchesData, predictions, aiSuggestions]);
 
     // Dates Logic
@@ -89,9 +92,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         if (matches.length > 0) {
             const uniqueDates = Array.from(new Set(matches.map((m: any) => m.displayDate))) as string[];
             setDates(uniqueDates);
-            // Only set selected date if not set, or if previously selected date no longer exists? 
-            // Better to keep existing if valid.
-            if (!selectedDate && uniqueDates.length > 0) {
+            // Si no hay selección o la selección actual ya no es válida (ej: fecha desapareció)
+            if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }
         }

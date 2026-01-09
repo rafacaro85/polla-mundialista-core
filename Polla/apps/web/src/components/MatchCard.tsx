@@ -27,7 +27,29 @@ import { getTeamFlagUrl } from '@/shared/utils/flags';
 // HELPER 2: OBTENER CÓDIGO VISUAL (3 LETRAS)
 const getVisualCode = (name: string) => {
   if (!name) return 'TBD';
-  if (name.length === 3 && name === name.toUpperCase()) return name;
+
+  const upper = name.toUpperCase();
+
+  // Mapeo manual de excepciones comunes
+  const EXCEPTIONS: Record<string, string> = {
+    'ESTADOS UNIDOS': 'USA',
+    'COREA SUR': 'KOR',
+    'COSTA RICA': 'CRC',
+    'ARABIA SAUDITA': 'KSA',
+    'NUEVA ZELANDA': 'NZL',
+    'PAISES BAJOS': 'NED',
+    'PAÍSES BAJOS': 'NED',
+    'INGLATERRA': 'ENG'
+  };
+
+  if (EXCEPTIONS[upper]) return EXCEPTIONS[upper];
+
+  // Si parece un placeholder de torneo (Match 40, Ganador A, etc)
+  if (upper.includes('MATCH') || upper.includes('PARTIDO') || upper.includes('GANADOR') || upper.includes('WINNER')) {
+    return 'TBD';
+  }
+
+  if (name.length === 3) return upper;
   return name.substring(0, 3).toUpperCase();
 };
 
@@ -311,6 +333,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               style={STYLES.flag}
               onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
             />
+            {/* Nombre Completo / Placeholder */}
+            <span style={{ fontSize: '8px', color: '#94A3B8', marginTop: '4px', maxWidth: '70px', textAlign: 'center', lineHeight: '1.2', textTransform: 'uppercase', fontWeight: 'bold' }}>
+              {homeTeamName}
+            </span>
           </div>
 
           {/* Marcador / Inputs */}
@@ -374,6 +400,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               style={STYLES.flag}
               onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
             />
+            {/* Nombre Completo / Placeholder */}
+            <span style={{ fontSize: '8px', color: '#94A3B8', marginTop: '4px', maxWidth: '70px', textAlign: 'center', lineHeight: '1.2', textTransform: 'uppercase', fontWeight: 'bold' }}>
+              {awayTeamName}
+            </span>
           </div>
         </div>
 

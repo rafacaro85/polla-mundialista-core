@@ -59,11 +59,18 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Intentamos con PATCH si PUT falla (común en APIs REST)
-            await api.patch(`/users/${user.id}`, formData);
+            // Mapear status a isBanned para el backend
+            const payload = {
+                ...formData,
+                isBanned: formData.status === 'BANNED',
+            };
+            // delete payload.status; // Si el backend es estricto
+
+            await api.patch(`/users/${user.id}`, payload);
             toast.success('Usuario actualizado correctamente');
             onUserUpdated();
             onOpenChange(false);

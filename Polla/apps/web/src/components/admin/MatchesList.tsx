@@ -437,7 +437,7 @@ export function MatchesList() {
 
             {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
-                {['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'].map(phase => (
+                {['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'].map(phase => (
                     <button
                         key={phase}
                         onClick={() => setFilterPhase(phase)}
@@ -458,7 +458,9 @@ export function MatchesList() {
                                 phase === 'ROUND_32' ? '1/16' :
                                     phase === 'ROUND_16' ? 'Octavos' :
                                         phase === 'QUARTER' ? 'Cuartos' :
-                                            phase === 'SEMI' ? 'Semis' : 'Final'}
+                                            phase === 'SEMI' ? 'Semis' :
+                                                phase === '3RD_PLACE' ? '3er Puesto' :
+                                                    'Final'}
                     </button>
                 ))}
             </div>

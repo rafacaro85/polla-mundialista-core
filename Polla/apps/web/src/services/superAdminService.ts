@@ -105,9 +105,15 @@ export const superAdminService = {
 
         const totalIncome = transactions.reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
 
-        const today = new Date().toISOString().split('T')[0];
+        // FIX: Usar zona horaria de Colombia para definir "Hoy"
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+
         const todaySales = transactions
-            .filter((tx: any) => tx.createdAt.startsWith(today))
+            .filter((tx: any) => {
+                // Convertir fecha de transacción (UTC) a fecha Colombia
+                const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+                return txDate === todayStr;
+            })
             .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
 
         const salesTrend = [];
@@ -124,15 +130,18 @@ export const superAdminService = {
             salesTrend.push({ date: displayDate, value: dailyTotal });
         }
 
+        const freeLeaguesCount = leagues.filter((l: any) => l.packageType === 'familia' || (!l.isPaid && l.type !== 'COMPANY')).length;
+
         return {
             kpis: {
                 totalIncome,
                 activeLeagues: leagues.length,
                 totalUsers: users.length,
-                todaySales
+                todaySales,
+                freeLeagues: freeLeaguesCount
             },
             salesTrend,
-            recentTransactions: transactions.slice(0, 10),
+            recentTransactions: transactions, // Devolvemos TODAS para permitir filtrado en frontend
             users
         };
     }

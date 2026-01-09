@@ -30,7 +30,7 @@ async function bootstrap() {
   // 3. PUERTO DINÁMICO (LA CLAVE)
   // Si Railway nos da un puerto, lo usamos. Si no, 3000 (local).
   // IMPORTANTE: Convertirlo a número por si acaso viene como string.
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 
   // 4. BINDING 0.0.0.0
   // Escuchar en todas las interfaces de red del contenedor.

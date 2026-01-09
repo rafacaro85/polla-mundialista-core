@@ -5,7 +5,7 @@ import {
   Trophy, Users, Zap, Building2, CheckCircle, ArrowRight,
   Menu, X, Star, PlayCircle, ShieldCheck, Cpu, Smartphone,
   BarChart3, HelpCircle, ChevronDown, MessageCircle, Link as LinkIcon,
-  Globe, Gift, Target, MousePointerClick
+  Globe, Gift, Target, MousePointerClick, Shield, Crown
 } from 'lucide-react';
 import { signInWithGoogle } from '@/lib/auth.utils';
 
@@ -274,11 +274,22 @@ export default function LandingPage() {
         </div>
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40">
-            <a href="#como-se-juega" className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
-            <a href="#precios" className="text-[#0F172A] font-bold py-2">Planes</a>
-            <a href="#corporativo" className="text-[#0F172A] font-bold py-2">Empresas</a>
-            <button onClick={onLoginClick} className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase">Ingresar</button>
-            <button onClick={handleCreateBusinessPool} className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase">Crear Polla Empresa</button>
+            <a href="#como-se-juega" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
+            <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Torneo Global</a>
+            <a href="#precios" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</a>
+            <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
+            <button
+              onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
+              className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase"
+            >
+              Ingresar
+            </button>
+            <button
+              onClick={() => { handleCreateBusinessPool(); setIsMenuOpen(false); }}
+              className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase"
+            >
+              Crear Polla Empresa
+            </button>
           </div>
         )}
       </nav>
@@ -456,53 +467,114 @@ export default function LandingPage() {
             <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">PLANES PARA TODOS</h2>
             <p className="text-[#94A3B8]">Desde la familia hasta grandes corporaciones. Pago único por todo el mundial.</p>
           </div>
-          <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="border border-[#94A3B8]/20 bg-white rounded-2xl p-8 hover:shadow-xl transition-all">
-              <h3 className="font-black text-xl text-[#94A3B8] mb-2">AMIGOS</h3>
-              <div className="text-4xl font-black text-[#0F172A] mb-6">GRATIS</div>
-              <p className="text-sm text-[#94A3B8] mb-6 border-b border-[#94A3B8]/20 pb-6">Para familias y grupos pequeños.</p>
-              <ul className="space-y-3 mb-8">
-                <ListItemSmall text="Hasta 5 Usuarios" />
-                <ListItemSmall text="Ranking Automático" />
-                <ListItemSmall text="Predicciones Manuales" />
-                <ListItemSmall text="Resultados por IA" dull={true} icon={X} />
-                <ListItemSmall text="Muro de Comentarios" dull={true} icon={X} />
-                <ListItemSmall text="Publicidad Incluida" dull={true} />
-              </ul>
-              <button className="w-full py-3 rounded-lg border-2 border-[#0F172A] font-bold text-[#0F172A] hover:bg-[#0F172A] hover:text-white transition-all">Crear Gratis</button>
-            </div>
-            <div className="border-2 border-[#00E676] bg-white rounded-2xl p-8 relative shadow-2xl transform lg:-translate-y-4">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00E676] text-[#0F172A] font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest">Más Popular</div>
-              <h3 className="font-black text-xl text-[#00E676] mb-2">LÍDER</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-[#0F172A]">$50k</span>
-                <span className="text-sm font-bold text-[#94A3B8]">COP / 20 Cupos</span>
+          <div className="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto">
+            {[
+              {
+                id: 'familia',
+                name: 'FAMILIA',
+                price: 'GRATIS',
+                capacity: '5 Usuarios',
+                desc: 'Para la familia pequeña.',
+                features: ['Hasta 5 jugadores', 'Texto del premio', 'Ranking Automático'],
+                highlight: false,
+                borderColor: 'border-[#94A3B8]/20',
+                titleColor: 'text-[#94A3B8]',
+                btnClass: 'border-2 border-[#0F172A] text-[#0F172A] hover:bg-[#0F172A] hover:text-white',
+                icon: <Shield size={24} className="text-[#94A3B8]" />
+              },
+              {
+                id: 'parche',
+                name: 'PARCHE',
+                price: '$30.000',
+                capacity: '15 Usuarios',
+                desc: 'Para el grupo de la oficina.',
+                features: ['Hasta 15 jugadores', 'Imagen y texto del premio', 'Ranking Automático'],
+                highlight: false,
+                borderColor: 'border-orange-300',
+                titleColor: 'text-orange-600',
+                btnClass: 'bg-orange-100 text-orange-700 hover:bg-orange-200',
+                icon: <Star size={24} className="text-orange-500" />
+              },
+              {
+                id: 'amigos',
+                name: 'AMIGOS',
+                price: '$80.000',
+                capacity: '50 Usuarios',
+                desc: 'El plan más popular.',
+                features: ['Hasta 50 jugadores', 'Logo, imagen y texto', 'Soporte Prioritario'],
+                highlight: true,
+                badge: 'RECOMENDADO',
+                borderColor: 'border-[#00E676]',
+                titleColor: 'text-[#00E676]',
+                btnClass: 'bg-[#00E676] text-[#0F172A] font-black shadow-lg shadow-green-500/20 hover:scale-105',
+                icon: <Zap size={24} className="text-[#00E676]" />
+              },
+              {
+                id: 'lider',
+                name: 'LÍDER',
+                price: '$180.000',
+                capacity: '100 Usuarios',
+                desc: 'Para comunidades grandes.',
+                features: ['Hasta 100 jugadores', 'Muro de comentarios', 'Gestión Avanzada'],
+                highlight: false,
+                borderColor: 'border-yellow-400',
+                titleColor: 'text-yellow-600',
+                btnClass: 'bg-yellow-400 text-yellow-900 hover:bg-yellow-500',
+                icon: <Trophy size={24} className="text-yellow-500" />
+              },
+              {
+                id: 'influencer',
+                name: 'INFLUENCER',
+                price: '$350.000',
+                capacity: '200 Usuarios',
+                desc: 'Máxima capacidad y alcance.',
+                features: ['Hasta 200 jugadores', 'Redes Sociales', 'Marca Blanca Parcial'],
+                highlight: false,
+                borderColor: 'border-blue-400',
+                titleColor: 'text-blue-500',
+                btnClass: 'bg-blue-500 text-white hover:bg-blue-600',
+                icon: <Crown size={24} className="text-blue-400" />
+              }
+            ].map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative w-full md:w-[350px] bg-white rounded-2xl p-8 hover:shadow-xl transition-all border-2 ${plan.borderColor} ${plan.highlight ? 'shadow-2xl scale-105 z-10' : 'shadow-sm'}`}
+              >
+                {plan.highlight && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00E676] text-[#0F172A] font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
+                    {plan.badge}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className={`font-black text-xl ${plan.titleColor}`}>{plan.name}</h3>
+                  <div className="p-2 rounded-full bg-slate-50">{plan.icon}</div>
+                </div>
+
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-3xl font-black text-[#0F172A]">{plan.price}</span>
+                  {plan.price !== 'GRATIS' && <span className="text-xs font-bold text-[#94A3B8]">COP</span>}
+                </div>
+                <div className="text-sm font-bold text-[#0F172A] mb-4 bg-slate-100 px-3 py-1 rounded inline-block">
+                  {plan.capacity}
+                </div>
+
+                <p className="text-sm text-[#94A3B8] mb-6 border-b border-[#94A3B8]/20 pb-6 min-h-[50px]">{plan.desc}</p>
+
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <ListItemSmall key={i} text={feature} highlight={plan.highlight} />
+                  ))}
+                </ul>
+
+                <button
+                  onClick={onLoginClick}
+                  className={`w-full py-3 rounded-lg font-bold transition-all ${plan.btnClass}`}
+                >
+                  {plan.price === 'GRATIS' ? 'Crear Polla' : 'Seleccionar'}
+                </button>
               </div>
-              <p className="text-sm text-[#94A3B8] mb-6 border-b border-[#94A3B8]/20 pb-6">Ideal para emprendedores, compañeros de universidad o influencers.</p>
-              <ul className="space-y-3 mb-8">
-                <ListItemSmall text="Hasta 100 Cupos (Escalable)" highlight={true} />
-                <ListItemSmall text="Generación de Resultados con IA" highlight={true} icon={Cpu} />
-                <ListItemSmall text="Muro Social Activo" highlight={true} icon={MessageCircle} />
-                <ListItemSmall text="Gestión de Pagos (Semáforo)" />
-                <ListItemSmall text="Sin Publicidad Externa" />
-              </ul>
-              <button className="w-full py-3 rounded-lg bg-[#00E676] font-black text-[#0F172A] shadow-lg shadow-green-500/20 hover:scale-105 transition-all">Seleccionar Plan</button>
-            </div>
-            <div className="border border-[#94A3B8]/20 rounded-2xl p-8 hover:border-[#94A3B8] transition-all bg-[#0F172A] text-white">
-              <h3 className="font-black text-xl text-white mb-2">CORPORATIVO</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-white">$900k</span>
-                <span className="text-sm font-bold text-[#94A3B8]">COP / 100 Emp</span>
-              </div>
-              <p className="text-sm text-[#94A3B8] mb-6 border-b border-[#1E293B] pb-6">Solución Enterprise para Clima Laboral y Marketing.</p>
-              <ul className="space-y-3 mb-8">
-                <ListItemSmall text="Branding Total (Marca Blanca)" dark={true} />
-                <ListItemSmall text="Guerra de Áreas (RRHH)" dark={true} />
-                <ListItemSmall text="Fidelización de Clientes (B2B/B2C)" dark={true} />
-                <ListItemSmall text="Dashboard de Analítica" dark={true} />
-              </ul>
-              <button className="w-full py-3 rounded-lg bg-white font-black text-[#0F172A] hover:bg-[#94A3B8] transition-all">Cotizar Empresa</button>
-            </div>
+            ))}
           </div>
         </div>
       </section>

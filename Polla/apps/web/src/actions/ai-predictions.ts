@@ -8,7 +8,7 @@ interface MatchInput {
 }
 
 export async function generateAiPredictions(matches: MatchInput[]) {
-    const API_KEY = process.env.GOOGLE_API_KEY;
+    const API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyCiu3mDvJOHr4OPdr5iY3sVI9sGp-G0I04';
 
     if (!API_KEY) {
         console.error('GOOGLE_API_KEY is not set');

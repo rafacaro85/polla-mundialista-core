@@ -11,6 +11,7 @@ const PHASE_POINTS = {
     'ROUND_16': 3,
     'QUARTER': 6,
     'SEMI': 10,
+    '3RD_PLACE': 15,
     'FINAL': 20,
 };
 

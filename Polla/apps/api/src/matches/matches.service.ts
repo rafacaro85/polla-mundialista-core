@@ -1,6 +1,7 @@
+import * as fs from 'fs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In } from 'typeorm';
+import { Repository, DataSource, In, LessThanOrEqual } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { ScoringService } from '../scoring/scoring.service';
@@ -44,11 +45,12 @@ export class MatchesService {
     }
 
     async findLive(isAdmin: boolean = false): Promise<Match[]> {
-        if (isAdmin) {
-            return this.matchesRepository.find({
-                order: { date: 'ASC' }
-            });
-        }
+        // Enforce phase unlocking even for admins in the Live/Prediction view
+        // if (isAdmin) {
+        //     return this.matchesRepository.find({
+        //         order: { date: 'ASC' }
+        //     });
+        // }
 
         // Obtenemos solo las fases desbloqueadas para que no aparezcan en el fixture antes de tiempo
         const unlockedPhases = await this.phaseStatusRepository.find({
@@ -57,7 +59,9 @@ export class MatchesService {
         const phaseNames = unlockedPhases.map(p => p.phase);
 
         return this.matchesRepository.find({
-            where: { phase: In(phaseNames) },
+            where: {
+                phase: In(phaseNames)
+            },
             order: { date: 'ASC' }
         });
     }
@@ -181,62 +185,87 @@ export class MatchesService {
         if (wasNotFinished && match.status === 'FINISHED' &&
             match.homeScore !== null && match.awayScore !== null) {
 
-            // Recalcular puntos para todas las predicciones
-            const predictionsToUpdate: Prediction[] = [];
+            try {
+                // Recalcular puntos para todas las predicciones
+                const predictionsToUpdate: Prediction[] = [];
 
-            if (match.predictions) {
-                for (const prediction of match.predictions) {
-                    const points = this.scoringService.calculatePoints(match, prediction);
-                    prediction.points = points;
-                    predictionsToUpdate.push(prediction);
-                }
-            }
-
-            // Guardar predicciones actualizadas
-            if (predictionsToUpdate.length > 0) {
-                await this.predictionsRepository.save(predictionsToUpdate);
-                console.log(`✅ Recalculated points for ${predictionsToUpdate.length} predictions in match ${id}`);
-            }
-
-            // Calculate bracket points
-            const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
-            await this.bracketsService.calculateBracketPoints(id, winner);
-            console.log(`🏆 Bracket points calculated for match ${id}, winner: ${winner}`);
-
-            // Check and unlock next knockout phase if current phase is complete
-            if (match.phase) {
-                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
-                console.log(`🔓 Checked phase unlock for ${match.phase}`);
-            }
-
-            // Trigger automático de promoción si es partido de grupo
-            if (match.phase === 'GROUP' && match.group) {
-                this.tournamentService.promoteFromGroup(match.group)
-                    .catch(err => console.error(`❌ Error promoting from group ${match.group}:`, err));
-            }
-
-            // Trigger automático de promoción si existe un siguiente partido
-            if (match.nextMatchId) {
-                const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
-                if (nextMatch) {
-                    // Si el bracketId es impar, es Home del siguiente. Si es par, es Away.
-                    // Para ROUND_32 (1-16), 1&2 van al partido 1 de ROUND_16, etc.
-                    const isHome = (match.bracketId % 2) !== 0;
-                    const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
-                    const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
-
-                    if (isHome) {
-                        nextMatch.homeTeam = winner;
-                        nextMatch.homeFlag = winnerFlag;
-                        nextMatch.homeTeamPlaceholder = null;
-                    } else {
-                        nextMatch.awayTeam = winner;
-                        nextMatch.awayFlag = winnerFlag;
-                        nextMatch.awayTeamPlaceholder = null;
+                if (match.predictions) {
+                    for (const prediction of match.predictions) {
+                        const points = this.scoringService.calculatePoints(match, prediction);
+                        prediction.points = points;
+                        predictionsToUpdate.push(prediction);
                     }
-                    await this.matchesRepository.save(nextMatch);
-                    console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (${nextMatch.phase})`);
                 }
+
+                // Guardar predicciones actualizadas
+                if (predictionsToUpdate.length > 0) {
+                    await this.predictionsRepository.save(predictionsToUpdate);
+                    console.log(`✅ Recalculated points for ${predictionsToUpdate.length} predictions in match ${id}`);
+                }
+
+                // Calculate bracket points
+                const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
+                await this.bracketsService.calculateBracketPoints(id, winner);
+                console.log(`🏆 Bracket points calculated for match ${id}, winner: ${winner}`);
+
+                // Check and unlock next knockout phase if current phase is complete
+                if (match.phase) {
+                    await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
+                    console.log(`🔓 Checked phase unlock for ${match.phase}`);
+                }
+
+                // 🆕 HANDLING SEMIFINAL LOSERS -> 3RD PLACE MATCH
+                if (match.phase === 'SEMI' && match.status === 'FINISHED') {
+                    const loser = match.homeScore < match.awayScore ? match.homeTeam : match.awayTeam;
+                    const loserFlag = match.homeScore < match.awayScore ? match.homeFlag : match.awayFlag;
+
+                    const thirdPlaceMatch = await this.matchesRepository.findOne({ where: { phase: '3RD_PLACE' } });
+                    if (thirdPlaceMatch && loser) {
+                        const isHome = (match.bracketId % 2) !== 0; // Bracket 1 -> Home, Bracket 2 -> Away
+                        if (isHome) {
+                            thirdPlaceMatch.homeTeam = loser;
+                            thirdPlaceMatch.homeFlag = loserFlag;
+                            thirdPlaceMatch.homeTeamPlaceholder = null;
+                        } else {
+                            thirdPlaceMatch.awayTeam = loser;
+                            thirdPlaceMatch.awayFlag = loserFlag;
+                            thirdPlaceMatch.awayTeamPlaceholder = null;
+                        }
+                        await this.matchesRepository.save(thirdPlaceMatch);
+                        console.log(`🥉 Sent loser ${loser} to 3RD_PLACE match`);
+                    }
+                }
+
+                // Trigger automático de promoción si es partido de grupo
+                if (match.phase === 'GROUP' && match.group) {
+                    // Use void to not await and block, but we are inside try-catch so await is safer to catch errors
+                    await this.tournamentService.promoteFromGroup(match.group);
+                }
+
+                // Trigger automático de promoción si existe un siguiente partido
+                if (match.nextMatchId) {
+                    const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
+                    if (nextMatch) {
+                        const isHome = (match.bracketId % 2) !== 0;
+                        const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
+                        const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
+
+                        if (isHome) {
+                            nextMatch.homeTeam = winner;
+                            nextMatch.homeFlag = winnerFlag;
+                            nextMatch.homeTeamPlaceholder = null;
+                        } else {
+                            nextMatch.awayTeam = winner;
+                            nextMatch.awayFlag = winnerFlag;
+                            nextMatch.awayTeamPlaceholder = null;
+                        }
+                        await this.matchesRepository.save(nextMatch);
+                        console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (${nextMatch.phase})`);
+                    }
+                }
+            } catch (secondaryError) {
+                console.error(`⚠️ Error in secondary effects for match ${id}:`, secondaryError);
+                // No re-throw to allow the simulation to proceed with other matches
             }
         }
 
@@ -245,72 +274,90 @@ export class MatchesService {
 
     async seedRound32(): Promise<{ message: string; created: number }> {
         // Usamos QueryBuilder para borrar cascada manualmente si es necesario o por phase
-        // Nota: onDelete CASCADE ya debería funcionar si el motor DB lo soporta
         await this.matchesRepository.delete({ phase: 'ROUND_32' });
         await this.matchesRepository.delete({ phase: 'ROUND_16' });
         await this.matchesRepository.delete({ phase: 'QUARTER' });
         await this.matchesRepository.delete({ phase: 'SEMI' });
+        await this.matchesRepository.delete({ phase: '3RD_PLACE' });
         await this.matchesRepository.delete({ phase: 'FINAL' });
 
-        const baseDate = new Date('2026-06-28T16:00:00Z');
+        // FECHAS OFICIALES FIFA 2026 (Hardcoded para precisión)
+        const DATES = {
+            R32_START: new Date('2026-06-28T16:00:00Z'),
+            R16_START: new Date('2026-07-04T16:00:00Z'),
+            QF_START: new Date('2026-07-09T16:00:00Z'),
+            SEMI_1: new Date('2026-07-14T20:00:00Z'),
+            SEMI_2: new Date('2026-07-15T20:00:00Z'),
+            THIRD: new Date('2026-07-18T20:00:00Z'),
+            FINAL: new Date('2026-07-19T20:00:00Z')
+        };
 
-        // 1. ROUND_32 (16 partidos)
-        // Mapeo corregido: 32 equipos (12 primeros, 12 segundos, 8 mejores terceros)
-        // Se usan placeholders genéricos 3RD-1..8 para ser llenados por el Ranking de Mejores Terceros
+        // 1. ROUND_32 (16 partidos) - Del 28 Jun al 3 Jul
+        // Distribución: 3, 3, 3, 3, 2, 2
         const groupMapping = [
             { h: '1A', a: '3RD-1' }, { h: '1B', a: '3RD-2' }, { h: '1C', a: '3RD-3' }, { h: '1D', a: '3RD-4' },
             { h: '1E', a: '3RD-5' }, { h: '1F', a: '3RD-6' }, { h: '1G', a: '3RD-7' }, { h: '1H', a: '3RD-8' },
             { h: '1I', a: '2A' }, { h: '1J', a: '2B' }, { h: '1K', a: '2C' }, { h: '1L', a: '2D' },
             { h: '2E', a: '2F' }, { h: '2G', a: '2H' }, { h: '2I', a: '2J' }, { h: '2K', a: '2L' }
         ];
+
         const r32 = [];
+        let r32Date = new Date(DATES.R32_START);
         for (let i = 1; i <= 16; i++) {
             r32.push(this.matchesRepository.create({
                 phase: 'ROUND_32', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
                 homeTeamPlaceholder: groupMapping[i - 1].h, awayTeamPlaceholder: groupMapping[i - 1].a,
-                date: new Date(baseDate.getTime() + Math.floor((i - 1) / 4) * 86400000)
+                date: new Date(r32Date)
             }));
+
+            // Increment logic: 3 matches per day for first 4 days, then 2 matches per day
+            if (i % 3 === 0 && i <= 12) {
+                r32Date.setDate(r32Date.getDate() + 1);
+            } else if (i === 12 || i === 14) {
+                r32Date.setDate(r32Date.getDate() + 1);
+            }
         }
         const saved32 = await this.matchesRepository.save(r32);
 
-        // 2. ROUND_16 (8 partidos)
+        // 2. ROUND_16 (8 partidos) - Del 4 Jul al 7 Jul (2 por día)
         const r16 = [];
+        let r16Date = new Date(DATES.R16_START);
         for (let i = 1; i <= 8; i++) {
             r16.push(this.matchesRepository.create({
                 phase: 'ROUND_16', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
                 homeTeamPlaceholder: `W32-${(i * 2) - 1}`, awayTeamPlaceholder: `W32-${i * 2}`,
-                date: new Date(baseDate.getTime() + (6 + Math.floor((i - 1) / 4)) * 86400000)
+                date: new Date(r16Date)
             }));
+            if (i % 2 === 0) r16Date.setDate(r16Date.getDate() + 1);
         }
         const saved16 = await this.matchesRepository.save(r16);
 
-        // 3. QUARTER (4 partidos)
+        // 3. QUARTER (4 partidos) - 9, 10, 11 Jul
         const qf = [];
-        for (let i = 1; i <= 4; i++) {
-            qf.push(this.matchesRepository.create({
-                phase: 'QUARTER', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
-                homeTeamPlaceholder: `W16-${(i * 2) - 1}`, awayTeamPlaceholder: `W16-${i * 2}`,
-                date: new Date(baseDate.getTime() + (10 + Math.floor((i - 1) / 2)) * 86400000)
-            }));
-        }
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 1, status: 'PENDING', homeTeamPlaceholder: 'W16-1', awayTeamPlaceholder: 'W16-2', date: new Date('2026-07-09T20:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 2, status: 'PENDING', homeTeamPlaceholder: 'W16-3', awayTeamPlaceholder: 'W16-4', date: new Date('2026-07-10T20:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 3, status: 'PENDING', homeTeamPlaceholder: 'W16-5', awayTeamPlaceholder: 'W16-6', date: new Date('2026-07-11T16:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 4, status: 'PENDING', homeTeamPlaceholder: 'W16-7', awayTeamPlaceholder: 'W16-8', date: new Date('2026-07-11T20:00:00Z') }));
         const savedQF = await this.matchesRepository.save(qf);
 
-        // 4. SEMI (2 partidos)
+        // 4. SEMI (2 partidos) - 14 y 15 Jul
         const sf = [];
-        for (let i = 1; i <= 2; i++) {
-            sf.push(this.matchesRepository.create({
-                phase: 'SEMI', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
-                homeTeamPlaceholder: `WQF-${(i * 2) - 1}`, awayTeamPlaceholder: `WQF-${i * 2}`,
-                date: new Date(baseDate.getTime() + (14 + (i - 1)) * 86400000)
-            }));
-        }
+        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 1, status: 'PENDING', homeTeamPlaceholder: 'WQF-1', awayTeamPlaceholder: 'WQF-2', date: DATES.SEMI_1 }));
+        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 2, status: 'PENDING', homeTeamPlaceholder: 'WQF-3', awayTeamPlaceholder: 'WQF-4', date: DATES.SEMI_2 }));
         const savedSF = await this.matchesRepository.save(sf);
 
-        // 5. FINAL
+        // 5. FINAL (19 Jul) - bracketId 1
         const f = await this.matchesRepository.save(this.matchesRepository.create({
             phase: 'FINAL', bracketId: 1, status: 'PENDING', homeTeam: '', awayTeam: '',
             homeTeamPlaceholder: 'WSF-1', awayTeamPlaceholder: 'WSF-2',
-            date: new Date(baseDate.getTime() + 18 * 86400000)
+            date: DATES.FINAL
+        }));
+
+        // 6. 3RD PLACE (18 Jul) - bracketId 1
+        const tp = await this.matchesRepository.save(this.matchesRepository.create({
+            phase: '3RD_PLACE', bracketId: 1, status: 'PENDING', homeTeam: '', awayTeam: '',
+            homeTeamPlaceholder: 'LSF-1', awayTeamPlaceholder: 'LSF-2',
+            date: DATES.THIRD
         }));
 
         // CONEXIONES
@@ -319,7 +366,7 @@ export class MatchesService {
         for (let i = 0; i < 4; i++) { savedQF[i].nextMatchId = savedSF[Math.floor(i / 2)].id; await this.matchesRepository.save(savedQF[i]); }
         for (let i = 0; i < 2; i++) { savedSF[i].nextMatchId = f.id; await this.matchesRepository.save(savedSF[i]); }
 
-        return { message: 'Knockout stages seeded and connected from 1/16 to Final', created: saved32.length + saved16.length + savedQF.length + savedSF.length + 1 };
+        return { message: 'Tournament Keys 2026 Seeded (Correct Dates + 3rd Place)', created: 32 };
     }
 
 
@@ -409,6 +456,9 @@ export class MatchesService {
 
         } catch (error) {
             console.error(`❌ [SIMULATOR ERROR] Error simulando resultados para fase ${phase}:`, error);
+            try {
+                fs.writeFileSync('sim_error.log', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+            } catch (e) { console.error('Log write failed', e); }
             throw error;
         }
     }
@@ -489,5 +539,22 @@ export class MatchesService {
         } finally {
             await queryRunner.release();
         }
+    }
+    async rebuildBrackets() {
+        console.log('🔄 STARTING EMERGENCY BRACKET REBUILD');
+        // 1. Resetear Bracket (Borrar y Crear placeholders limpios)
+        await this.seedRound32();
+
+        // 2. Promover Ganadores de Grupos
+        const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+        for (const g of groups) {
+            await this.tournamentService.promoteFromGroup(g);
+        }
+
+        // 3. Promover Terceros
+        await this.tournamentService.promoteBestThirds();
+
+        console.log('✅ EMERGENCY BRACKET REBUILD COMPLETE');
+        return { message: 'Brackets Rebuilt Cleanly' };
     }
 }

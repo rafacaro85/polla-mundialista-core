@@ -68,6 +68,9 @@ interface CreateLeagueDialogProps {
 export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeagueCreated, children }) => {
     const [open, setOpen] = useState(false);
     const [leagueName, setLeagueName] = useState('');
+    const [adminName, setAdminName] = useState('');
+    const [countryCode, setCountryCode] = useState('+57'); // Nuevo estado para indicativo
+    const [adminPhone, setAdminPhone] = useState('');
     const [selectedPlan, setSelectedPlan] = useState('amigos'); // Por defecto el Amigos (recomendado)
     const [loading, setLoading] = useState(false);
     const [createdLeagueId, setCreatedLeagueId] = useState<string | null>(null);
@@ -78,10 +81,35 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
 
     const handleCreate = async () => {
-        if (!leagueName.trim()) {
-            toast.error('Por favor ingresa un nombre para la liga');
+        if (!leagueName.trim() || !adminName.trim() || !adminPhone.trim() || !countryCode.trim()) {
+            toast.error('Por favor completa todos los campos, incluyendo el indicativo (+57)');
             return;
         }
+
+        // 1. Validar Indicativo
+        if (!/^\+\d+$/.test(countryCode.trim())) {
+            toast.error('El indicativo debe empezar con + y tener números');
+            return;
+        }
+
+        // 2. Validar Número Local
+        const cleanNumber = adminPhone.replace(/[\s-]/g, '');
+        if (!/^\d+$/.test(cleanNumber)) {
+            toast.error('El número de teléfono solo puede contener números');
+            return;
+        }
+
+        if (countryCode.trim().length > 5) {
+            toast.error('El indicativo no puede tener más de 5 caracteres');
+            return;
+        }
+
+        if (cleanNumber.length !== 10) {
+            toast.error('El número celular debe tener exactamente 10 dígitos');
+            return;
+        }
+
+        const fullPhone = `${countryCode.trim()} ${cleanNumber}`;
 
         const plan = PLANS.find(p => p.id === selectedPlan);
         if (!plan) return;
@@ -99,6 +127,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 maxParticipants: plan.members,
                 packageType: selectedPlan,
                 isEnterprise: false,
+                adminName: adminName.trim(),
+                adminPhone: fullPhone,
             });
 
             console.log('✅ [CreateLeague] Respuesta servidor:', response.data);
@@ -162,6 +192,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     const handleClose = () => {
         setOpen(false);
         setLeagueName('');
+        setAdminName('');
+        setAdminPhone('');
         setCreatedCode(null);
         setCreatedLeagueName(null);
         setCreatedLeagueId(null);
@@ -489,6 +521,52 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         />
                                     </div>
 
+                                    {/* Input Admin Name */}
+                                    <div style={STYLES.inputSection}>
+                                        <label style={STYLES.label}>Nombre del Administrador</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Tu Nombre"
+                                            value={adminName}
+                                            onChange={(e) => setAdminName(e.target.value)}
+                                            style={STYLES.input}
+                                            onFocus={(e) => e.target.style.borderColor = '#00E676'}
+                                            onBlur={(e) => e.target.style.borderColor = '#334155'}
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    {/* Input Admin Phone (Con Indicativo Separado) */}
+                                    <div style={STYLES.inputSection}>
+                                        <label style={STYLES.label}>WhatsApp de Contacto</label>
+                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                            {/* Indicativo */}
+                                            <input
+                                                type="text"
+                                                placeholder="+57"
+                                                value={countryCode}
+                                                maxLength={5}
+                                                onChange={(e) => setCountryCode(e.target.value)}
+                                                style={{ ...STYLES.input, width: '80px', textAlign: 'center', padding: '16px 8px' }}
+                                                onFocus={(e) => e.target.style.borderColor = '#00E676'}
+                                                onBlur={(e) => e.target.style.borderColor = '#334155'}
+                                                disabled={loading}
+                                            />
+                                            {/* Número */}
+                                            <input
+                                                type="tel"
+                                                placeholder="310 123 4567"
+                                                value={adminPhone}
+                                                maxLength={10}
+                                                onChange={(e) => setAdminPhone(e.target.value)}
+                                                style={{ ...STYLES.input, flex: 1 }}
+                                                onFocus={(e) => e.target.style.borderColor = '#00E676'}
+                                                onBlur={(e) => e.target.style.borderColor = '#334155'}
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    </div>
+
 
                                     {/* Selector de Planes */}
                                     <div>
@@ -626,10 +704,10 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                     onClick={handleCreate}
                                     style={{
                                         ...STYLES.createBtn,
-                                        backgroundColor: leagueName.trim() ? '#00E676' : '#334155',
-                                        color: leagueName.trim() ? '#0F172A' : '#94A3B8',
-                                        cursor: leagueName.trim() && !loading ? 'pointer' : 'not-allowed',
-                                        boxShadow: leagueName.trim() ? '0 0 20px rgba(0, 230, 118, 0.4)' : 'none'
+                                        backgroundColor: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '#00E676' : '#334155',
+                                        color: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '#0F172A' : '#94A3B8',
+                                        cursor: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) && !loading ? 'pointer' : 'not-allowed',
+                                        boxShadow: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '0 0 20px rgba(0, 230, 118, 0.4)' : 'none'
                                     }}
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} strokeWidth={3} />}

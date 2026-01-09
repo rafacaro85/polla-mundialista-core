@@ -1,9 +1,15 @@
 'use client';
 
+
 import React, { useState, useEffect } from 'react';
-import { Save, X, Users, Copy, Loader2, Image, Gift, MessageSquare } from 'lucide-react';
+import { Save, X, Users, Copy, Loader2, Image, Gift, MessageSquare, Briefcase, Trophy, UploadCloud } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { cn } from "@/lib/utils";
 
 interface League {
     id: string;
@@ -75,23 +81,80 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // Función de compresión (Duplicada desde LeagueBrandingForm para consistencia)
+    const compressImage = (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new window.Image(); // Use window.Image explícitamente
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_SIZE = 1200;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return reject(new Error('Canvas context failed'));
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Blob creation failed'));
+                    }, 'image/jpeg', 0.85); // Calidad 0.85
+                };
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = event.target?.result as string;
+            };
+            reader.onerror = () => reject(new Error('File read failed'));
+        });
+    };
+
     const handleFileUpload = async (file: File, field: string) => {
         try {
             setLoading(true);
+
+            let fileToUpload: File | Blob = file;
+            let filename = file.name;
+
+            // Intentar comprimir
+            try {
+                const compressed = await compressImage(file);
+                fileToUpload = compressed;
+                filename = `upload_${Date.now()}.jpg`; // Renombrar si se comprime a jpg
+            } catch (e) {
+                console.warn('Falló compresión, usando original:', e);
+            }
+
             const uploadData = new FormData();
-            uploadData.append('file', file);
+            // Es vital pasar el filename si es un Blob
+            uploadData.append('file', fileToUpload, filename);
 
-            const response = await api.post('/upload', uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            // IMPORTANTE: No pasar headers manuales para multipart/form-data, 
+            // Axios/Browser lo maneja para incluir el boundary correcto.
+            const response = await api.post('/upload', uploadData);
 
-            setFormData(prev => ({ ...prev, [field]: response.data.url }));
-            toast.success('Imagen subida correctamente');
-        } catch (error) {
+            if (response.data && response.data.url) {
+                setFormData(prev => ({ ...prev, [field]: response.data.url }));
+                toast.success('Imagen subida correctamente');
+            } else {
+                throw new Error('No se recibió URL de la imagen');
+            }
+        } catch (error: any) {
             console.error('Error uploading file:', error);
-            toast.error('Error al subir la imagen');
+            const msg = error.response?.data?.message || error.message || 'Error al subir la imagen';
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -123,389 +186,171 @@ export function EditLeagueDialog({ league, open, onOpenChange, onSuccess }: Edit
         }
     };
 
-    const handleCopyCode = () => {
-        navigator.clipboard.writeText(formData.code);
-        toast.success('Código copiado al portapapeles');
-    };
-
-    // SISTEMA DE DISEÑO BLINDADO
-    const STYLES = {
-        overlay: {
-            position: 'fixed' as const,
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '16px'
-        },
-        card: {
-            backgroundColor: '#1E293B', // Carbon
-            width: '100%',
-            maxWidth: '500px',
-            borderRadius: '24px',
-            border: '1px solid #334155',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-            display: 'flex',
-            flexDirection: 'column' as const,
-            maxHeight: '90vh',
-            overflowY: 'auto' as const,
-            fontFamily: 'sans-serif',
-            position: 'relative' as const
-        },
-
-        // HEADER CON IMAGEN Y DETALLES
-        headerBanner: {
-            backgroundColor: '#0F172A',
-            padding: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            borderBottom: '1px solid #334155',
-            position: 'relative' as const
-        },
-        closeBtn: {
-            position: 'absolute' as const,
-            top: '12px',
-            left: '12px',
-            background: 'rgba(255,255,255,0.1)',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#94A3B8',
-            cursor: 'pointer',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-        },
-        leagueIcon: {
-            width: '64px',
-            height: '64px',
-            borderRadius: '16px',
-            backgroundColor: '#1E293B',
-            border: '2px solid #00E676',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#00E676',
-            fontSize: '28px',
-            fontFamily: "'Russo One', sans-serif",
-            boxShadow: '0 0 15px rgba(0, 230, 118, 0.2)',
-            overflow: 'hidden'
-        },
-        leagueInfo: {
-            flex: 1
-        },
-        leagueNameTitle: {
-            color: 'white',
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '20px',
-            lineHeight: '1.2',
-            marginBottom: '4px'
-        },
-        ownerInfo: {
-            fontSize: '12px',
-            color: '#94A3B8',
-            fontWeight: 'bold'
-        },
-
-        // CÓDIGO DE ACCESO (CHIP DESTACADO)
-        codeSection: {
-            backgroundColor: 'rgba(255,255,255,0.03)',
-            marginTop: '16px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            border: '1px dashed #334155'
-        },
-        codeLabel: {
-            fontSize: '10px',
-            color: '#94A3B8',
-            fontWeight: 'bold',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '1px'
-        },
-        codeBadge: {
-            backgroundColor: '#0F172A',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            color: 'white',
-            fontFamily: 'monospace',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            letterSpacing: '2px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            border: '1px solid #334155',
-            cursor: 'pointer'
-        },
-
-        // CUERPO DEL FORMULARIO
-        body: {
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '20px'
-        },
-        inputGroup: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '6px'
-        },
-        label: {
-            fontSize: '11px',
-            color: '#94A3B8',
-            fontWeight: 'bold',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '1px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-        },
-        input: {
-            width: '100%',
-            backgroundColor: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            padding: '14px',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            outline: 'none',
-            transition: 'border-color 0.2s'
-        },
-        textarea: {
-            width: '100%',
-            backgroundColor: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            padding: '14px',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: '500',
-            outline: 'none',
-            fontFamily: 'sans-serif',
-            minHeight: '80px',
-            resize: 'vertical' as const
-        },
-        fileLabel: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: '#0F172A',
-            border: '1px dashed #334155',
-            borderRadius: '12px',
-            padding: '12px 20px',
-            color: '#94A3B8',
-            fontSize: '12px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            width: '100%',
-            justifyContent: 'center'
-        },
-        fileInput: {
-            display: 'none'
-        },
-        previewBox: {
-            marginTop: '8px',
-            width: '100%',
-            height: '120px',
-            backgroundColor: '#0F172A',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            border: '1px solid #334155'
-        },
-
-        // FOOTER
-        footer: {
-            padding: '0 24px 24px 24px',
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: '12px'
-        },
-        saveBtn: {
-            width: '100%',
-            backgroundColor: 'white',
-            color: '#0F172A',
-            border: 'none',
-            padding: '14px',
-            borderRadius: '12px',
-            fontWeight: '900',
-            fontSize: '14px',
-            textTransform: 'uppercase' as const,
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(255,255,255,0.2)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '8px'
-        },
-        cancelBtn: {
-            width: '100%',
-            backgroundColor: 'transparent',
-            color: '#94A3B8',
-            border: '1px solid #334155',
-            padding: '12px',
-            borderRadius: '12px',
-            fontWeight: 'bold',
-            fontSize: '12px',
-            textTransform: 'uppercase' as const,
-            cursor: 'pointer'
-        }
-    };
+    // NO STYLES object needed anymore
 
     return (
-        <div style={STYLES.overlay}>
-            <div style={STYLES.card} className="no-scrollbar">
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden sm:max-w-[500px] max-h-[90vh] flex flex-col sm:rounded-2xl gap-0">
 
-                {/* 1. HEADER TIPO TARJETA */}
-                <div style={STYLES.headerBanner}>
-                    <button onClick={() => onOpenChange(false)} style={STYLES.closeBtn}>
+                {/* HEAD */}
+                <div className="bg-[#0F172A] p-6 border-b border-slate-800 relative">
+                    <DialogClose className="absolute right-4 top-4 text-slate-400 hover:text-white opacity-70 hover:opacity-100 transition-opacity">
                         <X size={18} />
-                    </button>
-
-                    <div style={STYLES.leagueIcon}>
-                        {formData.brandingLogoUrl ? (
-                            <img src={formData.brandingLogoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                            formData.name.charAt(0).toUpperCase()
-                        )}
-                    </div>
-
-                    <div style={STYLES.leagueInfo}>
-                        <div style={STYLES.leagueNameTitle}>{formData.name}</div>
-                        <div style={STYLES.ownerInfo}>
-                            Dueño: <span style={{ color: 'white' }}>{formData.admin}</span> • <Users size={10} style={{ display: 'inline', marginBottom: '2px' }} /> {formData.members} / {formData.capacity}
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-500">
+                            {/* Usar logo si hay, sino icono por defecto */}
+                            {formData.brandingLogoUrl ? (
+                                <img src={formData.brandingLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                                <Briefcase size={20} />
+                            )}
                         </div>
-
-                        {/* Código Chip */}
-                        <div style={STYLES.codeSection}>
-                            <span style={STYLES.codeLabel}>CÓDIGO DE ACCESO</span>
-                            <div
-                                style={STYLES.codeBadge}
-                                onClick={handleCopyCode}
-                                title="Copiar Código"
-                            >
-                                {formData.code} <Copy size={12} style={{ opacity: 0.5 }} />
-                            </div>
+                        <div>
+                            <h2 className="text-emerald-500 font-bold text-sm tracking-wider flex items-center gap-2">
+                                GESTIÓN DE POLLA
+                            </h2>
+                            <p className="text-slate-400 text-xs font-mono">{formData.name || 'Nueva Liga'}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* 2. FORMULARIO EDICIÓN */}
-                <div style={STYLES.body}>
+                {/* BODY SCROLLABLE */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
 
-                    <div style={{ textAlign: 'center', color: 'white', fontSize: '16px', fontFamily: "'Russo One', sans-serif", textTransform: 'uppercase' }}>
-                        EDITAR LIGA
-                    </div>
-                    <div style={{ textAlign: 'center', color: '#94A3B8', fontSize: '12px', marginTop: '-16px', marginBottom: '8px' }}>
-                        Personaliza los detalles y el branding
-                    </div>
-
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}>Nombre</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            style={STYLES.input}
-                            onFocus={(e) => e.target.style.borderColor = '#00E676'}
-                            onBlur={(e) => e.target.style.borderColor = '#334155'}
-                        />
-                    </div>
-
-                    {/* Branding Logo */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Image size={14} /> Logo de la Empresa / Liga</label>
-                        <label style={STYLES.fileLabel}>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={STYLES.fileInput}
-                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
-                            />
-                            {formData.brandingLogoUrl ? 'Cambiar Logo' : 'Subir Logo'}
-                        </label>
-                    </div>
-
-                    {/* Premio Imagen */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Gift size={14} /> Imagen del Premio</label>
-                        <label style={STYLES.fileLabel}>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={STYLES.fileInput}
-                                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
-                            />
-                            {formData.prizeImageUrl ? 'Cambiar Imagen' : 'Subir Imagen del Premio'}
-                        </label>
-                        {formData.prizeImageUrl && (
-                            <div style={STYLES.previewBox}>
-                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover' }} />
+                    {/* SECTION 1: NOMBRE */}
+                    <div className="space-y-4">
+                        <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700/50 space-y-3">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre de la Polla</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="bg-[#0F172A] border-slate-700 font-bold text-white h-11 focus-visible:ring-emerald-500/50"
+                                    placeholder="Nombre de la liga..."
+                                />
+                                <Button size="icon" className="h-11 w-11 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 shrink-0">
+                                    <Save size={18} onClick={handleSubmit} />
+                                </Button>
                             </div>
-                        )}
+                        </div>
                     </div>
 
-                    {/* Premio Detalles */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><Gift size={14} /> Descripción del Premio</label>
-                        <textarea
-                            name="prizeDetails"
-                            value={formData.prizeDetails}
-                            onChange={handleChange}
-                            placeholder="Ej: Camiseta oficial autografiada..."
-                            style={STYLES.textarea}
-                        />
-                    </div>
+                    {/* SECTION 2: PERSONALIZACIÓN VISUAL */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
+                                <Gift size={16} />
+                            </span>
+                            <h3 className="text-emerald-500 font-bold text-sm">Personalización Visual</h3>
+                        </div>
 
-                    {/* Mensaje Bienvenida */}
-                    <div style={STYLES.inputGroup}>
-                        <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
-                        <textarea
-                            name="welcomeMessage"
-                            value={formData.welcomeMessage}
-                            onChange={handleChange}
-                            placeholder="Mensaje para los participantes..."
-                            style={STYLES.textarea}
-                        />
-                    </div>
+                        {/* LOGO */}
+                        <div className="bg-[#1E293B] p-5 rounded-xl border border-slate-700/50 space-y-4">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                Logo Identitario de la Polla
+                            </Label>
 
+                            <div className="border border-dashed border-slate-700 bg-[#0F172A] rounded-lg h-32 flex flex-col items-center justify-center gap-3 relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+                                {formData.brandingLogoUrl && (
+                                    <div className="absolute inset-0 w-full h-full bg-[#0F172A] z-0">
+                                        <img src={formData.brandingLogoUrl} className="w-full h-full object-contain opacity-50 group-hover:opacity-30 transition-opacity p-4" />
+                                    </div>
+                                )}
+                                <div className="relative z-10 flex flex-col items-center gap-2">
+                                    <p className="text-xs text-slate-500 max-w-[200px] text-center">
+                                        {formData.brandingLogoUrl ? 'Click para cambiar el logo' : 'Sube un logo (PNG, JPG)'}
+                                    </p>
+                                    <Button variant="outline" size="sm" className="bg-slate-800 border-slate-600 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/50 hover:bg-slate-800 relative">
+                                        <UploadCloud size={14} className="mr-2" />
+                                        {formData.brandingLogoUrl ? 'CAMBIAR LOGO' : 'SUBIR LOGO'}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'brandingLogoUrl')}
+                                        />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* PREMIO IMAGE */}
+                        <div className="bg-[#1E293B] p-5 rounded-xl border border-slate-700/50 space-y-4">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                Imagen del Premio Principal
+                            </Label>
+
+                            <div className="border border-dashed border-slate-700 bg-[#0F172A] rounded-lg h-40 flex flex-col items-center justify-center gap-3 relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+                                {formData.prizeImageUrl && (
+                                    <div className="absolute inset-0 w-full h-full bg-[#0F172A] z-0">
+                                        <img src={formData.prizeImageUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
+                                    </div>
+                                )}
+                                <div className="relative z-10 flex flex-col items-center gap-2">
+                                    <Button className="bg-[#0F172A] border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 w-full relative group-hover:scale-105 transition-transform">
+                                        <Image size={16} className="mr-2" />
+                                        SUBIR FOTO DEL PREMIO
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'prizeImageUrl')}
+                                        />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* DETALLES DEL PREMIO */}
+                        <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700/50 space-y-3">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <Gift size={12} className="text-emerald-500" /> Detalles del Premio
+                            </Label>
+                            <textarea
+                                name="prizeDetails"
+                                value={formData.prizeDetails}
+                                onChange={handleChange}
+                                placeholder="Ej: Viaje a San Andrés para 2 personas..."
+                                className="flex min-h-[80px] w-full rounded-md border border-slate-700 bg-[#0F172A] px-3 py-2 text-sm text-white placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 border-input disabled:cursor-not-allowed disabled:opacity-50 resize-none font-medium"
+                            />
+                        </div>
+
+                        {/* MENSAJE DE BIENVENIDA */}
+                        <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700/50 space-y-3">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <MessageSquare size={12} className="text-emerald-500" /> Mensaje de Bienvenida
+                            </Label>
+                            <textarea
+                                name="welcomeMessage"
+                                value={formData.welcomeMessage}
+                                onChange={handleChange}
+                                placeholder="Escribe un saludo para tus jugadores..."
+                                className="flex min-h-[80px] w-full rounded-md border border-slate-700 bg-[#0F172A] px-3 py-2 text-sm text-white placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 border-input disabled:cursor-not-allowed disabled:opacity-50 resize-none font-medium"
+                            />
+                        </div>
+
+                    </div>
                 </div>
 
-                {/* 3. FOOTER */}
-                <div style={STYLES.footer}>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        style={{ ...STYLES.saveBtn, opacity: loading ? 0.7 : 1 }}
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Guardando...
-                            </>
-                        ) : (
-                            <>
-                                <Save size={18} /> Guardar
-                            </>
-                        )}
-                    </button>
-                    <button onClick={() => onOpenChange(false)} style={STYLES.cancelBtn}>
-                        Cancelar
-                    </button>
+                {/* FOOTER */}
+                <div className="p-4 bg-[#0F172A] border-t border-slate-800 flex justify-between items-center z-10">
+                    <div className="py-2 px-3 bg-yellow-500/10 text-yellow-500 text-[10px] rounded border border-yellow-500/20 font-mono hidden sm:block">
+                        MODE: SUPER_ADMIN
+                    </div>
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none text-slate-400 hover:text-white hover:bg-slate-800">
+                            CANCELAR
+                        </Button>
+                        <Button onClick={handleSubmit} disabled={loading} className="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-600 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                            {loading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
+                            GUARDAR CAMBIOS
+                        </Button>
+                    </div>
                 </div>
 
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

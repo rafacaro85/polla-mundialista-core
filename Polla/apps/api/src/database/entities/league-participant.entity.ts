@@ -6,6 +6,7 @@ import {
   JoinColumn,
   Unique,
   Index,
+  CreateDateColumn,
 } from 'typeorm';
 import { League } from './league.entity';
 import { User } from './user.entity';
@@ -39,6 +40,18 @@ export class LeagueParticipant {
 
   @Column({ name: 'trivia_points', type: 'int', default: 0 })
   triviaPoints: number;
+
+  @Column({ name: 'prediction_points', type: 'int', default: 0 }) // Added
+  predictionPoints: number; // Added
+
+  @Column({ name: 'bracket_points', type: 'int', default: 0 }) // Added
+  bracketPoints: number; // Added
+
+  @Column({ name: 'joker_points', type: 'int', default: 0 }) // Added
+  jokerPoints: number; // Added
+
+  @CreateDateColumn({ name: 'joined_at' }) // Added
+  joinedAt: Date; // Added
 
   @Column({ name: 'tie_breaker_guess', type: 'int', nullable: true })
   tieBreakerGuess: number;

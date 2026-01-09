@@ -36,8 +36,8 @@ export function ManageLeagueLimitDialog({ league, open, onOpenChange, onSuccess 
     const currentMembers = league.participantCount || 0;
     const occupancyPercent = Math.min(((typeof maxParticipants === 'number' ? maxParticipants : 0) > 0 ? currentMembers / (typeof maxParticipants === 'number' ? maxParticipants : 1) : 0) * 100, 100);
 
-    // Planes predefinidos
-    const PRESET_PLANS = [10, 25, 50, 100];
+    // Planes predefinidos (Sincronizados con CreateLeagueDialog)
+    const PRESET_PLANS = [5, 15, 50, 100, 200];
 
     const handleSubmit = async () => {
         const limit = typeof maxParticipants === 'string' ? parseInt(maxParticipants) : maxParticipants;
@@ -188,7 +188,7 @@ export function ManageLeagueLimitDialog({ league, open, onOpenChange, onSuccess 
         // PLANES PREDEFINIDOS
         plansGrid: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: 'repeat(5, 1fr)',
             gap: '8px'
         },
         planBtn: {

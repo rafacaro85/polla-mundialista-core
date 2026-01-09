@@ -17,6 +17,7 @@ import { TournamentModule } from './tournament/tournament.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { DebugModule } from './debug/debug.module';
 import { KnockoutPhasesModule } from './knockout-phases/knockout-phases.module';
+import { MailModule } from './mail/mail.module';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -98,6 +99,7 @@ import { APP_GUARD } from '@nestjs/core';
     UploadModule,
     DebugModule,
     KnockoutPhasesModule,
+    MailModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

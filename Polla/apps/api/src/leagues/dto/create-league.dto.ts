@@ -55,4 +55,12 @@ export class CreateLeagueDto {
   @IsHexColor()
   @IsOptional()
   brandColorSecondary?: string;
+
+  @IsString()
+  @IsOptional()
+  adminName?: string;
+
+  @IsString()
+  @IsOptional()
+  adminPhone?: string;
 }

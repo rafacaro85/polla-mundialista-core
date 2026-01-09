@@ -4,12 +4,14 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, ForgotPasswordDto, VerifyEmailDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) { }
 
   async validateUser(email: string, pass: string): Promise<User | null> {
@@ -86,13 +88,13 @@ export class AuthService {
         phoneNumber: registerDto.phoneNumber || existingUser.phoneNumber
       });
 
-      // MOCK EMAIL SERVICE
-      console.log('📧 [MOCK EMAIL SERVICE] ------------------------------------------------');
-      console.log(`   To: ${registerDto.email}`);
-      console.log(`   Subject: Password added to your account - Verify your email`);
-      console.log(`   Code: ${verificationCode}`);
-      console.log(`   Message: You've added password login to your Google account.`);
-      console.log('----------------------------------------------------------------------');
+      // Enviar EMAIL REAL
+      try {
+        await this.mailService.sendVerificationEmail(registerDto.email, verificationCode);
+        console.log(`📧 [AuthService] Correo de verificación enviado a: ${registerDto.email}`);
+      } catch (error) {
+        console.error(`❌ [AuthService] Error enviando correo:`, error);
+      }
 
       // MOCK SMS SERVICE (Si hay teléfono)
       if (registerDto.phoneNumber) {
@@ -122,12 +124,13 @@ export class AuthService {
     // Guardar código de verificación
     await this.usersService.update(user, { verificationCode, isVerified: false });
 
-    // MOCK EMAIL SERVICE
-    console.log('📧 [MOCK EMAIL SERVICE] ------------------------------------------------');
-    console.log(`   To: ${registerDto.email}`);
-    console.log(`   Subject: Verify your email`);
-    console.log(`   Code: ${verificationCode}`);
-    console.log('----------------------------------------------------------------------');
+    // Enviar EMAIL REAL
+    try {
+      await this.mailService.sendVerificationEmail(registerDto.email, verificationCode);
+      console.log(`📧 [AuthService] Correo de verificación enviado a: ${registerDto.email}`);
+    } catch (error) {
+      console.error(`❌ [AuthService] Error enviando correo:`, error);
+    }
 
     // MOCK SMS SERVICE (Si hay teléfono)
     if (registerDto.phoneNumber) {

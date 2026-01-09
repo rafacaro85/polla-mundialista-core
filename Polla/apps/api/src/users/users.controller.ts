@@ -7,12 +7,15 @@ import {
   Get,
   Param,
   NotFoundException,
+  Post,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { User } from '../database/entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -21,6 +24,15 @@ interface RequestWithUser extends Request {
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  @Post()
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    const user = await this.usersService.createAdmin(createUserDto);
+    const { password, ...result } = user;
+    return result;
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
@@ -46,6 +58,14 @@ export class UsersController {
     return this.usersService.updateProfile(userId, body);
   }
 
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  @Get(':id/details')
+  async getUserDetails(@Param('id') id: string) {
+    return this.usersService.getUserDetails(id);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
@@ -58,5 +78,12 @@ export class UsersController {
       throw new NotFoundException('User not found');
     }
     return this.usersService.update(user, body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  @Delete(':id')
+  async deleteUser(@Param('id') id: string) {
+    return this.usersService.delete(id);
   }
 }

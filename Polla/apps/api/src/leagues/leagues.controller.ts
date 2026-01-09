@@ -16,7 +16,9 @@ import {
 } from '@nestjs/common';
 import { LeaguesService } from './leagues.service';
 import { CreateLeagueDto } from './dto/create-league.dto';
+
 import { UpdateLeagueDto } from './dto/update-league.dto';
+import { UpdateParticipantScoreDto } from './dto/update-participant-score.dto';
 import { UpdateTieBreakerDto } from './dto/update-tie-breaker.dto';
 import { TransferOwnerDto } from './dto/transfer-owner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -128,6 +130,26 @@ export class LeaguesController {
     return this.accessCodesService.generateCodes(
       leagueId,
       generateAccessCodesDto.quantity,
+    );
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  @Patch(':id/participants/:userId/score')
+  async updateParticipantScore(
+    @Param('id') leagueId: string,
+    @Param('userId') userId: string,
+    @Body() dto: UpdateParticipantScoreDto,
+  ) {
+    return this.leaguesService.updateParticipantScore(
+      leagueId,
+      userId,
+      dto.totalPoints,
+      dto.triviaPoints,
+      dto.predictionPoints,
+      dto.bracketPoints,
+      dto.jokerPoints
     );
   }
 

@@ -35,7 +35,12 @@ interface League {
     isPaid?: boolean;
 }
 
-export function LeaguesTable() {
+interface LeaguesTableProps {
+    onDataUpdated?: () => void;
+    filter?: 'ALL' | 'FREE';
+}
+
+export function LeaguesTable({ onDataUpdated, filter = 'ALL' }: LeaguesTableProps) {
     const router = useRouter();
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
@@ -100,6 +105,7 @@ export function LeaguesTable() {
 
     const handleSuccess = () => {
         loadLeagues();
+        if (onDataUpdated) onDataUpdated();
         setEditDialogOpen(false);
         setTransferDialogOpen(false);
         setLimitDialogOpen(false);
@@ -131,11 +137,46 @@ export function LeaguesTable() {
         const newState = !league.isPaid;
         const action = newState ? 'ACTIVAR' : 'DESACTIVAR';
 
-        if (!confirm(`¿Estás seguro de ${action} el pago para la liga "${league.name}"? Esto ${newState ? 'permitirá' : 'bloqueará'} el acceso.`)) return;
+        if (!confirm(`¿Estás seguro de ${action} el pago para la liga "${league.name}"? ${newState ? 'Se generará un registro de venta automáticamente.' : 'El acceso quedará restringido.'}`)) return;
 
         try {
+            // 1. Update League Status
             await api.patch(`/leagues/${league.id}`, { isPaid: newState });
+
+            // 2. Si estamos ACTIVANDO, generar transacción automátic si no existe ya una pagada reciente (Opcional, por ahora generamos siempre para asegurar registro)
+            if (newState) {
+                try {
+                    // Precios Hardcodeados para matchear PLANES (debería venir de config)
+                    const PRICES: Record<string, number> = {
+                        'familia': 0, 'starter': 0,
+                        'parche': 30000, 'amateur': 30000, // Legacy/New map
+                        'amigos': 80000, 'semi-pro': 80000,
+                        'lider': 180000, 'pro': 180000,
+                        'influencer': 350000, 'elite': 350000
+                    };
+
+                    // Detect package type, default to parche if unknown or missing
+                    const pkg = (league as any).packageType || 'parche';
+                    const amount = PRICES[pkg] !== undefined ? PRICES[pkg] : 30000;
+
+                    // Create & Approve
+                    const txRes = await api.post('/transactions', {
+                        packageType: pkg,
+                        amount: amount,
+                        leagueId: league.id
+                    });
+                    await api.patch(`/transactions/${txRes.data.id}/approve`);
+                    toast.success('Venta registrada correctamente.');
+                } catch (txErr) {
+                    console.error("Error generando venta manual:", txErr);
+                    toast.warning("Liga activada, pero falló el registro de venta.");
+                }
+            }
+
             toast.success(`Liga marcada como ${newState ? 'PAGADA' : 'PENDIENTE'}`);
+
+            // Refrescar padre
+            if (onDataUpdated) onDataUpdated();
             loadLeagues();
         } catch (error) {
             console.error(error);
@@ -144,11 +185,18 @@ export function LeaguesTable() {
     };
 
     // Filtrado
-    const filteredLeagues = leagues.filter(l =>
-        l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.creator.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredLeagues = leagues.filter(l => {
+        const matchesSearch = l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            l.creator.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            l.code.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (filter === 'FREE') {
+            // Consideramos GRATIS las del plan 'familia' (o null que asume gratis legacy)
+            return matchesSearch && ((l as any).packageType === 'familia' || !(l as any).packageType);
+        }
+
+        return matchesSearch;
+    });
 
     // SISTEMA DE DISEÑO
     const STYLES = {
@@ -311,7 +359,7 @@ export function LeaguesTable() {
                     <Search size={18} style={STYLES.searchIcon} />
                     <input
                         type="text"
-                        placeholder="Buscar liga, código o dueño..."
+                        placeholder="Buscar polla, código o dueño..."
                         style={STYLES.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -321,13 +369,13 @@ export function LeaguesTable() {
                     onClick={() => setCreateDialogOpen(true)}
                     style={STYLES.createBtn}
                 >
-                    <Plus size={18} /> Crear Liga
+                    <Plus size={18} /> Crear Polla
                 </button>
             </div>
 
             {/* LISTA DE LIGAS */}
             {filteredLeagues.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748B', padding: '40px' }}>No se encontraron ligas.</div>
+                <div style={{ textAlign: 'center', color: '#64748B', padding: '40px' }}>No se encontraron pollas.</div>
             ) : (
                 filteredLeagues.map(league => (
                     <div key={league.id} style={STYLES.card}>

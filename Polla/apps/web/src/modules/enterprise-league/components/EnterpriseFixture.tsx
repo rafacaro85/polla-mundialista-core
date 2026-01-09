@@ -60,7 +60,15 @@ export const EnterpriseFixture = () => {
             try {
                 // Fetch matches ONLY (Predictions handled by hook)
                 const { data } = await api.get(`/leagues/${params.id}/matches`);
-                setRawMatches(data || []);
+
+                // 🔥 FRONTEND SAFEGUARD: Filter out any match after Group Phase (June 27th)
+                // This handles potential cache issues or backend leaks.
+                const filteredData = (data || []).filter((m: any) => {
+                    return new Date(m.date) <= new Date('2026-06-27T23:59:59Z');
+                });
+
+                console.log('🛡️ Frontend Filter Applied. Matches before:', data?.length, 'After:', filteredData.length);
+                setRawMatches(filteredData);
             } catch (error) {
                 console.error('Error fetching matches:', error);
                 toast.error('Error al cargar los partidos');

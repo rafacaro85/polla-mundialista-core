@@ -105,4 +105,10 @@ export class League {
 
   @OneToMany(() => AccessCode, accessCode => accessCode.league)
   accessCodes: AccessCode[];
+
+  @Column({ name: 'admin_name', nullable: true })
+  adminName?: string;
+
+  @Column({ name: 'admin_phone', nullable: true })
+  adminPhone?: string;
 }

@@ -8,7 +8,7 @@ import {
     Users, Trophy, Banknote, TrendingUp, ShieldAlert,
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
-    Building2, Rocket
+    Building2, Rocket, Gift, Calendar, Filter
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
@@ -195,10 +195,11 @@ export default function SuperAdminDashboard() {
 
     const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, users, transactions
     const [loading, setLoading] = useState(true);
+    const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
 
     // Real Data State
     const [stats, setStats] = useState({
-        kpis: { totalIncome: 0, activeLeagues: 0, totalUsers: 0, todaySales: 0 },
+        kpis: { totalIncome: 0, activeLeagues: 0, totalUsers: 0, todaySales: 0, freeLeagues: 0 },
         salesTrend: [],
         recentTransactions: [],
         users: [],
@@ -250,7 +251,7 @@ export default function SuperAdminDashboard() {
 
     // Format Currency
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(amount);
+        return `$ ${amount.toLocaleString('es-CO')}`;
     };
 
     // Format Large Numbers
@@ -274,7 +275,7 @@ export default function SuperAdminDashboard() {
     const KPI_DATA_REAL = [
         { title: "Ingresos Totales", value: formatCompact(stats.kpis.totalIncome), label: "COP", icon: Banknote, color: "#00E676" },
         { title: "Pollas Activas", value: stats.kpis.activeLeagues, label: "Torneos", icon: Trophy, color: "#FACC15" },
-        { title: "Usuarios Totales", value: formatCompact(stats.kpis.totalUsers), label: "Jugadores", icon: Users, color: "#38BDF8" },
+        { title: "Pollas Gratis", value: (stats.kpis as any).freeLeagues || 0, label: "Sin Pago", icon: Gift, color: "#38BDF8" },
         { title: "Ventas Hoy", value: formatCurrency(stats.kpis.todaySales), label: "COP", icon: TrendingUp, color: "#00E676", isSpecial: true }
     ];
 
@@ -432,7 +433,7 @@ export default function SuperAdminDashboard() {
                         <Trophy size={16} className="text-indigo-400" />
                         <h3 className="text-sm font-bold text-slate-300 uppercase">Últimas Ligas Creadas</h3>
                     </div>
-                    <LeaguesTable />
+                    <LeaguesTable onDataUpdated={loadDashboardData} />
                 </div>
             )}
 
@@ -446,11 +447,11 @@ export default function SuperAdminDashboard() {
                 />
             )}
 
-            {/* B. PESTAÑA USUARIOS (OJO DE DIOS) - REEMPLAZADO POR UsersTable */}
+            {/* B. PESTAÑA USUARIOS (OJO DE DIOS) */}
             {activeTab === 'users' && <UsersTable />}
 
             {/* E. PESTAÑA LIGAS - REEMPLAZADO POR LeaguesTable */}
-            {activeTab === 'leagues' && <LeaguesTable />}
+            {activeTab === 'leagues' && <LeaguesTable onDataUpdated={loadDashboardData} />}
 
             {/* F. PESTAÑA PARTIDOS - NUEVO COMPONENTE */}
             {activeTab === 'matches' && <MatchesList />}
@@ -458,93 +459,188 @@ export default function SuperAdminDashboard() {
             {/* C. PESTAÑA VENTAS (TRANSACCIONES) */}
             {
                 activeTab === 'transactions' && (
-                    <div>
-                        {stats.recentTransactions
-                            .sort((a: any, b: any) => {
-                                if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
-                                if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
-                                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                            })
-                            .map((tx: any) => (
-                                <div key={tx.id} style={{
-                                    ...STYLES.txCard,
-                                    border: tx.status === 'PENDING' ? '1px solid #FACC15' : '1px solid #334155',
-                                    backgroundColor: tx.status === 'PENDING' ? 'rgba(250, 204, 21, 0.05)' : '#1E293B'
-                                }}>
-
-                                    {/* INFO SUPERIOR */}
-                                    <div style={STYLES.txInfoRow}>
-                                        <div style={STYLES.txInfo}>
-                                            <span style={STYLES.txUser}>
-                                                {tx.user?.nickname || tx.user?.email}
-                                                <span style={{
-                                                    ...STYLES.planBadge,
-                                                    backgroundColor: 'rgba(250, 204, 21, 0.1)', // Default gold for now
-                                                    color: '#FACC15'
-                                                }}>
-                                                    {tx.packageId || 'PLAN'}
-                                                </span>
-                                            </span>
-                                            <span style={STYLES.txDate}>{new Date(tx.createdAt).toLocaleString()}</span>
-                                            {tx.league && (
-                                                <span style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px' }}>
-                                                    Liga: {tx.league.name}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={STYLES.txValue}>{formatCurrency(Number(tx.amount))}</div>
-                                            <div style={{ fontSize: '9px', color: tx.status === 'PENDING' ? '#FACC15' : '#00E676', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', fontWeight: 'bold' }}>
-                                                {tx.status === 'PENDING' ? <ShieldAlert size={10} /> : <CheckCircle size={10} />} {translateStatus(tx.status)}
-                                            </div>
-                                        </div>
+                    <div className="space-y-4">
+                        {/* 1. BARRA DE FILTROS */}
+                        <div className="bg-[#1E293B] border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
+                            <div className="flex items-center gap-2 text-white font-bold uppercase text-xs">
+                                <Filter size={16} className="text-[#00E676]" /> Historial de Ventas
+                            </div>
+                            <div className="flex gap-3 items-end w-full md:w-auto">
+                                <div className="flex flex-col gap-1 flex-1">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase ml-1">Desde</label>
+                                    <div className="relative">
+                                        <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                        <input
+                                            type="date"
+                                            className="bg-[#0F172A] border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-[#00E676] w-full transition-all"
+                                            value={dateFilter.start}
+                                            onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
+                                        />
                                     </div>
-
-                                    {/* ACCIONES */}
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        {tx.status === 'PENDING' && (
-                                            <button
-                                                onClick={async () => {
-                                                    if (confirm("¿Confirmar que recibió el pago? Esto activará el plan para la liga.")) {
-                                                        try {
-                                                            await superAdminService.approveTransaction(tx.id);
-                                                            alert("Pago aprobado y plan activado.");
-                                                            loadDashboardData();
-                                                        } catch (e) {
-                                                            console.error(e);
-                                                            alert("Error al aprobar pago.");
-                                                        }
-                                                    }
-                                                }}
-                                                style={{
-                                                    flex: 1,
-                                                    backgroundColor: '#00E676',
-                                                    border: 'none',
-                                                    borderRadius: '8px',
-                                                    color: '#0F172A',
-                                                    fontSize: '11px',
-                                                    fontWeight: 'bold',
-                                                    padding: '10px',
-                                                    cursor: 'pointer',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
-                                                }}
-                                            >
-                                                <CheckCircle size={14} /> APROBAR PAGO
-                                            </button>
-                                        )}
-
-                                        <button
-                                            style={STYLES.voucherBtn}
-                                            onClick={() => handleDownloadVoucher(tx.id)}
-                                            onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = '#94A3B8'; }}
-                                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.borderColor = '#475569'; }}
-                                        >
-                                            <Download size={14} /> Voucher
-                                        </button>
-                                    </div>
-
                                 </div>
-                            ))}
+                                <div className="flex flex-col gap-1 flex-1">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase ml-1">Hasta</label>
+                                    <div className="relative">
+                                        <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                        <input
+                                            type="date"
+                                            className="bg-[#0F172A] border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-[#00E676] w-full transition-all"
+                                            value={dateFilter.end}
+                                            onChange={(e) => setDateFilter({ ...dateFilter, end: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                {(dateFilter.start || dateFilter.end) && (
+                                    <button
+                                        onClick={() => setDateFilter({ start: '', end: '' })}
+                                        className="h-[34px] px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors border border-slate-700"
+                                    >
+                                        Limpiar
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 2. TARJETA RESUMEN DEL FILTRO */}
+                        <div className="bg-gradient-to-r from-[#1E293B] to-[#0F172A] border border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <Banknote size={100} />
+                            </div>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 z-10">Total Ventas (Periodo Seleccionado)</p>
+                            <p className="text-4xl font-russo text-[#00E676] z-10 drop-shadow-lg">
+                                {formatCurrency(stats.recentTransactions
+                                    .filter((tx: any) => {
+                                        if (!dateFilter.start && !dateFilter.end) return true;
+                                        const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+                                        if (dateFilter.start && txDate < dateFilter.start) return false;
+                                        if (dateFilter.end && txDate > dateFilter.end) return false;
+                                        return true;
+                                    })
+                                    .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0)
+                                )}
+                            </p>
+                        </div>
+
+                        {/* LISTA FILTRADA */}
+                        <div>
+                            {stats.recentTransactions.filter((tx: any) => {
+                                if (!dateFilter.start && !dateFilter.end) return true;
+                                const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+                                if (dateFilter.start && txDate < dateFilter.start) return false;
+                                if (dateFilter.end && txDate > dateFilter.end) return false;
+                                return true;
+                            }).length === 0 ? (
+                                <div style={{ textAlign: 'center', color: '#64748B', padding: '40px', border: '1px dashed #334155', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Banknote size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                                    <p>No hay ventas registradas en este periodo.</p>
+                                    <button
+                                        onClick={loadDashboardData}
+                                        style={{ marginTop: '16px', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px' }}
+                                    >
+                                        Refrescar Datos
+                                    </button>
+                                </div>
+                            ) : (
+                                stats.recentTransactions
+                                    .filter((tx: any) => {
+                                        if (!dateFilter.start && !dateFilter.end) return true;
+                                        const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+                                        if (dateFilter.start && txDate < dateFilter.start) return false;
+                                        if (dateFilter.end && txDate > dateFilter.end) return false;
+                                        return true;
+                                    })
+                                    .sort((a: any, b: any) => {
+                                        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                                        if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                                    })
+                                    .map((tx: any) => (
+                                        <div key={tx.id} style={{
+                                            ...STYLES.txCard,
+                                            border: tx.status === 'PENDING' ? '1px solid #FACC15' : '1px solid #334155',
+                                            backgroundColor: tx.status === 'PENDING' ? 'rgba(250, 204, 21, 0.05)' : '#1E293B'
+                                        }}>
+
+                                            {/* INFO SUPERIOR */}
+                                            <div style={STYLES.txInfoRow}>
+                                                <div style={STYLES.txInfo}>
+                                                    <span style={STYLES.txUser}>
+                                                        {tx.user?.nickname || tx.user?.email || 'Usuario'}
+                                                        <span style={{
+                                                            ...STYLES.planBadge,
+                                                            backgroundColor: 'rgba(250, 204, 21, 0.1)', // Default gold for now
+                                                            color: '#FACC15'
+                                                        }}>
+                                                            {tx.packageId || 'PLAN'}
+                                                        </span>
+                                                    </span>
+                                                    <span style={STYLES.txDate}>{new Date(tx.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</span>
+                                                    {tx.league && (
+                                                        <span style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px' }}>
+                                                            Liga: {tx.league.name}
+                                                            {tx.league.adminPhone && (
+                                                                <span style={{ display: 'block', color: '#00E676', fontWeight: 'bold', marginTop: '2px' }}>
+                                                                    WP: {tx.league.adminPhone} {tx.league.adminName ? `(${tx.league.adminName})` : ''}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={STYLES.txValue}>{formatCurrency(Number(tx.amount))}</div>
+                                                    <div style={{ fontSize: '9px', color: tx.status === 'PENDING' ? '#FACC15' : '#00E676', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', fontWeight: 'bold' }}>
+                                                        {tx.status === 'PENDING' ? <ShieldAlert size={10} /> : <CheckCircle size={10} />} {translateStatus(tx.status)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* ACCIONES */}
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {tx.status === 'PENDING' && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (confirm("¿Confirmar que recibió el pago? Esto activará el plan para la liga.")) {
+                                                                try {
+                                                                    await superAdminService.approveTransaction(tx.id);
+                                                                    alert("Pago aprobado y plan activado.");
+                                                                    loadDashboardData();
+                                                                } catch (e) {
+                                                                    console.error(e);
+                                                                    alert("Error al aprobar pago.");
+                                                                }
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            flex: 1,
+                                                            backgroundColor: '#00E676',
+                                                            border: 'none',
+                                                            borderRadius: '8px',
+                                                            color: '#0F172A',
+                                                            fontSize: '11px',
+                                                            fontWeight: 'bold',
+                                                            padding: '10px',
+                                                            cursor: 'pointer',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                                                        }}
+                                                    >
+                                                        <CheckCircle size={14} /> APROBAR PAGO
+                                                    </button>
+                                                )}
+
+                                                <button
+                                                    style={STYLES.voucherBtn}
+                                                    onClick={() => handleDownloadVoucher(tx.id)}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = '#94A3B8'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.borderColor = '#475569'; }}
+                                                >
+                                                    <Download size={14} /> Voucher
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    ))
+                            )}
+                        </div>
                     </div>
                 )
             }

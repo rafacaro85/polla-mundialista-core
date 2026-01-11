@@ -80,14 +80,24 @@ export function LeagueHeader() {
             }}
         >
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                {/* Logo de la Empresa */}
-                <div className="flex items-center gap-3">
+                {/* Botón Volver y Logo */}
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E293B] hover:bg-[#334155] border border-white/10 text-white transition-all group shadow-lg"
+                    >
+                        <ChevronDown size={16} className="rotate-90 text-[#00E676] group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">VOLVER</span>
+                    </button>
+
                     {brand.brandingLogoUrl ? (
-                        <img
-                            src={brand.brandingLogoUrl}
-                            alt={brand.companyName || 'Logo'}
-                            className="h-10 w-auto object-contain"
-                        />
+                        <div className="h-10 w-auto p-1 bg-white rounded-md overflow-hidden flex items-center justify-center">
+                            <img
+                                src={brand.brandingLogoUrl}
+                                alt={brand.companyName || 'Logo'}
+                                className="h-full w-auto object-contain"
+                            />
+                        </div>
                     ) : (
                         <div
                             className="h-10 px-4 rounded-lg flex items-center justify-center font-bold text-sm"

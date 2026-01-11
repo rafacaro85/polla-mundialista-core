@@ -37,25 +37,6 @@ export const PrizeHero = ({ league }: { league: any }) => {
                     </div>
                 )}
             </div>
-
-            {/* Text Content (Outside) */}
-            <div className="flex flex-col gap-2 px-1">
-                <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-[var(--brand-primary)] text-[var(--brand-secondary)] text-[10px] font-black uppercase rounded shadow-lg shadow-[var(--brand-primary)]/30 tracking-widest">
-                        Premio Mayor
-                    </span>
-                </div>
-
-                <h2 className="text-2xl md:text-4xl font-black text-white uppercase italic tracking-tight leading-tight">
-                    {league.prizeDetails || 'Premios Especiales'}
-                </h2>
-
-                {league.welcomeMessage && (
-                    <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed italic border-l-2 border-[var(--brand-primary)]/30 pl-4 py-1">
-                        "{league.welcomeMessage}"
-                    </p>
-                )}
-            </div>
         </div>
     );
 };

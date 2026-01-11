@@ -50,11 +50,17 @@ export function LockedPhaseView({
                     </div>
                 </div>
 
-                {/* Additional Info */}
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 mb-6">
                     Podrás hacer tus predicciones una vez que esta fase esté disponible.
                     El sistema te notificará cuando se desbloquee.
                 </p>
+
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold rounded-xl transition-colors"
+                >
+                    Volver a Fase Anterior
+                </button>
             </div>
         </div>
     );

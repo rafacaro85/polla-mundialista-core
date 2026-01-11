@@ -385,6 +385,8 @@ export class LeaguesService {
       brandFontFamily: p.league.brandFontFamily,
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
+      prizeImageUrl: p.league.prizeImageUrl, // Agregado para Enterprise Studio
+      prizeDetails: p.league.prizeDetails,     // Agregado
       isPaid: p.league.isPaid,
       packageType: p.league.packageType,
     }));

@@ -382,54 +382,10 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 )}
             </div>
 
-            {/* SECCIÓN ENTERPRISE */}
-            {showEnterpriseFields && (
-                <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px', marginTop: '30px' }}>
-                    <div style={{ ...STYLES.title, fontSize: '15px' }}>
-                        <Briefcase size={18} /> Configuración Corporativa
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div>
-                            <label style={STYLES.label}>Nombre de la Empresa</label>
-                            <input
-                                type="text"
-                                value={formData.companyName || ''}
-                                onChange={(e) => handleChange('companyName', e.target.value)}
-                                style={STYLES.input}
-                                placeholder="Nombre comercial..."
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '15px' }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={STYLES.label}>Color Principal</label>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#0F172A', padding: '6px', borderRadius: '8px', border: '1px solid #334155' }}>
-                                    <input
-                                        type="color"
-                                        value={formData.brandColorPrimary || '#00E676'}
-                                        onChange={(e) => handleChange('brandColorPrimary', e.target.value)}
-                                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                    />
-                                    <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'monospace' }}>{formData.brandColorPrimary}</span>
-                                </div>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <label style={STYLES.label}>Color Fondo</label>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#0F172A', padding: '6px', borderRadius: '8px', border: '1px solid #334155' }}>
-                                    <input
-                                        type="color"
-                                        value={formData.brandColorSecondary || '#1E293B'}
-                                        onChange={(e) => handleChange('brandColorSecondary', e.target.value)}
-                                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                    />
-                                    <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'monospace' }}>{formData.brandColorSecondary}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* SECCIÓN ENTERPRISE - ELIMINADA POR SOLICITUD DE USUARIO */}
+            {/* showEnterpriseFields && (
+                ... Campos de empresa eliminados ...
+            ) */}
 
             <button
                 onClick={handleSubmit}

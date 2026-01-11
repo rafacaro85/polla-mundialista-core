@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, ArrowRight, Settings } from 'lucide-react';
+import { Shield, Users, ArrowRight, Settings, Briefcase, Trophy } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { CreateLeagueDialog } from '@/components/CreateLeagueDialog';
+import { CreateBusinessLeagueDialog } from '@/components/CreateBusinessLeagueDialog';
 import { JoinLeagueDialog } from '@/components/JoinLeagueDialog';
 import { LeagueSettings as AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 
@@ -25,13 +26,18 @@ interface League {
 }
 
 /* =============================================================================
-   COMPONENTE: LEAGUES LIST (ESTILO TACTICAL)
+   COMPONENTE: LEAGUES LIST (ESTILO TACTICAL CON TABS)
    ============================================================================= */
-export const LeaguesList = () => {
+export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' | 'enterprise' }) => {
     const router = useRouter();
     const { user } = useAppStore();
     const [leagues, setLeagues] = React.useState<League[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [activeTab, setActiveTab] = useState<'social' | 'enterprise'>(initialTab);
+
+    React.useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
 
     const fetchLeagues = React.useCallback(async () => {
         try {
@@ -54,6 +60,19 @@ export const LeaguesList = () => {
                 isPaid: l.isPaid
             }));
 
+            // Auto-switch tab si solo tiene ligas de empresa
+            const hasSocial = mappedLeagues.some((l: any) => !l.isEnterprise);
+            const hasEnterprise = mappedLeagues.some((l: any) => l.isEnterprise);
+
+            // Lógica opcional: Solo auto-switch si NO se especificó initialTab explícitamente desde fuera
+            // o si estamos en el montaje inicial sin prop forzada.
+            // Para simplificar y respetar el click del usuario:
+            if (!hasSocial && hasEnterprise && initialTab === 'social') {
+                // Solo si el usuario pidió social por defecto pero no hay, y sí hay enterprise, podríamos cambiar.
+                // Pero si el usuario hizo clic explícito en "Social", quizás quiera ver vacío.
+                // setActiveTab('enterprise'); 
+            }
+
             setLeagues(mappedLeagues);
         } catch (error) {
             console.error('Error cargando ligas', error);
@@ -66,7 +85,12 @@ export const LeaguesList = () => {
         fetchLeagues();
     }, [fetchLeagues]);
 
-    const draftLeagues = leagues.filter(l => l.isEnterprise && !l.isEnterpriseActive && l.isAdmin);
+    // FILTROS
+    const socialLeagues = leagues.filter(l => !l.isEnterprise);
+    const enterpriseLeagues = leagues.filter(l => l.isEnterprise);
+
+    // Lista a mostrar según tab
+    const displayLeagues = activeTab === 'social' ? socialLeagues : enterpriseLeagues;
 
     // ESTILOS EN LÍNEA (BLINDADOS)
     const STYLES = {
@@ -78,10 +102,13 @@ export const LeaguesList = () => {
             fontFamily: 'sans-serif'
         },
         header: {
+            marginBottom: '24px'
+        },
+        titleRow: {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '24px'
+            marginBottom: '16px'
         },
         title: {
             fontFamily: "'Russo One', sans-serif",
@@ -97,18 +124,72 @@ export const LeaguesList = () => {
             marginTop: '4px',
             fontWeight: '600'
         },
-        createButton: {
-            backgroundColor: '#00E676', // Signal Green
-            color: '#0F172A',
-            border: 'none',
-            padding: '8px 16px',
+        // TABS TOGGLE
+        toggleContainer: {
+            display: 'flex',
+            backgroundColor: '#1E293B',
+            borderRadius: '12px',
+            padding: '4px',
+            marginBottom: '24px',
+            border: '1px solid #334155'
+        },
+        tabBtn: (isActive: boolean) => ({
+            flex: 1,
+            padding: '10px',
             borderRadius: '8px',
+            border: 'none',
+            backgroundColor: isActive ? '#00E676' : 'transparent',
+            color: isActive ? '#0F172A' : '#94A3B8',
+            fontFamily: "'Russo One', sans-serif",
+            fontSize: '12px',
+            textTransform: 'uppercase' as const,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+        }),
+        // Botones de acción
+        actionRow: {
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '24px'
+        },
+        createButton: {
+            flex: 1,
+            backgroundColor: activeTab === 'social' ? '#00E676' : '#0072FF', // Verde Social, Azul Enterprise
+            color: activeTab === 'social' ? '#0F172A' : 'white',
+            border: 'none',
+            padding: '12px',
+            borderRadius: '12px',
             fontWeight: '900',
-            fontSize: '10px',
+            fontSize: '11px',
             textTransform: 'uppercase' as const,
             letterSpacing: '1px',
-            boxShadow: '0 0 15px rgba(0, 230, 118, 0.3)',
-            cursor: 'pointer'
+            boxShadow: activeTab === 'social' ? '0 4px 15px rgba(0, 230, 118, 0.3)' : '0 4px 15px rgba(0, 114, 255, 0.3)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px'
+        },
+        outlineButton: {
+            flex: 1,
+            backgroundColor: 'transparent',
+            border: activeTab === 'social' ? '1px solid #00E676' : '1px solid #0072FF',
+            color: activeTab === 'social' ? '#00E676' : '#0072FF',
+            padding: '12px',
+            borderRadius: '12px',
+            fontWeight: '900',
+            fontSize: '11px',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '1px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px'
         },
         // Grid de Tarjetas
         grid: {
@@ -166,14 +247,6 @@ export const LeaguesList = () => {
             color: '#94A3B8',
             fontWeight: '600'
         },
-        roleBadge: {
-            fontSize: '9px',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            fontWeight: 'bold',
-            textTransform: 'uppercase' as const,
-            marginLeft: 'auto' // Empuja a la derecha si se usa flex
-        },
         // Botón de Acción en la tarjeta
         actionBtn: {
             height: '32px',
@@ -195,90 +268,76 @@ export const LeaguesList = () => {
 
             {/* 1. HEADER SECCIÓN */}
             <div style={STYLES.header}>
-                <div>
-                    <h2 style={STYLES.title}>Mis Pollas</h2>
-                    <p style={STYLES.subtitle}>GESTIONA TUS TORNEOS PRIVADOS</p>
+                <div style={STYLES.titleRow}>
+                    <div>
+                        <h2 style={STYLES.title}>Mis Pollas</h2>
+                        <p style={STYLES.subtitle}>GESTIONA TUS TORNEOS</p>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                    <CreateLeagueDialog onLeagueCreated={fetchLeagues}>
-                        <button style={STYLES.createButton}>
-                            + CREAR POLLA
-                        </button>
-                    </CreateLeagueDialog>
-                    <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
-                        <button style={{
-                            ...STYLES.createButton,
-                            backgroundColor: 'transparent',
-                            border: '1px solid #00E676',
-                            color: '#00E676',
-                            boxShadow: 'none',
-                            fontSize: '9px',
-                            padding: '6px 12px'
-                        }}>
-                            UNIRSE CON CÓDIGO
-                        </button>
-                    </JoinLeagueDialog>
+
+                {/* TOGGLE TABS */}
+                <div style={STYLES.toggleContainer}>
+                    <button
+                        style={STYLES.tabBtn(activeTab === 'social')}
+                        onClick={() => setActiveTab('social')}
+                    >
+                        <Trophy size={14} /> Sociales
+                    </button>
+                    <button
+                        style={STYLES.tabBtn(activeTab === 'enterprise')}
+                        onClick={() => setActiveTab('enterprise')}
+                    >
+                        <Briefcase size={14} /> Empresas
+                    </button>
+                </div>
+
+                {/* BOTONES DE ACCIÓN (DINÁMICOS) */}
+                <div style={STYLES.actionRow}>
+                    {activeTab === 'social' ? (
+                        <>
+                            <CreateLeagueDialog onLeagueCreated={fetchLeagues}>
+                                <button style={STYLES.createButton}>
+                                    + CREAR POLLA
+                                </button>
+                            </CreateLeagueDialog>
+                            <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
+                                <button style={STYLES.outlineButton}>
+                                    UNIRSE CON CÓDIGO
+                                </button>
+                            </JoinLeagueDialog>
+                        </>
+                    ) : (
+                        <>
+                            <CreateBusinessLeagueDialog onLeagueCreated={fetchLeagues}>
+                                <button style={STYLES.createButton}>
+                                    + CREAR EMPRESA
+                                </button>
+                            </CreateBusinessLeagueDialog>
+                            <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
+                                <button style={STYLES.outlineButton}>
+                                    UNIRSE CON CÓDIGO
+                                </button>
+                            </JoinLeagueDialog>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* 1.5. BORRADORES EMPRESARIALES */}
-            {draftLeagues.map(l => (
-                <div key={l.id} style={{
-                    background: 'linear-gradient(90deg, rgba(249, 115, 22, 0.1) 0%, rgba(15, 23, 42, 0) 100%)',
-                    border: '1px solid rgba(249, 115, 22, 0.3)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '24px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <div style={{ width: '8px', height: '8px', backgroundColor: '#F97316', borderRadius: '50%' }}></div>
-                            <span style={{ color: '#F97316', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                Borrador Empresarial
-                            </span>
-                        </div>
-                        <h3 style={{ ...STYLES.leagueName, fontSize: '18px', marginBottom: '4px' }}>{l.name}</h3>
-                        <p style={{ color: '#94A3B8', fontSize: '11px' }}>Personaliza tu marca y activa tu plan.</p>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                        <button
-                            onClick={() => router.push(`/leagues/${l.id}/studio`)}
-                            style={{
-                                backgroundColor: '#F97316',
-                                color: 'white',
-                                padding: '8px 16px',
-                                borderRadius: '8px',
-                                fontWeight: 'bold',
-                                fontSize: '11px',
-                                textTransform: 'uppercase',
-                                border: 'none',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Ir al Studio &rarr;
-                        </button>
-                    </div>
-                </div>
-            ))}
-
-            {/* 2. LISTA DE LIGAS */}
+            {/* 2. LISTA DE LIGAS FILTRADA */}
             <div style={STYLES.grid}>
-                {leagues.map((league) => (
+                {displayLeagues.map((league) => (
                     <div key={league.id} style={STYLES.card}>
 
-                        {/* Indicador lateral de Admin (Verde) o Miembro (Gris) */}
+                        {/* Indicador lateral */}
                         <div style={{
                             position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px',
-                            backgroundColor: league.isAdmin ? '#00E676' : '#334155'
+                            backgroundColor: league.isEnterprise ? '#0072FF' : (league.isAdmin ? '#00E676' : '#334155')
                         }} />
 
                         {/* Icono / Inicial */}
                         <div style={STYLES.iconBox}>
-                            <span style={{ ...STYLES.iconText, color: league.isAdmin ? '#00E676' : '#94A3B8' }}>
-                                {league.initial}
+                            <span style={{ ...STYLES.iconText, color: league.isEnterprise ? '#0072FF' : (league.isAdmin ? '#00E676' : '#94A3B8') }}>
+                                {league.isEnterprise ? <Briefcase size={20} /> : league.initial}
                             </span>
                         </div>
 
@@ -291,12 +350,15 @@ export const LeaguesList = () => {
                                 </span>
                                 <span>•</span>
                                 <span>Admin: <span style={{ color: 'white' }}>{league.admin}</span></span>
+                                {league.isEnterprise && !league.isEnterpriseActive && (
+                                    <span style={{ color: '#F97316', marginLeft: '4px' }}>• BORRADOR</span>
+                                )}
                             </div>
                         </div>
 
                         <div>
                             {league.isAdmin && league.isEnterpriseActive ? (
-                                // CASO 1: Ligas empresariales activas
+                                // CASO 1: Empresa Activa (Admin)
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
                                         onClick={() => router.push(`/leagues/${league.id}/admin`)}
@@ -315,16 +377,16 @@ export const LeaguesList = () => {
                                         onClick={() => router.push(`/leagues/${league.id}`)}
                                         style={{
                                             ...STYLES.actionBtn,
-                                            backgroundColor: '#00E676',
-                                            color: '#0F172A',
-                                            boxShadow: '0 0 10px rgba(0,230,118,0.2)'
+                                            backgroundColor: '#0072FF',
+                                            color: 'white',
+                                            boxShadow: '0 0 10px rgba(0,114,255,0.4)'
                                         }}
                                     >
                                         INGRESAR
                                     </button>
                                 </div>
                             ) : league.isAdmin && league.isEnterprise && !league.isEnterpriseActive ? (
-                                // CASO 2: Ligas empresariales pendientes (Borradores)
+                                // CASO 2: Empresa Borrador (Admin) -> Ir a Studio
                                 <button
                                     onClick={() => router.push(`/leagues/${league.id}/studio`)}
                                     style={{
@@ -336,7 +398,7 @@ export const LeaguesList = () => {
                                     DISEÑAR
                                 </button>
                             ) : !league.isAdmin ? (
-                                // CASO 3: Participante (Cualquier liga) - Botón directo a Jugar
+                                // CASO 3: Participante -> Jugar
                                 <button
                                     onClick={() => router.push(`/leagues/${league.id}`)}
                                     style={{
@@ -349,36 +411,35 @@ export const LeaguesList = () => {
                                     JUGAR
                                 </button>
                             ) : (
-                                // CASO 4: Admin Normal
-                                // Validación de Pago Pendiente (Solo para NO Enterprise)
-                                !league.isPaid && !league.isEnterprise ? (
+                                // CASO 4: Admin Polla Social
+                                <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
+                                        onClick={() => router.push(`/leagues/${league.id}/admin`)}
                                         style={{
                                             ...STYLES.actionBtn,
-                                            backgroundColor: 'rgba(234, 179, 8, 0.2)', // Yellow transparent
-                                            color: '#FACC15',
-                                            border: '1px solid #FACC15',
-                                            cursor: 'not-allowed'
+                                            width: '32px',
+                                            padding: 0,
+                                            backgroundColor: '#334155',
+                                            color: '#94A3B8'
                                         }}
-                                        title="Pago pendiente de validación"
+                                        title="Configuración"
                                     >
-                                        PENDIENTE
+                                        <Settings size={14} />
                                     </button>
-                                ) : (
-                                    <div style={{ display: 'flex', gap: '8px' }}>
+
+                                    {!league.isPaid ? (
                                         <button
-                                            onClick={() => router.push(`/leagues/${league.id}/admin`)}
                                             style={{
                                                 ...STYLES.actionBtn,
-                                                width: '32px',
-                                                padding: 0,
-                                                backgroundColor: '#334155',
-                                                color: '#94A3B8'
+                                                backgroundColor: 'rgba(234, 179, 8, 0.2)', // Yellow transparent
+                                                color: '#FACC15',
+                                                border: '1px solid #FACC15',
+                                                cursor: 'not-allowed'
                                             }}
-                                            title="Configuración"
                                         >
-                                            <Settings size={14} />
+                                            PENDIENTE
                                         </button>
+                                    ) : (
                                         <button
                                             onClick={() => router.push(`/leagues/${league.id}`)}
                                             style={{
@@ -390,8 +451,8 @@ export const LeaguesList = () => {
                                         >
                                             INGRESAR
                                         </button>
-                                    </div>
-                                )
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -399,12 +460,14 @@ export const LeaguesList = () => {
                 ))}
             </div>
 
-            {/* Empty State (Opcional, si no hay ligas) */}
+            {/* Empty State */}
             {
-                !loading && leagues.length === 0 && (
+                !loading && displayLeagues.length === 0 && (
                     <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.5 }}>
                         <Shield size={48} style={{ margin: '0 auto 16px', color: '#334155' }} />
-                        <p style={{ color: '#94A3B8', fontSize: '12px' }}>No perteneces a ninguna liga aún.</p>
+                        <p style={{ color: '#94A3B8', fontSize: '12px' }}>
+                            No tienes pollas {activeTab === 'social' ? 'sociales' : 'empresariales'} aún.
+                        </p>
                     </div>
                 )
             }

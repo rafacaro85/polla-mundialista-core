@@ -63,16 +63,63 @@ export const useMyPredictions = (leagueId?: string) => {
         return map;
     }, [data, leagueId]);
 
-    const savePrediction = async (matchId: string, homeScore: number, awayScore: number, isJoker: boolean = false, phase?: string) => {
-        const targetLeagueId = leagueId || null;
+    // DEFINIMOS PRIMERO DELETE PARA QUE SAVE PUEDA USARLO
+    const deletePrediction = async (matchId: string) => {
+        // INTELIGENCIA: Detectar el leagueId correcto de la predicción que estamos viendo
+        const existingPrediction = predictionsMap[matchId];
+        // Si hay una predicción cargada en el mapa, usamos su leagueId. Si no, usamos el del contexto.
+        const targetLeagueId = existingPrediction?.leagueId !== undefined
+            ? existingPrediction.leagueId
+            : (leagueId || null);
+
+        // Mutate local cache immediately
+        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
+            const list = Array.isArray(currentData) ? [...currentData] : [];
+            return list.filter((p: any) =>
+                !((p.matchId === matchId || p.match?.id === matchId) &&
+                    (p.leagueId || null) === targetLeagueId)
+            );
+        }, false);
+
+        try {
+            const url = targetLeagueId
+                ? `/predictions/${matchId}?leagueId=${targetLeagueId}`
+                : `/predictions/${matchId}`;
+            await api.delete(url);
+            mutate(PREDICTIONS_ENDPOINT);
+            toast.success('Predicción eliminada');
+        } catch (err: any) {
+            console.error(err);
+            toast.error(err.response?.data?.message || 'Error eliminando predicción');
+            mutate(PREDICTIONS_ENDPOINT); // Rollback
+        }
+    };
+
+    const savePrediction = async (matchId: string, homeScore: number | null | string, awayScore: number | null | string, isJoker: boolean = false, phase?: string) => {
+        // CASO DE BORRADO: Si los marcadores están vacíos
+        if ((homeScore === null || homeScore === '' || homeScore === undefined) &&
+            (awayScore === null || awayScore === '' || awayScore === undefined)) {
+            return deletePrediction(matchId);
+        }
+
+        // INTELIGENCIA: Mantener consistencia de liga
+        // Si ya existe una predicción para este partido visualizada, usar su leagueId para el update
+        const existingPrediction = predictionsMap[matchId];
+        const targetLeagueId = existingPrediction?.leagueId !== undefined
+            ? existingPrediction.leagueId
+            : (leagueId || null);
+
+        // Cast to number for API
+        const hScore = Number(homeScore);
+        const aScore = Number(awayScore);
 
         // Optimistic object
         const optimisticPrediction = {
             matchId,
             match: { id: matchId, phase },
             leagueId: targetLeagueId,
-            homeScore,
-            awayScore,
+            homeScore: hScore,
+            awayScore: aScore,
             isJoker,
             points: 0
         };
@@ -111,8 +158,8 @@ export const useMyPredictions = (leagueId?: string) => {
         try {
             await api.post('/predictions', {
                 matchId,
-                homeScore,
-                awayScore,
+                homeScore: hScore,
+                awayScore: aScore,
                 isJoker,
                 leagueId: targetLeagueId
             });
@@ -121,32 +168,6 @@ export const useMyPredictions = (leagueId?: string) => {
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Error guardando predicción');
-            mutate(PREDICTIONS_ENDPOINT); // Rollback
-        }
-    };
-
-    const deletePrediction = async (matchId: string) => {
-        const targetLeagueId = leagueId || null;
-
-        // Mutate local cache immediately
-        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
-            const list = Array.isArray(currentData) ? [...currentData] : [];
-            return list.filter((p: any) =>
-                !((p.matchId === matchId || p.match?.id === matchId) &&
-                    (p.leagueId || null) === targetLeagueId)
-            );
-        }, false);
-
-        try {
-            const url = targetLeagueId
-                ? `/predictions/${matchId}?leagueId=${targetLeagueId}`
-                : `/predictions/${matchId}`;
-            await api.delete(url);
-            mutate(PREDICTIONS_ENDPOINT);
-            toast.success('Predicción eliminada');
-        } catch (err: any) {
-            console.error(err);
-            toast.error(err.response?.data?.message || 'Error eliminando predicción');
             mutate(PREDICTIONS_ENDPOINT); // Rollback
         }
     };

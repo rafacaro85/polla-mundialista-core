@@ -259,13 +259,8 @@ export default function LandingPage() {
             <a href="#precios" className="hover:text-[#00E676] transition-colors">Planes</a>
             <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
             <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
-            <button onClick={onLoginClick} className="hover:text-[#0F172A] transition-colors">Ingresar</button>
-
-            <button
-              onClick={handleCreateBusinessPool}
-              className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all"
-            >
-              Crear Polla para mi Empresa
+            <button onClick={onLoginClick} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
+              Ingresar / Crear Cuenta
             </button>
           </div>
           <button className="md:hidden text-[#0F172A]" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -280,15 +275,9 @@ export default function LandingPage() {
             <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
             <button
               onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
-              className="w-full bg-[#94A3B8]/20 text-[#0F172A] py-4 rounded-xl font-bold uppercase"
-            >
-              Ingresar
-            </button>
-            <button
-              onClick={() => { handleCreateBusinessPool(); setIsMenuOpen(false); }}
               className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase"
             >
-              Crear Polla Empresa
+              Ingresar
             </button>
           </div>
         )}
@@ -312,10 +301,8 @@ export default function LandingPage() {
               Olvida el Excel. IA integrada, ranking en tiempo real, muro social y pagos automatizados. La plataforma definitiva para empresas, amigos e influencers.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-              <SecondaryButton onClick={onLoginClick}>Ingresar / Tengo Código</SecondaryButton>
-
-              <PrimaryButton onClick={handleCreateBusinessPool}>
-                Crear Polla para mi Empresa <ArrowRight size={20} />
+              <PrimaryButton onClick={onLoginClick}>
+                Ingresar / Crear Polla <ArrowRight size={20} />
               </PrimaryButton>
             </div>
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-4 text-sm text-[#94A3B8] font-medium">

@@ -126,21 +126,10 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     };
 
     // Cargar bracket guardado desde la API (Siempre global para consistencia entre ligas)
+    // Cargar bracket guardado: DESHABILITADO POR SOLICITUD (Simulador en limpio)
     useEffect(() => {
-        const loadBracket = async () => {
-            try {
-                const { data } = await api.get('/brackets/my');
-                if (data) {
-                    setWinners(data.picks || {});
-                    setBracketPoints(data.points || 0);
-                }
-            } catch (e) {
-                console.error('Error loading bracket:', e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadBracket();
+        // Simplemente dejamos de cargar para que inicie en 0
+        setLoading(false);
     }, []);
 
     // --- LÓGICA DE BLOQUEO ---

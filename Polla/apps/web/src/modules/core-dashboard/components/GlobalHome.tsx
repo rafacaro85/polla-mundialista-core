@@ -8,10 +8,11 @@ import { PrizeHero } from '@/components/PrizeHero';
 interface GlobalHomeProps {
     userName?: string;
     onNavigateToLeagues: () => void;
+    onNavigateToBusiness: () => void;
     onNavigateToGames: () => void;
 }
 
-export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLeagues, onNavigateToGames }) => {
+export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLeagues, onNavigateToBusiness, onNavigateToGames }) => {
     return (
         <div className="flex flex-col space-y-6 pb-20">
             {/* Welcome Section */}
@@ -70,11 +71,9 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                         size="sm"
                         variant="outline"
                         className="w-full mt-2 border-amber-600/30 hover:bg-amber-600/10 text-amber-500 text-xs h-8"
-                        asChild
+                        onClick={onNavigateToBusiness}
                     >
-                        <Link href="/business/new">
-                            Crear Aquí
-                        </Link>
+                        Gestionar Pollas
                     </Button>
                 </div>
             </div>

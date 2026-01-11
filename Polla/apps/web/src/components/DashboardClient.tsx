@@ -78,6 +78,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   );
 
 
+  // Estado para el sub-tab de ligas
+  const [leaguesTab, setLeaguesTab] = useState<'social' | 'enterprise'>('social');
+
+
   const [currentLeague, setCurrentLeague] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]); // Para el Home
 
@@ -321,7 +325,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
               {selectedLeagueId === 'global' ? (
                 <GlobalHome
                   userName={user?.nickname || user?.fullName?.split(' ')[0]}
-                  onNavigateToLeagues={() => setActiveTab('leagues')}
+                  onNavigateToLeagues={() => { setLeaguesTab('social'); setActiveTab('leagues'); }}
+                  onNavigateToBusiness={() => { setLeaguesTab('enterprise'); setActiveTab('leagues'); }}
                   onNavigateToGames={() => setActiveTab('game')}
                 />
               ) : (
@@ -335,7 +340,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           )}
 
           {activeTab === 'leagues' && (
-            <LeaguesList />
+            <LeaguesList initialTab={leaguesTab} />
           )}
 
           {activeTab === 'ranking' && (

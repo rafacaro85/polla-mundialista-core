@@ -13,7 +13,8 @@ import { useAppStore } from '@/store/useAppStore';
 // Theme Engine Layout
 export default function LeagueLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();
-    const router = useRouter(); // For potential redirects
+    const router = useRouter();
+    const pathname = usePathname(); // MOVED UP: Hooks must be called before any early return
     const { user } = useAppStore();
     const [league, setLeague] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -89,9 +90,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const textColor = isEnterprise ? (league.brandColorText || '#F8FAFC') : '#F8FAFC';
 
     // Check if we are on the main dashboard page
-    const isDashboardRoot = usePathname() === `/leagues/${params.id}`;
+    const isDashboardRoot = pathname === `/leagues/${params.id}`;
     // FIXED: If Enterprise, ALWAYS show layout (as before). Only hide for Normal leagues in DashboardRoot.
-    const showLayoutUI = !usePathname()?.includes('/studio') && (isEnterprise || !isDashboardRoot);
+    const showLayoutUI = !pathname?.includes('/studio') && (isEnterprise || !isDashboardRoot);
 
     return (
         <BrandThemeProvider

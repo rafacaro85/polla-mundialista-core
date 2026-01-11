@@ -17,7 +17,25 @@ export default function SimulationPage() {
         const fetchMatches = async () => {
             try {
                 const { data } = await api.get(`/leagues/${params.id}/matches`);
-                setMatches(data);
+
+                // Sanitizar matches de fase final para el simulador:
+                // Eliminamos equipos predefinidos o "basura" para que el bracket empiece limpio con placeholders.
+                const cleanMatches = (data || []).map((m: any) => {
+                    if (['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'].includes(m.phase)) {
+                        return {
+                            ...m,
+                            homeTeam: null,
+                            awayTeam: null,
+                            homeFlag: null, // Limpiamos banderas también
+                            awayFlag: null,
+                            homeScore: null,
+                            awayScore: null
+                        };
+                    }
+                    return m;
+                });
+
+                setMatches(cleanMatches);
             } catch (error) {
                 console.error('Error fetching matches:', error);
             } finally {
@@ -47,8 +65,8 @@ export default function SimulationPage() {
                         <button
                             onClick={() => setActiveTab('groups')}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wide transition-all ${activeTab === 'groups'
-                                    ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
-                                    : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
+                                ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
+                                : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
                                 }`}
                         >
                             <Table size={20} />
@@ -57,8 +75,8 @@ export default function SimulationPage() {
                         <button
                             onClick={() => setActiveTab('bracket')}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wide transition-all ${activeTab === 'bracket'
-                                    ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
-                                    : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
+                                ? 'bg-brand-primary text-obsidian shadow-[0_0_15px_rgba(0,0,0,0.3)]'
+                                : 'bg-brand-secondary text-slate-400 hover:text-brand-text'
                                 }`}
                         >
                             <Trophy size={20} />

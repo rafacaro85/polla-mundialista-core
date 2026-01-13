@@ -11,37 +11,59 @@ import { toast } from 'sonner';
    ============================================================================= */
 const BUSINESS_PLANS = [
     {
-        id: 'startup',
-        name: 'Emprendedor',
-        price: 'COP $180k',
-        capacity: '50 Colaboradores',
-        description: 'Ideal para Startups y equipos pequeños.',
+        id: 'bronze',
+        name: 'Bronce',
+        price: 'COP $100k',
+        capacity: '25 Jugadores',
+        description: 'Personalización básica de marca.',
         icon: <Zap size={20} />,
-        color: '#FACC15', // Gold
-        features: ['Hasta 50 participantes', 'Ranking Privado', 'Soporte Básico'],
-        packageType: 'BUSINESS_STARTER'
+        color: '#CD7F32', // Bronze
+        features: ['Hasta 25 participantes', 'Colores de Marca', 'Logo', 'Imagen del Premio'],
+        packageType: 'ENTERPRISE_BRONZE'
     },
     {
-        id: 'pyme',
-        name: 'Pyme',
-        price: 'COP $350k',
-        capacity: '200 Colaboradores',
-        description: 'Para empresas en crecimiento.',
-        icon: <Building2 size={20} />,
-        color: '#00E676', // Signal Green
-        features: ['Hasta 200 participantes', 'Logo de Empresa', 'Soporte Prioritario'],
-        packageType: 'BUSINESS_GROWTH'
+        id: 'silver',
+        name: 'Plata',
+        price: 'COP $175k',
+        capacity: '50 Jugadores',
+        description: 'Incluye redes sociales corporativas.',
+        icon: <Zap size={20} />,
+        color: '#94A3B8', // Silver
+        features: ['Hasta 50 participantes', 'Colores de Marca + Logo', 'Imagen del Premio', 'Redes Sociales Corporativas'],
+        packageType: 'ENTERPRISE_SILVER'
     },
     {
-        id: 'corporate',
-        name: 'Corporativo',
-        price: 'COP $900k',
-        capacity: 'Ilimitado',
-        description: 'Solución completa para grandes organizaciones.',
+        id: 'gold',
+        name: 'Oro',
+        price: 'COP $450k',
+        capacity: '150 Jugadores',
+        description: 'Añade Muro Social para interacción.',
         icon: <Trophy size={20} />,
-        color: '#3B82F6', // Blue
-        features: ['Usuarios Ilimitados', 'Branding Total', 'Dashboard Analítica', 'Soporte VIP'],
-        packageType: 'BUSINESS_CORP'
+        color: '#FACC15', // Gold
+        features: ['Hasta 150 participantes', 'Identidad Visual Completa', 'Redes Sociales', 'Muro Social (Chat)'],
+        packageType: 'ENTERPRISE_GOLD'
+    },
+    {
+        id: 'platinum',
+        name: 'Platino',
+        price: 'COP $750k',
+        capacity: '300 Jugadores',
+        description: 'Guerra de Áreas para equipos.',
+        icon: <Trophy size={20} />,
+        color: '#E2E8F0', // Platinum
+        features: ['Hasta 300 participantes', 'Branding Total + Muro', 'Guerra de Áreas (RRHH)'],
+        packageType: 'ENTERPRISE_PLATINUM'
+    },
+    {
+        id: 'diamond',
+        name: 'Diamante',
+        price: 'COP $1M',
+        capacity: '500 Jugadores',
+        description: 'Máxima visibilidad con Banners.',
+        icon: <Building2 size={20} />,
+        color: '#22d3ee', // Diamond
+        features: ['Hasta 500 participantes', 'Suite Completa de Features', 'Guerra de Áreas', 'Banners Publicitarios'],
+        packageType: 'ENTERPRISE_DIAMOND'
     }
 ];
 
@@ -75,7 +97,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('pyme'); // Default to Pyme
+    const [selectedPlanId, setSelectedPlanId] = useState('bronze'); // Default to Bronze
 
     // ESTILOS
     const STYLES = {

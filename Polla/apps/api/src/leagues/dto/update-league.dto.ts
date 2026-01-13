@@ -69,4 +69,13 @@ export class UpdateLeagueDto {
     @IsBoolean()
     @IsOptional()
     enableDepartmentWar?: boolean;
+
+    // --- SOCIAL MEDIA ---
+    @IsString() @IsOptional() socialInstagram?: string;
+    @IsString() @IsOptional() socialFacebook?: string;
+    @IsString() @IsOptional() socialWhatsapp?: string;
+    @IsString() @IsOptional() socialYoutube?: string;
+    @IsString() @IsOptional() socialTiktok?: string;
+    @IsString() @IsOptional() socialLinkedin?: string;
+    @IsString() @IsOptional() socialWebsite?: string;
 }

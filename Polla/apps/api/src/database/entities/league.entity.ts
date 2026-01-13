@@ -111,4 +111,27 @@ export class League {
 
   @Column({ name: 'admin_phone', nullable: true })
   adminPhone?: string;
+  // --- SOCIAL MEDIA ---
+
+  @Column({ name: 'social_instagram', nullable: true })
+  socialInstagram?: string;
+
+  @Column({ name: 'social_facebook', nullable: true })
+  socialFacebook?: string;
+
+  @Column({ name: 'social_whatsapp', nullable: true })
+  socialWhatsapp?: string;
+
+  @Column({ name: 'social_youtube', nullable: true })
+  socialYoutube?: string;
+
+  @Column({ name: 'social_tiktok', nullable: true })
+  socialTiktok?: string;
+
+  @Column({ name: 'social_linkedin', nullable: true })
+  socialLinkedin?: string;
+
+  @Column({ name: 'social_website', nullable: true })
+  socialWebsite?: string;
 }
+

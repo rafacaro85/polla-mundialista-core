@@ -5,14 +5,17 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PrizeHero } from '@/components/PrizeHero';
 import { useAppStore } from '@/store/useAppStore';
 import { SocialWallWidget } from '@/components/SocialWallWidget';
+import { PromoBanner } from '@/components/PromoBanner';
 
 interface SocialLeagueHomeProps {
     league: any;
     participants: any[];
     onTabChange: (tab: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro') => void;
+    onNavigateToLeagues?: () => void;
+    onNavigateToBusiness?: () => void;
 }
 
-export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, participants, onTabChange }) => {
+export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, participants, onTabChange, onNavigateToLeagues, onNavigateToBusiness }) => {
     const { user } = useAppStore();
     if (!league) return null;
 
@@ -98,6 +101,16 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                             <h3 className="text-white text-xs font-black uppercase tracking-widest italic">Premio Mayor</h3>
                         </div>
                         <PrizeHero league={league} />
+                    </div>
+                )}
+
+                {/* PROMO BANNER (Solo en Plan Familia/Gratis) */}
+                {['familia', 'free'].includes(packageType) && (
+                    <div className="mb-4">
+                        <PromoBanner
+                            onActionSocial={onNavigateToLeagues}
+                            onActionEnterprise={onNavigateToBusiness}
+                        />
                     </div>
                 )}
 

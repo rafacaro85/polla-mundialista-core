@@ -5,6 +5,7 @@ import PrizeCard from './PrizeCard';
 // Assuming PrizeCard is suitable or we might need a PrizeHero. 
 // User mentioned "Pestaña home tendrá un mensaje de bienvenida, estará publicada la imagen de los premios"
 import { PrizeHero } from './PrizeHero'; // Using existing PrizeHero if available or mock it.
+import { PromoBanner } from './PromoBanner';
 
 interface GlobalHomeViewProps {
     userName?: string;
@@ -33,6 +34,9 @@ export const GlobalHomeView: React.FC<GlobalHomeViewProps> = ({ userName, onNavi
                     isEnterprise: false // Now allowed
                 }} />
             </div>
+
+            {/* Banner Promocional */}
+            <PromoBanner />
 
             {/* Quick Actions / Info */}
             <div className="grid grid-cols-2 gap-4 px-2">

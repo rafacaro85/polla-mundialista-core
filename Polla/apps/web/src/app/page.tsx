@@ -1,11 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Trophy, Users, Zap, Building2, CheckCircle, ArrowRight,
   Menu, X, Star, PlayCircle, ShieldCheck, Cpu, Smartphone,
   BarChart3, HelpCircle, ChevronDown, MessageCircle, Link as LinkIcon,
-  Globe, Gift, Target, MousePointerClick, Shield, Crown
+  Globe, Gift, Target, MousePointerClick, Shield, Crown, Gem
 } from 'lucide-react';
 import { signInWithGoogle } from '@/lib/auth.utils';
 
@@ -112,6 +113,82 @@ const iPhoneMockup = () => (
   </div>
 );
 
+/* =============================================================================
+   HOOK: LÓGICA DE TIEMPO
+   ============================================================================= */
+const useCountdown = (targetDate: number) => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return timeLeft;
+};
+
+/* =============================================================================
+   SUB-COMPONENTE: UNIDAD DE TIEMPO
+   ============================================================================= */
+const TimeUnit = ({ value, label, isSec }: { value: number, label: string, isSec?: boolean }) => (
+  <div className="flex flex-col items-center mx-1 md:mx-2">
+    <div className={`text-2xl md:text-4xl font-black text-white tracking-tighter tabular-nums ${isSec ? 'text-[#00E676] drop-shadow-[0_0_15px_rgba(0,230,118,0.5)]' : ''}`} style={{ fontFamily: '"Russo One", sans-serif' }}>
+      {String(value).padStart(2, '0')}
+    </div>
+    <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{label}</span>
+  </div>
+);
+
+/* =============================================================================
+   COMPONENTE PRINCIPAL: THE STADIUM PULSE
+   ============================================================================= */
+const CountdownTimer = () => {
+  // CONFIGURACIÓN: Fecha de inicio del Mundial 2026 (11 de Junio, 2026)
+  // Usamos UTC para que sea exacto en todo el mundo sin depender de la hora local del usuario
+  // Ajustado a las 16:00 UTC (Aproximadamente el partido inaugural)
+  const targetDate = new Date(Date.UTC(2026, 5, 11, 16, 0, 0)).getTime();
+  const time = useCountdown(targetDate);
+
+  return (
+    <div className="w-full max-w-lg mb-8 bg-[#0F172A] rounded-2xl p-6 border border-[#1E293B] shadow-2xl relative overflow-hidden group mx-auto lg:mx-0">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1E293B] to-[#0F172A] opacity-80 pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#00E676] rounded-full opacity-5 animate-pulse blur-3xl pointer-events-none"></div>
+
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy className="text-[#FACC15] animate-bounce" size={16} />
+          <span className="text-[#00E676] font-bold uppercase tracking-[0.2em] text-[10px]">Kickoff 2026</span>
+        </div>
+
+        <div className="flex items-start justify-center gap-2 mb-0">
+          <TimeUnit value={time.days} label="DÍAS" />
+          <span className="text-xl font-black text-[#00E676] animate-pulse mt-1.5">:</span>
+          <TimeUnit value={time.hours} label="HRS" />
+          <span className="text-xl font-black text-[#00E676] animate-pulse mt-1.5">:</span>
+          <TimeUnit value={time.minutes} label="MIN" />
+          <span className="text-xl font-black text-[#00E676] animate-pulse mt-1.5">:</span>
+          <TimeUnit value={time.seconds} label="SEG" isSec />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
   <button onClick={onClick} className="bg-[#00E676] text-[#0F172A] font-[900] uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-green-500/20 hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm z-20 relative">
     {children}
@@ -135,7 +212,7 @@ const FeatureCard = ({ icon, color, title, desc }: { icon: React.ReactNode, colo
 const ListItemSmall = ({ text, highlight = false, dark = false, dull = false, icon: Icon = CheckCircle }: { text: string, highlight?: boolean, dark?: boolean, dull?: boolean, icon?: any }) => {
   let iconColor = dark ? "text-[#00E676]" : "text-green-600";
   let textColor = dark ? "text-[#94A3B8]" : dull ? "text-[#94A3B8]/60" : "text-[#1E293B]";
-  if (highlight) textColor = "text-[#0F172A] font-bold";
+  if (highlight) textColor = dark ? "text-white font-bold" : "text-[#0F172A] font-bold";
   if (dull) iconColor = "text-[#94A3B8]/60";
 
   return (
@@ -256,7 +333,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#94A3B8]">
             <a href="#como-se-juega" className="hover:text-[#00E676] transition-colors">Cómo Jugar</a>
             <a href="#comunidad" className="hover:text-[#00E676] transition-colors text-[#00E676]">Torneo Global</a>
-            <a href="#precios" className="hover:text-[#00E676] transition-colors">Planes</a>
+            <Link href="/planes" className="hover:text-[#00E676] transition-colors">Planes</Link>
             <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
             <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
             <button onClick={onLoginClick} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
@@ -271,7 +348,7 @@ export default function LandingPage() {
           <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40">
             <a href="#como-se-juega" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
             <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Torneo Global</a>
-            <a href="#precios" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</a>
+            <Link href="/planes" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</Link>
             <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
             <button
               onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
@@ -288,10 +365,7 @@ export default function LandingPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-green-100 to-transparent rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
           <div className="space-y-8 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#94A3B8]/30 text-[#0F172A] text-[11px] font-bold uppercase tracking-widest shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-              Fútbol Profesional
-            </div>
+            <CountdownTimer />
             <h1 className="font-russo text-5xl lg:text-7xl text-[#0F172A] leading-[0.95] tracking-tight">
               ORGANIZA LA <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] to-emerald-600">MEJOR POLLA</span>
@@ -368,11 +442,12 @@ export default function LandingPage() {
             <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">¿CÓMO JUGAR?</h2>
             <p className="text-[#94A3B8]">Es tan fácil que hasta tu abuela querrá participar.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto relative">
-            <div className="hidden md:block absolute top-12 left-20 right-20 h-0.5 bg-[#94A3B8]/20 -z-10"></div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto relative">
+            <div className="hidden lg:block absolute top-12 left-10 right-10 h-0.5 bg-[#94A3B8]/20 -z-10"></div>
             <StepCard num="1" title="Regístrate" desc="Crea tu cuenta gratis con Google en segundos. Sin formularios eternos." />
-            <StepCard num="2" title="Pronostica" desc="Ingresa tus marcadores de la fase de grupos y arma tu Bracket final." />
-            <StepCard num="3" title="Gana Puntos" desc="Suma puntos por aciertos y sube en el ranking global y privado." />
+            <StepCard num="2" title="Crea tu Polla" desc="Organiza tu polla privada con amigos o compañeros de trabajo. Vive la fiebre mundialista de forma única." />
+            <StepCard num="3" title="Pronostica" desc="Ingresa tus marcadores de la fase de grupos y arma tu Bracket final." />
+            <StepCard num="4" title="Gana Puntos" desc="Suma puntos por aciertos y sube en el ranking global y privado." />
           </div>
         </div>
       </section>
@@ -442,6 +517,14 @@ export default function LandingPage() {
                 <div className="bg-yellow-200 p-1 rounded-full text-yellow-700 mt-0.5"><Star size={16} fill="currentColor" /></div>
                 <div><strong className="text-[#0F172A] block">Factor Comodín (Joker)</strong><span className="text-sm text-[#94A3B8]">Duplica tus puntos (x2) en tu partido más seguro de la fecha.</span></div>
               </li>
+              <li className="flex items-start gap-3 text-[#1E293B] font-medium bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                <div className="bg-blue-200 p-1 rounded-full text-blue-700 mt-0.5"><Trophy size={16} strokeWidth={3} /></div>
+                <div><strong className="text-[#0F172A] block">+10 Puntos: Preguntas Bonus</strong><span className="text-sm text-[#94A3B8]">Predicciones especiales extras (Campeón, Goleador, etc.) configuradas por el admin.</span></div>
+              </li>
+              <li className="flex items-start gap-3 text-[#1E293B] font-medium bg-purple-50 p-3 rounded-lg border border-purple-100 mt-2">
+                <div className="bg-purple-200 p-1 rounded-full text-purple-700 mt-0.5"><Crown size={16} strokeWidth={3} /></div>
+                <div><strong className="text-[#0F172A] block">+ Puntos: Simulador de Fases</strong><span className="text-sm text-[#94A3B8]">Suma puntos extra acertando los equipos clasificados en cada fase final.</span></div>
+              </li>
             </ul>
           </div>
         </div>
@@ -450,119 +533,95 @@ export default function LandingPage() {
       {/* --- PLANES --- */}
       <section id="precios" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">PLANES PARA TODOS</h2>
             <p className="text-[#94A3B8]">Desde la familia hasta grandes corporaciones. Pago único por todo el mundial.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto">
-            {[
-              {
-                id: 'familia',
-                name: 'FAMILIA',
-                price: 'GRATIS',
-                capacity: '5 Usuarios',
-                desc: 'Para la familia pequeña.',
-                features: ['Hasta 5 jugadores', 'Texto del premio', 'Ranking Automático'],
-                highlight: false,
-                borderColor: 'border-[#94A3B8]/20',
-                titleColor: 'text-[#94A3B8]',
-                btnClass: 'border-2 border-[#0F172A] text-[#0F172A] hover:bg-[#0F172A] hover:text-white',
-                icon: <Shield size={24} className="text-[#94A3B8]" />
-              },
-              {
-                id: 'parche',
-                name: 'PARCHE',
-                price: '$30.000',
-                capacity: '15 Usuarios',
-                desc: 'Para el grupo de la oficina.',
-                features: ['Hasta 15 jugadores', 'Imagen y texto del premio', 'Ranking Automático'],
-                highlight: false,
-                borderColor: 'border-orange-300',
-                titleColor: 'text-orange-600',
-                btnClass: 'bg-orange-100 text-orange-700 hover:bg-orange-200',
-                icon: <Star size={24} className="text-orange-500" />
-              },
-              {
-                id: 'amigos',
-                name: 'AMIGOS',
-                price: '$80.000',
-                capacity: '50 Usuarios',
-                desc: 'El plan más popular.',
-                features: ['Hasta 50 jugadores', 'Logo, imagen y texto', 'Soporte Prioritario'],
-                highlight: true,
-                badge: 'RECOMENDADO',
-                borderColor: 'border-[#00E676]',
-                titleColor: 'text-[#00E676]',
-                btnClass: 'bg-[#00E676] text-[#0F172A] font-black shadow-lg shadow-green-500/20 hover:scale-105',
-                icon: <Zap size={24} className="text-[#00E676]" />
-              },
-              {
-                id: 'lider',
-                name: 'LÍDER',
-                price: '$180.000',
-                capacity: '100 Usuarios',
-                desc: 'Para comunidades grandes.',
-                features: ['Hasta 100 jugadores', 'Muro de comentarios', 'Gestión Avanzada'],
-                highlight: false,
-                borderColor: 'border-yellow-400',
-                titleColor: 'text-yellow-600',
-                btnClass: 'bg-yellow-400 text-yellow-900 hover:bg-yellow-500',
-                icon: <Trophy size={24} className="text-yellow-500" />
-              },
-              {
-                id: 'influencer',
-                name: 'INFLUENCER',
-                price: '$350.000',
-                capacity: '200 Usuarios',
-                desc: 'Máxima capacidad y alcance.',
-                features: ['Hasta 200 jugadores', 'Redes Sociales', 'Marca Blanca Parcial'],
-                highlight: false,
-                borderColor: 'border-blue-400',
-                titleColor: 'text-blue-500',
-                btnClass: 'bg-blue-500 text-white hover:bg-blue-600',
-                icon: <Crown size={24} className="text-blue-400" />
-              }
-            ].map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative w-full md:w-[350px] bg-white rounded-2xl p-8 hover:shadow-xl transition-all border-2 ${plan.borderColor} ${plan.highlight ? 'shadow-2xl scale-105 z-10' : 'shadow-sm'}`}
-              >
-                {plan.highlight && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00E676] text-[#0F172A] font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
-                    {plan.badge}
-                  </div>
-                )}
 
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className={`font-black text-xl ${plan.titleColor}`}>{plan.name}</h3>
-                  <div className="p-2 rounded-full bg-slate-50">{plan.icon}</div>
-                </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-12">
 
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-3xl font-black text-[#0F172A]">{plan.price}</span>
-                  {plan.price !== 'GRATIS' && <span className="text-xs font-bold text-[#94A3B8]">COP</span>}
-                </div>
-                <div className="text-sm font-bold text-[#0F172A] mb-4 bg-slate-100 px-3 py-1 rounded inline-block">
-                  {plan.capacity}
-                </div>
-
-                <p className="text-sm text-[#94A3B8] mb-6 border-b border-[#94A3B8]/20 pb-6 min-h-[50px]">{plan.desc}</p>
-
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <ListItemSmall key={i} text={feature} highlight={plan.highlight} />
-                  ))}
-                </ul>
-
-                <button
-                  onClick={onLoginClick}
-                  className={`w-full py-3 rounded-lg font-bold transition-all ${plan.btnClass}`}
-                >
-                  {plan.price === 'GRATIS' ? 'Crear Polla' : 'Seleccionar'}
-                </button>
+            {/* SOCIAL: FAMILIA */}
+            <div className="border-2 border-emerald-100 bg-white rounded-2xl p-6 hover:shadow-xl hover:border-emerald-300 transition-all flex flex-col relative overflow-hidden group">
+              <div className="mb-4 relative z-10">
+                <h3 className="font-black text-lg text-emerald-600 flex items-center gap-2"><Shield size={18} /> FAMILIA</h3>
+                <div className="text-3xl font-black text-[#0F172A] mt-2">GRATIS</div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded mt-2 inline-block">Hasta 5 Jugadores</span>
               </div>
-            ))}
+              <ul className="space-y-2 mb-6 flex-1 relative z-10">
+                <ListItemSmall text="Ranking Automático" />
+                <ListItemSmall text="Predicciones con IA" />
+                <ListItemSmall text="Preguntas Bonus" />
+                <ListItemSmall text="Comodín (Joker)" />
+              </ul>
+              <button onClick={onLoginClick} className="w-full py-3 rounded-lg border-2 border-emerald-500 font-bold text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all text-sm relative z-10">Crear Gratis</button>
+            </div>
+
+            {/* SOCIAL: PARCHE */}
+            <div className="border-2 border-orange-200 bg-orange-50/20 rounded-2xl p-6 hover:shadow-xl hover:border-orange-400 transition-all flex flex-col relative overflow-hidden group">
+              <div className="absolute top-0 right-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-bl-lg z-20">POPULAR</div>
+              <div className="mb-4 relative z-10">
+                <h3 className="font-black text-lg text-orange-500 flex items-center gap-2"><Star size={18} /> PARCHE</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-3xl font-black text-[#0F172A]">$30k</span>
+                  <span className="text-xs font-bold text-[#94A3B8]">COP</span>
+                </div>
+                <span className="text-xs font-bold text-orange-800 bg-orange-100 px-2 py-0.5 rounded mt-2 inline-block">Hasta 15 Jugadores</span>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1 relative z-10">
+                <ListItemSmall text="Todo lo de Familia" highlight={true} />
+                <ListItemSmall text="Foto del Premio" />
+                <ListItemSmall text="Sin Publicidad" icon={Star} />
+              </ul>
+              <button onClick={onLoginClick} className="w-full py-3 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 transition-all text-sm relative z-10 shadow-lg shadow-orange-500/30">Seleccionar</button>
+            </div>
+
+            {/* ENTERPRISE: BRONCE */}
+            <div className="border-2 border-slate-200 bg-white rounded-2xl p-6 hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden group">
+              <div className="mb-4">
+                <h3 className="font-black text-lg text-slate-700 flex items-center gap-2"><Building2 size={18} /> BRONCE</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-3xl font-black text-slate-900">$100k</span>
+                  <span className="text-xs font-bold text-slate-500">COP</span>
+                </div>
+                <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded mt-2 inline-block">25 Colaboradores</span>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                <ListItemSmall text="Branding Básico" />
+                <ListItemSmall text="Logo Empresa" />
+                <ListItemSmall text="Imagen Premio" />
+              </ul>
+              <Link href="/business/new" className="w-full py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-center text-sm">Seleccionar</Link>
+            </div>
+
+            {/* ENTERPRISE: DIAMANTE */}
+            <div className="border-2 border-slate-700 bg-gradient-to-b from-[#1E293B] to-[#0F172A] rounded-2xl p-6 hover:shadow-xl hover:border-emerald-500 transition-all flex flex-col text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-emerald-500 text-[#0F172A] text-[10px] font-bold px-3 py-1 rounded-bl-lg">VIP</div>
+              <div className="mb-4">
+                <h3 className="font-black text-lg text-white flex items-center gap-2"><Gem size={18} className="text-emerald-400" /> DIAMANTE</h3>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-3xl font-black text-white">$1M</span>
+                  <span className="text-xs font-bold text-slate-500">COP</span>
+                </div>
+                <span className="text-xs font-bold text-emerald-900 bg-emerald-400 px-2 py-0.5 rounded mt-2 inline-block">500 Colaboradores</span>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                <ListItemSmall text="Banners Promocionales Propios" dark={true} highlight={true} />
+                <ListItemSmall text="Guerra de Áreas" dark={true} />
+                <ListItemSmall text="Muro Social" dark={true} />
+              </ul>
+              <Link href="/business/new" className="w-full py-3 rounded-lg bg-emerald-500 text-[#0F172A] font-bold hover:bg-emerald-400 transition-all text-center text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)]">Seleccionar</Link>
+            </div>
+
           </div>
+
+          <div className="flex justify-center">
+            <Link href="/planes">
+              <button className="bg-[#0F172A] text-white font-black text-lg px-10 py-4 rounded-xl shadow-xl hover:scale-105 transition-transform flex items-center gap-3">
+                VER TODOS LOS PLANES Y PRECIOS <ArrowRight size={20} className="text-[#00E676]" />
+              </button>
+            </Link>
+          </div>
+
         </div>
       </section>
 
@@ -582,9 +641,21 @@ export default function LandingPage() {
             <p className="text-[#94A3B8] text-lg mb-8 leading-relaxed">
               Garantiza una <strong>exposición de marca diaria</strong> y recurrente durante todo el torneo. Tu logo y tus colores estarán en el bolsillo de tu cliente cada vez que revise el ranking, fortaleciendo el <em>Top of Mind</em> de forma orgánica y divertida.
             </p>
-            <button className="text-blue-600 font-black uppercase tracking-widest text-sm flex items-center gap-2 hover:gap-4 transition-all">
-              Ver Estrategias de Marketing <ArrowRight size={16} />
-            </button>
+            {/* New Section: Employee Benefits */}
+            <div className="mt-12 pt-12 border-t border-slate-100">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest mb-6">
+                <Users size={12} /> Clima Laboral & Bienestar
+              </div>
+              <h3 className="font-russo text-2xl md:text-3xl text-[#0F172A] mb-4 leading-tight">
+                INTEGRACIÓN <span className="text-emerald-500">TOTAL</span> DE ÁREAS
+              </h3>
+              <p className="text-[#94A3B8] text-lg mb-4 leading-relaxed">
+                Rompe los silos de la oficina. Imagina a <strong>Contabilidad vs. Ventas</strong> o Sistemas vs. Recursos Humanos. Una competencia sana donde todos interactúan en igualdad de condiciones.
+              </p>
+              <p className="text-[#94A3B8] text-lg leading-relaxed">
+                Incrementa la motivación con premios que importan: desde un <strong>día libre</strong> hasta un viaje soñado. Un equipo que se divierte unido, trabaja mejor unido.
+              </p>
+            </div>
           </div>
           <div className="order-1 md:order-2 bg-slate-50 rounded-3xl p-8 border border-[#94A3B8]/20 relative">
             <div className="absolute -top-6 -right-6 bg-[#00E676] text-[#0F172A] font-black text-xs px-4 py-2 rounded-lg transform rotate-6 shadow-lg">
@@ -615,9 +686,9 @@ export default function LandingPage() {
             <p className="text-[#94A3B8]">Resolvemos tus dudas técnicas sobre la plataforma.</p>
           </div>
           <div className="space-y-2">
-            <FAQItem question="¿Qué es la 'Cuchara de Palo'?" answer="Es un reconocimiento divertido (icono de cuchara) que aparece en la tabla de posiciones junto al usuario que va en último lugar. Fomenta la competencia sana y las risas en el grupo." />
-            <FAQItem question="¿Cómo funciona el pago en el Plan Líder?" answer="El organizador (Líder) paga el paquete de cupos a la plataforma. Luego, él cobra la inscripción a sus participantes. La app incluye un 'Semáforo de Deudores' para gestionar quién ya pagó." />
-            <FAQItem question="¿Qué pasa si hay empate en el primer lugar?" answer="La plataforma utiliza la 'Pregunta de Oro' (Total de goles del mundial) configurada por el admin como criterio de desempate automático." />
+            <FAQItem question="¿Qué es el Comodín (Joker)?" answer="Es una estrategia de juego que puedes usar una vez por fase. Al activarlo en tu predicción más segura, duplicará (x2) los puntos que obtengas en ese partido específico. ¡Úsalo sabiamente!" />
+            <FAQItem question="¿Qué son las Preguntas Bonus?" answer="Son predicciones adicionales configuradas por el administrador de la polla (ej: ¿Quién será el Campeón? ¿Máximo Goleador?). Estas preguntas otorgan puntos extra al final del torneo." />
+            <FAQItem question="¿Cómo funciona el Simulador de Bracket?" answer="Es una herramienta visual donde predices el camino de los clasificados desde Dieciseisavos de Final hasta la Gran Final. Acertar qué equipos avanzan de ronda te suma puntos adicionales." />
             <FAQItem question="¿Es seguro ingresar con mi cuenta?" answer="Totalmente. Usamos OAuth 2.0 de Google. No almacenamos contraseñas. Además, el sistema de 'Bloqueo Anti-Fraude' valida la hora atómica para evitar cambios en pronósticos una vez iniciado el partido." />
           </div>
         </div>
@@ -656,7 +727,7 @@ export default function LandingPage() {
       </footer>
 
       {/* --- WHATSAPP FLOATING BUTTON --- */}
-      <a href="#" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">
+      <a href="https://wa.me/573105973421?text=Hola,%20me%20interesa%20la%20Polla%20Mundialista" target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">
         <MessageCircle size={24} fill="white" />
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 font-bold whitespace-nowrap">Chatea con Ventas</span>
       </a>

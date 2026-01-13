@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Shield, Zap, Crown, Check, Plus, Trophy, Copy, Loader2, Star, Gem, Medal } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { PaymentMethods } from './dashboard/PaymentMethods';
 
 /* =============================================================================
    DATOS MOCK (PLANES)
@@ -154,38 +155,6 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             setCopied(true);
             toast.success('Código copiado');
             setTimeout(() => setCopied(false), 2000);
-        }
-    };
-
-    const handleWhatsAppPayment = async () => {
-        if (!createdCode || !createdLeagueName || !createdLeagueId) return;
-
-        const plan = PLANS.find(p => p.id === selectedPlan);
-        if (!plan) return;
-
-        setProcessingPayment(true);
-        try {
-            // 1. Create Transaction
-            const priceNumber = parseInt(plan.price.replace(/\D/g, '')) || 0;
-
-            const response = await api.post('/transactions', {
-                packageType: plan.id,
-                amount: priceNumber,
-                leagueId: createdLeagueId
-            });
-
-            const { referenceCode } = response.data;
-
-            // 2. Redirect to WhatsApp
-            const text = `Hola, quiero activar el plan ${plan.name} para la liga "${createdLeagueName}" (Ref: ${referenceCode}). Adjunto mi comprobante de pago.`;
-            const url = `https://wa.me/573105973421?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
-
-        } catch (error) {
-            console.error("Error creating transaction:", error);
-            toast.error("Error al iniciar el pago. Intenta nuevamente.");
-        } finally {
-            setProcessingPayment(false);
         }
     };
 
@@ -615,13 +584,12 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 </>
                             ) : (
                                 <div style={STYLES.successBox}>
-                                    <p className="text-tactical text-center text-sm">Comparte este código con tus amigos para que se unan:</p>
-
                                     {/* SOLO mostrar botones de compartir si es Familia (Gratis) */}
                                     {selectedPlan === 'familia' ? (
                                         // Wait, PLANS[0] is familia (Free). Others are paid.
                                         // Use selectedPlan === 'familia' check.
                                         <>
+                                            <p className="text-tactical text-center text-sm mb-4">Comparte este código con tus amigos para que se unan:</p>
                                             <div style={STYLES.codeDisplay}>
                                                 {createdCode}
                                             </div>
@@ -664,28 +632,26 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         </>
                                     ) : (
                                         // Mensaje para ligas de pago
-                                        <div className="text-center space-y-4 mb-4">
+                                        <div className="text-center space-y-4 mb-4 w-full">
                                             <p className="text-white text-lg font-bold">¡Tu polla ha sido reservada!</p>
 
                                             <p className="text-yellow-500 text-xs italic border border-yellow-500/30 bg-yellow-500/10 p-2 rounded-lg">
-                                                ⚠️ Tu liga está PENDIENTE de activación. Realiza el pago para desbloquearla.
+                                                ⚠️ Tu polla está PENDIENTE de activación. Realiza el pago para desbloquearla.
                                             </p>
                                         </div>
                                     )}
 
-                                    {selectedPlan !== 'familia' && (
+                                    {selectedPlan !== 'familia' && createdLeagueId && (
                                         <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
-                                            <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '8px' }}>
-                                                Para activar tu plan <strong>{PLANS.find(p => p.id === selectedPlan)?.name}</strong>, envía el comprobante de pago:
-                                            </p>
-                                            <button
-                                                onClick={handleWhatsAppPayment}
-                                                style={{ ...STYLES.whatsappBtn, opacity: processingPayment ? 0.7 : 1, cursor: processingPayment ? 'wait' : 'pointer' }}
-                                                disabled={processingPayment}
-                                            >
-                                                {processingPayment ? <Loader2 className="animate-spin" size={18} /> : <Shield size={18} />}
-                                                {processingPayment ? 'Procesando...' : 'Enviar Comprobante'}
-                                            </button>
+                                            <PaymentMethods
+                                                leagueId={createdLeagueId}
+                                                amount={parseInt(PLANS.find(p => p.id === selectedPlan)?.price.replace(/\D/g, '') || '0')}
+                                                onSuccess={() => {
+                                                    toast.success('Pago enviado. Espera la confirmación del administrador.');
+                                                    handleClose();
+                                                    onLeagueCreated();
+                                                }}
+                                            />
                                         </div>
                                     )}
                                 </div>

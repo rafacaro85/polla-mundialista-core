@@ -7,5 +7,7 @@ export interface User {
   avatarUrl?: string;
   picture?: string;
   role: string;
+  isVerified?: boolean;
+  hasPaid?: boolean;
   // Add any other user properties you need in the frontend
 }

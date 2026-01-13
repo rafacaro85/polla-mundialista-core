@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, UseGuards, Request, Delete, Param, Query } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TimeLockGuard } from '../common/guards/time-lock.guard';
 
 import { CreatePredictionDto } from './dto/create-prediction.dto';
 
@@ -8,7 +9,7 @@ import { CreatePredictionDto } from './dto/create-prediction.dto';
 export class PredictionsController {
     constructor(private readonly predictionsService: PredictionsService) { }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, TimeLockGuard)
     @Post()
     async upsertPrediction(@Request() req: any, @Body() body: CreatePredictionDto) {
         try {

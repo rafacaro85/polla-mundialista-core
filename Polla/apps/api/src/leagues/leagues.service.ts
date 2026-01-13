@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { League } from '../database/entities/league.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
@@ -14,6 +15,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
+import { UserRole } from '../database/enums/user-role.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
 import { UpdateLeagueDto } from './dto/update-league.dto';
 import { TransactionsService } from '../transactions/transactions.service';
@@ -39,7 +41,7 @@ export class LeaguesService {
 
   async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {
     try {
-      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone } = createLeagueDto;
+      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone, adminEmail, adminPassword } = createLeagueDto;
 
       console.log('--- CREATE LEAGUE DEBUG ---');
       console.log('Package Type:', packageType);
@@ -58,9 +60,32 @@ export class LeaguesService {
         throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');
       }
 
-      const creator = await this.userRepository.findOne({ where: { id: userId } });
+      let creator = await this.userRepository.findOne({ where: { id: userId } });
       if (!creator) {
         throw new NotFoundException(`User with ID ${userId} not found.`);
+      }
+
+      // SUPER ADMIN: Crear liga para TERCERO (Empresa)
+      if (creator.role === UserRole.SUPER_ADMIN && adminEmail && adminPassword) {
+        const targetUser = await this.userRepository.findOne({ where: { email: adminEmail } });
+
+        if (targetUser) {
+          console.log(`👤 [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`);
+          creator = targetUser;
+        } else {
+          console.log(`👤 [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`);
+          const hashedPassword = await bcrypt.hash(adminPassword, 10);
+          const newUser = this.userRepository.create({
+            email: adminEmail,
+            fullName: adminName || 'Administrador Empresa',
+            nickname: adminName || adminEmail.split('@')[0], // Fallback nickname
+            password: hashedPassword,
+            phoneNumber: adminPhone,
+            isVerified: true, // Auto-verificado por SuperAdmin
+            role: UserRole.PLAYER
+          });
+          creator = await this.userRepository.save(newUser);
+        }
       }
 
       // Generar código automático si no se proporciona
@@ -81,6 +106,12 @@ export class LeaguesService {
         creator,
         accessCodePrefix: code,
         // Si es 'familia' o 'starter' (gratis), se considera pagado/activo.
+        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente según config, 
+        // pero generalmente las empresas se crean activas o pendientes. 
+        // Asumiremos que si viene de SuperAdmin es ENTERPRISE y quizas pagada manual, pero dejemos isPaid false si no es free, 
+        // luego el admin la activa con el botón de pago si es necesario, O si es Enterprise activarla.
+        // ACTUALIZACIÓN: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aquí isPaid se rige por type.
+        // Vamos a dejar la lógica actual: solo FREE es paid auto. Enterprise se paga manual o por botón.
         isPaid: ['familia', 'starter', 'FREE'].includes(packageType),
         packageType,
         isEnterprise: !!isEnterprise,
@@ -93,7 +124,8 @@ export class LeaguesService {
 
       // ACTUALIZAR DATOS DEL USUARIO (Fidelización)
       // Si el usuario proporcionó un teléfono de contacto para la liga, lo guardamos en su perfil
-      if (adminPhone) {
+      // Solo si NO acabamos de crear al usuario con ese dato
+      if (adminPhone && creator.phoneNumber !== adminPhone) {
         creator.phoneNumber = adminPhone;
         await this.userRepository.save(creator);
         console.log(`📞 [CreateLeague] Actualizado teléfono del usuario ${creator.id}: ${adminPhone}`);
@@ -440,36 +472,76 @@ export class LeaguesService {
       relations: ['league', 'league.creator', 'league.participants'],
     });
 
-    if (!participant) {
-      throw new NotFoundException('League not found or user is not a participant');
+    // 2. If participant found, return standard format
+    if (participant) {
+      return {
+        id: participant.league.id,
+        name: participant.league.name,
+        code: participant.league.accessCodePrefix,
+        type: participant.league.type,
+        isAdmin: participant.isAdmin,
+        creatorName: participant.league.creator.nickname || participant.league.creator.fullName,
+        participantCount: participant.league.participants?.length || 0,
+        isEnterprise: participant.league.isEnterprise,
+        isEnterpriseActive: participant.league.isEnterpriseActive,
+        companyName: participant.league.companyName,
+        brandingLogoUrl: participant.league.brandingLogoUrl,
+        brandColorPrimary: participant.league.brandColorPrimary,
+        brandColorSecondary: participant.league.brandColorSecondary,
+        brandColorBg: participant.league.brandColorBg,
+        brandColorText: participant.league.brandColorText,
+        brandFontFamily: participant.league.brandFontFamily,
+        brandCoverUrl: participant.league.brandCoverUrl,
+        welcomeMessage: participant.league.welcomeMessage,
+        prizeImageUrl: participant.league.prizeImageUrl,
+        prizeDetails: participant.league.prizeDetails,
+        status: participant.league.status,
+        isPaid: participant.league.isPaid,
+        maxParticipants: participant.league.maxParticipants,
+        packageType: participant.league.packageType,
+      };
     }
 
-    return {
-      id: participant.league.id,
-      name: participant.league.name,
-      code: participant.league.accessCodePrefix,
-      type: participant.league.type,
-      isAdmin: participant.isAdmin,
-      creatorName: participant.league.creator.nickname || participant.league.creator.fullName,
-      participantCount: participant.league.participants?.length || 0,
-      isEnterprise: participant.league.isEnterprise,
-      isEnterpriseActive: participant.league.isEnterpriseActive,
-      companyName: participant.league.companyName,
-      brandingLogoUrl: participant.league.brandingLogoUrl,
-      brandColorPrimary: participant.league.brandColorPrimary,
-      brandColorSecondary: participant.league.brandColorSecondary,
-      brandColorBg: participant.league.brandColorBg,
-      brandColorText: participant.league.brandColorText,
-      brandFontFamily: participant.league.brandFontFamily,
-      brandCoverUrl: participant.league.brandCoverUrl,
-      welcomeMessage: participant.league.welcomeMessage,
-      prizeImageUrl: participant.league.prizeImageUrl,
-      prizeDetails: participant.league.prizeDetails,
-      status: participant.league.status,
-      isPaid: participant.league.isPaid,
-      maxParticipants: participant.league.maxParticipants,
-      packageType: participant.league.packageType,
-    };
+    // 3. If not participant, check if SUPER_ADMIN
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user?.role === UserRole.SUPER_ADMIN) {
+      // Fetch league directly
+      const league = await this.leaguesRepository.findOne({
+        where: { id: leagueId },
+        relations: ['creator', 'participants']
+      });
+
+      if (league) {
+        return {
+          id: league.id,
+          name: league.name,
+          code: league.accessCodePrefix,
+          type: league.type,
+          isAdmin: true, // Super Admin is effectively an admin
+          creatorName: league.creator.nickname || league.creator.fullName,
+          participantCount: league.participants?.length || 0,
+          isEnterprise: league.isEnterprise,
+          isEnterpriseActive: league.isEnterpriseActive,
+          companyName: league.companyName,
+          brandingLogoUrl: league.brandingLogoUrl,
+          brandColorPrimary: league.brandColorPrimary,
+          brandColorSecondary: league.brandColorSecondary,
+          brandColorBg: league.brandColorBg,
+          brandColorText: league.brandColorText,
+          brandFontFamily: league.brandFontFamily,
+          brandCoverUrl: league.brandCoverUrl,
+          welcomeMessage: league.welcomeMessage,
+          prizeImageUrl: league.prizeImageUrl,
+          prizeDetails: league.prizeDetails,
+          status: league.status,
+          isPaid: league.isPaid,
+          maxParticipants: league.maxParticipants,
+          packageType: league.packageType,
+        };
+      }
+    }
+
+    throw new NotFoundException('League not found or user is not a participant');
   }
 
   async getLeagueRanking(leagueId: string) {
@@ -668,6 +740,15 @@ export class LeaguesService {
     if (updateLeagueDto.brandCoverUrl !== undefined) league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
     if (updateLeagueDto.enableDepartmentWar !== undefined) league.enableDepartmentWar = updateLeagueDto.enableDepartmentWar;
 
+    // --- SOCIAL MEDIA ---
+    if (updateLeagueDto.socialInstagram !== undefined) league.socialInstagram = updateLeagueDto.socialInstagram;
+    if (updateLeagueDto.socialFacebook !== undefined) league.socialFacebook = updateLeagueDto.socialFacebook;
+    if (updateLeagueDto.socialWhatsapp !== undefined) league.socialWhatsapp = updateLeagueDto.socialWhatsapp;
+    if (updateLeagueDto.socialYoutube !== undefined) league.socialYoutube = updateLeagueDto.socialYoutube;
+    if (updateLeagueDto.socialTiktok !== undefined) league.socialTiktok = updateLeagueDto.socialTiktok;
+    if (updateLeagueDto.socialLinkedin !== undefined) league.socialLinkedin = updateLeagueDto.socialLinkedin;
+    if (updateLeagueDto.socialWebsite !== undefined) league.socialWebsite = updateLeagueDto.socialWebsite;
+
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
         throw new ForbiddenException('Solo el SUPER_ADMIN puede activar/desactivar el modo Enterprise.');
@@ -800,6 +881,16 @@ export class LeaguesService {
         } else {
           console.log(`   ✓ No hay respuestas de bonus para eliminar`);
         }
+
+        // PASO 2.5: Eliminar comentarios del muro (LeagueComment)
+        console.log(`   💬 Paso 2.5: Eliminando comentarios del muro...`);
+        await transactionalEntityManager.delete(LeagueComment, { league: { id: leagueId } });
+        console.log(`   ✓ Comentarios eliminados`);
+
+        // PASO 2.6: Eliminar predicciones específicas de la liga
+        console.log(`   🔮 Paso 2.6: Eliminando predicciones de la liga...`);
+        await transactionalEntityManager.delete(Prediction, { leagueId: leagueId });
+        console.log(`   ✓ Predicciones de liga eliminadas`);
 
         // PASO 3: Eliminar bonus questions
         console.log(`   ⭐ Paso 3: Eliminando bonus questions...`);

@@ -367,6 +367,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
 
                                     {/* --- PESTAÑA BRANDING --- */}
                                     <TabsContent value="branding" className="mt-0 space-y-6">
+
                                         {/* 1. Nombre de la Polla (Movido desde Configuración) */}
                                         <div style={STYLES.card}>
                                             <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Nombre de la Polla</h3>

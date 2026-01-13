@@ -1,10 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // 0. Seguridad HTTP Headers (Helmet)
+  app.use(helmet());
+
+  // 0.1 Validación Global de DTOs (Blindaje)
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,            // Elimina campos que no estén en el DTO
+    forbidNonWhitelisted: true, // Lanza error si envían campos extra
+    transform: true,            // Convierte tipos automáticamente
+  }));
 
   // 1. Prefijo Global (Vital para el frontend)
   app.setGlobalPrefix('api');

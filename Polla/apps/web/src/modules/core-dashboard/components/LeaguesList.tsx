@@ -8,22 +8,9 @@ import { CreateBusinessLeagueDialog } from '@/components/CreateBusinessLeagueDia
 import { JoinLeagueDialog } from '@/components/JoinLeagueDialog';
 import { LeagueSettings as AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 
-// --- INTERFACES ---
-interface League {
-    id: string;
-    name: string;
-    members: number;
-    admin: string;
-    isAdmin: boolean;
-    initial: string;
-    code: string;
-    maxParticipants: number;
-    participantCount?: number;
-    type?: string;
-    isEnterprise?: boolean;
-    isEnterpriseActive?: boolean;
-    isPaid?: boolean;
-}
+import { useLeagues } from '@/hooks/useLeagues';
+
+// --- INTERFACES: Imported from hook implied or just use inferred types
 
 /* =============================================================================
    COMPONENTE: LEAGUES LIST (ESTILO TACTICAL CON TABS)
@@ -31,260 +18,40 @@ interface League {
 export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' | 'enterprise' }) => {
     const router = useRouter();
     const { user } = useAppStore();
-    const [leagues, setLeagues] = React.useState<League[]>([]);
-    const [loading, setLoading] = React.useState(true);
     const [activeTab, setActiveTab] = useState<'social' | 'enterprise'>(initialTab);
+
+    // Custom Hook
+    const { leagues, loading, fetchLeagues, socialLeagues, enterpriseLeagues } = useLeagues();
 
     React.useEffect(() => {
         if (initialTab) setActiveTab(initialTab);
     }, [initialTab]);
 
-    const fetchLeagues = React.useCallback(async () => {
-        try {
-            setLoading(true);
-            const { data } = await api.get('/leagues/my');
-
-            // Mapear datos de la API a la interfaz local
-            const mappedLeagues = data.map((l: any) => ({
-                id: l.id,
-                name: l.name,
-                members: l.participantCount || 0,
-                admin: l.isAdmin ? 'Tú' : (l.admin?.nickname || 'Admin'),
-                isAdmin: l.isAdmin,
-                initial: l.name.charAt(0).toUpperCase(),
-                code: l.code, // Necesario para LeagueSettings
-                maxParticipants: l.maxParticipants, // Necesario para LeagueSettings
-                type: l.type,
-                isEnterprise: l.isEnterprise,
-                isEnterpriseActive: l.isEnterpriseActive,
-                isPaid: l.isPaid
-            }));
-
-            // Auto-switch tab si solo tiene ligas de empresa
-            const hasSocial = mappedLeagues.some((l: any) => !l.isEnterprise);
-            const hasEnterprise = mappedLeagues.some((l: any) => l.isEnterprise);
-
-            // Lógica opcional: Solo auto-switch si NO se especificó initialTab explícitamente desde fuera
-            // o si estamos en el montaje inicial sin prop forzada.
-            // Para simplificar y respetar el click del usuario:
-            if (!hasSocial && hasEnterprise && initialTab === 'social') {
-                // Solo si el usuario pidió social por defecto pero no hay, y sí hay enterprise, podríamos cambiar.
-                // Pero si el usuario hizo clic explícito en "Social", quizás quiera ver vacío.
-                // setActiveTab('enterprise'); 
-            }
-
-            setLeagues(mappedLeagues);
-        } catch (error) {
-            console.error('Error cargando ligas', error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    React.useEffect(() => {
-        fetchLeagues();
-    }, [fetchLeagues]);
-
-    // FILTROS
-    const socialLeagues = leagues.filter(l => !l.isEnterprise);
-    const enterpriseLeagues = leagues.filter(l => l.isEnterprise);
-
     // Lista a mostrar según tab
     const displayLeagues = activeTab === 'social' ? socialLeagues : enterpriseLeagues;
 
-    // ESTILOS EN LÍNEA (BLINDADOS)
-    const STYLES = {
-        container: {
-            padding: '16px',
-            paddingBottom: '100px', // Espacio para el menú inferior
-            backgroundColor: '#0F172A',
-            minHeight: '100vh',
-            fontFamily: 'sans-serif'
-        },
-        header: {
-            marginBottom: '24px'
-        },
-        titleRow: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px'
-        },
-        title: {
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '24px',
-            color: 'white',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '1px',
-            lineHeight: '1.1'
-        },
-        subtitle: {
-            fontSize: '11px',
-            color: '#94A3B8', // Tactical Grey
-            marginTop: '4px',
-            fontWeight: '600'
-        },
-        // TABS TOGGLE
-        toggleContainer: {
-            display: 'flex',
-            backgroundColor: '#1E293B',
-            borderRadius: '12px',
-            padding: '4px',
-            marginBottom: '24px',
-            border: '1px solid #334155'
-        },
-        tabBtn: (isActive: boolean) => ({
-            flex: 1,
-            padding: '10px',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: isActive ? '#00E676' : 'transparent',
-            color: isActive ? '#0F172A' : '#94A3B8',
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '12px',
-            textTransform: 'uppercase' as const,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-        }),
-        // Botones de acción
-        actionRow: {
-            display: 'flex',
-            gap: '12px',
-            marginBottom: '24px'
-        },
-        createButton: {
-            flex: 1,
-            backgroundColor: activeTab === 'social' ? '#00E676' : '#0072FF', // Verde Social, Azul Enterprise
-            color: activeTab === 'social' ? '#0F172A' : 'white',
-            border: 'none',
-            padding: '12px',
-            borderRadius: '12px',
-            fontWeight: '900',
-            fontSize: '11px',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '1px',
-            boxShadow: activeTab === 'social' ? '0 4px 15px rgba(0, 230, 118, 0.3)' : '0 4px 15px rgba(0, 114, 255, 0.3)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px'
-        },
-        outlineButton: {
-            flex: 1,
-            backgroundColor: 'transparent',
-            border: activeTab === 'social' ? '1px solid #00E676' : '1px solid #0072FF',
-            color: activeTab === 'social' ? '#00E676' : '#0072FF',
-            padding: '12px',
-            borderRadius: '12px',
-            fontWeight: '900',
-            fontSize: '11px',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '1px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px'
-        },
-        // Grid de Tarjetas
-        grid: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '12px'
-        },
-        // Tarjeta de Liga
-        card: {
-            backgroundColor: '#1E293B', // Carbon
-            border: '1px solid #334155',
-            borderRadius: '16px',
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            position: 'relative' as const,
-            overflow: 'hidden',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-        },
-        iconBox: {
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#0F172A', // Obsidian
-            border: '1px solid #334155',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-        },
-        iconText: {
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '20px',
-            color: '#94A3B8'
-        },
-        infoBox: {
-            flex: 1,
-            minWidth: 0 // Para que el truncate funcione
-        },
-        leagueName: {
-            fontFamily: "'Russo One', sans-serif",
-            fontSize: '16px',
-            color: 'white',
-            marginBottom: '4px',
-            whiteSpace: 'nowrap' as const,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-        },
-        metaData: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '10px',
-            color: '#94A3B8',
-            fontWeight: '600'
-        },
-        // Botón de Acción en la tarjeta
-        actionBtn: {
-            height: '32px',
-            padding: '0 12px',
-            borderRadius: '6px',
-            fontSize: '10px',
-            fontWeight: '800',
-            textTransform: 'uppercase' as const,
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-        }
-    };
-
     return (
-        <div style={STYLES.container}>
+        <div className="p-4 pb-[100px] bg-[#0F172A] min-h-screen font-sans">
 
             {/* 1. HEADER SECCIÓN */}
-            <div style={STYLES.header}>
-                <div style={STYLES.titleRow}>
+            <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h2 style={STYLES.title}>Mis Pollas</h2>
-                        <p style={STYLES.subtitle}>GESTIONA TUS TORNEOS</p>
+                        <h2 className="font-russo text-2xl text-white uppercase tracking-widest leading-[1.1]">Mis Pollas</h2>
+                        <p className="text-[11px] text-[#94A3B8] mt-1 font-semibold">GESTIONA TUS TORNEOS</p>
                     </div>
                 </div>
 
                 {/* TOGGLE TABS */}
-                <div style={STYLES.toggleContainer}>
+                <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6 border border-[#334155]">
                     <button
-                        style={STYLES.tabBtn(activeTab === 'social')}
+                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'social' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
                         onClick={() => setActiveTab('social')}
                     >
                         <Trophy size={14} /> Sociales
                     </button>
                     <button
-                        style={STYLES.tabBtn(activeTab === 'enterprise')}
+                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'enterprise' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
                         onClick={() => setActiveTab('enterprise')}
                     >
                         <Briefcase size={14} /> Empresas
@@ -292,16 +59,16 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                 </div>
 
                 {/* BOTONES DE ACCIÓN (DINÁMICOS) */}
-                <div style={STYLES.actionRow}>
+                <div className="flex gap-3 mb-6">
                     {activeTab === 'social' ? (
                         <>
                             <CreateLeagueDialog onLeagueCreated={fetchLeagues}>
-                                <button style={STYLES.createButton}>
+                                <button className="flex-1 bg-[#00E676] text-[#0F172A] border-none p-3 rounded-xl font-black text-[11px] uppercase tracking-wider shadow-[0_4px_15px_rgba(0,230,118,0.3)] cursor-pointer flex items-center justify-center gap-1.5">
                                     + CREAR POLLA
                                 </button>
                             </CreateLeagueDialog>
                             <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
-                                <button style={STYLES.outlineButton}>
+                                <button className="flex-1 bg-transparent border border-[#00E676] text-[#00E676] p-3 rounded-xl font-black text-[11px] uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5">
                                     UNIRSE CON CÓDIGO
                                 </button>
                             </JoinLeagueDialog>
@@ -309,12 +76,12 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                     ) : (
                         <>
                             <CreateBusinessLeagueDialog onLeagueCreated={fetchLeagues}>
-                                <button style={STYLES.createButton}>
+                                <button className="flex-1 bg-[#0072FF] text-white border-none p-3 rounded-xl font-black text-[11px] uppercase tracking-wider shadow-[0_4px_15px_rgba(0,114,255,0.3)] cursor-pointer flex items-center justify-center gap-1.5">
                                     + CREAR EMPRESA
                                 </button>
                             </CreateBusinessLeagueDialog>
                             <JoinLeagueDialog onLeagueJoined={fetchLeagues}>
-                                <button style={STYLES.outlineButton}>
+                                <button className="flex-1 bg-transparent border border-[#0072FF] text-[#0072FF] p-3 rounded-xl font-black text-[11px] uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5">
                                     UNIRSE CON CÓDIGO
                                 </button>
                             </JoinLeagueDialog>
@@ -324,34 +91,31 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
             </div>
 
             {/* 2. LISTA DE LIGAS FILTRADA */}
-            <div style={STYLES.grid}>
+            <div className="flex flex-col gap-3">
                 {displayLeagues.map((league) => (
-                    <div key={league.id} style={STYLES.card}>
+                    <div key={league.id} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
 
                         {/* Indicador lateral */}
-                        <div style={{
-                            position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px',
-                            backgroundColor: league.isEnterprise ? '#0072FF' : (league.isAdmin ? '#00E676' : '#334155')
-                        }} />
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${league.isEnterprise ? 'bg-[#0072FF]' : (league.isAdmin ? 'bg-[#00E676]' : 'bg-[#334155]')}`} />
 
                         {/* Icono / Inicial */}
-                        <div style={STYLES.iconBox}>
-                            <span style={{ ...STYLES.iconText, color: league.isEnterprise ? '#0072FF' : (league.isAdmin ? '#00E676' : '#94A3B8') }}>
+                        <div className="w-12 h-12 rounded-xl bg-[#0F172A] border border-[#334155] flex items-center justify-center shrink-0">
+                            <span className={`font-russo text-xl ${league.isEnterprise ? 'text-[#0072FF]' : (league.isAdmin ? 'text-[#00E676]' : 'text-[#94A3B8]')}`}>
                                 {league.isEnterprise ? <Briefcase size={20} /> : league.initial}
                             </span>
                         </div>
 
                         {/* Información */}
-                        <div style={STYLES.infoBox}>
-                            <h3 style={STYLES.leagueName}>{league.name}</h3>
-                            <div style={STYLES.metaData}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-russo text-base text-white mb-1 whitespace-nowrap overflow-hidden text-ellipsis">{league.name}</h3>
+                            <div className="flex items-center gap-2 text-[10px] text-[#94A3B8] font-semibold">
+                                <span className="flex items-center gap-1">
                                     <Users size={10} /> {league.members}
                                 </span>
                                 <span>•</span>
-                                <span>Admin: <span style={{ color: 'white' }}>{league.admin}</span></span>
+                                <span>Admin: <span className="text-white">{league.admin}</span></span>
                                 {league.isEnterprise && !league.isEnterpriseActive && (
-                                    <span style={{ color: '#F97316', marginLeft: '4px' }}>• BORRADOR</span>
+                                    <span className="text-orange-500 ml-1">• BORRADOR</span>
                                 )}
                             </div>
                         </div>
@@ -359,28 +123,17 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                         <div>
                             {league.isAdmin && league.isEnterpriseActive ? (
                                 // CASO 1: Empresa Activa (Admin)
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="flex gap-2">
                                     <button
                                         onClick={() => router.push(`/leagues/${league.id}/admin`)}
-                                        style={{
-                                            ...STYLES.actionBtn,
-                                            width: '32px',
-                                            padding: 0,
-                                            backgroundColor: '#334155',
-                                            color: '#94A3B8'
-                                        }}
+                                        className="h-8 w-8 p-0 rounded-md bg-[#334155] text-[#94A3B8] border-none cursor-pointer flex items-center justify-center hover:bg-[#475569] transition-colors"
                                         title="Configuración"
                                     >
                                         <Settings size={14} />
                                     </button>
                                     <button
                                         onClick={() => router.push(`/leagues/${league.id}`)}
-                                        style={{
-                                            ...STYLES.actionBtn,
-                                            backgroundColor: '#0072FF',
-                                            color: 'white',
-                                            boxShadow: '0 0 10px rgba(0,114,255,0.4)'
-                                        }}
+                                        className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border-none cursor-pointer flex items-center justify-center bg-[#0072FF] text-white shadow-[0_0_10px_rgba(0,114,255,0.4)]"
                                     >
                                         INGRESAR
                                     </button>
@@ -389,11 +142,7 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                 // CASO 2: Empresa Borrador (Admin) -> Ir a Studio
                                 <button
                                     onClick={() => router.push(`/leagues/${league.id}/studio`)}
-                                    style={{
-                                        ...STYLES.actionBtn,
-                                        backgroundColor: '#F97316',
-                                        color: 'white'
-                                    }}
+                                    className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border-none cursor-pointer flex items-center justify-center bg-orange-500 text-white"
                                 >
                                     DISEÑAR
                                 </button>
@@ -401,27 +150,16 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                 // CASO 3: Participante -> Jugar
                                 <button
                                     onClick={() => router.push(`/leagues/${league.id}`)}
-                                    style={{
-                                        ...STYLES.actionBtn,
-                                        backgroundColor: 'transparent',
-                                        border: '1px solid #475569',
-                                        color: 'white'
-                                    }}
+                                    className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase cursor-pointer flex items-center justify-center bg-transparent border border-[#475569] text-white"
                                 >
                                     JUGAR
                                 </button>
                             ) : (
                                 // CASO 4: Admin Polla Social
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="flex gap-2">
                                     <button
                                         onClick={() => router.push(`/leagues/${league.id}/admin`)}
-                                        style={{
-                                            ...STYLES.actionBtn,
-                                            width: '32px',
-                                            padding: 0,
-                                            backgroundColor: '#334155',
-                                            color: '#94A3B8'
-                                        }}
+                                        className="h-8 w-8 p-0 rounded-md bg-[#334155] text-[#94A3B8] border-none cursor-pointer flex items-center justify-center hover:bg-[#475569] transition-colors"
                                         title="Configuración"
                                     >
                                         <Settings size={14} />
@@ -429,25 +167,15 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
 
                                     {!league.isPaid ? (
                                         <button
-                                            style={{
-                                                ...STYLES.actionBtn,
-                                                backgroundColor: 'rgba(234, 179, 8, 0.2)', // Yellow transparent
-                                                color: '#FACC15',
-                                                border: '1px solid #FACC15',
-                                                cursor: 'not-allowed'
-                                            }}
+                                            onClick={() => router.push(`/leagues/${league.id}`)}
+                                            className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-[#FACC15] cursor-pointer flex items-center justify-center bg-[#FACC15]/20 text-[#FACC15] hover:bg-[#FACC15] hover:text-[#0F172A] transition-all"
                                         >
                                             PENDIENTE
                                         </button>
                                     ) : (
                                         <button
                                             onClick={() => router.push(`/leagues/${league.id}`)}
-                                            style={{
-                                                ...STYLES.actionBtn,
-                                                backgroundColor: '#00E676',
-                                                color: '#0F172A',
-                                                boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                            }}
+                                            className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border-none cursor-pointer flex items-center justify-center bg-[#00E676] text-[#0F172A] shadow-[0_0_10px_rgba(0,230,118,0.2)]"
                                         >
                                             INGRESAR
                                         </button>
@@ -463,9 +191,9 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
             {/* Empty State */}
             {
                 !loading && displayLeagues.length === 0 && (
-                    <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.5 }}>
-                        <Shield size={48} style={{ margin: '0 auto 16px', color: '#334155' }} />
-                        <p style={{ color: '#94A3B8', fontSize: '12px' }}>
+                    <div className="text-center mt-10 opacity-50">
+                        <Shield size={48} className="mx-auto mb-4 text-[#334155]" />
+                        <p className="text-[#94A3B8] text-xs">
                             No tienes pollas {activeTab === 'social' ? 'sociales' : 'empresariales'} aún.
                         </p>
                     </div>

@@ -2,7 +2,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Save, X, Users, Copy, Loader2, Image, Gift, MessageSquare, Briefcase, Trophy, UploadCloud } from 'lucide-react';
+import { Save, X, Users, Copy, Loader2, Image, Gift, MessageSquare, Briefcase, Trophy, UploadCloud, Palette } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';

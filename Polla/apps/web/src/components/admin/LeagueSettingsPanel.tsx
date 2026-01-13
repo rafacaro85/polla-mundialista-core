@@ -265,41 +265,6 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                         <div className="flex-1">
                             {/* --- EDITAR --- */}
                             <TabsContent value="editar" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                {/* Formulario Nombre */}
-                                <div style={STYLES.card}>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Nombre de la Polla</h3>
-                                    <div className="flex gap-2">
-                                        <input
-                                            value={editedName}
-                                            onChange={e => setEditedName(e.target.value)}
-                                            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
-                                        />
-                                        <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="bg-emerald-500 text-slate-900 hover:bg-emerald-400">
-                                            <Save className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Branding Form */}
-                                <LeagueBrandingForm
-                                    leagueId={currentLeague.id}
-                                    showEnterpriseFields={!!currentLeague.isEnterpriseActive}
-                                    initialData={{
-                                        brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                        prizeImageUrl: currentLeague.prizeImageUrl,
-                                        prizeDetails: currentLeague.prizeDetails,
-                                        welcomeMessage: currentLeague.welcomeMessage,
-                                        isEnterprise: currentLeague.isEnterprise,
-                                        companyName: currentLeague.companyName,
-                                        brandColorPrimary: currentLeague.brandColorPrimary,
-                                        brandColorSecondary: currentLeague.brandColorSecondary,
-                                    }}
-                                    packageType={currentLeague.packageType}
-                                    onSuccess={() => {
-                                        toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                        loadLeagueData();
-                                    }}
-                                />
 
                                 {hideTabs && (
                                     <div className="border-t border-slate-700 pt-8 mt-8 space-y-6">

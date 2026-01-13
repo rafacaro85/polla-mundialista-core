@@ -49,6 +49,9 @@ export class User {
   @Column({ name: 'is_banned', default: false })
   isBanned: boolean;
 
+  @Column({ name: 'has_paid', default: false })
+  hasPaid: boolean;
+
   @Column({ name: 'verification_code', type: 'varchar', nullable: true })
   verificationCode?: string | null;
 

@@ -4,6 +4,7 @@ import { Trophy, Calendar, Users, ArrowRight, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PrizeCard from '@/components/PrizeCard';
 import { PrizeHero } from '@/components/PrizeHero';
+import { PromoBanner } from '@/components/PromoBanner';
 
 interface GlobalHomeProps {
     userName?: string;
@@ -34,6 +35,12 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                     isEnterprise: false
                 }} />
             </div>
+
+            {/* Banner Promocional */}
+            <PromoBanner
+                onActionSocial={onNavigateToLeagues}
+                onActionEnterprise={onNavigateToBusiness}
+            />
 
             {/* Quick Actions / Info */}
             <div className="grid grid-cols-2 gap-4 px-2">

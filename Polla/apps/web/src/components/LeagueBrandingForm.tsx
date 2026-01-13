@@ -21,90 +21,6 @@ interface LeagueBrandingFormProps {
     onSuccess?: () => void;
 }
 
-const STYLES = {
-    container: {
-        backgroundColor: '#1E293B',
-        borderRadius: '16px',
-        padding: '24px',
-        border: '1px solid #334155',
-        color: 'white'
-    },
-    title: {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        marginBottom: '24px',
-        color: '#00E676',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-    },
-    fieldGroup: {
-        marginBottom: '20px'
-    },
-    label: {
-        color: '#94A3B8',
-        fontSize: '11px',
-        fontWeight: 'bold',
-        marginBottom: '8px',
-        textTransform: 'uppercase' as const,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px'
-    },
-    input: {
-        width: '100%',
-        padding: '12px',
-        backgroundColor: '#0F172A',
-        border: '1px solid #334155',
-        borderRadius: '8px',
-        color: 'white',
-        fontSize: '13px',
-        outline: 'none',
-        transition: 'border-color 0.2s'
-    },
-    textarea: {
-        width: '100%',
-        padding: '12px',
-        backgroundColor: '#0F172A',
-        border: '1px solid #334155',
-        borderRadius: '8px',
-        color: 'white',
-        fontSize: '13px',
-        outline: 'none',
-        minHeight: '80px',
-        resize: 'vertical' as const
-    },
-    button: {
-        width: '100%',
-        padding: '14px',
-        backgroundColor: '#00E676',
-        border: 'none',
-        borderRadius: '12px',
-        color: '#0F172A',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        marginTop: '8px',
-        transition: 'opacity 0.2s'
-    },
-    preview: {
-        marginTop: '8px',
-        width: '100%',
-        height: '100px',
-        backgroundColor: '#0F172A',
-        borderRadius: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        border: '1px dashed #334155'
-    }
-};
-
 const PlanLock = ({ featureName, planNeeded }: { featureName: string, planNeeded: string }) => (
     <div className="bg-slate-900/80 border border-slate-700/50 p-4 rounded-xl flex items-center justify-between gap-4 mt-2 mb-4">
         <div className="flex items-center gap-3">
@@ -247,22 +163,13 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
     };
 
     const UploadButton = ({ field, label }: { field: string, label: string }) => (
-        <label style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            padding: '12px',
-            backgroundColor: uploadingField === field ? '#1E293B' : '#0F172A',
-            border: `2px dashed ${uploadingField === field ? '#00E676' : '#334155'}`,
-            borderRadius: '12px',
-            cursor: uploadingField ? 'not-allowed' : 'pointer',
-            transition: 'all 0.3s ease',
-            width: '100%',
-            color: uploadingField === field ? '#00E676' : 'white',
-            fontSize: '13px',
-            fontWeight: 'bold'
-        }} className="hover:border-[#00E676] group">
+        <label className={`
+            flex items-center justify-center gap-2.5 p-3 rounded-xl transition-all w-full text-[13px] font-bold border-2 border-dashed group
+            ${uploadingField === field
+                ? 'bg-[#1E293B] border-[#00E676] text-[#00E676] cursor-not-allowed'
+                : 'bg-[#0F172A] border-[#334155] text-white cursor-pointer hover:border-[#00E676]'
+            }
+        `}>
             {uploadingField === field ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#00E676] border-t-transparent"></div>
             ) : (
@@ -280,28 +187,28 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
     );
 
     return (
-        <div style={STYLES.container}>
-            <div style={STYLES.title}>
-                <div style={{ padding: '8px', backgroundColor: '#00E67620', borderRadius: '8px' }}>
+        <div className="bg-[#1E293B] rounded-2xl p-6 border border-[#334155] text-white">
+            <div className="text-lg font-bold mb-6 text-[#00E676] flex items-center gap-2">
+                <div className="p-2 bg-[#00E676]/20 rounded-lg">
                     <Gift size={20} />
                 </div>
                 Personalización Visual
             </div>
 
             {/* LOGO DE LA LIGA */}
-            <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}>Logo Identitario de la Polla</label>
+            <div className="mb-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5">Logo Identitario de la Polla</label>
                 {!isFeatureEnabled('logo') ? (
                     <PlanLock featureName="Logo de Liga" planNeeded="Amigos" />
                 ) : (
                     <>
                         <UploadButton field="brandingLogoUrl" label="CAMBIAR LOGO" />
                         {formData.brandingLogoUrl && (
-                            <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
-                                <img src={formData.brandingLogoUrl} alt="Logo" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                            <div className="mt-3 w-full h-[140px] bg-[#0F172A] rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-[#00E676]/40 relative">
+                                <img src={formData.brandingLogoUrl} alt="Logo" className="max-h-[90%] max-w-[90%] object-contain" />
                                 <button
                                     onClick={() => handleChange('brandingLogoUrl', '')}
-                                    style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                                    className="absolute top-2 right-2 bg-red-500 text-white border-none rounded-full w-[30px] h-[30px] flex items-center justify-center cursor-pointer shadow-md"
                                     title="Eliminar imagen"
                                 >
                                     <Trash2 size={16} />
@@ -313,19 +220,19 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             </div>
 
             {/* IMAGEN DEL PREMIO */}
-            <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}>Imagen del Premio Principal</label>
+            <div className="mb-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5">Imagen del Premio Principal</label>
                 {!isFeatureEnabled('prizeImage') ? (
                     <PlanLock featureName="Imagen del Premio" planNeeded="Parche" />
                 ) : (
                     <>
                         <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
                         {formData.prizeImageUrl && (
-                            <div style={{ ...STYLES.preview, height: '140px', marginTop: '12px', borderColor: '#00E67640', position: 'relative' }}>
-                                <img src={formData.prizeImageUrl} alt="Premio" style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }} />
+                            <div className="mt-3 w-full h-[140px] bg-[#0F172A] rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-[#00E676]/40 relative">
+                                <img src={formData.prizeImageUrl} alt="Premio" className="max-h-[90%] max-w-[90%] object-contain" />
                                 <button
                                     onClick={() => handleChange('prizeImageUrl', '')}
-                                    style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                                    className="absolute top-2 right-2 bg-red-500 text-white border-none rounded-full w-[30px] h-[30px] flex items-center justify-center cursor-pointer shadow-md"
                                     title="Eliminar imagen"
                                 >
                                     <Trash2 size={16} />
@@ -337,30 +244,30 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             </div>
 
             {/* DESCRIPCIÓN DEL PREMIO */}
-            <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><Gift size={14} /> Detalles del Premio</label>
+            <div className="mb-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Gift size={14} /> Detalles del Premio</label>
                 <textarea
                     value={formData.prizeDetails}
                     onChange={(e) => handleChange('prizeDetails', e.target.value)}
-                    style={STYLES.textarea}
+                    className="w-full p-3 bg-[#0F172A] border border-[#334155] rounded-lg text-white text-[13px] outline-none min-h-[80px] resize-y"
                     placeholder="Ej: Viaje a San Andrés para 2 personas..."
                 />
             </div>
 
             {/* MENSAJE DE BIENVENIDA */}
-            <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><MessageSquare size={14} /> Mensaje de Bienvenida</label>
+            <div className="mb-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Mensaje de Bienvenida</label>
                 <textarea
                     value={formData.welcomeMessage}
                     onChange={(e) => handleChange('welcomeMessage', e.target.value)}
-                    style={STYLES.textarea}
+                    className="w-full p-3 bg-[#0F172A] border border-[#334155] rounded-lg text-white text-[13px] outline-none min-h-[80px] resize-y"
                     placeholder="Escribe un saludo para tus jugadores..."
                 />
             </div>
 
             {/* MURO DE COMENTARIOS */}
-            <div style={{ ...STYLES.fieldGroup, borderTop: '1px solid #334155', paddingTop: '20px' }}>
-                <label style={STYLES.label}><MessageSquare size={14} /> Muro de Comentarios</label>
+            <div className="mb-5 border-t border-[#334155] pt-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Muro de Comentarios</label>
                 {!['lider', 'influencer', 'pro', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
                     <PlanLock featureName="Muro de Comentarios" planNeeded="Líder" />
                 ) : (
@@ -371,8 +278,8 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             </div>
 
             {/* REDES SOCIALES */}
-            <div style={STYLES.fieldGroup}>
-                <label style={STYLES.label}><Share2 size={14} /> Enlaces a Redes Sociales</label>
+            <div className="mb-5">
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
                 {!['influencer', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
                     <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
                 ) : (
@@ -382,20 +289,10 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 )}
             </div>
 
-            {/* SECCIÓN ENTERPRISE - ELIMINADA POR SOLICITUD DE USUARIO */}
-            {/* showEnterpriseFields && (
-                ... Campos de empresa eliminados ...
-            ) */}
-
             <button
                 onClick={handleSubmit}
                 disabled={loading || !!uploadingField}
-                style={{
-                    ...STYLES.button,
-                    opacity: (loading || uploadingField) ? 0.6 : 1,
-                    boxShadow: '0 4px 14px 0 rgba(0, 230, 118, 0.39)',
-                    marginTop: '20px'
-                }}
+                className={`w-full p-3.5 bg-[#00E676] border-none rounded-xl text-[#0F172A] font-bold text-sm cursor-pointer flex items-center justify-center gap-2 mt-5 transition-opacity shadow-[0_4px_14px_0_rgba(0,230,118,0.39)] ${(loading || uploadingField) ? 'opacity-60' : 'opacity-100'}`}
             >
                 {loading ? 'GUARDANDO...' : 'GUARDAR TODA LA CONFIGURACIÓN'}
             </button>

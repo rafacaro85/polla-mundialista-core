@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useState } from 'react';
-import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus } from 'lucide-react';
+import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus, Building2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,9 +36,10 @@ interface League {
 interface LeaguesTableProps {
     onDataUpdated?: () => void;
     filter?: 'ALL' | 'FREE';
+    onCreateEnterprise?: () => void;
 }
 
-export function LeaguesTable({ onDataUpdated, filter = 'ALL' }: LeaguesTableProps) {
+export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise }: LeaguesTableProps) {
     const router = useRouter();
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
@@ -365,12 +364,22 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL' }: LeaguesTableProp
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button
-                    onClick={() => setCreateDialogOpen(true)}
-                    style={STYLES.createBtn}
-                >
-                    <Plus size={18} /> Crear Polla
-                </button>
+                <div className="flex gap-2">
+                    {onCreateEnterprise && (
+                        <button
+                            onClick={onCreateEnterprise}
+                            style={{ ...STYLES.createBtn, backgroundColor: '#6366F1', color: 'white' }}
+                        >
+                            <Building2 size={18} /> Crear Corporativa
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setCreateDialogOpen(true)}
+                        style={STYLES.createBtn}
+                    >
+                        <Plus size={18} /> Crear Polla
+                    </button>
+                </div>
             </div>
 
             {/* LISTA DE LIGAS */}

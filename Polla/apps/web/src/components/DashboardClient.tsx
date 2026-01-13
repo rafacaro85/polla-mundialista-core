@@ -25,6 +25,13 @@ import { SocialFixture } from '@/modules/social-league/components/SocialFixture'
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { toast } from 'sonner';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
+import { PendingInviteBanner } from '@/components/dashboard/PendingInviteBanner';
+import { PaymentLockOverlay } from '@/components/dashboard/PaymentLockOverlay';
+import PaymentStatusCard from '@/components/dashboard/PaymentStatusCard';
+import { EnterpriseRankingTable } from '@/modules/enterprise-league/components/EnterpriseRankingTable';
+
+import { useMatches } from '@/hooks/useMatches';
+import { useCurrentLeague } from '@/hooks/useCurrentLeague';
 
 interface Match {
   id: string;
@@ -65,30 +72,50 @@ interface DashboardClientProps {
   initialTab?: 'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro';
 }
 
+const getPlanLevel = (type?: string) => {
+  if (!type) return 1;
+  const t = type.toUpperCase();
+  if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
+  if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
+  if (t.includes('BUSINESS_CORP')) return 4;
+  if (t.includes('GOLD') || t.includes('ORO')) return 3;
+  if (t.includes('SILVER') || t.includes('PLATA')) return 2;
+  if (t.includes('BUSINESS_GROWTH')) return 2;
+  return 1;
+};
+
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
+
+  // ... (other imports)
+
+  // Inside DashboardClient component:
+
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
-  const [loadingMatches, setLoadingMatches] = useState(true);
   const [simulatorPhase, setSimulatorPhase] = useState<'groups' | 'knockout'>('groups');
 
-  // Estado inicial del tab
   const [activeTab, setActiveTab] = useState<'home' | 'game' | 'leagues' | 'ranking' | 'bracket' | 'bonus' | 'muro'>(
     props.initialTab || 'home'
   );
-
-
-  // Estado para el sub-tab de ligas
   const [leaguesTab, setLeaguesTab] = useState<'social' | 'enterprise'>('social');
-
-
-  const [currentLeague, setCurrentLeague] = useState<any>(null);
-  const [participants, setParticipants] = useState<any[]>([]); // Para el Home
-
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Inicialización desde Props
+  // Custom Hooks
+  const { currentLeague, participants, isEnterpriseMode, isWallEnabled } = useCurrentLeague(selectedLeagueId, activeTab);
+  const { matches, matchesData, loading: isLoadingMatchesSWR, isRefreshing, handleManualRefresh } = useMatches(predictions);
+
+  // Data Fetching
+  const { data: latestTransaction } = useSWR(user ? '/transactions/my-latest?scope=account' : null, async (url) => {
+    try {
+      const res = await api.get(url);
+      return res.data;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Initialization Effects
   useEffect(() => {
     if (props.defaultLeagueId) {
       setSelectedLeague(props.defaultLeagueId);
@@ -100,89 +127,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     }
   }, [props.defaultLeagueId, props.initialTab, setSelectedLeague]);
 
-  // Fetch Participantes para Home
-  useEffect(() => {
-    const fetchParticipants = async () => {
-      if (activeTab === 'home' && selectedLeagueId && selectedLeagueId !== 'global') {
-        try {
-          const { data } = await api.get(`/leagues/${selectedLeagueId}/ranking`);
-          const mapped = Array.isArray(data) ? data.map((item: any, index: number) => ({
-            id: item.id || item.user?.id,
-            nickname: item.nickname || item.user?.nickname || 'Anónimo',
-            avatarUrl: item.avatarUrl || item.user?.avatarUrl,
-            points: item.totalPoints !== undefined ? item.totalPoints : item.points,
-            rank: index + 1
-          })) : [];
-          setParticipants(mapped);
-        } catch (error) {
-          console.error("Error fetching participants for home", error);
-        }
-      }
-    };
-    fetchParticipants();
-  }, [activeTab, selectedLeagueId]);
-
-
-  // SWR Fetcher
-  const fetcher = (url: string) => api.get(url).then(res => res.data);
-
-  // SWR Hooks
-  const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR('/matches/live', fetcher, {
-    refreshInterval: 60000, // 1 minuto
-    revalidateOnFocus: true,
-    revalidateIfStale: false, // Optimización solicitada
-  });
-
-  // Calculate Merged Matches for Bracket/Home
-  const matches = useMemo(() => {
-    if (!matchesData) return [];
-    return matchesData.map((m: any) => {
-      const date = new Date(m.date);
-      const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-      const month = monthNames[date.getMonth()];
-      const day = date.getDate();
-      const dateStr = `${month} ${day}`;
-      const displayDate = dateStr;
-
-      const pred = predictions[m.id];
-
-
-
-      return {
-        ...m,
-        dateStr,
-        displayDate,
-        homeTeam: m.homeTeam,
-        awayTeam: m.awayTeam,
-        homeFlag: m.homeFlag || getTeamFlagUrl(m.homeTeam || m.homeTeamPlaceholder),
-        awayFlag: m.awayFlag || getTeamFlagUrl(m.awayTeam || m.awayTeamPlaceholder),
-        status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
-        scoreH: m.homeScore,
-        scoreA: m.awayScore,
-        prediction: pred ? {
-          homeScore: pred.homeScore,
-          awayScore: pred.awayScore,
-          isJoker: pred.isJoker,
-          points: pred.points || 0
-        } : undefined,
-        userH: pred?.homeScore?.toString() || '',
-        userA: pred?.awayScore?.toString() || '',
-        points: pred?.points || 0
-      };
-    });
-  }, [matchesData, predictions]);
-
-  const handleManualRefresh = async () => {
-    setIsRefreshing(true);
-    // Truco UX: Animación mínima de 2 segundos
-    const minWait = new Promise(resolve => setTimeout(resolve, 2000));
-    const refreshPromise = mutateMatches();
-    await Promise.all([minWait, refreshPromise]);
-    setIsRefreshing(false);
-    toast.success('Marcadores actualizados');
-  };
-
+  // Invite Logic
   useEffect(() => {
     const getCookie = (name: string) => {
       const value = `; ${document.cookie}`;
@@ -212,30 +157,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     setPendingInvite(null);
   };
 
-  useEffect(() => {
-    const fetchCurrentLeague = async () => {
-      if (selectedLeagueId && selectedLeagueId !== 'global') {
-        try {
-          const { data } = await api.get(`/leagues/${selectedLeagueId}/metadata`);
-          console.log('🔍 [DashboardClient] League Metadata Received:', data.league);
-          console.log('   -> isPaid:', data.league?.isPaid);
-          console.log('   -> isPaid type:', typeof data.league?.isPaid);
-          setCurrentLeague(data.league);
-        } catch (error) {
-          console.error('Error fetching league metadata', error);
-          setCurrentLeague(null);
-        }
-      } else {
-        setCurrentLeague(null);
-      }
-    };
-    fetchCurrentLeague();
-  }, [selectedLeagueId]);
-
-  const isEnterpriseMode = currentLeague && (currentLeague.type === 'COMPANY' || currentLeague.isEnterprise);
-  const isWallEnabled = currentLeague && ['lider', 'influencer', 'pro', 'elite', 'legend'].includes((currentLeague.packageType || '').toLowerCase());
-
-  // Redirigir si está en el muro y no está habilitado
+  // Tab Guard Effect
   useEffect(() => {
     if (activeTab === 'muro' && (selectedLeagueId === 'global' || !isWallEnabled)) {
       setActiveTab('home');
@@ -267,53 +189,47 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
         )}
 
         {pendingInvite && (
-          <div className="bg-indigo-600 text-white p-4 mx-4 mt-4 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 z-50 relative">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <PlusIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-bold">Tienes una invitación pendiente</p>
-                <p className="text-sm text-indigo-100">Código: {pendingInvite}</p>
-              </div>
-            </div>
-            <div className="flex gap-2 w-full md:w-auto">
-              <Button onClick={handleDiscardInvite} variant="ghost" className="flex-1 md:flex-none text-white hover:bg-white/20 hover:text-white">Ignorar</Button>
-              <Button onClick={handleProcessInvite} className="flex-1 md:flex-none bg-white text-indigo-700 hover:bg-slate-100 font-bold">Ver Invitación</Button>
-            </div>
-          </div>
+          <PendingInviteBanner
+            inviteCode={pendingInvite}
+            onDiscard={handleDiscardInvite}
+            onProcess={handleProcessInvite}
+          />
+        )}
+
+        {/* ESTATUS DE PAGO (NUEVO) */}
+        {user && !isEnterpriseMode && currentLeague && !currentLeague.isPaid && (
+          <PaymentStatusCard
+            user={user}
+            pendingTransaction={latestTransaction}
+          />
         )}
 
         {/* BLOQUEO DE PAGO PENDIENTE (Payment Lock) */}
-        {currentLeague && currentLeague.isPaid === false && !currentLeague.isEnterprise && !currentLeague.isEnterpriseActive && selectedLeagueId !== 'global' && (
-          <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
-            <div className="mb-6 p-6 bg-yellow-500/10 rounded-full border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
-              <Shield size={64} className="text-yellow-500" />
-            </div>
-            <h1 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Activación Pendiente</h1>
-            <p className="text-slate-400 max-w-xs mb-8 leading-relaxed text-sm">
-              La polla <strong className="text-white">{currentLeague.name}</strong> requiere validación del pago para ser activada.
-            </p>
+        {currentLeague && currentLeague.isPaid === false && !currentLeague.isEnterpriseActive && selectedLeagueId !== 'global' && (
+          <PaymentLockOverlay
+            leagueName={currentLeague.name}
+            leagueId={currentLeague.id}
+            amount={
+              // Map packageType to price
+              (() => {
+                const type = currentLeague.packageType?.toLowerCase();
+                // Social Plans
+                if (type === 'parche' || type === 'amateur') return 30000;
+                if (type === 'amigos' || type === 'semi-pro') return 80000;
+                if (type === 'lider' || type === 'pro') return 180000;
+                if (type === 'influencer' || type === 'elite') return 350000;
 
-            <div className="bg-[#1E293B] p-6 rounded-2xl border border-white/10 max-w-sm w-full mb-8 text-left shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-bl-full"></div>
-              <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-sm">👇 Pasos para activar:</h3>
-              <ol className="list-decimal list-inside space-y-3 text-slate-300 text-xs">
-                <li className="pl-2">Realiza el pago de tu plan.</li>
-                <li className="pl-2">Envía el comprobante a soporte.</li>
-                <li className="pl-2">Tu liga será activada en breve.</li>
-              </ol>
-            </div>
+                // Enterprise Plans
+                if (type === 'enterprise_bronze' || type === 'bronze') return 100000;
+                if (type === 'enterprise_silver' || type === 'silver') return 175000;
+                if (type === 'enterprise_gold' || type === 'gold') return 450000;
+                if (type === 'enterprise_platinum' || type === 'platinum') return 750000;
+                if (type === 'enterprise_diamond' || type === 'diamond') return 1000000;
 
-            <div className="flex gap-4">
-              <Button onClick={() => window.location.href = `https://wa.me/573105973421?text=Hola,%20adjunto%20pago%20para%20activar%20liga%20${currentLeague.name}`} className="bg-green-500 hover:bg-green-600 text-white font-bold">
-                Enviar Comprobante
-              </Button>
-              <Button onClick={() => window.location.reload()} variant="outline" className="border-slate-600 text-slate-400 hover:text-white">
-                Recargar
-              </Button>
-            </div>
-          </div>
+                return 50000; // Default fallback
+              })()
+            }
+          />
         )}
 
         <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
@@ -334,6 +250,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                   league={currentLeague}
                   participants={participants}
                   onTabChange={setActiveTab}
+                  onNavigateToLeagues={() => { setLeaguesTab('social'); setActiveTab('leagues'); }}
+                  onNavigateToBusiness={() => { setLeaguesTab('enterprise'); setActiveTab('leagues'); }}
                 />
               )}
             </div>
@@ -347,6 +265,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               {selectedLeagueId === 'global' ? (
                 <GlobalRankingTable />
+              ) : isEnterpriseMode ? (
+                <EnterpriseRankingTable
+                  leagueId={selectedLeagueId}
+                  enableDepartmentWar={currentLeague?.enableDepartmentWar && getPlanLevel(currentLeague?.packageType) >= 4}
+                />
               ) : (
                 <SocialRankingTable leagueId={selectedLeagueId} />
               )}
@@ -435,7 +358,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
-            showMuroTab={!!isWallEnabled}
+            showMuroTab={!!(isWallEnabled && (!currentLeague?.isEnterprise || getPlanLevel(currentLeague?.packageType) >= 3))}
           />
         )}
 

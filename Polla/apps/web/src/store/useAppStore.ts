@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
-import { User } from '@/types/types';
 import api from '@/lib/api';
+import { User } from '@/types/types';
 
 /**
  * Estado global de la aplicación

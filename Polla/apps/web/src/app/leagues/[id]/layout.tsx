@@ -37,21 +37,28 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                 // Y si es admin, quizas '/leagues/all'.
                 // PERO... necesitamos los colores. El fix anterior añadió colores a 'leagues/my'.
 
-                const { data: myLeagues } = await api.get('/leagues/my');
-                let found = myLeagues.find((l: any) => l.id === params.id);
+                let foundLeague = null;
 
-                // Fallback for Admins exploring content that is not "theirs" in participation context?
-                // If not found in myLeagues, try allLeagues if user is likely an admin.
-                if (!found) {
-                    // Check if user is Super Admin? 
-                    // For now assume standard flow.
+                // 1. Try "My Leagues" (Standard cache/list)
+                try {
+                    const { data: myLeagues } = await api.get('/leagues/my');
+                    foundLeague = myLeagues.find((l: any) => l.id === params.id);
+                } catch (e) { console.warn("Could not fetch my leagues", e); }
+
+                // 2. If not found (e.g. SuperAdmin viewing another's league), try direct fetch
+                if (!foundLeague) {
+                    try {
+                        const { data } = await api.get(`/leagues/${params.id}`);
+                        foundLeague = data;
+                    } catch (e) {
+                        console.error("Direct fetch failed", e);
+                    }
                 }
 
-                if (found) {
-                    setLeague(found);
+                if (foundLeague) {
+                    setLeague(foundLeague);
                 } else {
                     console.error("Liga no encontrada o no tienes acceso.");
-                    // router.push('/dashboard'); // Optional redirect
                 }
 
             } catch (error) {

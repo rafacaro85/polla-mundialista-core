@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, IsNull } from 'typeorm';
 import { Transaction } from '../database/entities/transaction.entity';
 import { User } from '../database/entities/user.entity';
 import { League } from '../database/entities/league.entity';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
+import { LeagueType } from '../database/enums/league-type.enum';
 
 @Injectable()
 export class TransactionsService {
@@ -13,6 +14,8 @@ export class TransactionsService {
         private transactionsRepository: Repository<Transaction>,
         @InjectRepository(League)
         private leaguesRepository: Repository<League>,
+        @InjectRepository(User)
+        private usersRepository: Repository<User>,
         private dataSource: DataSource,
     ) { }
 
@@ -40,18 +43,43 @@ export class TransactionsService {
         return this.transactionsRepository.save(transaction);
     }
 
-    async approveTransaction(id: string): Promise<Transaction> {
+    async uploadTransaction(
+        user: User,
+        imageUrl: string,
+        amount: number = 50000,
+        referenceCode?: string,
+        leagueId?: string
+    ): Promise<Transaction> {
+        let league: League | undefined = undefined;
+        if (leagueId) {
+            league = await this.leaguesRepository.findOne({ where: { id: leagueId } }) || undefined;
+        }
+
+        const transaction = this.transactionsRepository.create({
+            user,
+            amount,
+            imageUrl,
+            league, // Attach league if found
+            packageId: league?.packageType,
+            status: TransactionStatus.PENDING,
+            referenceCode: referenceCode || `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        });
+
+        return this.transactionsRepository.save(transaction);
+    }
+
+    async updateStatus(id: string, status: TransactionStatus, adminNotes?: string): Promise<Transaction> {
         const transaction = await this.transactionsRepository.findOne({
             where: { id },
-            relations: ['league'],
+            relations: ['user', 'league'],
         });
 
         if (!transaction) {
             throw new NotFoundException('Transacción no encontrada');
         }
 
-        if (transaction.status === TransactionStatus.PAID) {
-            return transaction; // Already approved
+        if (transaction.status === status) {
+            return transaction;
         }
 
         // Transactional operation
@@ -60,41 +88,42 @@ export class TransactionsService {
         await queryRunner.startTransaction();
 
         try {
-            // 1. Update Transaction Status
-            transaction.status = TransactionStatus.PAID;
+            transaction.status = status;
+            if (adminNotes) {
+                transaction.adminNotes = adminNotes;
+            }
             await queryRunner.manager.save(transaction);
 
-            // 2. Update League Limits
-            if (transaction.league) {
-                const league = transaction.league;
-                let maxParticipants = 3; // Default
+            // Handle User Activation (Account Payment)
+            if (status === TransactionStatus.APPROVED && transaction.user && !transaction.league) {
+                transaction.user.hasPaid = true;
+                transaction.user.isVerified = true;
+                await queryRunner.manager.save(transaction.user);
+            }
 
-                switch (transaction.packageId) { // packageId holds the package type string
-                    case 'starter': // Bronce
-                        maxParticipants = 3;
-                        break;
-                    case 'amateur': // Plata
-                        maxParticipants = 15;
-                        break;
-                    case 'semi-pro': // Oro
-                        maxParticipants = 35;
-                        break;
-                    case 'pro': // Platino
-                        maxParticipants = 60;
-                        break;
-                    case 'elite': // Diamante
-                        maxParticipants = 150;
-                        break;
-                    case 'legend': // Esmeralda
-                        maxParticipants = 300;
-                        break;
-                    default:
-                        maxParticipants = league.maxParticipants; // Keep existing if unknown
+            // Handle League Activation (if transaction is linked to a league)
+            if ((status === TransactionStatus.APPROVED || status === TransactionStatus.PAID) && transaction.league) {
+                const league = transaction.league;
+                let maxParticipants = league.maxParticipants;
+
+                if (transaction.packageId) {
+                    switch (transaction.packageId) {
+                        case 'semi-pro': maxParticipants = 35; break;
+                        case 'pro': maxParticipants = 60; break;
+                        case 'elite': maxParticipants = 150; break;
+                        case 'legend': maxParticipants = 300; break;
+                        default: maxParticipants = league.maxParticipants;
+                    }
                 }
 
                 league.maxParticipants = maxParticipants;
                 league.packageType = transaction.packageId || 'starter';
                 league.isPaid = true;
+
+                // Auto-activate Enterprise Mode if applicable
+                if (league.type === LeagueType.COMPANY || league.isEnterprise) {
+                    league.isEnterpriseActive = true;
+                }
 
                 await queryRunner.manager.save(league);
             }
@@ -110,6 +139,12 @@ export class TransactionsService {
         }
     }
 
+    // Keep existing approveTransaction for backward compatibility if needed, or deprecate.
+    // The existing controller uses approveTransaction. I'll redirect it to updateStatus(PAID) for now.
+    async approveTransaction(id: string): Promise<Transaction> {
+        return this.updateStatus(id, TransactionStatus.PAID);
+    }
+
     async findOne(id: string): Promise<Transaction | null> {
         return this.transactionsRepository.findOne({
             where: { id },
@@ -121,7 +156,42 @@ export class TransactionsService {
         return this.transactionsRepository.findOne({
             where: { league: { id: leagueId } },
             relations: ['user', 'league'],
-            order: { createdAt: 'DESC' }, // Get the latest one if multiple exist
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async findByUserId(userId: string): Promise<Transaction | null> {
+        return this.transactionsRepository.findOne({
+            where: { user: { id: userId } },
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async findLatestAccountTransaction(userId: string): Promise<Transaction | null> {
+        return this.transactionsRepository.findOne({
+            where: {
+                user: { id: userId },
+                league: IsNull()
+            },
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async findLatestLeagueTransaction(userId: string, leagueId: string): Promise<Transaction | null> {
+        return this.transactionsRepository.findOne({
+            where: {
+                user: { id: userId },
+                league: { id: leagueId }
+            },
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async findPending(): Promise<Transaction[]> {
+        return this.transactionsRepository.find({
+            where: { status: TransactionStatus.PENDING },
+            relations: ['user', 'league'],
+            order: { createdAt: 'ASC' },
         });
     }
 

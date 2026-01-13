@@ -5,6 +5,7 @@ import {
     ManyToOne,
     JoinColumn,
     CreateDateColumn,
+    Index,
 } from 'typeorm';
 import { User } from './user.entity';
 import { League } from './league.entity';
@@ -15,9 +16,16 @@ export class Transaction {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 50000 })
     amount: number;
 
+    @Column({ name: 'image_url', nullable: true })
+    imageUrl: string;
+
+    @Column({ name: 'admin_notes', nullable: true })
+    adminNotes: string;
+
+    @Index()
     @Column({
         type: 'enum',
         enum: TransactionStatus,

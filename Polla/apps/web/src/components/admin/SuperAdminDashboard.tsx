@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import Link from 'next/link';
 import {
     Users, Trophy, Banknote, TrendingUp, ShieldAlert,
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
-    Building2, Rocket, Gift, Calendar, Filter
+    Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
@@ -193,9 +195,12 @@ const STYLES = {
 };
 export default function SuperAdminDashboard() {
 
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, users, transactions
     const [loading, setLoading] = useState(true);
     const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+    const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, PENDING, PAID
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Real Data State
     const [stats, setStats] = useState({
@@ -210,12 +215,21 @@ export default function SuperAdminDashboard() {
     const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
 
     useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab) setActiveTab(tab);
+    }, [searchParams]);
+
+    useEffect(() => {
         loadDashboardData();
+        const interval = setInterval(() => {
+            loadDashboardData(true);
+        }, 10000); // 10 seconds refresh
+        return () => clearInterval(interval);
     }, []);
 
-    const loadDashboardData = async () => {
+    const loadDashboardData = async (isBackground = false) => {
         try {
-            setLoading(true);
+            if (!isBackground) setLoading(true);
             const [dashboardData, settingsData] = await Promise.all([
                 superAdminService.getDashboardStats(),
                 superAdminService.getSettings()
@@ -225,7 +239,7 @@ export default function SuperAdminDashboard() {
         } catch (error) {
             console.error("Error loading dashboard data:", error);
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
     };
 
@@ -323,7 +337,7 @@ export default function SuperAdminDashboard() {
                     { id: 'matches', label: 'Partidos', icon: <Shield size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },
-                    { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
+                    // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
                     { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> }
                 ].map(tab => (
                     <button
@@ -409,33 +423,7 @@ export default function SuperAdminDashboard() {
             }
 
             {/* H. PESTAÑA EMPRESAS (NUEVO) */}
-            {activeTab === 'enterprise' && (
-                <div className="animate-in fade-in duration-500">
-                    <div className="bg-[#1E293B] rounded-xl p-8 border border-indigo-500/30 flex flex-col items-center text-center max-w-2xl mx-auto mb-8 shadow-2xl shadow-indigo-500/10">
-                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30">
-                            <Building2 size={32} className="text-white" />
-                        </div>
-                        <h2 className="text-xl font-bold text-white mb-2">Gestión Corporativa (B2B)</h2>
-                        <p className="text-slate-400 text-sm mb-6 max-w-md">
-                            Herramienta para dar de alta clientes empresariales manualmente.
-                            Crea la liga, asigna el plan y omite la pasarela de pagos.
-                        </p>
-                        <button
-                            onClick={() => setShowEnterpriseModal(true)}
-                            className="group bg-white hover:bg-slate-50 text-indigo-900 font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-white/10 flex items-center gap-3 transform hover:scale-105 active:scale-95"
-                        >
-                            <Rocket size={20} className="text-indigo-600 group-hover:animate-bounce" />
-                            Alta Rápida de Empresa
-                        </button>
-                    </div>
 
-                    <div className="mb-4 flex items-center gap-2 px-2">
-                        <Trophy size={16} className="text-indigo-400" />
-                        <h3 className="text-sm font-bold text-slate-300 uppercase">Últimas Ligas Creadas</h3>
-                    </div>
-                    <LeaguesTable onDataUpdated={loadDashboardData} />
-                </div>
-            )}
 
             {showEnterpriseModal && (
                 <CreateEnterpriseLeagueForm
@@ -451,7 +439,7 @@ export default function SuperAdminDashboard() {
             {activeTab === 'users' && <UsersTable />}
 
             {/* E. PESTAÑA LIGAS - REEMPLAZADO POR LeaguesTable */}
-            {activeTab === 'leagues' && <LeaguesTable onDataUpdated={loadDashboardData} />}
+            {activeTab === 'leagues' && <LeaguesTable onDataUpdated={loadDashboardData} onCreateEnterprise={() => setShowEnterpriseModal(true)} />}
 
             {/* F. PESTAÑA PARTIDOS - NUEVO COMPONENTE */}
             {activeTab === 'matches' && <MatchesList />}
@@ -461,11 +449,30 @@ export default function SuperAdminDashboard() {
                 activeTab === 'transactions' && (
                     <div className="space-y-4">
                         {/* 1. BARRA DE FILTROS */}
+
                         <div className="bg-[#1E293B] border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
                             <div className="flex items-center gap-2 text-white font-bold uppercase text-xs">
                                 <Filter size={16} className="text-[#00E676]" /> Historial de Ventas
+                                <Link href="/admin/transactions" className="ml-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/50 px-3 py-1 rounded-lg hover:bg-emerald-500 hover:text-slate-900 transition-colors flex items-center gap-2">
+                                    <ShieldAlert size={12} />
+                                    Verificar Comprobantes (Fotos)
+                                </Link>
                             </div>
-                            <div className="flex gap-3 items-end w-full md:w-auto">
+                            <div className="flex gap-3 items-end w-full md:w-auto flex-wrap">
+                                <div className="flex flex-col gap-1 flex-1 min-w-[120px]">
+                                    <label className="text-[10px] text-slate-400 font-bold uppercase ml-1">Estado</label>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                        className="bg-[#0F172A] border border-slate-700 rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-[#00E676] w-full transition-all appearance-none"
+                                    >
+                                        <option value="ALL">TODOS</option>
+                                        <option value="PENDING">PENDIENTES</option>
+                                        <option value="PAID">PAGADOS</option>
+                                        <option value="REJECTED">RECHAZADOS</option>
+                                    </select>
+                                </div>
+
                                 <div className="flex flex-col gap-1 flex-1">
                                     <label className="text-[10px] text-slate-400 font-bold uppercase ml-1">Desde</label>
                                     <div className="relative">
@@ -490,9 +497,12 @@ export default function SuperAdminDashboard() {
                                         />
                                     </div>
                                 </div>
-                                {(dateFilter.start || dateFilter.end) && (
+                                {(dateFilter.start || dateFilter.end || statusFilter !== 'ALL') && (
                                     <button
-                                        onClick={() => setDateFilter({ start: '', end: '' })}
+                                        onClick={() => {
+                                            setDateFilter({ start: '', end: '' });
+                                            setStatusFilter('ALL');
+                                        }}
                                         className="h-[34px] px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors border border-slate-700"
                                     >
                                         Limpiar
@@ -510,6 +520,13 @@ export default function SuperAdminDashboard() {
                             <p className="text-4xl font-russo text-[#00E676] z-10 drop-shadow-lg">
                                 {formatCurrency(stats.recentTransactions
                                     .filter((tx: any) => {
+                                        if (statusFilter !== 'ALL' && tx.status !== statusFilter) {
+                                            if (statusFilter === 'PAID' && (tx.status === 'APPROVED' || tx.status === 'PAID')) {
+                                                // Allow APPROVED as PAID
+                                            } else {
+                                                return false;
+                                            }
+                                        }
                                         if (!dateFilter.start && !dateFilter.end) return true;
                                         const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
                                         if (dateFilter.start && txDate < dateFilter.start) return false;
@@ -524,6 +541,13 @@ export default function SuperAdminDashboard() {
                         {/* LISTA FILTRADA */}
                         <div>
                             {stats.recentTransactions.filter((tx: any) => {
+                                if (statusFilter !== 'ALL' && tx.status !== statusFilter) {
+                                    if (statusFilter === 'PAID' && (tx.status === 'APPROVED' || tx.status === 'PAID')) {
+                                        // Allow
+                                    } else {
+                                        return false;
+                                    }
+                                }
                                 if (!dateFilter.start && !dateFilter.end) return true;
                                 const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
                                 if (dateFilter.start && txDate < dateFilter.start) return false;
@@ -532,9 +556,9 @@ export default function SuperAdminDashboard() {
                             }).length === 0 ? (
                                 <div style={{ textAlign: 'center', color: '#64748B', padding: '40px', border: '1px dashed #334155', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <Banknote size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
-                                    <p>No hay ventas registradas en este periodo.</p>
+                                    <p>No hay ventas registradas con estos filtros.</p>
                                     <button
-                                        onClick={loadDashboardData}
+                                        onClick={() => loadDashboardData(false)}
                                         style={{ marginTop: '16px', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px' }}
                                     >
                                         Refrescar Datos
@@ -543,6 +567,13 @@ export default function SuperAdminDashboard() {
                             ) : (
                                 stats.recentTransactions
                                     .filter((tx: any) => {
+                                        if (statusFilter !== 'ALL' && tx.status !== statusFilter) {
+                                            if (statusFilter === 'PAID' && (tx.status === 'APPROVED' || tx.status === 'PAID')) {
+                                                // Allow
+                                            } else {
+                                                return false;
+                                            }
+                                        }
                                         if (!dateFilter.start && !dateFilter.end) return true;
                                         const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
                                         if (dateFilter.start && txDate < dateFilter.start) return false;
@@ -554,6 +585,7 @@ export default function SuperAdminDashboard() {
                                         if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
                                         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                                     })
+                                    .slice(0, 50) // Limit to 50 for performance
                                     .map((tx: any) => (
                                         <div key={tx.id} style={{
                                             ...STYLES.txCard,
@@ -569,9 +601,31 @@ export default function SuperAdminDashboard() {
                                                         <span style={{
                                                             ...STYLES.planBadge,
                                                             backgroundColor: 'rgba(250, 204, 21, 0.1)', // Default gold for now
-                                                            color: '#FACC15'
+                                                            color: '#FACC15',
+                                                            textTransform: 'uppercase'
                                                         }}>
-                                                            {tx.packageId || 'PLAN'}
+                                                            {(() => {
+                                                                const raw = tx.packageType || tx.packageId || tx.league?.packageType || '';
+                                                                const upper = raw.toString().toUpperCase();
+                                                                const map: Record<string, string> = {
+                                                                    'BUSINESS_STARTER': 'EMPRENDEDOR (LEGACY)',
+                                                                    'BUSINESS_PRO': 'EMPRESARIAL (LEGACY)',
+                                                                    'ENTERPRISE_BRONZE': 'BRONCE',
+                                                                    'ENTERPRISE_SILVER': 'PLATA',
+                                                                    'ENTERPRISE_GOLD': 'ORO',
+                                                                    'ENTERPRISE_PLATINUM': 'PLATINO',
+                                                                    'ENTERPRISE_DIAMOND': 'DIAMANTE',
+                                                                    'STARTER': 'PARCHE',
+                                                                    'AMATEUR': 'PARCHE',
+                                                                    'AMIGOS': 'AMIGOS',
+                                                                    'SEMI-PRO': 'AMIGOS',
+                                                                    'PRO': 'LIDER',
+                                                                    'LIDER': 'LIDER',
+                                                                    'ELITE': 'INFLUENCER',
+                                                                    'INFLUENCER': 'INFLUENCER'
+                                                                };
+                                                                return `PLAN: ${map[upper] || upper}`;
+                                                            })()}
                                                         </span>
                                                     </span>
                                                     <span style={STYLES.txDate}>{new Date(tx.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</span>
@@ -627,6 +681,19 @@ export default function SuperAdminDashboard() {
                                                     </button>
                                                 )}
 
+
+
+                                                {tx.imageUrl && (
+                                                    <button
+                                                        onClick={() => setSelectedImage(tx.imageUrl)}
+                                                        style={{ ...STYLES.voucherBtn, color: 'white', borderColor: '#334155', backgroundColor: '#334155' }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#475569'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#334155'; }}
+                                                    >
+                                                        <ImageIcon size={14} /> Ver Foto
+                                                    </button>
+                                                )}
+
                                                 <button
                                                     style={STYLES.voucherBtn}
                                                     onClick={() => handleDownloadVoucher(tx.id)}
@@ -636,7 +703,6 @@ export default function SuperAdminDashboard() {
                                                     <Download size={14} /> Voucher
                                                 </button>
                                             </div>
-
                                         </div>
                                     ))
                             )}
@@ -699,6 +765,29 @@ export default function SuperAdminDashboard() {
                     </div>
                 )
             }
+            {/* Image Modal for Transactions */}
+            {selectedImage && (
+                <div
+                    style={{
+                        position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(4px)', padding: '20px'
+                    }}
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <button
+                        style={{ position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        <X size={32} />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Comprobante"
+                        style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     );
 }

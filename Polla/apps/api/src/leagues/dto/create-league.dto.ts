@@ -63,4 +63,12 @@ export class CreateLeagueDto {
   @IsString()
   @IsOptional()
   adminPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  adminEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  adminPassword?: string;
 }

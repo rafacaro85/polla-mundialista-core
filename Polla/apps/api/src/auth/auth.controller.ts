@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, ForgotPasswordDto, VerifyEmailDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import type { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -33,12 +34,14 @@ export class AuthController {
   }
 
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async register(@Body() body: RegisterDto) {
     return this.authService.register(body);
   }
 
   @Post('login')
   @UseGuards(AuthGuard('local'))
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async login(@Body() loginDto: LoginDto, @Req() req: { user: User }) {
     // El AuthGuard('local') ya validó las credenciales usando LocalStrategy
     // y puso el usuario en req.user.

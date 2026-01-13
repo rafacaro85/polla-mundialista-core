@@ -8,11 +8,13 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 
 import { BracketsModule } from '../brackets/brackets.module';
 import { UserBracket } from '../database/entities/user-bracket.entity';
+import { MatchesModule } from '../matches/matches.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Prediction, Match, LeagueParticipant, UserBracket]),
-        BracketsModule
+        BracketsModule,
+        MatchesModule
     ],
     controllers: [PredictionsController],
     providers: [PredictionsService],

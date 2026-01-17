@@ -153,4 +153,17 @@ export class MatchesController {
         return this.matchesService.seedRound32();
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('repair-tournament')
+    async repairTournament() {
+        return this.matchesService.ensureTournamentIntegrity();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Post('fix-empty-teams')
+    async fixEmptyTeams() {
+        return this.matchesService.fixEmptyTeamFields();
+    }
 }

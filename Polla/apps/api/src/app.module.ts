@@ -80,8 +80,8 @@ import { APP_GUARD } from '@nestjs/core';
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
+      ttl: 60000, // 60 seconds
+      limit: 300, // Increased from 100 to support bulk predictions
     }]),
     AuthModule,
     ScoringModule,

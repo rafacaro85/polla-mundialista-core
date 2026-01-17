@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Save, RefreshCw, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { TournamentPodium } from './TournamentPodium';
 
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
@@ -164,8 +165,12 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
         // 1. Si el partido ya tiene equipos reales en la DB, los usamos
-        if (side === 'home' && match.homeTeam && match.homeTeam !== 'LOC' && match.homeTeam !== 'TBD') return match.homeTeam;
-        if (side === 'away' && match.awayTeam && match.awayTeam !== 'VIS' && match.awayTeam !== 'TBD') return match.awayTeam;
+        const team = side === 'home' ? match.homeTeam : match.awayTeam;
+        
+        // Check if team is valid (not empty, not placeholder values)
+        if (team && team.trim() !== '' && team !== 'LOC' && team !== 'VIS' && team !== 'TBD') {
+            return team;
+        }
 
         // 2. Si no, buscamos el ganador del partido previo en nuestro bracket local
         // Buscamos partidos que apunten a este match
@@ -430,6 +435,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
 
                 </div>
             </div>
+
+            {/* PODIUM - Shows when Final and 3rd Place are completed */}
+            <TournamentPodium matches={matches} />
         </div>
     );
 };

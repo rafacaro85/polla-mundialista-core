@@ -70,29 +70,29 @@ export function PhaseProgressDashboard({ onPhaseClick }: PhaseProgressDashboardP
             {/* Header - Always Visible - Clickable */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                className="w-full p-2 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-signal/10 rounded-lg flex items-center justify-center">
-                        <Trophy className="w-5 h-5 text-signal" />
+                    <div className="w-8 h-8 bg-signal/10 rounded-lg flex items-center justify-center">
+                        <Trophy className="w-4 h-4 text-signal" />
                     </div>
                     <div className="text-left">
-                        <h3 className="text-lg font-bold text-white">Progreso del Torneo</h3>
-                        <p className="text-xs text-gray-400">
+                        <h3 className="text-base font-bold text-white">Progreso del Torneo</h3>
+                        <p className="text-[10px] text-gray-400">
                             {completedCount} completada{completedCount !== 1 ? 's' : ''} • {unlockedCount} desbloqueada{unlockedCount !== 1 ? 's' : ''}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {nextPhaseInfo && !nextPhaseInfo.isComplete && nextPhaseInfo.remainingMatches > 0 && (
-                        <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded">
+                        <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-1 rounded">
                             {nextPhaseInfo.remainingMatches} pendientes
                         </span>
                     )}
                     {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
                     )}
                 </div>
             </button>

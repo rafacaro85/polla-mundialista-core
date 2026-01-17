@@ -84,6 +84,10 @@ export class MatchesService {
         return this.matchesRepository.save(newMatch);
     }
 
+    async findOne(id: string): Promise<Match | null> {
+        return this.matchesRepository.findOne({ where: { id } });
+    }
+
     async finishMatch(matchId: string, homeScore: number, awayScore: number): Promise<Match> {
         const match = await this.matchesRepository.findOne({
             where: { id: matchId },
@@ -302,20 +306,29 @@ export class MatchesService {
         ];
 
         const r32 = [];
-        let r32Date = new Date(DATES.R32_START);
+        // Cronograma Oficial Dieciseisavos 2026:
+        // Junio 28: 1 Partido (Partido 73)
+        // Junio 29: 3 Partidos (Partidos 74-76)
+        // Junio 30: 3 Partidos (Partidos 77-79)
+        // Julio 1: 3 Partidos (Partidos 80-82)
+        // Julio 2: 3 Partidos (Partidos 83-85)
+        // Julio 3: 3 Partidos (Partidos 86-88)
+
+        const r32Dates = [
+            '2026-06-28T16:00:00Z', // M73
+            '2026-06-29T16:00:00Z', '2026-06-29T19:00:00Z', '2026-06-29T22:00:00Z', // M74-76
+            '2026-06-30T16:00:00Z', '2026-06-30T19:00:00Z', '2026-06-30T22:00:00Z', // M77-79
+            '2026-07-01T16:00:00Z', '2026-07-01T19:00:00Z', '2026-07-01T22:00:00Z', // M80-82
+            '2026-07-02T16:00:00Z', '2026-07-02T19:00:00Z', '2026-07-02T22:00:00Z', // M83-85
+            '2026-07-03T16:00:00Z', '2026-07-03T19:00:00Z', '2026-07-03T22:00:00Z', // M86-88
+        ];
+
         for (let i = 1; i <= 16; i++) {
             r32.push(this.matchesRepository.create({
                 phase: 'ROUND_32', bracketId: i, status: 'PENDING', homeTeam: '', awayTeam: '',
                 homeTeamPlaceholder: groupMapping[i - 1].h, awayTeamPlaceholder: groupMapping[i - 1].a,
-                date: new Date(r32Date)
+                date: new Date(r32Dates[i - 1])
             }));
-
-            // Increment logic: 3 matches per day for first 4 days, then 2 matches per day
-            if (i % 3 === 0 && i <= 12) {
-                r32Date.setDate(r32Date.getDate() + 1);
-            } else if (i === 12 || i === 14) {
-                r32Date.setDate(r32Date.getDate() + 1);
-            }
         }
         const saved32 = await this.matchesRepository.save(r32);
 
@@ -334,28 +347,28 @@ export class MatchesService {
 
         // 3. QUARTER (4 partidos) - 9, 10, 11 Jul
         const qf = [];
-        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 1, status: 'PENDING', homeTeamPlaceholder: 'W16-1', awayTeamPlaceholder: 'W16-2', date: new Date('2026-07-09T20:00:00Z') }));
-        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 2, status: 'PENDING', homeTeamPlaceholder: 'W16-3', awayTeamPlaceholder: 'W16-4', date: new Date('2026-07-10T20:00:00Z') }));
-        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 3, status: 'PENDING', homeTeamPlaceholder: 'W16-5', awayTeamPlaceholder: 'W16-6', date: new Date('2026-07-11T16:00:00Z') }));
-        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 4, status: 'PENDING', homeTeamPlaceholder: 'W16-7', awayTeamPlaceholder: 'W16-8', date: new Date('2026-07-11T20:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-1', awayTeamPlaceholder: 'W16-2', date: new Date('2026-07-09T20:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 2, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-3', awayTeamPlaceholder: 'W16-4', date: new Date('2026-07-10T20:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 3, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-5', awayTeamPlaceholder: 'W16-6', date: new Date('2026-07-11T16:00:00Z') }));
+        qf.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 4, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-7', awayTeamPlaceholder: 'W16-8', date: new Date('2026-07-11T20:00:00Z') }));
         const savedQF = await this.matchesRepository.save(qf);
 
         // 4. SEMI (2 partidos) - 14 y 15 Jul
         const sf = [];
-        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 1, status: 'PENDING', homeTeamPlaceholder: 'WQF-1', awayTeamPlaceholder: 'WQF-2', date: DATES.SEMI_1 }));
-        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 2, status: 'PENDING', homeTeamPlaceholder: 'WQF-3', awayTeamPlaceholder: 'WQF-4', date: DATES.SEMI_2 }));
+        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'WQF-1', awayTeamPlaceholder: 'WQF-2', date: DATES.SEMI_1 }));
+        sf.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 2, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'WQF-3', awayTeamPlaceholder: 'WQF-4', date: DATES.SEMI_2 }));
         const savedSF = await this.matchesRepository.save(sf);
 
         // 5. FINAL (19 Jul) - bracketId 1
         const f = await this.matchesRepository.save(this.matchesRepository.create({
-            phase: 'FINAL', bracketId: 1, status: 'PENDING', homeTeam: '', awayTeam: '',
+            phase: 'FINAL', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD',
             homeTeamPlaceholder: 'WSF-1', awayTeamPlaceholder: 'WSF-2',
             date: DATES.FINAL
         }));
 
         // 6. 3RD PLACE (18 Jul) - bracketId 1
         const tp = await this.matchesRepository.save(this.matchesRepository.create({
-            phase: '3RD_PLACE', bracketId: 1, status: 'PENDING', homeTeam: '', awayTeam: '',
+            phase: '3RD_PLACE', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD',
             homeTeamPlaceholder: 'LSF-1', awayTeamPlaceholder: 'LSF-2',
             date: DATES.THIRD
         }));
@@ -399,6 +412,32 @@ export class MatchesService {
 
             console.log(`🤖 [SIMULATOR] Iniciando simulación para fase: ${targetPhase}`);
 
+            // NEW: Ensure integrity of tournament structure before anything
+            const integrityCheck = await this.ensureTournamentIntegrity();
+            if (integrityCheck.repaired) {
+                 // If structure was repaired, we must re-sync any pending promotions
+                 console.log('🔄 [SIMULATOR] Integrity repair detected. Re-running promotions to fill new slots...');
+                 await this.tournamentService.promotePhaseWinners('ROUND_16');
+                 await this.tournamentService.promotePhaseWinners('QUARTER');
+                 await this.tournamentService.promotePhaseWinners('SEMI');
+            }
+
+            // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
+            // Esto corrige situaciones donde la fase N está vacía a pesar de que N-1 terminó.
+            if (targetPhase !== 'GROUP') {
+                 const phaseOrder = ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+                 const prevIndex = phaseOrder.indexOf(targetPhase) - 1;
+                 if (prevIndex >= 0) {
+                     const prevPhase = phaseOrder[prevIndex];
+                     console.log(`🚑 [SELF-HEALING] Verificando propagación desde ${prevPhase}...`);
+                     if (prevPhase === 'GROUP') {
+                         await this.tournamentService.promoteAllCompletedGroups();
+                     } else {
+                         await this.tournamentService.promotePhaseWinners(prevPhase);
+                     }
+                 }
+            }
+
             // Obtenemos partidos de esa fase que no estén finalizados
             const matches = await this.matchesRepository.find({
                 where: {
@@ -435,18 +474,49 @@ export class MatchesService {
                         else awayScore++;
                     }
 
-                    await this.updateMatch(match.id, {
+                    const updatedMatch = await this.matchesRepository.save({
+                        ...match,
                         homeScore,
                         awayScore,
                         status: 'FINISHED',
                         isLocked: true
                     });
+                    
+                    // Trigger Points Calculation (Ensure scores are updated)
+                    if (this['scoringService']) {
+                         await this['scoringService'].calculatePointsForMatch(updatedMatch.id);
+                    }
+
+                    // Trigger Promotion (Critical Step Added)
+                    if (targetPhase !== 'GROUP') {
+                         await this.tournamentService.promoteToNextRound(updatedMatch);
+                    }
+
+                    updatedCount++;
+
                     updatedCount++;
 
                     if (updatedCount % 10 === 0) {
                         console.log(`🤖 [SIMULATOR] Progreso: ${updatedCount}/${matches.length} partidos procesados...`);
                     }
                 }
+            }
+
+            // CRITICAL: After simulation loop, check if phase is complete and UNLOCK NEXT PHASE
+            const isPhaseComplete = await this.knockoutPhasesService.areAllMatchesCompleted(targetPhase);
+            if (isPhaseComplete) {
+                console.log(`✅ Phase ${targetPhase} simulation complete. Promoting and Unlocking next phase...`);
+                
+                // 1. If it was GROUP phase, promote all groups to R32
+                if (targetPhase === 'GROUP') {
+                    await this.tournamentService.promoteAllCompletedGroups();
+                } else {
+                    // For Knockout phases, ensure batch promotion runs to catch any missed updates
+                    await this.tournamentService.promotePhaseWinners(targetPhase);
+                }
+
+                // 2. Unlock the next phase status so it becomes visible
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(targetPhase);
             }
 
             return {
@@ -540,6 +610,107 @@ export class MatchesService {
             await queryRunner.release();
         }
     }
+    async diagnoseAndFixSchedule() {
+        // Find ALL Group Matches on or after June 28 (Start of R32)
+        const badGroupMatches = await this.matchesRepository.createQueryBuilder('m')
+            .where("m.phase = 'GROUP'")
+            .andWhere("m.date >= '2026-06-28'")
+            .getMany();
+            
+        console.log(`Found ${badGroupMatches.length} misplaced group matches.`);
+        
+        // Fix: Move them to June 11 (Opening day default) 
+        // This clears the schedule for the Knockout Phase.
+        for (const m of badGroupMatches) {
+            m.date = new Date('2026-06-11T16:00:00Z');
+            await this.matchesRepository.save(m);
+        }
+        
+        return { fixed: badGroupMatches.length, matches: badGroupMatches.map(m => `${m.id}: ${m.homeTeam}-${m.awayTeam} (${m.date})`) };
+    }
+
+    /**
+     * Checks if all knockout phases exist and have correct match counts.
+     * If not, it recreates the missing phases and heals the links.
+     * This is an IDEMPOTENT operation safe to run multiple times.
+     */
+    async ensureTournamentIntegrity() {
+        console.log('🛡️ [INTEGRITY] Checking Tournament Structure...');
+
+        const qfCount = await this.matchesRepository.count({ where: { phase: 'QUARTER' } });
+        
+        if (qfCount < 4) {
+             console.log('🚨 [INTEGRITY] DETECTED MISSING PHASES (QF+). Initiating Auto-Repair...');
+             
+             const DATES = {
+                SEMI_1: new Date('2026-07-14T20:00:00Z'),
+                SEMI_2: new Date('2026-07-15T20:00:00Z'),
+                THIRD: new Date('2026-07-18T20:00:00Z'),
+                FINAL: new Date('2026-07-19T20:00:00Z')
+             };
+             
+             // 0. SAFETY: Unlink Foreign Keys (nextMatchId) before deletion to prevent crashes
+             console.log('🧹 [INTEGRITY] Unlinking FK references...');
+             const phasesToDelete = ['QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+             
+             // Find all matches that point to matches in the deletion zone and nullify link
+             const matchesToDelete = await this.matchesRepository.find({ where: { phase: In(phasesToDelete) }, select: ['id'] });
+             const idsToDelete = matchesToDelete.map(m => m.id);
+             
+             if (idsToDelete.length > 0) {
+                 await this.matchesRepository.createQueryBuilder()
+                     .update(Match)
+                     .set({ nextMatchId: null as any })
+                     .where("nextMatchId IN (:...ids)", { ids: idsToDelete })
+                     .execute();
+             }
+
+             // 1. Clean potentially corrupted partial phases
+             await this.matchesRepository.delete({ phase: In(phasesToDelete) });
+             
+             // 2. Create QUARTERS (Empty slots)
+             const newQF = [];
+             newQF.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-1', awayTeamPlaceholder: 'W16-2', date: new Date('2026-07-09T20:00:00Z') }));
+             newQF.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 2, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-3', awayTeamPlaceholder: 'W16-4', date: new Date('2026-07-10T20:00:00Z') }));
+             newQF.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 3, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-5', awayTeamPlaceholder: 'W16-6', date: new Date('2026-07-11T20:00:00Z') }));
+             newQF.push(this.matchesRepository.create({ phase: 'QUARTER', bracketId: 4, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'W16-7', awayTeamPlaceholder: 'W16-8', date: new Date('2026-07-11T20:00:00Z') }));
+             const savedQF = await this.matchesRepository.save(newQF);
+             
+             // 3. Create SEMIS
+             const newSF = [];
+             newSF.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'WQF-1', awayTeamPlaceholder: 'WQF-2', date: DATES.SEMI_1 }));
+             newSF.push(this.matchesRepository.create({ phase: 'SEMI', bracketId: 2, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', homeTeamPlaceholder: 'WQF-3', awayTeamPlaceholder: 'WQF-4', date: DATES.SEMI_2 }));
+             const savedSF = await this.matchesRepository.save(newSF);
+             
+             // 4. Create FINALS
+             const f = await this.matchesRepository.save(this.matchesRepository.create({ phase: 'FINAL', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', date: DATES.FINAL, homeTeamPlaceholder: 'WSF-1', awayTeamPlaceholder: 'WSF-2' }));
+             const tp = await this.matchesRepository.save(this.matchesRepository.create({ phase: '3RD_PLACE', bracketId: 1, status: 'PENDING', homeTeam: 'TBD', awayTeam: 'TBD', date: DATES.THIRD, homeTeamPlaceholder: 'LSF-1', awayTeamPlaceholder: 'LSF-2' }));
+             
+             // 5. LINKING (Re-establish the chain)
+             // Relink future phases
+             for (let i = 0; i < 2; i++) { savedSF[i].nextMatchId = f.id; await this.matchesRepository.save(savedSF[i]); }
+             for (let i = 0; i < 4; i++) { savedQF[i].nextMatchId = savedSF[Math.floor(i / 2)].id; await this.matchesRepository.save(savedQF[i]); }
+             
+             // CRITICAL: Relink Existing R16 -> New QF
+             const r16Matches = await this.matchesRepository.find({ where: { phase: 'ROUND_16' }, order: { bracketId: 'ASC' } });
+             for (const m of r16Matches) {
+                 if (m.bracketId) {
+                     const targetQFIndex = Math.ceil(m.bracketId / 2) - 1; 
+                     if (savedQF[targetQFIndex]) {
+                         m.nextMatchId = savedQF[targetQFIndex].id;
+                         await this.matchesRepository.save(m);
+                     }
+                 }
+             }
+             
+             console.log('✅ [INTEGRITY] Missing phases created and linked.');
+             return { repaired: true, message: 'Missing phases restored.' };
+        }
+        
+        console.log('✅ [INTEGRITY] Structure appears healthy.');
+        return { repaired: false, message: 'Structure OK.' };
+    }
+
     async rebuildBrackets() {
         console.log('🔄 STARTING EMERGENCY BRACKET REBUILD');
         // 1. Resetear Bracket (Borrar y Crear placeholders limpios)
@@ -557,4 +728,31 @@ export class MatchesService {
         console.log('✅ EMERGENCY BRACKET REBUILD COMPLETE');
         return { message: 'Brackets Rebuilt Cleanly' };
     }
+
+    async fixEmptyTeamFields() {
+        console.log('🔧 [FIX] Fixing empty team fields in knockout matches...');
+        const knockoutPhases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'];
+        let totalFixed = 0;
+        
+        for (const phase of knockoutPhases) {
+            const result = await this.matchesRepository
+                .createQueryBuilder()
+                .update(Match)
+                .set({ 
+                    homeTeam: 'TBD',
+                    awayTeam: 'TBD'
+                })
+                .where("phase = :phase", { phase })
+                .andWhere("(homeTeam IS NULL OR homeTeam = '' OR awayTeam IS NULL OR awayTeam = '')")
+                .execute();
+            
+            totalFixed += result.affected || 0;
+            console.log(`✅ [FIX] Fixed ${result.affected || 0} matches in ${phase}`);
+        }
+        
+        console.log(`✅ [FIX] Total matches fixed: ${totalFixed}`);
+        return { message: 'Fixed empty team fields', totalFixed, phases: knockoutPhases };
+    }
 }
+
+

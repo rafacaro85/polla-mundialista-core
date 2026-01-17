@@ -18,24 +18,7 @@ export default function SimulationPage() {
             try {
                 const { data } = await api.get(`/leagues/${params.id}/matches`);
 
-                // Sanitizar matches de fase final para el simulador:
-                // Eliminamos equipos predefinidos o "basura" para que el bracket empiece limpio con placeholders.
-                const cleanMatches = (data || []).map((m: any) => {
-                    if (['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'].includes(m.phase)) {
-                        return {
-                            ...m,
-                            homeTeam: null,
-                            awayTeam: null,
-                            homeFlag: null, // Limpiamos banderas también
-                            awayFlag: null,
-                            homeScore: null,
-                            awayScore: null
-                        };
-                    }
-                    return m;
-                });
-
-                setMatches(cleanMatches);
+                setMatches(data || []);
             } catch (error) {
                 console.error('Error fetching matches:', error);
             } finally {

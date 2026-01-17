@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { superAdminService } from '@/services/superAdminService';
 import {
-    Calendar, RefreshCw, Edit, Lock, Unlock, Save, X, Shield, Clock, CheckCircle, Trophy
+    Calendar, RefreshCw, Edit, Lock, Unlock, Save, X, Shield, Clock, CheckCircle, Trophy, Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
@@ -416,6 +416,71 @@ export function MatchesList() {
                     >
                         <Trophy size={14} />
                         Llaves 2026
+                    </button>
+
+                    <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#EF4444', color: 'white' }}
+                        onClick={async () => {
+                            if (confirm("¿Intentar REPARAR y recargar llaves de Cuartos/Semis faltantes?")) {
+                                try {
+                                    setSyncing(true);
+                                    const res = await superAdminService.repairTournament();
+                                    toast.success(res.message);
+                                    loadMatches();
+                                } catch (e) {
+                                    toast.error("Error en reparación");
+                                } finally {
+                                    setSyncing(false);
+                                }
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                         <Shield size={14} />
+                         Reparar
+                    </button>
+
+                    <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: 'white' }}
+                        onClick={async () => {
+                            if (confirm("¿Migrar datos existentes? Esto actualizará partidos con equipos vacíos a 'TBD'.")) {
+                                try {
+                                    setSyncing(true);
+                                    const res = await superAdminService.fixEmptyTeams();
+                                    toast.success(`✅ ${res.message} - ${res.totalFixed} partidos actualizados`);
+                                    loadMatches();
+                                } catch (e) {
+                                    toast.error("Error en migración");
+                                } finally {
+                                    setSyncing(false);
+                                }
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                         <Database size={14} />
+                         Migrar Datos
+                    </button>
+
+                    <button
+                        style={{ ...STYLES.syncBtn, backgroundColor: '#8B5CF6', color: 'white' }}
+                        onClick={async () => {
+                            try {
+                                setSyncing(true);
+                                const res = await superAdminService.diagnoseKnockout();
+                                console.log('🔍 DIAGNÓSTICO:', res);
+                                toast.success(`Diagnóstico completo. Ver consola del navegador.`);
+                                alert(JSON.stringify(res, null, 2));
+                            } catch (e) {
+                                toast.error("Error en diagnóstico");
+                            } finally {
+                                setSyncing(false);
+                            }
+                        }}
+                        disabled={syncing}
+                    >
+                         <CheckCircle size={14} />
+                         Diagnosticar
                     </button>
 
                     <button

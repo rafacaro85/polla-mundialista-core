@@ -16,14 +16,10 @@ interface Match {
 interface AiSuggestionsButtonProps {
     matches: Match[];
     onPredictionsGenerated: (predictions: { [matchId: string]: [number, number] }) => void;
-    onClear?: () => void;
-    onSave?: () => Promise<void>;
 }
 
-export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear, onSave }: AiSuggestionsButtonProps) {
+export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSuggestionsButtonProps) {
     const [loading, setLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     const handleGenerate = async () => {
         setLoading(true);
@@ -40,7 +36,6 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear, 
 
             if (response.success && response.data) {
                 onPredictionsGenerated(response.data);
-                setHasUnsavedChanges(true);
                 toast.success('¡La IA ha completado tu polla! Revisa y guarda.');
             } else {
                 console.error('AI Error:', response.error);
@@ -54,63 +49,18 @@ export function AiSuggestionsButton({ matches, onPredictionsGenerated, onClear, 
         }
     };
 
-    const handleSave = async () => {
-        if (!onSave) return;
-        setSaving(true);
-        try {
-            await onSave();
-            setHasUnsavedChanges(false);
-            // toast.success enviado por el padre
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleClear = () => {
-        if (onClear) {
-            onClear();
-            setHasUnsavedChanges(false);
-        }
-    };
-
     return (
-        <div className="flex items-center gap-2">
-            <button
-                onClick={handleGenerate}
-                disabled={loading || saving}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-purple-400/30"
-            >
-                {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                    <Sparkles className="w-4 h-4 text-yellow-200 group-hover:scale-110 transition-transform" />
-                )}
-                <span>{loading ? 'Consultando IA...' : 'Sugerir Resultados con IA'}</span>
-            </button>
-
-            {onSave && hasUnsavedChanges && (
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    title="Guardar predicciones sugeridas"
-                    className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-                >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    <span>Guardar</span>
-                </button>
+        <button
+            onClick={handleGenerate}
+            disabled={loading}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-purple-400/30"
+        >
+            {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+                <Sparkles className="w-5 h-5 text-yellow-200 group-hover:scale-110 transition-transform" />
             )}
-
-            {onClear && hasUnsavedChanges && (
-                <button
-                    onClick={handleClear}
-                    title="Limpiar predicciones no guardadas"
-                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 rounded-lg border border-slate-700 transition-colors"
-                >
-                    <Trash2 className="w-5 h-5" />
-                </button>
-            )}
-        </div>
+            <span>{loading ? 'Consultando IA...' : 'Sugerir Resultados con IA'}</span>
+        </button>
     );
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import MatchCard from '@/components/MatchCard';
 import DateFilter from '@/components/DateFilter';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, Save, Trash2, Eraser } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -97,7 +97,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 setSelectedDate(uniqueDates[0]);
             }
         }
-    }, [matches, selectedDate]);
+    }, [matches]); // Removed selectedDate from dependencies to avoid infinite loop
 
     const filteredMatches = useMemo(() =>
         matches.filter(m => m.displayDate === selectedDate),
@@ -142,7 +142,12 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 suggestionsMap[mId] = { h, a };
             }
         });
-        setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
+        
+        // Use startTransition to prevent React rendering errors
+        React.startTransition(() => {
+            setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
+        });
+        
         toast.info('Sugerencias aplicadas (Borrador)');
     };
 
@@ -159,31 +164,54 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
+            {/* Phase Progress */}
             <div className="mb-6">
                 <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
-                <div className="mt-4 flex justify-center">
+
+                <div className="mt-4 flex flex-col gap-3">
                     <AiSuggestionsButton
                         matches={matches}
                         onPredictionsGenerated={handleAiPredictions}
-                        onClear={handleClearPredictions}
-                        onSave={handleSaveAiPredictions}
                     />
-                    <Button
-                        onClick={async () => {
-                            if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                await clearAllPredictions();
-                                // Forzar el salto a la primera fecha disponible (Grupos)
-                                if (dates.length > 0) {
-                                    setSelectedDate(dates[0]);
-                                }
-                            }
-                        }}
-                        variant="ghost"
-                        className="ml-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                        size="sm"
-                    >
-                        Limpiar Todo
-                    </Button>
+
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={handleSaveAiPredictions}
+                            disabled={Object.keys(aiSuggestions).length === 0}
+                            className={`flex-1 gap-2 font-bold shadow-md transition-all ${Object.keys(aiSuggestions).length > 0
+                                    ? 'bg-green-600 hover:bg-green-500 text-white hover:scale-[1.02] shadow-green-900/20'
+                                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                                }`}
+                        >
+                            <Save className="w-4 h-4" />
+                            GUARDAR
+                        </Button>
+
+                        {Object.keys(aiSuggestions).length > 0 ? (
+                            <Button
+                                onClick={handleClearPredictions}
+                                className="flex-1 gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold hover:scale-[1.02] transition-all"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                DESCARTAR
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={async () => {
+                                    if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
+                                        await clearAllPredictions();
+                                        if (dates.length > 0) {
+                                            setSelectedDate(dates[0]);
+                                        }
+                                    }
+                                }}
+                                className="flex-1 gap-2 bg-slate-800 hover:bg-red-900/20 text-slate-400 hover:text-red-400 border border-slate-700 font-bold transition-all"
+                            >
+                                <Eraser className="w-4 h-4" />
+                                LIMPIAR
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -223,6 +251,6 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                     ))
                 )}
             </div>
-        </div>
+        </div >
     );
 };

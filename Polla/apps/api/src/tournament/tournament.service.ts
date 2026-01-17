@@ -221,6 +221,136 @@ export class TournamentService {
     }
 
     /**
+     * Promociona el ganador de un partido de Fase Final a la siguiente ronda
+     */
+    async promoteToNextRound(match: Match): Promise<void> {
+        // Aceptamos cualquier estado finalizado
+        if (!['FINISHED', 'COMPLETED', 'FINALIZADO', 'PENALTIES'].includes(match.status)) return;
+        if (!['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI'].includes(match.phase)) return;
+
+        // Determine Winner
+        let winnerTeam: string;
+        let winnerFlag: string;
+
+        // Check explicit winner field first if it exists (for penalties)
+        // Adjust based on your entity. Assuming basic score comparison for now.
+        const hScore = match.homeScore || 0;
+        const aScore = match.awayScore || 0;
+
+        if (hScore > aScore) {
+            winnerTeam = match.homeTeam;
+            winnerFlag = match.homeFlag;
+        } else if (aScore > hScore) {
+            winnerTeam = match.awayTeam;
+            winnerFlag = match.awayFlag;
+        } else {
+            // Empate en fase final debe tener penales.
+            // Si no hay info de penales, logueamos advertencia.
+            this.logger.warn(`Draw in knockout match ${match.id} with no clear winner. Cannot promote.`);
+            return;
+        }
+
+        const nextPhaseMap: Record<string, string> = {
+            'ROUND_32': 'ROUND_16',
+            'ROUND_16': 'QUARTER',
+            'QUARTER': 'SEMI',
+            'SEMI': 'FINAL',
+        };
+
+        const nextPhase = nextPhaseMap[match.phase];
+        if (!nextPhase || !match.bracketId) return;
+
+        const nextBracketId = Math.ceil(match.bracketId / 2);
+        
+        const nextMatch = await this.matchesRepository.findOne({
+            where: { phase: nextPhase, bracketId: nextBracketId }
+        });
+
+        if (!nextMatch) {
+            this.logger.warn(`Next match not found for ${match.phase} Bracket ${match.bracketId} -> ${nextPhase} Bracket ${nextBracketId}`);
+            return;
+        }
+
+        // Determine Slot (Home or Away)
+        // Odd -> Home, Even -> Away
+        const isHomeSlot = match.bracketId % 2 !== 0;
+
+        let updated = false;
+        if (isHomeSlot) {
+            if (nextMatch.homeTeam !== winnerTeam) {
+                nextMatch.homeTeam = winnerTeam;
+                nextMatch.homeFlag = winnerFlag;
+                nextMatch.homeTeamPlaceholder = `W${match.bracketId}-Prev`; 
+                updated = true;
+            }
+        } else {
+            if (nextMatch.awayTeam !== winnerTeam) {
+                nextMatch.awayTeam = winnerTeam;
+                nextMatch.awayFlag = winnerFlag;
+                nextMatch.awayTeamPlaceholder = `W${match.bracketId}-Prev`;
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            await this.matchesRepository.save(nextMatch);
+            this.logger.log(`🚀 Promoted ${winnerTeam} to ${nextPhase} Match ${nextMatch.id} (${isHomeSlot ? 'Home' : 'Away'})`);
+        }
+
+        // SPECIAL CASE: If this is a SEMI-FINAL, also promote the LOSER to 3RD_PLACE
+        if (match.phase === 'SEMI') {
+            const loserTeam = (hScore > aScore) ? match.awayTeam : match.homeTeam;
+            const loserFlag = (hScore > aScore) ? match.awayFlag : match.homeFlag;
+
+            const thirdPlaceMatch = await this.matchesRepository.findOne({
+                where: { phase: '3RD_PLACE' }
+            });
+
+            if (thirdPlaceMatch) {
+                let thirdPlaceUpdated = false;
+                
+                // Semi 1 loser -> Home, Semi 2 loser -> Away
+                if (match.bracketId === 1) {
+                    if (thirdPlaceMatch.homeTeam !== loserTeam) {
+                        thirdPlaceMatch.homeTeam = loserTeam;
+                        thirdPlaceMatch.homeFlag = loserFlag;
+                        thirdPlaceMatch.homeTeamPlaceholder = `LSF-1`;
+                        thirdPlaceUpdated = true;
+                    }
+                } else if (match.bracketId === 2) {
+                    if (thirdPlaceMatch.awayTeam !== loserTeam) {
+                        thirdPlaceMatch.awayTeam = loserTeam;
+                        thirdPlaceMatch.awayFlag = loserFlag;
+                        thirdPlaceMatch.awayTeamPlaceholder = `LSF-2`;
+                        thirdPlaceUpdated = true;
+                    }
+                }
+
+                if (thirdPlaceUpdated) {
+                    await this.matchesRepository.save(thirdPlaceMatch);
+                    this.logger.log(`🥉 Promoted ${loserTeam} (LOSER of Semi ${match.bracketId}) to 3RD_PLACE Match`);
+                }
+            }
+        }
+    }
+
+    async promotePhaseWinners(phase: string): Promise<void> {
+        this.logger.log(`🏁 Batch promoting winners for phase: ${phase}`);
+        const matches = await this.matchesRepository.find({ where: { phase } });
+
+        for (const match of matches) {
+            // Check status leniently
+            if (['FINISHED', 'COMPLETED', 'FINALIZADO'].includes(match.status)) {
+                try {
+                    await this.promoteToNextRound(match);
+                } catch (e) {
+                    this.logger.error(`Failed to promote match ${match.id}`, e);
+                }
+            }
+        }
+    }
+
+    /**
      * Promociona todos los grupos completos
      */
     async promoteAllCompletedGroups(): Promise<void> {

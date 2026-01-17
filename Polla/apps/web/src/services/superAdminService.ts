@@ -95,6 +95,37 @@ export const superAdminService = {
         return response.data;
     },
 
+    repairTournament: async () => {
+        const response = await api.post('/matches/repair-tournament');
+        return response.data;
+    },
+
+    fixEmptyTeams: async () => {
+        const response = await api.post('/matches/fix-empty-teams');
+        return response.data;
+    },
+
+    diagnoseKnockout: async () => {
+        const matches = await api.get('/matches');
+        const phases = await api.get('/knockout-phases');
+        
+        const knockout = matches.data.filter((m: any) => 
+            ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'].includes(m.phase)
+        );
+        
+        const byPhase = knockout.reduce((acc: any, m: any) => {
+            acc[m.phase] = (acc[m.phase] || 0) + 1;
+            return acc;
+        }, {});
+        
+        return {
+            totalKnockout: knockout.length,
+            byPhase,
+            phaseStatus: phases.data,
+            sampleQuarter: knockout.filter((m: any) => m.phase === 'QUARTER').slice(0, 2)
+        };
+    },
+
     // --- STATS (Calculated on frontend for now) ---
     getDashboardStats: async () => {
         const [users, leagues, transactions] = await Promise.all([

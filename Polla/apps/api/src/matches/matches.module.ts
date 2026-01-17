@@ -44,5 +44,6 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
     ],
     controllers: [MatchesController],
     providers: [MatchesService, MatchSyncService],
+    exports: [MatchesService],
 })
 export class MatchesModule { }

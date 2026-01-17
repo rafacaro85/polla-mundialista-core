@@ -20,6 +20,7 @@ Actúa como "SoccerBet Strategist", un agente de inteligencia artificial de éli
 Analiza los siguientes partidos del Mundial 2026 y genera un resultado realista (marcador exacto) para cada uno.
 
 IMPORTANTE: Sé creativo y varía tus predicciones. No des siempre los mismos marcadores (como 2-1 o 1-1). Considera posibles empates, goleadas ocasionales y sorpresas tácticas basadas en la historia de los equipos.
+Seed de aleatoriedad: ${Math.random().toString(36).substring(7)} - Genera algo nuevo y fresco en esta iteración.
 
 Partidos a analizar:
 ${JSON.stringify(matches, null, 2)}

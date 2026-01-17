@@ -8,7 +8,12 @@ const PREDICTIONS_ENDPOINT = '/predictions/me';
 const fetcher = (url: string) => api.get(url).then(res => res.data);
 
 export const useMyPredictions = (leagueId?: string) => {
-    const { data, error, isLoading } = useSWR(PREDICTIONS_ENDPOINT, fetcher, {
+    // Dynamic key ensures we fetch predictions specific to the current context (Global or League)
+    const swrKey = leagueId && leagueId !== 'global'
+        ? `/predictions/me?leagueId=${leagueId}`
+        : '/predictions/me';
+
+    const { data, error, isLoading, mutate } = useSWR(swrKey, fetcher, {
         revalidateOnFocus: true,
         dedupingInterval: 2000
     });
@@ -73,7 +78,7 @@ export const useMyPredictions = (leagueId?: string) => {
             : (leagueId || null);
 
         // Mutate local cache immediately
-        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
+        mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
             return list.filter((p: any) =>
                 !((p.matchId === matchId || p.match?.id === matchId) &&
@@ -86,12 +91,12 @@ export const useMyPredictions = (leagueId?: string) => {
                 ? `/predictions/${matchId}?leagueId=${targetLeagueId}`
                 : `/predictions/${matchId}`;
             await api.delete(url);
-            mutate(PREDICTIONS_ENDPOINT);
+            mutate();
             toast.success('Predicción eliminada');
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Error eliminando predicción');
-            mutate(PREDICTIONS_ENDPOINT); // Rollback
+            mutate(); // Rollback
         }
     };
 
@@ -102,12 +107,11 @@ export const useMyPredictions = (leagueId?: string) => {
             return deletePrediction(matchId);
         }
 
-        // INTELIGENCIA: Mantener consistencia de liga
-        // Si ya existe una predicción para este partido visualizada, usar su leagueId para el update
-        const existingPrediction = predictionsMap[matchId];
-        const targetLeagueId = existingPrediction?.leagueId !== undefined
-            ? existingPrediction.leagueId
-            : (leagueId || null);
+        // LOGIC FIX: Always use the current context's leagueId for saving.
+        // If we are in a League, we SAVE to that League (creating an override if needed).
+        // If we are Global, we SAVE to Global.
+        // We do NOT inherit the ID from the existing prediction, because that prevents divergence.
+        const targetLeagueId = leagueId || null;
 
         // Cast to number for API
         const hScore = Number(homeScore);
@@ -125,7 +129,7 @@ export const useMyPredictions = (leagueId?: string) => {
         };
 
         // Mutate local cache immediately
-        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
+        mutate((currentData: any) => {
             let list = Array.isArray(currentData) ? [...currentData] : [];
 
             // If setting joker, optimistically unset others in same phase AND league
@@ -163,12 +167,12 @@ export const useMyPredictions = (leagueId?: string) => {
                 isJoker,
                 leagueId: targetLeagueId
             });
-            mutate(PREDICTIONS_ENDPOINT); // Revalidate real data
+            mutate(); // Revalidate real data
             toast.success('Predicción guardada');
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Error guardando predicción');
-            mutate(PREDICTIONS_ENDPOINT); // Rollback
+            mutate(); // Rollback
         }
     };
 
@@ -176,7 +180,7 @@ export const useMyPredictions = (leagueId?: string) => {
         const targetLeagueId = leagueId || null;
 
         // Mutate local cache immediately (optimistic)
-        mutate(PREDICTIONS_ENDPOINT, (currentData: any) => {
+        mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
             // Remove all matches where leagueId matches targetLeagueId
             return list.filter((p: any) => (p.leagueId || null) !== targetLeagueId);
@@ -187,20 +191,22 @@ export const useMyPredictions = (leagueId?: string) => {
                 ? `/predictions/all/clear?leagueId=${targetLeagueId}`
                 : `/predictions/all/clear`;
             await api.delete(url);
-            mutate(PREDICTIONS_ENDPOINT);
+            mutate();
             toast.success('Todas las predicciones han sido eliminadas');
         } catch (err: any) {
             console.error(err);
             toast.error('Error al limpiar predicciones');
-            mutate(PREDICTIONS_ENDPOINT); // Rollback
+            mutate(); // Rollback
         }
     };
 
     const saveBulkPredictions = async (aiPredictions: Record<string, { h: number, a: number }>) => {
-        const targetLeagueId = leagueId || null;
+        // STRATEGY CHANGE: Bulk predictions (AI) save to GLOBAL scope by default,
+        // so they propagate to all leagues (Inheritance).
+        // Specific overrides happen when user manually edits single matches in a league context.
+        const targetLeagueId = null;
         const entries = Object.entries(aiPredictions);
 
-        // Save all without intermediate revalidations
         const promises = entries.map(([mId, { h, a }]) => {
             return api.post('/predictions', {
                 matchId: mId,
@@ -212,12 +218,12 @@ export const useMyPredictions = (leagueId?: string) => {
 
         try {
             await Promise.all(promises);
-            await mutate(PREDICTIONS_ENDPOINT);
-            toast.success(`${entries.length} predicciones guardadas correctamente`);
+            await mutate();
+            toast.success(`${entries.length} predicciones guardadas (Global)`);
         } catch (err) {
             console.error(err);
             toast.error('Error al guardar predicciones masivas');
-            mutate(PREDICTIONS_ENDPOINT);
+            mutate();
         }
     };
 
@@ -229,6 +235,6 @@ export const useMyPredictions = (leagueId?: string) => {
         saveBulkPredictions,
         deletePrediction,
         clearAllPredictions,
-        refresh: () => mutate(PREDICTIONS_ENDPOINT)
+        refresh: () => mutate()
     };
 };

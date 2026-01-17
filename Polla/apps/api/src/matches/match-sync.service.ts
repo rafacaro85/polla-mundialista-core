@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
+import { TournamentService } from '../tournament/tournament.service';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class MatchSyncService {
         @InjectRepository(Match)
         private readonly matchesRepository: Repository<Match>,
         private readonly scoringService: ScoringService,
+        private readonly tournamentService: TournamentService,
     ) { }
 
     @Cron('*/1 * * * *') // Run every minute
@@ -93,6 +95,9 @@ export class MatchSyncService {
 
                     this.logger.log(`Partido ${match.id} finalizado. Calculando puntos...`);
                     await this.scoringService.calculatePointsForMatch(match.id);
+
+                    // Promote winner if it's a knockout match
+                    await this.tournamentService.promoteToNextRound(match);
                 }
             } else {
                 // Update status to LIVE if not already

@@ -1103,12 +1103,7 @@ export class LeaguesService {
       .createQueryBuilder('match')
       .orderBy('match.date', 'ASC');
 
-    // Filter by unlocked phases for normal users
-    // Filter by unlocked phases for all users in this view (Predictions)
-    // to prevent AI simulation of locked phases and show a clean player experience.
-    // 🔥 HARD-LOCK: Filtro estricto por fecha para asegurar que no se vea nada después de grupos
-    // Esto es una medida de fuerza mayor para garantizar que el usuario solo vea la fase de grupos.
-    matchesQuery.andWhere('match.date <= :limitDate', { limitDate: '2026-06-28 12:00:00' });
+
 
     // Si hay userId, incluir sus predicciones
     if (userId) {

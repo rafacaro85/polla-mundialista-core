@@ -272,12 +272,7 @@ export function UserNav() {
               />
             </>
           ) : (
-            <MenuItem
-              icon={LayoutGrid}
-              label="Mis Pollas"
-              onClick={() => router.push('/dashboard')}
-              hasArrow
-            />
+            <></>
           )}
 
           {isAdmin && (

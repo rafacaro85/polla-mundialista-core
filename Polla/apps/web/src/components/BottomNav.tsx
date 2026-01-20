@@ -43,6 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                 </button>
 
                 {/* 2. POLLAS (Visible solo en Dashboard General) */}
+                {/* 2. POLLAS (Visible solo en Dashboard General) */}
                 {showLeaguesTab && (
                     <button
                         onClick={() => onTabChange('leagues')}

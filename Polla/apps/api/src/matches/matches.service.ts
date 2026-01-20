@@ -84,7 +84,7 @@ export class MatchesService {
         return this.matchesRepository.save(newMatch);
     }
 
-    async findOne(id: string): Promise<Match | null> {
+    async findMatchById(id: string): Promise<Match | null> {
         return this.matchesRepository.findOne({ where: { id } });
     }
 

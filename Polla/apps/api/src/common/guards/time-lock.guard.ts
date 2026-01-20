@@ -17,7 +17,7 @@ export class TimeLockGuard implements CanActivate {
             return true;
         }
 
-        const match = await this.matchesService.findOne(matchId);
+        const match = await this.matchesService.findMatchById(matchId);
         if (!match) {
             throw new NotFoundException(`Partido no encontrado con ID: ${matchId}`);
         }

@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { 
     Trophy, Users, Calendar, Star, Shield, HelpCircle, 
-    CheckCircle, ArrowRight, Zap, Calculator, Medal, Target 
+    CheckCircle, ArrowRight, ArrowLeft, Zap, Calculator, Medal, Target 
 } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 
 // --- DATA & SECTIONS ---
@@ -25,6 +26,13 @@ export default function InstructionsPage() {
         <div className="min-h-screen bg-[#0F172A] pb-24 font-sans text-slate-200">
             {/* HERO HEADER */}
             <div className="relative bg-gradient-to-br from-[#020617] to-[#1e293b] pt-12 pb-16 px-6 text-center border-b border-slate-800">
+                <div className="absolute top-4 left-4 z-20">
+                    <Link href="/dashboard">
+                        <Button variant="ghost" className="text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                            <ArrowLeft className="mr-2 h-5 w-5" /> Volver
+                        </Button>
+                    </Link>
+                </div>
                 <div className="relative z-10 max-w-3xl mx-auto">
                     <div className="inline-flex items-center justify-center p-3 bg-green-500/10 rounded-full mb-6 ring-1 ring-green-500/30">
                         <HelpCircle size={32} className="text-[#00E676]" />

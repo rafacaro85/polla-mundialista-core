@@ -331,172 +331,198 @@ export function MatchesList() {
                 <div style={STYLES.title}>
                     <Shield size={20} color="#00E676" /> Gestión de Partidos
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: '#0F172A' }}
-                        onClick={async () => {
-                            if (confirm("¿Simular resultados aleatorios para todos los partidos pendientes?")) {
-                                try {
-                                    setSyncing(true);
-                                    const res = await superAdminService.simulateMatches();
-                                    toast.success(res.message);
-                                    loadMatches();
-                                } catch (e) {
-                                    toast.error("Error al simular resultados");
-                                } finally {
-                                    setSyncing(false);
+                {/* BUTTONS CONTAINER */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', width: '100%' }}>
+                    
+                    {/* TOP ROW: MAIN ACTIONS (Always Visible) */}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: '#0F172A' }}
+                            onClick={async () => {
+                                if (confirm("¿Simular resultados aleatorios para todos los partidos pendientes?")) {
+                                    try {
+                                        setSyncing(true);
+                                        const res = await superAdminService.simulateMatches();
+                                        toast.success(res.message);
+                                        loadMatches();
+                                    } catch (e) {
+                                        toast.error("Error al simular resultados");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
                                 }
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                        <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-                        Simular
-                    </button>
+                            }}
+                            disabled={syncing}
+                        >
+                            <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                            Simular
+                        </button>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#475569', color: 'white' }}
-                        onClick={async () => {
-                            if (confirm("¿Estás seguro de REINICIAR TODO el sistema? Se borrarán marcadores y puntos.")) {
-                                try {
-                                    setSyncing(true);
-                                    const res = await superAdminService.resetAllMatches();
-                                    toast.success(res.message);
-                                    loadMatches();
-                                } catch (e) {
-                                    toast.error("Error al resetear sistema");
-                                } finally {
-                                    setSyncing(false);
+                        <button
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#475569', color: 'white' }}
+                            onClick={async () => {
+                                if (confirm("¿Estás seguro de REINICIAR TODO el sistema? Se borrarán marcadores y puntos.")) {
+                                    try {
+                                        setSyncing(true);
+                                        const res = await superAdminService.resetAllMatches();
+                                        toast.success(res.message);
+                                        loadMatches();
+                                    } catch (e) {
+                                        toast.error("Error al resetear sistema");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
                                 }
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                        <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-                        Limpiar
-                    </button>
+                            }}
+                            disabled={syncing}
+                        >
+                            <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                            Limpiar
+                        </button>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
-                        onClick={async () => {
-                            try {
-                                setSyncing(true);
-                                await api.post('/matches/promote-groups');
-                                toast.success("Promoción verificada");
-                                loadMatches();
-                            } catch (e) {
-                                toast.error("Error al promover grupos");
-                            } finally {
-                                setSyncing(false);
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                        <Trophy size={14} />
-                        Avance Grupos
-                    </button>
+                        <button
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            ➕ Nuevo
+                        </button>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#6366F1', color: 'white' }}
-                        onClick={async () => {
-                            if (confirm("¿Crear llaves de Dieciseisavos y Octavos para el Mundial 2026?")) {
-                                try {
-                                    setSyncing(true);
-                                    const res = await superAdminService.seedRound32();
-                                    toast.success(res.message);
-                                    loadMatches();
-                                } catch (e) {
-                                    toast.error("Error al inicializar fase final");
-                                } finally {
-                                    setSyncing(false);
-                                }
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                        <Trophy size={14} />
-                        Llaves 2026
-                    </button>
+                        <button
+                            style={{ ...STYLES.syncBtn, opacity: syncing ? 0.7 : 1 }}
+                            onClick={handleForceSync}
+                            disabled={syncing}
+                        >
+                            <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                            {syncing ? 'Sincronizando...' : 'Sync'}
+                        </button>
+                    </div>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#EF4444', color: 'white' }}
-                        onClick={async () => {
-                            if (confirm("¿Intentar REPARAR y recargar llaves de Cuartos/Semis faltantes?")) {
-                                try {
-                                    setSyncing(true);
-                                    const res = await superAdminService.repairTournament();
-                                    toast.success(res.message);
-                                    loadMatches();
-                                } catch (e) {
-                                    toast.error("Error en reparación");
-                                } finally {
-                                    setSyncing(false);
-                                }
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                         <Shield size={14} />
-                         Reparar
-                    </button>
+                    {/* SETUP INICIAL - Collapsible */}
+                    <details style={{ width: '100%', textAlign: 'right' }}>
+                        <summary style={{ 
+                            cursor: 'pointer', 
+                            padding: '6px 12px', 
+                            backgroundColor: '#1E293B', 
+                            borderRadius: '8px',
+                            color: '#94A3B8',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            userSelect: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            listStyle: 'none'
+                        }}>
+                            <span>⚙️ Setup Inicial (Solo una vez) ▼</span>
+                        </summary>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px', justifyContent: 'flex-end' }}>
+                            <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#10B981', color: 'white' }}
+                                onClick={async () => {
+                                    try {
+                                        setSyncing(true);
+                                        await api.post('/matches/promote-groups');
+                                        toast.success("Promoción verificada");
+                                        loadMatches();
+                                    } catch (e) {
+                                        toast.error("Error al promover grupos");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                <Trophy size={14} />
+                                Avance Grupos
+                            </button>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: 'white' }}
-                        onClick={async () => {
-                            if (confirm("¿Migrar datos existentes? Esto actualizará partidos con equipos vacíos a 'TBD'.")) {
-                                try {
-                                    setSyncing(true);
-                                    const res = await superAdminService.fixEmptyTeams();
-                                    toast.success(`✅ ${res.message} - ${res.totalFixed} partidos actualizados`);
-                                    loadMatches();
-                                } catch (e) {
-                                    toast.error("Error en migración");
-                                } finally {
-                                    setSyncing(false);
-                                }
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                         <Database size={14} />
-                         Migrar Datos
-                    </button>
+                            <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#6366F1', color: 'white' }}
+                                onClick={async () => {
+                                    if (confirm("¿Crear llaves de Dieciseisavos y Octavos para el Mundial 2026?")) {
+                                        try {
+                                            setSyncing(true);
+                                            const res = await superAdminService.seedRound32();
+                                            toast.success(res.message);
+                                            loadMatches();
+                                        } catch (e) {
+                                            toast.error("Error al inicializar fase final");
+                                        } finally {
+                                            setSyncing(false);
+                                        }
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                <Trophy size={14} />
+                                Llaves 2026
+                            </button>
+                        </div>
+                    </details>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#8B5CF6', color: 'white' }}
-                        onClick={async () => {
-                            try {
-                                setSyncing(true);
-                                const res = await superAdminService.diagnoseKnockout();
-                                console.log('🔍 DIAGNÓSTICO:', res);
-                                toast.success(`Diagnóstico completo. Ver consola del navegador.`);
-                                alert(JSON.stringify(res, null, 2));
-                            } catch (e) {
-                                toast.error("Error en diagnóstico");
-                            } finally {
-                                setSyncing(false);
-                            }
-                        }}
-                        disabled={syncing}
-                    >
-                         <CheckCircle size={14} />
-                         Diagnosticar
-                    </button>
+                    {/* DEBUG TOOLS - Collapsible */}
+                    <details style={{ width: '100%', textAlign: 'right' }}>
+                        <summary style={{ 
+                            cursor: 'pointer', 
+                            padding: '6px 12px', 
+                            backgroundColor: '#1E293B', 
+                            borderRadius: '8px',
+                            color: '#94A3B8',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            userSelect: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            listStyle: 'none'
+                        }}>
+                            <span>🔧 Debug y Diagnóstico ▼</span>
+                        </summary>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px', justifyContent: 'flex-end' }}>
+                            <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#EF4444', color: 'white' }}
+                                onClick={async () => {
+                                    if (confirm("¿Intentar REPARAR y recargar llaves de Cuartos/Semis faltantes?")) {
+                                        try {
+                                            setSyncing(true);
+                                            const res = await superAdminService.repairTournament();
+                                            toast.success(res.message);
+                                            loadMatches();
+                                        } catch (e) {
+                                            toast.error("Error en reparación");
+                                        } finally {
+                                            setSyncing(false);
+                                        }
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                    <Shield size={14} />
+                                    Reparar
+                            </button>
 
-                    <button
-                        style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        ➕ Nuevo
-                    </button>
-                    <button
-                        style={{ ...STYLES.syncBtn, opacity: syncing ? 0.7 : 1 }}
-                        onClick={handleForceSync}
-                        disabled={syncing}
-                    >
-                        <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-                        {syncing ? 'Sincronizando...' : 'Sync'}
-                    </button>
+                            <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#8B5CF6', color: 'white' }}
+                                onClick={async () => {
+                                    try {
+                                        setSyncing(true);
+                                        const res = await superAdminService.diagnoseKnockout();
+                                        console.log('🔍 DIAGNÓSTICO:', res);
+                                        toast.success(`Diagnóstico completo. Ver consola del navegador.`);
+                                        alert(JSON.stringify(res, null, 2));
+                                    } catch (e) {
+                                        toast.error("Error en diagnóstico");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                    <CheckCircle size={14} />
+                                    Diagnosticar
+                            </button>
+                        </div>
+                    </details>
                 </div>
             </div>
 

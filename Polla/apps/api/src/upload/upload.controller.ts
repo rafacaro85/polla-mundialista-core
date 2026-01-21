@@ -25,8 +25,8 @@ export class UploadController {
                 fileSize: 10 * 1024 * 1024, // 10MB
             },
             fileFilter: (req, file, cb) => {
-                if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
-                    return cb(new BadRequestException('Only image files are allowed!'), false);
+                if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|svg\+xml)$/)) {
+                    return cb(new BadRequestException(`Unsupported file type: ${file.mimetype}`), false);
                 }
                 cb(null, true);
             },

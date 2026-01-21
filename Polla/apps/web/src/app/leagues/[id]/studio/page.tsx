@@ -122,20 +122,37 @@ export default function StudioPage() {
         load();
     }, [params.id, toast]);
 
+    // Helper para limpiar el payload y enviar SOLO lo que el DTO espera
+    const getCleanPayload = (cfg: any) => ({
+        companyName: cfg.companyName,
+        brandColorPrimary: cfg.brandColorPrimary,
+        brandColorSecondary: cfg.brandColorSecondary,
+        brandColorBg: cfg.brandColorBg,
+        brandColorText: cfg.brandColorText,
+        brandFontFamily: cfg.brandFontFamily,
+        brandingLogoUrl: cfg.brandingLogoUrl,
+        brandCoverUrl: cfg.brandCoverUrl,
+        prizeImageUrl: cfg.prizeImageUrl,
+        prizeDetails: cfg.prizeDetails,
+        welcomeMessage: cfg.welcomeMessage,
+        enableDepartmentWar: cfg.enableDepartmentWar,
+        // Social
+        socialInstagram: cfg.socialInstagram,
+        socialFacebook: cfg.socialFacebook,
+        socialWhatsapp: cfg.socialWhatsapp,
+        socialYoutube: cfg.socialYoutube,
+        socialTiktok: cfg.socialTiktok,
+        socialLinkedin: cfg.socialLinkedin,
+        socialWebsite: cfg.socialWebsite,
+    });
+
 
     const handleSaveChanges = async () => {
         setSaving(true);
         try {
             // Evitar enviar campos protegidos que solo SUPER_ADMIN puede editar
-            const {
-                isEnterpriseActive,
-                maxParticipants,
-                isPaid,
-                participants,
-                creator,
-                id,
-                ...cleanConfig
-            } = config as any;
+            // Limpiar payload para evitar enviar campos no permitidos (Error 400)
+            const cleanConfig = getCleanPayload(config);
 
             await api.patch(`/leagues/${params.id}`, {
                 ...cleanConfig,
@@ -157,15 +174,8 @@ export default function StudioPage() {
             const { data: currentStatus } = await api.get(`/leagues/${params.id}`);
 
             // 2. Preparar payload sin isEnterpriseActive
-            const {
-                isEnterpriseActive,
-                maxParticipants,
-                isPaid,
-                participants,
-                creator,
-                id,
-                ...cleanConfig
-            } = config as any;
+            // 2. Preparar payload limpio
+            const cleanConfig = getCleanPayload(config);
 
             const { data: updatedLeague } = await api.patch(`/leagues/${params.id}`, {
                 ...cleanConfig,

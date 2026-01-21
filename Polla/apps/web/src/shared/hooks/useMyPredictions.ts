@@ -14,8 +14,9 @@ export const useMyPredictions = (leagueId?: string) => {
         : '/predictions/me';
 
     const { data, error, isLoading, mutate } = useSWR(swrKey, fetcher, {
-        revalidateOnFocus: true,
-        dedupingInterval: 2000
+        revalidateOnFocus: false, // Evita refrescos molestos al cambiar de ventana
+        revalidateOnReconnect: false, // Evita saltos si la conexión parpadea
+        dedupingInterval: 5000 
     });
 
     const predictionsMap = React.useMemo(() => {

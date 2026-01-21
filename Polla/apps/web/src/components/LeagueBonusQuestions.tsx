@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Star, Award, Edit3, Trash2, Trophy, Loader2, HelpCircle } from 'lucide-react';
+import { Plus, Star, Award, Edit3, Trash2, Trophy, Loader2, HelpCircle, CheckCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -31,6 +31,7 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
         options: [] as string[],
         currentOption: ''
     });
+    const [gradingQuestion, setGradingQuestion] = useState<BonusQuestion | null>(null);
 
     useEffect(() => {
         loadQuestions();
@@ -72,7 +73,6 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                 text: newQuestion.text,
                 points: points,
                 leagueId: leagueId,
-                leagueId: leagueId,
                 isActive: true,
                 type: newQuestion.type,
                 options: newQuestion.type === 'MULTIPLE' ? newQuestion.options : []
@@ -106,13 +106,18 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
         }
     };
 
-    const handleGrade = async (questionId: string) => {
-        const correctAnswer = prompt('Ingresa la respuesta correcta:');
-        if (!correctAnswer) return;
+    const handleGradeClick = (q: BonusQuestion) => {
+        setGradingQuestion(q);
+    };
+
+    const submitGrade = async (answer: string) => {
+        if (!gradingQuestion) return;
+        if (!answer.trim()) return;
 
         try {
-            await api.post(`/bonus/grade/${questionId}`, { correctAnswer });
+            await api.post(`/bonus/grade/${gradingQuestion.id}`, { correctAnswer: answer });
             toast.success('Pregunta calificada');
+            setGradingQuestion(null);
             loadQuestions();
         } catch (error) {
             console.error('Error grading question:', error);
@@ -468,7 +473,7 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                             </div>
                             <div style={STYLES.actions}>
                                 {!q.correctAnswer && (
-                                    <button onClick={() => handleGrade(q.id)} style={STYLES.gradeBtn}>
+                                    <button onClick={() => handleGradeClick(q)} style={STYLES.gradeBtn}>
                                         <Trophy size={12} />
                                         Calificar
                                     </button>
@@ -480,6 +485,88 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                         </div>
                     </div>
                 ))
+            )}
+            
+            {/* MODAL DE CALIFICACION */}
+            {gradingQuestion && (
+                <div style={{
+                    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                }}>
+                    <div style={{
+                        backgroundColor: '#1E293B', borderRadius: '16px', padding: '24px',
+                        maxWidth: '400px', width: '100%', border: '1px solid #334155', boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                    }}>
+                        <h3 style={{ color: 'white', fontFamily: "'Russo One', sans-serif", marginBottom: '8px' }}>
+                            Calificar Pregunta
+                        </h3>
+                        <p style={{ color: '#94A3B8', fontSize: '13px', marginBottom: '20px', lineHeight: '1.4' }}>
+                            {gradingQuestion.text}
+                        </p>
+
+                        {/* SELECCIONAR RESPUESTA CORRECTA */}
+                        {gradingQuestion.type === 'MULTIPLE' && gradingQuestion.options && gradingQuestion.options.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <p style={{ fontSize: '12px', color: '#00E676', fontWeight: 'bold' }}>Selecciona la opción correcta:</p>
+                                {gradingQuestion.options.map((opt, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            if(confirm(`¿Confirmas que "${opt}" es la correcta? Esto cerrará la pregunta.`)) {
+                                                submitGrade(opt);
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '12px', backgroundColor: '#0F172A', border: '1px solid #475569',
+                                            borderRadius: '8px', color: 'white', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}
+                                    >
+                                        {opt}
+                                        <CheckCircle size={16} color="#94A3B8" />
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div>
+                                <p style={{ fontSize: '12px', color: '#FACC15', fontWeight: 'bold', marginBottom: '8px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                    <HelpCircle size={14} /> 
+                                    Pregunta Abierta - Ten cuidado
+                                </p>
+                                <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '12px' }}>
+                                    Escribe la respuesta correcta. El sistema aceptará variaciones sencillas (ej: mayúsculas/minúsculas), pero intenta ser preciso.
+                                </p>
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const val = (e.currentTarget.elements.namedItem('answer') as HTMLInputElement).value;
+                                    if(val.trim() && confirm(`¿Confirmas "${val}" como correcta?`)) submitGrade(val);
+                                }}>
+                                    <input 
+                                        name="answer"
+                                        type="text" 
+                                        placeholder="Ej. Argentina" 
+                                        autoFocus
+                                        style={{ ...STYLES.input, border: '1px solid #00E676' }} 
+                                    />
+                                    <button type="submit" style={{ ...STYLES.saveBtn, width: '100%', padding: '12px', justifyContent: 'center' }}>
+                                        Confirmar Calificación
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        <button 
+                            onClick={() => setGradingQuestion(null)}
+                            style={{ 
+                                marginTop: '16px', width: '100%', padding: '12px', 
+                                backgroundColor: 'transparent', border: '1px solid #475569', borderRadius: '8px', 
+                                color: '#94A3B8', fontWeight: 'bold', cursor: 'pointer' 
+                            }}
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

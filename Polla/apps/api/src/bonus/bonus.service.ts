@@ -204,12 +204,38 @@ export class BonusService {
         return { updated: updatedCount };
     }
 
-    // Calcular puntos (case-insensitive comparison)
-    private calculatePoints(userAnswer: string, correctAnswer: string, points: number): number {
-        const normalizedUserAnswer = userAnswer.toLowerCase().trim();
-        const normalizedCorrectAnswer = correctAnswer.toLowerCase().trim();
+    // Normalizar texto para comparación flexible
+    private normalizeText(text: string): string {
+        if (!text) return '';
+        return text
+            .normalize("NFD") // Descomponer acentos
+            .replace(/[\u0300-\u036f]/g, "") // Eliminar marcas diacríticas
+            .toLowerCase()
+            .replace(/[^a-z0-9 ]/g, "") // Eliminar símbolos raros, dejar letras, números y espacios
+            .replace(/\s+/g, " ") // Colapsar espacios múltiples
+            .trim();
+    }
 
-        return normalizedUserAnswer === normalizedCorrectAnswer ? points : 0;
+    // Calcular puntos (Fuzzy Matching: Inclusión + Normalización)
+    private calculatePoints(userAnswer: string, correctAnswer: string, points: number): number {
+        const u = this.normalizeText(userAnswer);
+        const c = this.normalizeText(correctAnswer);
+
+        // 1. Coincidencia Exacta Normalizada
+        if (u === c) return points;
+
+        // 2. Coincidencia Parcial (Inclusión)
+        // Solo si la respuesta correcta tiene longitud suficiente para evitar falsos positivos
+        // (ej: "No" vs "No se")
+        if (c.length > 3 && u.length > 2) {
+            // Si la respuesta del usuario contiene la correcta (ej: "El ganador es Messi" contiene "Messi")
+            if (u.includes(c)) return points;
+            
+            // Si la respuesta correcta contiene la del usuario (ej: "Lionel Messi" contiene "Messi")
+            if (c.includes(u)) return points;
+        }
+
+        return 0;
     }
 
     // Admin: Eliminar pregunta

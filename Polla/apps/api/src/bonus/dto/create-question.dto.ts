@@ -11,4 +11,7 @@ export class CreateQuestionDto {
     @IsOptional()
     @IsString()
     leagueId?: string;
+
+    @IsOptional()
+    isActive?: boolean;
 }

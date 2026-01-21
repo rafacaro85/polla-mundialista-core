@@ -1,4 +1,4 @@
-import { IsString, IsNumber, Min, IsOptional } from 'class-validator';
+import { IsString, IsNumber, Min, IsOptional, IsArray } from 'class-validator';
 
 export class CreateQuestionDto {
     @IsString()
@@ -14,4 +14,13 @@ export class CreateQuestionDto {
 
     @IsOptional()
     isActive?: boolean;
+
+    @IsOptional()
+    @IsString()
+    type?: 'OPEN' | 'MULTIPLE';
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    options?: string[];
 }

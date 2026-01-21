@@ -12,6 +12,8 @@ interface BonusQuestion {
     points: number;
     isActive: boolean;
     correctAnswer?: string;
+    type?: 'OPEN' | 'MULTIPLE';
+    options?: string[];
 }
 
 interface UserAnswer {
@@ -316,27 +318,77 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
                                     </span>
                                 </div>
                             ) : (
-                                // Estado: ABIERTO (Input)
-                                <div style={STYLES.inputBox}>
-                                    <input
-                                        type="text"
-                                        value={answersInput[q.id] || ''}
-                                        onChange={(e) => setAnswersInput(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                        placeholder="Escribe tu predicción..."
-                                        style={STYLES.input}
-                                        disabled={!q.isActive || isLocked}
-                                    />
-                                    {q.isActive && !isLocked && (
-                                        <button
-                                            style={{ ...STYLES.saveBtn, opacity: isSaving ? 0.7 : 1 }}
-                                            onClick={() => handleSaveAnswer(q.id)}
-                                            disabled={isSaving}
-                                        >
-                                            {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                                            {isSaving ? '...' : 'GUARDAR'}
-                                        </button>
+                                // Estado: ABIERTO
+                                <>
+                                    {q.type === 'MULTIPLE' && q.options && q.options.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {q.options.map((opt, idx) => {
+                                                const isSelected = answersInput[q.id] === opt;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            if (!q.isActive || isLocked) return;
+                                                            setAnswersInput(prev => ({ ...prev, [q.id]: opt }));
+                                                        }}
+                                                        disabled={!q.isActive || isLocked}
+                                                        style={{
+                                                            padding: '12px',
+                                                            borderRadius: '8px',
+                                                            textAlign: 'left',
+                                                            backgroundColor: isSelected ? 'rgba(0, 230, 118, 0.15)' : '#0F172A',
+                                                            border: isSelected ? `1px solid ${COLORS.signal}` : '1px solid #475569',
+                                                            color: isSelected ? COLORS.signal : 'white',
+                                                            fontWeight: isSelected ? 'bold' : 'normal',
+                                                            cursor: (!q.isActive || isLocked) ? 'not-allowed' : 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            fontSize: '14px',
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center'
+                                                        }}
+                                                    >
+                                                        <span>{opt}</span>
+                                                        {isSelected && <CheckCircle size={16} />}
+                                                    </button>
+                                                );
+                                            })}
+                                            {/* Botón Guardar específico para Múltiple (opcional, o reusar el de abajo si se ve mejor) */}
+                                            {q.isActive && !isLocked && (
+                                                <button
+                                                    style={{ ...STYLES.saveBtn, marginTop: '8px', padding: '12px', justifyContent: 'center', width: '100%' }}
+                                                    onClick={() => handleSaveAnswer(q.id)}
+                                                    disabled={isSaving || !answersInput[q.id]}
+                                                >
+                                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                                    {isSaving ? 'GUARDANDO...' : 'CONFIRMAR RESPUESTA'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        // INPUT DE TEXTO (Default)
+                                        <div style={STYLES.inputBox}>
+                                            <input
+                                                type="text"
+                                                value={answersInput[q.id] || ''}
+                                                onChange={(e) => setAnswersInput(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                                placeholder="Escribe tu predicción..."
+                                                style={STYLES.input}
+                                                disabled={!q.isActive || isLocked}
+                                            />
+                                            {q.isActive && !isLocked && (
+                                                <button
+                                                    style={{ ...STYLES.saveBtn, opacity: isSaving ? 0.7 : 1 }}
+                                                    onClick={() => handleSaveAnswer(q.id)}
+                                                    disabled={isSaving}
+                                                >
+                                                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                                    {isSaving ? '...' : 'GUARDAR'}
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
-                                </div>
+                                </>
                             )}
 
                         </div>

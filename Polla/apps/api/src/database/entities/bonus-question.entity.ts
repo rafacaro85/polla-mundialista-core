@@ -30,4 +30,10 @@ export class BonusQuestion {
 
     @Column({ name: 'league_id', nullable: true })
     leagueId: string;
+
+    @Column({ default: 'OPEN' })
+    type: 'OPEN' | 'MULTIPLE';
+
+    @Column({ type: 'simple-json', nullable: true })
+    options: string[];
 }

@@ -12,6 +12,8 @@ interface BonusQuestion {
     isActive: boolean;
     correctAnswer?: string;
     leagueId?: string;
+    type?: 'OPEN' | 'MULTIPLE';
+    options?: string[];
 }
 
 interface LeagueBonusQuestionsProps {
@@ -22,7 +24,13 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
-    const [newQuestion, setNewQuestion] = useState({ text: '', points: '' as any });
+    const [newQuestion, setNewQuestion] = useState({ 
+        text: '', 
+        points: '' as any,
+        type: 'OPEN' as 'OPEN' | 'MULTIPLE',
+        options: [] as string[],
+        currentOption: ''
+    });
 
     useEffect(() => {
         loadQuestions();
@@ -64,10 +72,19 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                 text: newQuestion.text,
                 points: points,
                 leagueId: leagueId,
-                isActive: true
+                leagueId: leagueId,
+                isActive: true,
+                type: newQuestion.type,
+                options: newQuestion.type === 'MULTIPLE' ? newQuestion.options : []
             });
             toast.success('Pregunta creada exitosamente');
-            setNewQuestion({ text: '', points: '' as any });
+            setNewQuestion({ 
+                text: '', 
+                points: '' as any, 
+                type: 'OPEN', 
+                options: [], 
+                currentOption: '' 
+            });
             setCreating(false);
             loadQuestions();
         } catch (error) {
@@ -292,6 +309,120 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                         onChange={(e) => setNewQuestion({ ...newQuestion, text: e.target.value })}
                         style={STYLES.input}
                     />
+
+                    {/* TYPE SELECTOR & OPTIONS UI */}
+                    <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
+                             <label style={{ color: '#94A3B8', fontSize: '12px' }}>Tipo:</label>
+                             <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1E293B', padding: '4px', borderRadius: '8px', border: '1px solid #334155' }}>
+                                <button
+                                    onClick={() => setNewQuestion({...newQuestion, type: 'OPEN'})}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        border: 'none',
+                                        backgroundColor: newQuestion.type === 'OPEN' ? '#00E676' : 'transparent',
+                                        color: newQuestion.type === 'OPEN' ? '#0F172A' : '#94A3B8',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Abierta
+                                </button>
+                                <button
+                                    onClick={() => setNewQuestion({...newQuestion, type: 'MULTIPLE'})}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        fontSize: '12px',
+                                        fontWeight: 'bold',
+                                        border: 'none',
+                                        backgroundColor: newQuestion.type === 'MULTIPLE' ? '#00E676' : 'transparent',
+                                        color: newQuestion.type === 'MULTIPLE' ? '#0F172A' : '#94A3B8',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Opción Múltiple
+                                </button>
+                             </div>
+                        </div>
+
+                        {newQuestion.type === 'MULTIPLE' && (
+                            <div style={{ backgroundColor: '#1E293B', padding: '12px', borderRadius: '8px', border: '1px solid #334155' }}>
+                                <label style={{ color: '#94A3B8', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                                    Opciones de respuesta:
+                                </label>
+                                
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ej. Messi"
+                                        value={newQuestion.currentOption}
+                                        onChange={(e) => setNewQuestion({...newQuestion, currentOption: e.target.value})}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                if (!newQuestion.currentOption?.trim()) return;
+                                                setNewQuestion({
+                                                    ...newQuestion,
+                                                    options: [...(newQuestion.options || []), newQuestion.currentOption.trim()],
+                                                    currentOption: ''
+                                                });
+                                            }
+                                        }}
+                                        style={{ ...STYLES.input, marginBottom: 0, fontSize: '12px', padding: '8px' }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            if (!newQuestion.currentOption?.trim()) return;
+                                            setNewQuestion({
+                                                ...newQuestion,
+                                                options: [...(newQuestion.options || []), newQuestion.currentOption.trim()],
+                                                currentOption: ''
+                                            });
+                                        }}
+                                        style={{ ...STYLES.addBtn, padding: '0 12px' }}
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {newQuestion.options?.map((opt, idx) => (
+                                        <div key={idx} style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            backgroundColor: '#0F172A',
+                                            padding: '6px 10px',
+                                            borderRadius: '6px',
+                                            fontSize: '12px',
+                                            color: 'white',
+                                            border: '1px solid #334155'
+                                        }}>
+                                            <span>{opt}</span>
+                                            <button 
+                                                onClick={() => {
+                                                    const newOpts = [...(newQuestion.options || [])];
+                                                    newOpts.splice(idx, 1);
+                                                    setNewQuestion({...newQuestion, options: newOpts});
+                                                }}
+                                                style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 0 }}
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(!newQuestion.options || newQuestion.options.length === 0) && (
+                                        <div style={{ fontSize: '10px', color: '#64748B', fontStyle: 'italic', textAlign: 'center' }}>
+                                            Agrega al menos 2 opciones
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <label style={{ color: '#94A3B8', fontSize: '12px' }}>Puntos:</label>
                         <input

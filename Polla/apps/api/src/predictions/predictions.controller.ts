@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TimeLockGuard } from '../common/guards/time-lock.guard';
 
 import { CreatePredictionDto } from './dto/create-prediction.dto';
+import { CreateBulkPredictionsDto } from './dto/create-bulk-predictions.dto';
 
 @Controller('predictions')
 export class PredictionsController {
@@ -37,5 +38,10 @@ export class PredictionsController {
     @Delete('all/clear')
     async deleteAllPredictions(@Request() req: any, @Query('leagueId') leagueId?: string) {
         return this.predictionsService.removeAllPredictions(req.user.id, leagueId);
+    }
+    @UseGuards(JwtAuthGuard, TimeLockGuard)
+    @Post('bulk')
+    async upsertBulkPredictions(@Request() req: any, @Body() body: CreateBulkPredictionsDto) {
+        return await this.predictionsService.upsertBulkPredictions(req.user.id, body.predictions);
     }
 }

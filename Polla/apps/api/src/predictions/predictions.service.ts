@@ -199,4 +199,90 @@ export class PredictionsService {
             count: toDelete.length
         };
     }
+    async upsertBulkPredictions(userId: string, predictionsData: { matchId: string, homeScore: number, awayScore: number, leagueId?: string, isJoker?: boolean }[]): Promise<any> {
+        // Ejecutamos todo en una TRANSACCIÓN (QueryRunner) para máxima velocidad y seguridad.
+        const queryRunner = this.predictionsRepository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 0. Cachear datos repetitivos para no consultar DB por cada ítem
+            // Obtener info básica de todos los partidos involucrados en una sola consulta
+            const matchIds = predictionsData.map(p => p.matchId);
+            const matches = await this.matchesRepository.findByIds(matchIds);
+            const matchesMap = new Map(matches.map(m => [m.id, m]));
+
+            // Validación de Bloqueo en Ligas (hacer solo una vez por liga si aplica)
+            // Asumimos que si vienen por bulk, todas son de la misma liga o globales.
+            const uniqueLeagueIds = [...new Set(predictionsData.map(p => p.leagueId).filter(Boolean))];
+            
+            for (const lid of uniqueLeagueIds as string[]) {
+                const participant = await this.leagueParticipantRepository.findOne({
+                    where: { user: { id: userId }, league: { id: lid } }
+                });
+                if (participant && participant.isBlocked) {
+                    throw new ForbiddenException(`Usuario bloqueado en la liga ${lid}`);
+                }
+            }
+
+            const results = [];
+
+            for (const dto of predictionsData) {
+                const match = matchesMap.get(dto.matchId);
+                if (!match) continue; // Skip invalid IDs
+
+                // Check Time (Safety)
+                if (match.date < new Date()) continue; // Skip started matches
+
+                // LOGICA JOKER (Simplificada para Bulk: si envían isJoker=true, desactivamos otros)
+                // Nota: La lógica compleja de "Unique Joker" es costosa. 
+                // En Bulk (habitual de IA), raramente se ponen Jokers. Si se ponen, confiamos en la lógica simple de anulación.
+                if (dto.isJoker) {
+                     await queryRunner.manager.update(Prediction, 
+                        { userId, isJoker: true, match: { phase: match.phase }, leagueId: dto.leagueId ? dto.leagueId : IsNull() },
+                        { isJoker: false }
+                    );
+                }
+
+                // UPSERT Manual usando QueryBuilder o findOne dentro de la Tx
+                // Para bulk real, lo ideal es "INSERT ... ON CONFLICT", pero TypeORM a veces es tricky con relaciones.
+                // Haremos find one + save para mantener compatibilidad con Hooks/Subscriber si los hubiera.
+                
+                let prediction = await queryRunner.manager.findOne(Prediction, {
+                    where: {
+                        user: { id: userId },
+                        match: { id: dto.matchId },
+                        leagueId: dto.leagueId ? dto.leagueId : IsNull()
+                    }
+                });
+
+                if (prediction) {
+                    prediction.homeScore = dto.homeScore;
+                    prediction.awayScore = dto.awayScore;
+                    if (dto.isJoker !== undefined) prediction.isJoker = dto.isJoker;
+                } else {
+                    prediction = queryRunner.manager.create(Prediction, {
+                        user: { id: userId } as User,
+                        match: { id: dto.matchId } as Match,
+                        leagueId: dto.leagueId || undefined,
+                        homeScore: dto.homeScore,
+                        awayScore: dto.awayScore,
+                        isJoker: dto.isJoker || false
+                    });
+                }
+                
+                const saved = await queryRunner.manager.save(prediction);
+                results.push(saved);
+            }
+
+            await queryRunner.commitTransaction();
+            return results;
+
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }

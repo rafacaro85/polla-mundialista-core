@@ -201,23 +201,22 @@ export const useMyPredictions = (leagueId?: string) => {
     };
 
     const saveBulkPredictions = async (aiPredictions: Record<string, { h: number, a: number }>) => {
-        // STRATEGY CHANGE: Bulk predictions (AI) save to GLOBAL scope by default,
-        // so they propagate to all leagues (Inheritance).
-        // Specific overrides happen when user manually edits single matches in a league context.
+        // STRATEGY CHANGE: Bulk predictions (AI) save to GLOBAL scope by default.
         const targetLeagueId = null;
         const entries = Object.entries(aiPredictions);
 
-        const promises = entries.map(([mId, { h, a }]) => {
-            return api.post('/predictions', {
-                matchId: mId,
-                homeScore: h,
-                awayScore: a,
-                leagueId: targetLeagueId
-            });
-        });
+        // Construir Array para el endpoint Bulk
+        const predictionsList = entries.map(([mId, { h, a }]) => ({
+            matchId: mId,
+            homeScore: h,
+            awayScore: a,
+            leagueId: targetLeagueId,
+            isJoker: false // AI no asigna Jokers masivamente por defecto
+        }));
 
         try {
-            await Promise.all(promises);
+            // NEW: Single Request for all predictions
+            await api.post('/predictions/bulk', { predictions: predictionsList });
             await mutate();
             toast.success(`${entries.length} predicciones guardadas (Global)`);
         } catch (err) {

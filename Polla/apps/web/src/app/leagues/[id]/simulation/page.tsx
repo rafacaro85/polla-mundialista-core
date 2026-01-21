@@ -14,20 +14,39 @@ export default function SimulationPage() {
     const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>('groups');
 
     useEffect(() => {
-        const fetchMatches = async () => {
+        const loadData = async () => {
             try {
-                const { data } = await api.get(`/leagues/${params.id}/matches`);
+                const [matchesRes, leagueRes] = await Promise.all([
+                    api.get(`/leagues/${params.id}/matches`),
+                    api.get(`/leagues/${params.id}`)
+                ]);
 
-                setMatches(data || []);
+                let matchesData = matchesRes.data || [];
+                const leagueData = leagueRes.data;
+
+                // FIX: Para ligas empresariales, limpiar los equipos hardcodeados en fases finales
+                // para que el simulador funcione desde cero (calculando cruces dinámicamente).
+                // Respetamos la orden de "no tocar las otras".
+                if (leagueData.isEnterprise) {
+                    matchesData = matchesData.map((m: any) => {
+                        // Si es fase KO y el partido no ha terminado, limpiar contendientes
+                        if (['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'].includes(m.phase) && m.status !== 'FINISHED') {
+                            return { ...m, homeTeam: null, awayTeam: null };
+                        }
+                        return m;
+                    });
+                }
+
+                setMatches(matchesData);
             } catch (error) {
-                console.error('Error fetching matches:', error);
+                console.error('Error loading simulation data:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         if (params.id) {
-            fetchMatches();
+            loadData();
         }
     }, [params.id]);
 

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { GradeQuestionDto } from './dto/grade-question.dto';
@@ -19,7 +20,37 @@ export class BonusService {
         private userBonusAnswerRepository: Repository<UserBonusAnswer>,
         @InjectRepository(League)
         private leagueRepository: Repository<League>,
+        @InjectRepository(LeagueParticipant) // Inyectado
+        private leagueParticipantRepository: Repository<LeagueParticipant>,
     ) { }
+
+    // Helper: Verificar permisos de admin sobre una liga
+    async checkLeagueAdminPermission(userId: string, leagueId: string | undefined, userGlobalRole: string): Promise<boolean> {
+        // 1. Super Admin siempre puede
+        if (userGlobalRole === 'SUPER_ADMIN') return true;
+
+        if (!leagueId) return false; // Solo Super Admin puede tocar Globales
+
+        // 2. Verificar si es Creator o Admin Local
+        const league = await this.leagueRepository.findOne({ 
+            where: { id: leagueId },
+            relations: ['creator']
+        });
+
+        if (!league) throw new NotFoundException('Liga no encontrada');
+
+        // Es el creador?
+        if (league.creator && league.creator.id === userId) return true;
+
+        // Es participante Admin?
+        const participant = await this.leagueParticipantRepository.findOne({
+            where: { league: { id: leagueId }, user: { id: userId } }
+        });
+
+        if (participant && participant.isAdmin) return true;
+
+        return false;
+    }
 
     // Admin: Crear pregunta
     async createQuestion(dto: CreateQuestionDto): Promise<BonusQuestion> {
@@ -57,9 +88,19 @@ export class BonusService {
         });
     }
 
-    // Listar todas las preguntas (admin)
-    async getAllQuestions(): Promise<BonusQuestion[]> {
+    // Listar todas las preguntas (admin) - Filtradas por liga
+    async getAllQuestions(leagueId?: string): Promise<BonusQuestion[]> {
+        const where: any = {};
+        if (leagueId) {
+            where.leagueId = leagueId;
+        } else {
+            // Si es global admin pidiendo todo... o global questions
+            where.leagueId = IsNull();
+            // Nota: Podríamos mejorar esto para SUPER_ADMIN, pero por seguridad por defecto filtramos.
+        }
+
         return this.bonusQuestionRepository.find({
+            where,
             order: { createdAt: 'DESC' },
         });
     }

@@ -30,13 +30,18 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
 
     const loadQuestions = async () => {
         try {
-            const { data } = await api.get('/bonus/questions/all');
-            // Filter questions for this league
+            // Updated: Pass leagueId to params to authorize request on backend
+            const { data } = await api.get('/bonus/questions/all', { params: { leagueId } });
+            
+            // Filter questions for this league (Backend now does this too via filtering, but safe to keep)
+            // But we can just use the data if backend already filters.
+            // Let's keep filter just in case API changes, but it's redundant now.
             const leagueQuestions = data.filter((q: BonusQuestion) => q.leagueId === leagueId);
             setQuestions(leagueQuestions);
+            
         } catch (error) {
             console.error('Error loading questions:', error);
-            toast.error('Error al cargar las preguntas');
+            // toast.error('Error al cargar las preguntas'); // Evitar spam si falla permisos
         } finally {
             setLoading(false);
         }

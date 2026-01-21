@@ -18,6 +18,8 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { DebugModule } from './debug/debug.module';
 import { KnockoutPhasesModule } from './knockout-phases/knockout-phases.module';
 import { MailModule } from './mail/mail.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -48,6 +50,36 @@ import { APP_GUARD } from '@nestjs/core';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        // Validación básica: Si no hay REDIS_HOST, usamos memoria (fallback seguro)
+        const host = configService.get<string>('REDIS_HOST');
+        if (!host) {
+            console.warn('⚠️ REDIS_HOST no definido. Usando caché en memoria (No recomendado para producción).');
+            return {
+                ttl: 10000, // 10s default
+            };
+        }
+
+        const store = await redisStore({
+          socket: {
+            host: host,
+            port: parseInt(configService.get<string>('REDIS_PORT') || '6379'),
+          },
+          username: configService.get<string>('REDIS_USERNAME') || 'default',
+          password: configService.get<string>('REDIS_PASSWORD'),
+          ttl: 10000, 
+        });
+
+        return {
+          store: store as any,
+          ttl: 10000, // 10 segundos de vida por defecto para todo
+        };
+      },
+      inject: [ConfigService],
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -76,12 +108,16 @@ import { APP_GUARD } from '@nestjs/core';
         ],
         synchronize: true, // Note: synchronize: true should not be used in production
         ssl: configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined,
+        extra: {
+          max: 50, // Aumentado para soportar alta concurrencia (Stress Test mostró necesidad)
+          connectionTimeoutMillis: 5000,
+        },
       }),
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000, // 60 seconds
-      limit: 300, // Increased from 100 to support bulk predictions
+      limit: 300, 
     }]),
     AuthModule,
     ScoringModule,

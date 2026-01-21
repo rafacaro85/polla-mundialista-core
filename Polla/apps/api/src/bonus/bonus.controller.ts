@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, Query, ForbiddenException } from '@nestjs/common';
 import { BonusService } from './bonus.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
@@ -16,7 +16,11 @@ export class BonusController {
     @Post('questions')
     @UseGuards(RolesGuard)
     @Roles('ADMIN', 'SUPER_ADMIN')
-    async createQuestion(@Body() dto: CreateQuestionDto) {
+    async createQuestion(@Request() req: any, @Body() dto: CreateQuestionDto) { // Inyectamos Request
+        // SEGURIDAD: Solo SUPER_ADMIN puede crear preguntas Globales (sin leagueId)
+        if (!dto.leagueId && req.user.role !== 'SUPER_ADMIN') {
+            throw new ForbiddenException('Solo los Super Administradores pueden crear preguntas globales. Por favor asigna una liga a la pregunta.');
+        }
         return this.bonusService.createQuestion(dto);
     }
 

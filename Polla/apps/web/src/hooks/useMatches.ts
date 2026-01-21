@@ -34,7 +34,7 @@ export const useMatches = (predictions: any) => {
     const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR('/matches/live', fetcher, {
         refreshInterval: 60000, // 1 minute
         revalidateOnFocus: true,
-        revalidateIfStale: false,
+        revalidateIfStale: true,
     });
 
     // Calculate Merged Matches

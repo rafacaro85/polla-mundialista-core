@@ -117,7 +117,7 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000, // 60 seconds
-      limit: 300, 
+      limit: 10000, // ✅ Límite "infinito" para diagnóstico de estrés
     }]),
     AuthModule,
     ScoringModule,

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
+import { GroupStandingOverride } from '../database/entities/group-standing-override.entity';
 
 export interface TeamStanding {
     team: string;
@@ -21,6 +22,8 @@ export class StandingsService {
     constructor(
         @InjectRepository(Match)
         private matchesRepository: Repository<Match>,
+        @InjectRepository(GroupStandingOverride)
+        private overridesRepository: Repository<GroupStandingOverride>,
     ) { }
 
     async calculateGroupStandings(group: string): Promise<TeamStanding[]> {
@@ -108,25 +111,42 @@ export class StandingsService {
         // 3. Convertir a array y ordenar según reglas FIFA
         const standings = Array.from(teamStats.values());
 
-        standings.sort((a, b) => {
-            // 1. Mayor número de puntos obtenidos en todos los partidos de grupo
-            if (b.points !== a.points) return b.points - a.points;
+        // Check for Manual Overrides
+        const overrides = await this.overridesRepository.find({ where: { group } });
 
-            // 2. Mayor diferencia de goles en todos los partidos de grupo
-            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+        if (overrides.length > 0) {
+            console.log(`⚠️ Applying Manual Overrides for Group ${group}`);
+            // Map team -> manualPosition
+            const overrideMap = new Map<string, number>();
+            overrides.forEach(o => overrideMap.set(o.team, o.manualPosition));
 
-            // 3. Mayor número de goles marcados en todos los partidos de grupo
-            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            standings.sort((a, b) => {
+                const posA = overrideMap.get(a.team) ?? 999; // Default to bottom if not overridden
+                const posB = overrideMap.get(b.team) ?? 999;
+                return posA - posB;
+            });
+        } else {
+            // Default FIFA Sort
+            standings.sort((a, b) => {
+                // 1. Mayor número de puntos obtenidos en todos los partidos de grupo
+                if (b.points !== a.points) return b.points - a.points;
 
-            // --- Criterios adicionales FIFA ---
-            // 4. Mayor número de puntos obtenidos en los partidos entre los equipos empatados
-            // 5. Mayor diferencia de goles en los partidos entre los equipos empatados
-            // 6. Mayor número de goles marcados en los partidos entre los equipos empatados
-            // 7. Puntos por deportividad (Fair Play - se puede implementar con datos de tarjetas)
-            // 8. Sorteo por la FIFA
+                // 2. Mayor diferencia de goles en todos los partidos de grupo
+                if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
 
-            return 0; // Se mantiene el orden actual si hay empate total (sorteo implícito)
-        });
+                // 3. Mayor número de goles marcados en todos los partidos de grupo
+                if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+
+                // --- Criterios adicionales FIFA ---
+                // 4. Mayor número de puntos obtenidos en los partidos entre los equipos empatados
+                // 5. Mayor diferencia de goles en los partidos entre los equipos empatados
+                // 6. Mayor número de goles marcados en los partidos entre los equipos empatados
+                // 7. Puntos por deportividad (Fair Play - se puede implementar con datos de tarjetas)
+                // 8. Sorteo por la FIFA
+
+                return 0; // Se mantiene el orden actual si hay empate total (sorteo implícito)
+            });
+        }
 
         // 4. Asignar posiciones
         standings.forEach((standing, index) => {
@@ -140,6 +160,20 @@ export class StandingsService {
         });
 
         return standings;
+    }
+
+    async saveGroupOverrides(group: string, overrides: { team: string, position: number }[]) {
+        // Delete existing overrides for this group (full replacement)
+        await this.overridesRepository.delete({ group });
+        
+        // Save new ones
+        const entities = overrides.map(o => this.overridesRepository.create({
+            group,
+            team: o.team,
+            manualPosition: o.position
+        }));
+        
+        return await this.overridesRepository.save(entities);
     }
 
     async getAllGroupStandings(): Promise<{ [group: string]: TeamStanding[] }> {

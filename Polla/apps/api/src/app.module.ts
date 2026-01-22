@@ -37,6 +37,7 @@ import { SystemConfig } from './database/entities/system-config.entity';
 import { SystemSettings } from './system-settings/entities/system-setting.entity';
 import { KnockoutPhaseStatus } from './database/entities/knockout-phase-status.entity';
 import { LeagueComment } from './database/entities/league-comment.entity';
+import { GroupStandingOverride } from './database/entities/group-standing-override.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -105,6 +106,7 @@ import { APP_GUARD } from '@nestjs/core';
           SystemSettings,
           KnockoutPhaseStatus,
           LeagueComment,
+          GroupStandingOverride,
         ],
         synchronize: true, // Note: synchronize: true should not be used in production
         ssl: configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined,

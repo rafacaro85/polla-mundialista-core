@@ -10,7 +10,8 @@ import {
     Users, Trophy, Banknote, TrendingUp, ShieldAlert,
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
-    Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon
+    Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon,
+    ListOrdered
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
@@ -18,6 +19,7 @@ import { UsersTable } from '@/components/admin/UsersTable';
 import { LeaguesTable } from '@/components/admin/LeaguesTable';
 import { MatchesList } from '@/components/admin/MatchesList';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
+import { GroupStandingsOverride } from '@/components/admin/GroupStandingsOverride';
 
 /* =============================================================================
    DATOS MOCK
@@ -335,6 +337,7 @@ export default function SuperAdminDashboard() {
                     { id: 'users', label: 'Usuarios', icon: <Eye size={14} /> },
                     { id: 'leagues', label: 'Pollas', icon: <Trophy size={14} /> },
                     { id: 'matches', label: 'Partidos', icon: <Shield size={14} /> },
+                    { id: 'standings', label: 'Posiciones', icon: <ListOrdered size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },
                     // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
@@ -367,6 +370,8 @@ export default function SuperAdminDashboard() {
             {activeTab === 'questions' && (
                 <BonusQuestionsTable />
             )}
+
+            {activeTab === 'standings' && <GroupStandingsOverride />}
 
             {/* --- CONTENIDO DINÁMICO --- */}
 

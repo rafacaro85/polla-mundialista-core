@@ -27,12 +27,15 @@ export class BracketsService {
     ) { }
 
     async saveBracket(userId: string, dto: SaveBracketDto): Promise<UserBracket> {
-        // 1. Check if user is blocked in the league (if leagueId is provided)
-        if (dto.leagueId) {
+        // Check for 'global' string and treat as null
+        const targetLeagueId = (dto.leagueId === 'global' || dto.leagueId === '') ? null : dto.leagueId;
+
+        // Check if user is blocked in the league (if leagueId is provided)
+        if (targetLeagueId) {
             const participant = await this.leagueParticipantRepository.findOne({
                 where: {
                     user: { id: userId },
-                    league: { id: dto.leagueId },
+                    league: { id: targetLeagueId },
                 },
             });
 
@@ -43,10 +46,10 @@ export class BracketsService {
 
         // Find existing bracket or create new one
         const whereClause: any = { userId };
-        if (dto.leagueId) {
-            whereClause.leagueId = dto.leagueId;
+        if (targetLeagueId) {
+            whereClause.leagueId = targetLeagueId;
         } else {
-            whereClause.leagueId = null;
+            whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull checks
         }
 
         let bracket = await this.userBracketRepository.findOne({
@@ -71,7 +74,10 @@ export class BracketsService {
     }
 
     async getMyBracket(userId: string, leagueId?: string): Promise<UserBracket | null> {
-        if (!leagueId) {
+        // Normalize 'global' string to undefined/null logic
+        const targetLeagueId = (leagueId === 'global' || leagueId === '') ? undefined : leagueId;
+
+        if (!targetLeagueId) {
             return this.userBracketRepository.findOne({
                 where: { userId, leagueId: IsNull() },
             });
@@ -82,7 +88,7 @@ export class BracketsService {
             where: { userId },
         });
 
-        const leagueBracket = brackets.find(b => b.leagueId === leagueId);
+        const leagueBracket = brackets.find(b => b.leagueId === targetLeagueId);
         const generalBracket = brackets.find(b => b.leagueId === null);
 
         return leagueBracket || generalBracket || null;

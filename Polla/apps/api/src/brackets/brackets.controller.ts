@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Req, Param, Delete, Query } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BracketsService } from './brackets.service';
@@ -15,14 +15,8 @@ export class BracketsController {
         return this.bracketsService.saveBracket(userId, dto);
     }
 
-    @Get('my')
-    async getMyBracket(@Req() req: Request & { user: any }) {
-        const userId = req.user.id;
-        return this.bracketsService.getMyBracket(userId);
-    }
-
-    @Get('my/:leagueId')
-    async getMyBracketForLeague(@Req() req: Request & { user: any }, @Param('leagueId') leagueId: string) {
+    @Get('me')
+    async getMyBracket(@Req() req: Request & { user: any }, @Query('leagueId') leagueId?: string) {
         const userId = req.user.id;
         return this.bracketsService.getMyBracket(userId, leagueId);
     }

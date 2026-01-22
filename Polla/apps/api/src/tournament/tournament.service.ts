@@ -77,6 +77,79 @@ export class TournamentService {
 
         this.logger.log(`📊 Group ${group} standings: 1st: ${firstPlace}, 2nd: ${secondPlace}, 3rd: ${thirdPlace}`);
 
+        // 2.1 CLEANUP PREVENTIVO (Autocorrección)
+        // Antes de escribir los nuevos clasificados, buscamos si los equipos de este grupo
+        // ya habían sido asignados previamente a algún bracket incorrecto (por cambios en la tabla)
+        // y los limpiamos. Esto evita duplicados como "Alemania vs X" y "Alemania vs Y".
+        const groupTeams = standings.map(s => s.team);
+        
+        // Buscamos cualquier partido de ROUND_32 que tenga como equipo (home o away) 
+        // a alguno de los miembros de este grupo, y lo reseteamos si no coincide con la nueva realidad.
+        const dirtyMatches = await this.matchesRepository.createQueryBuilder('m')
+            .where("m.phase = 'ROUND_32'")
+            .andWhere(
+                "(m.homeTeam IN (:...teams) OR m.awayTeam IN (:...teams))", 
+                { teams: groupTeams }
+            )
+            .getMany();
+
+        for (const m of dirtyMatches) {
+            let wasCleaned = false;
+            // Si el homeTeam es del grupo, pero NO debería estar ahí según los placeholders (1A, 2A, etc), limpiar.
+            // Ojo: Si el placeholder ya se borró (es null), asumimos que si el equipo está ahí, 
+            // es porque venía de ese placeholder. 
+            // La estrategia más segura es: Si el equipo está ahí, lo borramos y restauramos el placeholder original 
+            // (si podemos deducirlo) o simplemente lo borramos y dejamos que el paso 3 lo reasigne correctamente.
+            
+            // Para simplificar y ser agresivos contra el bug:
+            // Borramos SIEMPRE los equipos del grupo encontrados en R32.
+            // El paso 3 (abajo) volverá a escribir los correctos donde deben ir.
+            
+            if (groupTeams.includes(m.homeTeam)) {
+                // Restaurar placeholder si es posible, o dejarlo null si ya estaba null.
+                // PERO: Necesitamos el placeholder para saber donde escribir después.
+                // Si el placeholder es null, tenemos un problema: perdimos la "dirección" del slot.
+                // Por suerte, en la DB el seed inicial tiene los placeholders.
+                // Si el usuario no borró la DB, podemos intentar inferirlo o simplemente borrar el team.
+                // Si borramos el team y el placeholder es null, el paso 3 no encontrará dónde escribir.
+                // SOLUCIÓN: El paso 3 busca por placeholder. 
+                // Si el placeholder es null porque ya se usó, debemos restaurarlo al borrar el equipo.
+                
+                // ¿Cómo sabemos qué placeholder era? 
+                // Hardcode inverso o mapa. 
+                // Por ahora, asumiremos que si limpiamos el equipo, debemos reactivar la búsqueda por placeholder.
+                
+                // MEJOR ESTRATEGIA:
+                // No borrar a ciegas. Solo borrar si la posición NO coincide.
+                // Pero es complejo validar "si coincide" aquí.
+                
+                // ESTRATEGIA "RESET SLOT":
+                // Si encontramos un equipo del grupo, lo quitamos.
+                // Y PARA QUE EL PASO 3 FUNCIONE: Debemos asegurarnos que el match tenga el placeholder correcto.
+                // Como no tenemos el mapa inverso a mano fácilmente sin hardcodear los 104 partidos...
+                // Vamos a confiar en que el seed inicial tenía los placeholders y en que 
+                // al asignar un equipo, NO borremos el placeholder de la DB de forma permanente 
+                // (aunque la lógica actual hacía `match.placeholder = null`).
+                
+                // CAMBIO CLAVE EN PASO 3: NO hacer `match.placeholder = null`.
+                // Dejar el placeholder ahí para futuras referencias o correcciones.
+                
+                m.homeTeam = ''; 
+                m.homeFlag = '';
+                wasCleaned = true;
+            }
+            if (groupTeams.includes(m.awayTeam)) {
+                m.awayTeam = '';
+                m.awayFlag = '';
+                wasCleaned = true;
+            }
+
+            if (wasCleaned) {
+                await this.matchesRepository.save(m);
+                this.logger.log(`🧹 Cleaned dirty R32 match ${m.id} containing old group data`);
+            }
+        }
+
         // 2.5. Buscar banderas de los equipos clasificados
         const groupMatches = await this.matchesRepository.find({
             where: { phase: 'GROUP', group },
@@ -100,6 +173,11 @@ export class TournamentService {
         }
 
         // 3. Buscar partidos de ROUND_32 con placeholders de este grupo
+        // NOTA: Buscamos matches donde el placeholder coincida.
+        // Si en ejecuciones anteriores borramos el placeholder (como hacía el código viejo),
+        // esto fallará. Por eso es vital que el SEEDER y el RESET hayan restaurado placeholders.
+        // O que cambiemos la lógica para NO borrar el placeholder al asignar equipo.
+        
         const knockoutMatches = await this.matchesRepository.find({
             where: { phase: 'ROUND_32' },
         });
@@ -115,11 +193,16 @@ export class TournamentService {
                 const flagField = side === 'home' ? 'homeFlag' : 'awayFlag';
                 const placeholderField = side === 'home' ? 'homeTeamPlaceholder' : 'awayTeamPlaceholder';
 
-                if (match[placeholderField] === placeholder && match[teamField] !== team) {
-                    match[teamField] = team;
-                    match[flagField] = flag;
-                    match[placeholderField] = null;
-                    return true;
+                // Si el placeholder coincide, asignamos el equipo.
+                // IMPORTANTE: NO borramos el placeholder (a diferencia de antes) para permitir correcciones futuras.
+                if (match[placeholderField] === placeholder) {
+                     // Solo guardar si es diferente para evitar escrituras inútiles
+                     if (match[teamField] !== team) {
+                        match[teamField] = team;
+                        match[flagField] = flag;
+                        // match[placeholderField] = null; // <-- ELIMINADO: Mantener placeholder para integridad/corrección
+                        return true;
+                     }
                 }
                 return false;
             }

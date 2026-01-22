@@ -433,7 +433,7 @@ export function MatchesList() {
                                 disabled={syncing}
                             >
                                 <Trophy size={14} />
-                                Avance Grupos
+                                Promover Grupos (Fix)
                             </button>
 
                             <button

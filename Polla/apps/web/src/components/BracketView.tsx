@@ -127,11 +127,28 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     };
 
     // Cargar bracket guardado desde la API (Siempre global para consistencia entre ligas)
-    // Cargar bracket guardado: DESHABILITADO POR SOLICITUD (Simulador en limpio)
+    // Cargar bracket guardado desde la API
     useEffect(() => {
-        // Simplemente dejamos de cargar para que inicie en 0
-        setLoading(false);
-    }, []);
+        const loadBracket = async () => {
+            try {
+                // Si estamos en una liga, intentamos cargar el bracket de esa liga (o el global como fallback)
+                const url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
+                const { data } = await api.get(url);
+                
+                if (data && data.picks) {
+                    setWinners(data.picks);
+                    setBracketPoints(data.points || 0);
+                    // toast.success("Tu bracket guardado se ha cargado");
+                }
+            } catch (error) {
+                console.error("Error loading bracket:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBracket();
+    }, [leagueId]);
 
     // --- LÓGICA DE BLOQUEO ---
     const lockDate = useMemo(() => {

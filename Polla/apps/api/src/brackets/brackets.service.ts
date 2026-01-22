@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { UserBracket } from '../database/entities/user-bracket.entity';
@@ -146,24 +146,44 @@ export class BracketsService {
     }
 
     async recalculateAllBracketPoints(): Promise<void> {
-        // Reset all bracket points
-        await this.userBracketRepository.update({}, { points: 0 });
+        console.log('🔄 Starting bracket points recalculation...');
+        try {
+            // 1. Reset all points to 0
+            // TypeORM prevents update({}) for safety. We use QueryBuilder for global update.
+            await this.userBracketRepository.createQueryBuilder()
+                .update(UserBracket)
+                .set({ points: 0 })
+                .execute();
+            console.log('✅ Points reset to 0 for all brackets');
 
-        // Get all finished matches
-        const finishedMatches = await this.matchRepository.find({
-            where: { status: 'FINISHED' },
-        });
+            // 2. Get all finished matches
+            const finishedMatches = await this.matchRepository.find({
+                where: { status: 'FINISHED' },
+            });
+            console.log(`📊 Found ${finishedMatches.length} finished matches to process`);
 
-        console.log(`Recalculating points for ${finishedMatches.length} finished matches...`);
-
-        for (const match of finishedMatches) {
-            if (match.homeScore !== null && match.awayScore !== null && match.phase) {
-                // Determine winner
-                const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
-                await this.calculateBracketPoints(match.id, winner);
+            // 3. Process each match
+            let processedCount = 0;
+            for (const match of finishedMatches) {
+                try {
+                    // Skip if scores are missing or phase is not relevant (e.g. GROUP)
+                    if (match.homeScore !== null && match.awayScore !== null && match.phase) {
+                        // Determine winner
+                        const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
+                        
+                        // We put this in a try-catch to prevent one bad match from stopping the whole process
+                        await this.calculateBracketPoints(match.id, winner);
+                        processedCount++;
+                    }
+                } catch (matchError) {
+                    console.error(`❌ Error processing match ${match.id} (${match.homeTeam} vs ${match.awayTeam}):`, matchError);
+                }
             }
-        }
 
-        console.log('✅ Bracket points recalculation complete');
+            console.log(`✅ Bracket points recalculation complete. Processed ${processedCount} matches.`);
+        } catch (error) {
+            console.error('🔥 FATAL ERROR in recalculateAllBracketPoints:', error);
+            throw new InternalServerErrorException(`Failed to recalculate bracket points: ${error.message}`);
+        }
     }
 }

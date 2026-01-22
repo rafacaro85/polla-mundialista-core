@@ -509,8 +509,9 @@ export function MatchesList() {
                                             setSyncing(true);
                                             await api.post('/brackets/recalculate');
                                             toast.success("Puntos recalculados. Tus aciertos históricos ya cuentan.");
-                                        } catch (e) {
-                                            toast.error("Error al recalcular puntos");
+                                        } catch (e: any) {
+                                            console.error("Recalculate error:", e);
+                                            toast.error(`Error: ${e.response?.data?.message || e.message || "Error desconocido"}`);
                                         } finally {
                                             setSyncing(false);
                                         }

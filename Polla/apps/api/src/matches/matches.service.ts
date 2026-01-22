@@ -487,12 +487,18 @@ export class MatchesService {
                          await this['scoringService'].calculatePointsForMatch(updatedMatch.id);
                     }
 
+                    // Determine Winner for Bracket Points
+                    const winner = homeScore > awayScore ? match.homeTeam : match.awayTeam;
+                    
+                    // Trigger Bracket Points Calculation
+                    if (this.bracketsService) {
+                        await this.bracketsService.calculateBracketPoints(updatedMatch.id, winner);
+                    }
+
                     // Trigger Promotion (Critical Step Added)
                     if (targetPhase !== 'GROUP') {
                          await this.tournamentService.promoteToNextRound(updatedMatch);
                     }
-
-                    updatedCount++;
 
                     updatedCount++;
 

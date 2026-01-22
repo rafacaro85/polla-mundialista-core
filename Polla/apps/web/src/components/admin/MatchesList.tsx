@@ -502,6 +502,27 @@ export function MatchesList() {
                             </button>
 
                             <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#D946EF', color: 'white' }}
+                                onClick={async () => {
+                                    if (confirm('¿Recalcular puntos de TODOS los brackets de usuarios? (Puede tardar unos segundos)')) {
+                                        try {
+                                            setSyncing(true);
+                                            await api.post('/brackets/recalculate');
+                                            toast.success("Puntos recalculados. Tus aciertos históricos ya cuentan.");
+                                        } catch (e) {
+                                            toast.error("Error al recalcular puntos");
+                                        } finally {
+                                            setSyncing(false);
+                                        }
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                <Database size={14} />
+                                Recalcular Puntos
+                            </button>
+
+                            <button
                                 style={{ ...STYLES.syncBtn, backgroundColor: '#8B5CF6', color: 'white' }}
                                 onClick={async () => {
                                     try {

@@ -245,6 +245,34 @@ export class LeaguesService {
       participants,
       participantCount: participants.length,
       availableSlots: Math.max(0, league.maxParticipants - participants.length),
+      // Ads
+      showAds: !!league.showAds,
+      adImages: league.adImages || [],
+      // Enterprise Config (Added for Studio)
+      isEnterprise: league.isEnterprise,
+      isEnterpriseActive: league.isEnterpriseActive,
+      packageType: league.packageType,
+      companyName: league.companyName,
+      brandingLogoUrl: league.brandingLogoUrl,
+      brandColorPrimary: league.brandColorPrimary,
+      brandColorSecondary: league.brandColorSecondary,
+      brandColorBg: league.brandColorBg,
+      brandColorText: league.brandColorText,
+      brandFontFamily: league.brandFontFamily,
+      brandCoverUrl: league.brandCoverUrl,
+      welcomeMessage: league.welcomeMessage,
+      prizeImageUrl: league.prizeImageUrl,
+      prizeDetails: league.prizeDetails,
+      // Social
+      socialInstagram: league.socialInstagram,
+      socialFacebook: league.socialFacebook,
+      socialWhatsapp: league.socialWhatsapp,
+      socialYoutube: league.socialYoutube,
+      socialTiktok: league.socialTiktok,
+      socialLinkedin: league.socialLinkedin,
+      socialWebsite: league.socialWebsite,
+      enableDepartmentWar: league.enableDepartmentWar,
+      isPaid: league.isPaid,
     };
   }
 
@@ -421,6 +449,9 @@ export class LeaguesService {
       prizeDetails: p.league.prizeDetails,     // Agregado
       isPaid: p.league.isPaid,
       packageType: p.league.packageType,
+      // Ads
+      showAds: p.league.showAds,
+      adImages: p.league.adImages,
     }));
 
     console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));
@@ -646,7 +677,8 @@ export class LeaguesService {
         triviaPoints,
         totalPoints,
         tieBreakerGuess,
-        tieBreakerDiff: tieBreakerGuess !== null ? Math.abs(tieBreakerGuess - realGoals) : Infinity
+        tieBreakerDiff: tieBreakerGuess !== null ? Math.abs(tieBreakerGuess - realGoals) : Infinity,
+        department: lp.department
       };
     });
 
@@ -748,6 +780,10 @@ export class LeaguesService {
     if (updateLeagueDto.socialTiktok !== undefined) league.socialTiktok = updateLeagueDto.socialTiktok;
     if (updateLeagueDto.socialLinkedin !== undefined) league.socialLinkedin = updateLeagueDto.socialLinkedin;
     if (updateLeagueDto.socialWebsite !== undefined) league.socialWebsite = updateLeagueDto.socialWebsite;
+
+    // --- ADS ---
+    if (updateLeagueDto.showAds !== undefined) league.showAds = updateLeagueDto.showAds;
+    if (updateLeagueDto.adImages !== undefined) league.adImages = updateLeagueDto.adImages;
 
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
@@ -1038,47 +1074,57 @@ export class LeaguesService {
     return this.leagueParticipantsRepository.save(participant);
   }
   async getAnalyticsSummary(leagueId: string) {
-    const totalParticipants = await this.leagueParticipantsRepository.count({ where: { league: { id: leagueId } } });
+    try {
+      // 1. Get real-time calculated ranking (includes updated points from predictions)
+      // This solves the issue of stale data in DB (0 points)
+      const ranking = await this.getLeagueRanking(leagueId);
 
-    // Active: Users with at least one prediction
-    const activeResult = await this.leagueParticipantsRepository.createQueryBuilder('lp')
-      .select('COUNT(DISTINCT lp.user_id)', 'count')
-      .innerJoin('predictions', 'p', 'p.user_id = lp.user_id')
-      .where('lp.league_id = :leagueId', { leagueId })
-      .getRawOne();
+      const totalParticipants = ranking.length;
+      const activeParticipants = ranking.filter(r => r.totalPoints > 0).length;
+      
+      // Calculate global average
+      const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
+      const averagePoints = totalParticipants > 0 ? (sumTotal / totalParticipants).toFixed(1) : "0.0";
 
-    const activeCount = parseInt(activeResult?.count || '0');
+      // 2. Group by Department in Memory
+      const deptMap = new Map<string, { total: number, count: number }>();
 
-    // Average Points
-    const avgResult = await this.leagueParticipantsRepository.createQueryBuilder('lp')
-      .select('AVG(lp.total_points)', 'avg')
-      .where('lp.league_id = :leagueId', { leagueId })
-      .getRawOne();
+      ranking.forEach(r => {
+        // @ts-ignore - Property 'department' comes from our modified getLeagueRanking returning extended object
+        const dept = r.department || 'General';
+        const current = deptMap.get(dept) || { total: 0, count: 0 };
+        current.total += r.totalPoints;
+        current.count += 1;
+        deptMap.set(dept, current);
+      });
 
-    // Department Ranking
-    const deptRanking = await this.leagueParticipantsRepository.createQueryBuilder('lp')
-      .select('lp.department', 'department')
-      .addSelect('AVG(lp.total_points)', 'avgPoints')
-      .addSelect('COUNT(lp.id)', 'members')
-      .where('lp.league_id = :leagueId', { leagueId })
-      .andWhere('lp.department IS NOT NULL')
-      .andWhere("lp.department != ''")
-      .groupBy('lp.department')
-      .orderBy('AVG(lp.total_points)', 'DESC')
-      .addOrderBy('COUNT(lp.id)', 'DESC')
-      .getRawMany();
+      // 3. Transform to Array and Sort
+      const departmentRanking = Array.from(deptMap.entries())
+        .map(([department, stats]) => ({
+          department,
+          avgPoints: (stats.total / stats.count).toFixed(1),
+          members: stats.count
+        }))
+        .sort((a, b) => parseFloat(b.avgPoints) - parseFloat(a.avgPoints));
 
-    return {
-      totalParticipants,
-      activeParticipants: activeCount,
-      zombieParticipants: Math.max(0, totalParticipants - activeCount),
-      averagePoints: parseFloat(avgResult?.avg || '0').toFixed(1),
-      departmentRanking: deptRanking.map(d => ({
-        department: d.department,
-        avgPoints: parseFloat(d.avgpoint || d.avgPoints || '0').toFixed(1), // Handle lowercase default alias
-        members: parseInt(d.members || '0')
-      }))
-    };
+      return {
+        totalParticipants,
+        activeParticipants,
+        zombieParticipants: Math.max(0, totalParticipants - activeParticipants),
+        averagePoints,
+        departmentRanking
+      };
+    } catch (error) {
+      console.error('Error in getAnalyticsSummary:', error);
+      // Return empty structure on error to prevent UI crash
+      return {
+        totalParticipants: 0,
+        activeParticipants: 0,
+        zombieParticipants: 0,
+        averagePoints: "0.0",
+        departmentRanking: []
+      };
+    }
   }
 
   async exportParticipants(leagueId: string) {

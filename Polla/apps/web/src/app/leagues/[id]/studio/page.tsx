@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     Loader2, Save, ArrowLeft,
     Palette, Type, Image as ImageIcon,
-    Building2, Eye, Check, Share2
+    Building2, Eye, Check, Share2, Megaphone
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,7 @@ import { BrandingTab } from './components/BrandingTab';
 import { AssetsTab } from './components/AssetsTab';
 import { ContentTab } from './components/ContentTab';
 import { SocialTab } from './components/SocialTab';
+import { AdsTab } from './components/AdsTab';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
 /* --- PÁGINA PRINCIPAL STUDIO --- */
@@ -70,7 +71,10 @@ export default function StudioPage() {
         socialYoutube: '',
         socialTiktok: '',
         socialLinkedin: '',
-        socialWebsite: ''
+        socialWebsite: '',
+        // Ads
+        showAds: false,
+        adImages: [] as string[]
     });
 
     // Font Options
@@ -98,11 +102,31 @@ export default function StudioPage() {
         });
     };
 
+    // ADVERTISING HANDLERS
+    const handleAdImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        await uploadImage('ad_loading', e, (url) => {
+            setConfig(prev => {
+                const current = prev.adImages || [];
+                if (current.length >= 3) return prev;
+                return { ...prev, adImages: [...current, url] };
+            });
+        });
+    };
+
+    const handleRemoveAdImage = (index: number) => {
+        setConfig(prev => {
+            const current = [...(prev.adImages || [])];
+            current.splice(index, 1);
+            return { ...prev, adImages: current };
+        });
+    };
+
     useEffect(() => {
         const load = async () => {
             try {
                 // Fetching specific league details to allow Admin access as well
                 const { data } = await api.get(`/leagues/${params.id}`);
+                console.log('STUDIO LOAD DATA:', data); // DEBUG
                 if (data) {
                     setConfig(prev => ({ ...prev, ...data }));
                 } else {
@@ -144,6 +168,9 @@ export default function StudioPage() {
         socialTiktok: cfg.socialTiktok,
         socialLinkedin: cfg.socialLinkedin,
         socialWebsite: cfg.socialWebsite,
+        // Ads
+        showAds: cfg.showAds,
+        adImages: cfg.adImages,
     });
 
 
@@ -272,6 +299,7 @@ export default function StudioPage() {
                     <div className="flex gap-2 md:gap-4 p-2 bg-[#0F172A] rounded-2xl border border-[#1E293B] shadow-xl sticky top-2 z-40 backdrop-blur-md bg-opacity-90 overflow-x-auto">
                         <TabButton icon={Palette} label="Identidad" isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
                         <TabButton icon={ImageIcon} label="Visuales" isActive={activeTab === 'assets'} onClick={() => setActiveTab('assets')} />
+                        <TabButton icon={Megaphone} label="Publicidad" isActive={activeTab === 'ads'} onClick={() => setActiveTab('ads')} />
                         <TabButton icon={Share2} label="Redes Sociales" isActive={activeTab === 'social'} onClick={() => setActiveTab('social')} />
                         <TabButton icon={Type} label="Contenido" isActive={activeTab === 'content'} onClick={() => setActiveTab('content')} />
                     </div>
@@ -292,6 +320,16 @@ export default function StudioPage() {
                                 config={config}
                                 handleImageUpload={handleImageUpload}
                                 uploadingState={uploadingState}
+                            />
+                        )}
+
+                        {activeTab === 'ads' && (
+                            <AdsTab
+                                config={config}
+                                setConfig={setConfig}
+                                onUploadAdImage={handleAdImageUpload}
+                                onRemoveAdImage={handleRemoveAdImage}
+                                uploadingAd={uploadingState['ad_loading']}
                             />
                         )}
 

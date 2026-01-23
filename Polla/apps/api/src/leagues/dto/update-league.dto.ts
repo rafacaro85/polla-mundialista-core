@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray } from 'class-validator';
 
 export class UpdateLeagueDto {
     @IsString()
@@ -78,4 +78,14 @@ export class UpdateLeagueDto {
     @IsString() @IsOptional() socialTiktok?: string;
     @IsString() @IsOptional() socialLinkedin?: string;
     @IsString() @IsOptional() socialWebsite?: string;
+
+    // --- ADS ---
+    @IsBoolean()
+    @IsOptional()
+    showAds?: boolean;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    adImages?: string[];
 }

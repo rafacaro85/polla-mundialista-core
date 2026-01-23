@@ -18,7 +18,7 @@ export default function Footer() {
         container: {
             backgroundColor: 'var(--brand-secondary)', // Dynamic
             borderTop: '1px solid #1E293B',
-            padding: '40px 20px',
+            padding: '40px 20px 140px 20px', // Extra bottom padding for mobile nav overlap
             marginTop: 'auto', // Push to bottom if flex container
             color: '#94A3B8',
             fontSize: '12px',

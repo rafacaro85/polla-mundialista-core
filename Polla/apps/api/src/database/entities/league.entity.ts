@@ -133,5 +133,12 @@ export class League {
 
   @Column({ name: 'social_website', nullable: true })
   socialWebsite?: string;
+
+  // --- ADVERTISING (Enterprise) ---
+  @Column({ name: 'show_ads', default: false })
+  showAds: boolean;
+
+  @Column({ name: 'ad_images', type: 'simple-array', nullable: true })
+  adImages?: string[];
 }
 

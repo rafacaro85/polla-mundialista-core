@@ -54,6 +54,59 @@ const EnterpriseFeatureLock = ({ title, minPlanName, icon: Icon }: any) => {
     );
 };
 
+const AdBanner = ({ league }: { league: any }) => {
+    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+    const images = league.adImages || [];
+    const hasImages = images.length > 0;
+
+    React.useEffect(() => {
+        if (!hasImages) return;
+        const interval = setInterval(() => {
+            setCurrentImageIndex(prev => (prev + 1) % images.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [hasImages, images.length]);
+
+    // If ads are disabled in config, hide completely
+    if (!league.showAds) return null;
+
+    return (
+        <div className="w-full md:rounded-xl md:mt-4 max-w-4xl mx-auto h-[120px] md:h-[160px] relative overflow-hidden shadow-2xl bg-[#0F172A] group mb-6 md:mb-0">
+             {/* If images exist, rotate them */}
+             {hasImages ? (
+                <>
+                   {images.map((src: string, index: number) => (
+                       <img
+                           key={index}
+                           src={src}
+                           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                           alt="Publicidad"
+                       />
+                   ))}
+                   {/* Gradient Overlay for text readability if needed, or just bottom shade */}
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                   
+                   {/* Dots indicator */}
+                   <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
+                       {images.map((_: any, idx: number) => (
+                           <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/40'}`} />
+                       ))}
+                   </div>
+                </>
+             ) : (
+                /* Fallback Static if enabled but no images */
+                <div className="w-full h-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center relative">
+                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                     <p className="relative z-10 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                        <Megaphone size={14} className="animate-bounce" />
+                        Espacio Publicitario Reservado para {league.companyName}
+                    </p>
+                </div>
+             )}
+        </div>
+    );
+};
+
 export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueHomeProps) {
     const router = useRouter();
     const { user } = useAppStore();
@@ -61,29 +114,24 @@ export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueH
     const planLevel = getPlanLevel(league.packageType);
 
     return (
-        <div className="flex flex-col gap-8 font-sans pb-32 min-h-screen bg-[#0F172A] px-4 md:px-0">
+        <div className="flex flex-col gap-2 font-sans pb-48 min-h-screen bg-[#0F172A] px-4 md:px-0">
 
-            {/* --- FEATURE: BANNERS (DIAMOND - Level 5) --- */}
-            {planLevel >= 5 ? (
-                <div className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 p-3 text-center shadow-lg relative overflow-hidden animate-in slide-in-from-top-4 rounded-b-xl md:rounded-xl md:mt-4 max-w-4xl mx-auto">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                    <p className="relative z-10 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-                        <Megaphone size={14} className="animate-bounce" />
-                        Espacio Publicitario Reservado para {league.companyName}
-                    </p>
-                </div>
-            ) : null}
+            {/* --- FEATURE: BANNERS (Dynamic Integration) --- */}
+            <AdBanner league={league} />
 
             {/* 1. WELCOME HEADER (Premium Custom) */}
-            <div className="flex flex-col gap-1 pt-8 text-center animate-in slide-in-from-top-4 duration-700">
+            <div className="flex flex-col gap-1 pt-2 text-center animate-in slide-in-from-top-4 duration-700">
                 <p className="text-[#00E676] text-xs font-black uppercase tracking-[0.3em] mb-2">
                     ¡HOLA, {nickname}!
                 </p>
-                <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-none italic drop-shadow-2xl">
+                <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-none italic drop-shadow-2xl flex flex-col items-center">
                     BIENVENIDO A LA POLLA <br />
                     <span className="text-[#00E676] text-2xl md:text-3xl block mt-1">{league.companyName || league.name}</span>
-                    <span className="text-slate-500 text-sm italic tracking-widest font-russo uppercase block mt-2">Mundialista 2026</span>
+                    
+                    {/* FIFA WORLD CUP TEXT */}
+                    <span className="text-slate-500 text-xs italic tracking-[0.2em] font-russo uppercase mt-3 block opacity-80">FIFA WORLD CUP 2026</span>
                 </h1>
+
             </div>
 
             <div className="max-w-md mx-auto w-full flex flex-col gap-8">
@@ -162,6 +210,28 @@ export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueH
                 </header>
 
                 {/* 3. SHORTCUT CARDS (Modern Grid) */}
+
+
+
+
+                {/* 4. PREMIO (Full Width) */}
+                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <div className="flex items-center gap-2 mb-4 pl-2">
+                        <Trophy size={18} className="text-[#00E676]" />
+                        <h3 className="text-white text-sm font-black uppercase tracking-[0.2em] italic">Premio Mayor</h3>
+                    </div>
+                    {/* PrizeHero handles the image display. If no image, it shows a trophy placeholder. */}
+                    <PrizeHero league={league} />
+                    
+                    {(league.prizeDetails || league.welcomeMessage) && (
+                        <div className="mt-4 bg-[#1E293B] border border-white/5 rounded-xl p-6 text-center shadow-lg">
+                             {league.prizeDetails && <p className="text-white text-sm leading-relaxed mb-4 font-medium">{league.prizeDetails}</p>}
+                             {league.welcomeMessage && <p className="text-white text-base font-bold italic drop-shadow-sm leading-relaxed">"{league.welcomeMessage}"</p>}
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. SHORTCUT CARDS (Moved Below Prize) */}
                 <div className="grid grid-cols-2 gap-4">
                     <button
                         onClick={() => router.push(`/leagues/${league.id}/predictions`)}
@@ -189,53 +259,6 @@ export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueH
                     </button>
                 </div>
 
-                {/* --- FEATURE: MURO SOCIAL (GOLD - Level 3) --- */}
-                {planLevel >= 3 ? (
-                    <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-6 relative overflow-hidden group hover:border-[#FACC15]/30 transition-all cursor-not-allowed opacity-80 shadow-xl">
-                        {/* Placeholder UI */}
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-russo text-white uppercase text-xs flex items-center gap-2 tracking-widest">
-                                <MessageCircle size={14} className="text-[#FACC15]" /> Muro Social
-                            </h3>
-                            <span className="text-[9px] bg-green-900/50 text-green-400 px-2 py-0.5 rounded border border-green-800/50 font-bold uppercase flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                En Vivo
-                            </span>
-                        </div>
-                        <div className="space-y-4 opacity-50 blur-[1px] group-hover:blur-0 transition-all duration-500">
-                            <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-700"></div>
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-2 bg-slate-700 rounded w-1/3"></div>
-                                    <div className="h-10 bg-slate-800 rounded-lg w-full"></div>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-700"></div>
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-2 bg-slate-700 rounded w-1/4"></div>
-                                    <div className="h-8 bg-slate-800 rounded-lg w-3/4"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            <Zap size={24} className="text-[#FACC15] mb-2" />
-                            <p className="text-white text-xs font-bold uppercase tracking-widest">Disponible Próximamente</p>
-                        </div>
-                    </div>
-                ) : (
-                    <EnterpriseFeatureLock title="Muro Social & Chat" minPlanName="ORO" icon={MessageCircle} />
-                )}
-
-                {/* 4. PREMIO (Full Width) */}
-                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="flex items-center gap-2 mb-4 pl-2">
-                        <Trophy size={18} className="text-[#00E676]" />
-                        <h3 className="text-white text-sm font-black uppercase tracking-[0.2em] italic">Premio Mayor</h3>
-                    </div>
-                    {/* PrizeHero handles the image display. If no image, it shows a trophy placeholder. */}
-                    <PrizeHero league={league} />
-                </div>
 
                 {/* --- FEATURE: GUERRA DE ÁREAS (PLATINUM - Level 4) --- */}
                 {planLevel >= 4 ? (

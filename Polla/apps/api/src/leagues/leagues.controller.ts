@@ -37,7 +37,9 @@ export class LeaguesController {
     private readonly leaguesService: LeaguesService,
     private readonly accessCodesService: AccessCodesService,
     private readonly leagueParticipantsService: LeagueParticipantsService,
-  ) { }
+  ) {
+    console.log('🔄 LeaguesController RESTARTED - Hot Reload Triggered');
+  }
 
   @Post()
   async createLeague(@Req() req: Request, @Body() createLeagueDto: CreateLeagueDto) {

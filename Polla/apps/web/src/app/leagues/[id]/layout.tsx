@@ -124,7 +124,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
                 {/* MAIN CONTENT AREA - Adjusted for header */}
                 <main className={`flex-1 w-full ${showLayoutUI
-                    ? 'md:pl-64 pb-24 md:pb-0 pt-16' // Layout normal (Admin)
+                    ? 'md:pl-64 pb-24 md:pb-0' // Layout normal (Admin) - Removed pt-16
                     : '' // Dashboard toma control total
                     }`}>
                     {children}

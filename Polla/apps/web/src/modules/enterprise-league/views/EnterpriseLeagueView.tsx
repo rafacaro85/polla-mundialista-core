@@ -5,14 +5,15 @@ import api from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
 export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
-    const [data, setData] = useState<{ league: any, participants: any[] } | null>(null);
+    const [data, setData] = useState<{ league: any, participants: any[], analytics?: any } | null>(null);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const [metaRes, rankRes] = await Promise.all([
+                const [metaRes, rankRes, analyticsRes] = await Promise.all([
                     api.get(`/leagues/${leagueId}/metadata`),
-                    api.get(`/leagues/${leagueId}/ranking`)
+                    api.get(`/leagues/${leagueId}/ranking`),
+                    api.get(`/leagues/${leagueId}/analytics`).catch(() => ({ data: { departmentRanking: [] } }))
                 ]);
 
                 const participants = Array.isArray(rankRes.data) ? rankRes.data.map((item: any, index: number) => ({
@@ -23,7 +24,7 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
                     rank: index + 1
                 })) : [];
 
-                setData({ league: metaRes.data.league, participants });
+                setData({ league: metaRes.data.league, participants, analytics: analyticsRes.data });
             } catch (e) {
                 console.error(e);
             }
@@ -39,7 +40,7 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
 
     return (
         <div className="w-full min-h-screen bg-[#0F172A]">
-            <EnterpriseLeagueHome league={data.league} participants={data.participants} />
+            <EnterpriseLeagueHome league={data.league} participants={data.participants} analytics={data.analytics} />
         </div>
     );
 };

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 interface EnterpriseLeagueHomeProps {
     league: any;
     participants: any[];
+    analytics?: any;
 }
 
 import { useAppStore } from '@/store/useAppStore';
@@ -107,7 +108,7 @@ const AdBanner = ({ league }: { league: any }) => {
     );
 };
 
-export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueHomeProps) {
+export function EnterpriseLeagueHome({ league, participants, analytics }: EnterpriseLeagueHomeProps) {
     const router = useRouter();
     const { user } = useAppStore();
     const nickname = (user?.nickname || user?.fullName?.split(' ')[0] || 'JUGADOR').toUpperCase();
@@ -270,39 +271,54 @@ export function EnterpriseLeagueHome({ league, participants }: EnterpriseLeagueH
                             <span className="text-[9px] bg-red-900/30 text-red-400 px-2 py-0.5 rounded border border-red-800/30 font-bold uppercase">Competencia Activa</span>
                         </div>
                         <div className="space-y-4">
-                            <div>
-                                <div className="flex items-center justify-between text-[10px] text-slate-300 mb-1">
-                                    <span className="font-bold flex items-center gap-1">1. Ventas <Crown className="w-3 h-3 text-yellow-500" /></span>
-                                    <span className="font-black text-[#00E676]">1450 pts</span>
+                            {(analytics?.departmentRanking || []).length > 0 ? (
+                                (analytics.departmentRanking.slice(0, 3)).map((dept: any, index: number) => {
+                                    const maxPoints = parseFloat(analytics.departmentRanking[0].avgPoints) || 100;
+                                    const currentPoints = parseFloat(dept.avgPoints);
+                                    const percentage = (currentPoints / maxPoints) * 100;
+                                    
+                                    // Colors for Top 3
+                                    let color = "bg-blue-500";
+                                    let shadow = "";
+                                    let textColor = "text-blue-500";
+                                    
+                                    if (index === 0) { color = "bg-[#00E676]"; textColor = "text-[#00E676]"; shadow = "shadow-[0_0_10px_rgba(0,230,118,0.5)]"; }
+                                    if (index === 1) { color = "bg-yellow-500"; textColor = "text-yellow-500"; }
+                                    
+                                    return (
+                                        <div key={dept.department}>
+                                            <div className="flex items-center justify-between text-[10px] text-slate-300 mb-1">
+                                                <span className="font-bold flex items-center gap-1">
+                                                    {index + 1}. {dept.department} 
+                                                    {index === 0 && <Crown className="w-3 h-3 text-yellow-500" />}
+                                                </span>
+                                                <span className={`font-black ${textColor}`}>{Math.round(parseFloat(dept.avgPoints))} pts</span>
+                                            </div>
+                                            <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
+                                                <div 
+                                                    className={`h-full ${color} ${shadow} transition-all duration-1000`} 
+                                                    style={{ width: `${percentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-slate-500 text-xs italic">Aún no hay datos de competencia por áreas.</p>
                                 </div>
-                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
-                                    <div className="h-full bg-[#00E676] w-[85%] shadow-[0_0_10px_rgba(0,230,118,0.5)]"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-between text-[10px] text-slate-300 mb-1">
-                                    <span className="font-bold">2. Marketing</span>
-                                    <span className="font-black text-yellow-500">1200 pts</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
-                                    <div className="h-full bg-yellow-500 w-[65%]"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-between text-[10px] text-slate-300 mb-1">
-                                    <span className="font-bold">3. Finanzas</span>
-                                    <span className="font-black text-blue-500">980 pts</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
-                                    <div className="h-full bg-blue-500 w-[45%]"></div>
-                                </div>
-                            </div>
+                            )}
                         </div>
-                        <div className="mt-4 pt-3 border-t border-white/5 text-center">
-                            <button className="text-[10px] text-slate-400 hover:text-white uppercase font-bold tracking-widest flex items-center justify-center gap-1 mx-auto transition-colors">
-                                Ver Tabla Completa <ArrowRight size={10} />
+                        
+                        <div className="mt-4 text-center">
+                            <button
+                                onClick={() => router.push(`/leagues/${league.id}/ranking?tab=departments`)}
+                                className="text-[10px] text-slate-400 hover:text-white hover:underline uppercase tracking-widest flex items-center justify-center gap-1 mx-auto transition-colors"
+                            >
+                                Ver Tabla Completa <ArrowRight size={12} />
                             </button>
                         </div>
+
                     </div>
                 ) : (
                     <EnterpriseFeatureLock title="Guerra de Áreas" minPlanName="PLATINO" icon={Swords} />

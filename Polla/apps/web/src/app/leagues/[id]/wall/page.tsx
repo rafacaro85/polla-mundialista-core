@@ -19,6 +19,7 @@ interface Comment {
     user: {
         id: string;
         nickname: string;
+        fullName?: string;
         avatarUrl?: string;
     };
 }
@@ -41,20 +42,26 @@ export default function WallPage() {
 
     useEffect(() => {
         if (leagueId) {
-            fetchComments();
+            fetchComments(true); // Carga inicial con spinner
+            
+            // Auto-refresh cada 5 segundos
+            const interval = setInterval(() => {
+                fetchComments(false); // Refresco silencioso
+            }, 5000);
+
+            return () => clearInterval(interval);
         }
     }, [leagueId]);
 
-    const fetchComments = async () => {
+    const fetchComments = async (showLoading = false) => {
         try {
-            setLoading(true);
+            if (showLoading) setLoading(true);
             const { data } = await api.get(`/leagues/${leagueId}/comments`);
             setComments(data);
         } catch (error) {
             console.error('Error fetching comments:', error);
-            // Fallback silencioso o toast
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 
@@ -225,19 +232,25 @@ export default function WallPage() {
                             </p>
                         </div>
                     ) : (
-                        comments.map(comment => (
+
+                        comments.map(comment => {
+                            const rawName = comment.user.nickname || comment.user.fullName;
+                            const displayName = (rawName && rawName.trim()) ? rawName : 'Usuario Anónimo';
+                            const initials = displayName.charAt(0).toUpperCase();
+
+                            return (
                             <div key={comment.id} className="flex gap-3 items-start animate-in slide-in-from-bottom-2 duration-300">
                                 <Avatar className="w-9 h-9 border border-white/10 shadow-lg">
                                     <AvatarImage src={comment.user.avatarUrl} />
                                     <AvatarFallback className="text-[10px] bg-brand-secondary text-slate-400 font-bold">
-                                        {comment.user.nickname?.charAt(0) || '?'}
+                                        {initials}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 space-y-2">
                                     <div className="bg-brand-secondary/80 rounded-2xl rounded-tl-none p-3 border border-white/5 shadow-sm">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <span className="text-xs font-black text-brand-primary hover:underline cursor-pointer transition-colors">
-                                                {comment.user.nickname}
+                                                {displayName}
                                             </span>
                                             <span className="text-[9px] font-bold text-slate-500 uppercase">
                                                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
@@ -269,7 +282,8 @@ export default function WallPage() {
                                     </div>
                                 </div>
                             </div>
-                        ))
+                        );
+                        })
                     )}
                 </div>
 

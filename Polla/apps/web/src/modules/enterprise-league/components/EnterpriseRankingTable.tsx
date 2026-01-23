@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
@@ -33,6 +34,16 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
     const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users');
     const [loading, setLoading] = useState(false);
     const [isTieBreakerOpen, setIsTieBreakerOpen] = useState(false);
+    
+    // Check URL params for initial tab
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'departments' && enableDepartmentWar) {
+            setActiveTab('departments');
+        }
+    }, [searchParams, enableDepartmentWar]);
 
     // SISTEMA DE DISEÑO EMPRESARIAL (Uses CSS variables injected by BrandProvider)
     const STYLES = {

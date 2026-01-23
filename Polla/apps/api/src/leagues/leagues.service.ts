@@ -1237,7 +1237,12 @@ export class LeaguesService {
       likes: []
     });
 
-    return this.leagueCommentsRepository.save(comment);
+    const savedComment = await this.leagueCommentsRepository.save(comment);
+
+    return this.leagueCommentsRepository.findOne({
+      where: { id: savedComment.id },
+      relations: ['user']
+    });
   }
 
   async getComments(leagueId: string) {

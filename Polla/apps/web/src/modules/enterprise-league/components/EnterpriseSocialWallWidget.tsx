@@ -18,6 +18,7 @@ interface Comment {
     user: {
         id: string;
         nickname: string;
+        fullName?: string;
         avatarUrl?: string;
     };
 }
@@ -217,19 +218,24 @@ export function EnterpriseSocialWallWidget({ leagueId, limit, isLocked = false }
                                 </p>
                             </div>
                         ) : (
-                            displayedComments.map(comment => (
+                            displayedComments.map(comment => {
+                                const rawName = comment.user.nickname || comment.user.fullName;
+                                const displayName = (rawName && rawName.trim()) ? rawName : 'Usuario Anónimo';
+                                const initials = displayName.charAt(0).toUpperCase();
+
+                                return (
                                 <div key={comment.id} className="flex gap-3 items-start animate-in slide-in-from-bottom-2 duration-300">
                                     <Avatar className="w-9 h-9 border border-brand-primary/20 shadow-lg">
                                         <AvatarImage src={comment.user.avatarUrl} />
                                         <AvatarFallback className="text-[10px] bg-brand-secondary text-brand-primary font-bold">
-                                            {comment.user.nickname?.charAt(0)}
+                                            {initials}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 space-y-2">
                                         <div className="bg-black/20 rounded-2xl rounded-tl-none p-3 border border-white/5">
                                             <div className="flex justify-between items-baseline mb-1">
                                                 <span className="text-xs font-black text-white hover:text-brand-primary cursor-pointer transition-colors">
-                                                    {comment.user.nickname}
+                                                    {displayName}
                                                 </span>
                                                 <span className="text-[9px] font-bold text-slate-500 uppercase">
                                                     {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
@@ -261,7 +267,8 @@ export function EnterpriseSocialWallWidget({ leagueId, limit, isLocked = false }
                                         </div>
                                     </div>
                                 </div>
-                            ))
+                            );
+                            })
                         )}
                     </div>
                 </div>

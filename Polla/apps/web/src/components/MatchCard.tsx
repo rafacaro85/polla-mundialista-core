@@ -158,7 +158,6 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
     return pts;
   };
-  };
 
   const points = calculateOptimisticPoints();
   const hasWon = points > 0;

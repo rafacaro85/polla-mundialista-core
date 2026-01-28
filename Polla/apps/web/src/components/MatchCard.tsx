@@ -123,8 +123,36 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     }
   };
 
-  // 3. LÓGICA DE PUNTOS Y COLORES
-  const points = match.prediction?.points ?? match.points ?? 0;
+  // 3. LÓGICA DE PUNTOS Y COLORES (OPTIMISTIC UI)
+  const calculateOptimisticPoints = () => {
+    // Si no está finalizado, mostramos lo que venga de BD (o 0)
+    if (!isFinished) return match.prediction?.points ?? match.points ?? 0;
+
+    // Si está finalizado, calculamos localmente para evitar lag visual
+    // Usamos los valores de la predicción guardada vs el score del partido
+    const mH = Number(match.scoreH);
+    const mA = Number(match.scoreA);
+    const pH = Number(match.prediction?.homeScore); 
+    const pA = Number(match.prediction?.awayScore);
+
+    // Validación de seguridad
+    if (isNaN(pH) || isNaN(pA) || isNaN(mH) || isNaN(mA)) return 0;
+
+    let pts = 0;
+    if (mH === pH && mA === pA) {
+        pts = 3; // Marcador Exacto
+    } else if (Math.sign(mH - mA) === Math.sign(pH - pA)) {
+        pts = 1; // Ganador/Empate
+    }
+
+    // Verificar Joker guardado
+    const jokerActive = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker);
+    if (jokerActive) pts *= 2;
+
+    return pts;
+  };
+
+  const points = calculateOptimisticPoints();
   const hasWon = points > 0;
 
   const inputBorderColor = isFinished

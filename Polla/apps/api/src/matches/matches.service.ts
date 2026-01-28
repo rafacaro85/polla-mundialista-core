@@ -11,6 +11,8 @@ import { KnockoutPhasesService } from '../knockout-phases/knockout-phases.servic
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MatchFinishedEvent } from './listeners/match.listener';
 
 @Injectable()
 export class MatchesService {
@@ -26,6 +28,7 @@ export class MatchesService {
         private bracketsService: BracketsService,
         private tournamentService: TournamentService,
         private knockoutPhasesService: KnockoutPhasesService,
+        private eventEmitter: EventEmitter2
     ) { }
 
     async findAll(userId?: string, isAdmin: boolean = false): Promise<Match[]> {
@@ -184,92 +187,14 @@ export class MatchesService {
 
         const savedMatch = await this.matchesRepository.save(match);
 
-        // 🔥 CRITICAL: Recalculate prediction points if match just finished
+        // 🔥 CRITICAL: Recalculate prediction points (ASYNC via Event)
         if (wasNotFinished && match.status === 'FINISHED' &&
             match.homeScore !== null && match.awayScore !== null) {
 
-            try {
-                // Recalcular puntos para todas las predicciones
-                const predictionsToUpdate: Prediction[] = [];
-
-                if (match.predictions) {
-                    for (const prediction of match.predictions) {
-                        const points = this.scoringService.calculatePoints(match, prediction);
-                        prediction.points = points;
-                        predictionsToUpdate.push(prediction);
-                    }
-                }
-
-                // Guardar predicciones actualizadas
-                if (predictionsToUpdate.length > 0) {
-                    await this.predictionsRepository.save(predictionsToUpdate);
-                    console.log(`✅ Recalculated points for ${predictionsToUpdate.length} predictions in match ${id}`);
-                }
-
-                // Calculate bracket points
-                const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
-                await this.bracketsService.calculateBracketPoints(id, winner);
-                console.log(`🏆 Bracket points calculated for match ${id}, winner: ${winner}`);
-
-                // Check and unlock next knockout phase if current phase is complete
-                if (match.phase) {
-                    await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
-                    console.log(`🔓 Checked phase unlock for ${match.phase}`);
-                }
-
-                // 🆕 HANDLING SEMIFINAL LOSERS -> 3RD PLACE MATCH
-                if (match.phase === 'SEMI' && match.status === 'FINISHED') {
-                    const loser = match.homeScore < match.awayScore ? match.homeTeam : match.awayTeam;
-                    const loserFlag = match.homeScore < match.awayScore ? match.homeFlag : match.awayFlag;
-
-                    const thirdPlaceMatch = await this.matchesRepository.findOne({ where: { phase: '3RD_PLACE' } });
-                    if (thirdPlaceMatch && loser) {
-                        const isHome = (match.bracketId % 2) !== 0; // Bracket 1 -> Home, Bracket 2 -> Away
-                        if (isHome) {
-                            thirdPlaceMatch.homeTeam = loser;
-                            thirdPlaceMatch.homeFlag = loserFlag;
-                            thirdPlaceMatch.homeTeamPlaceholder = null;
-                        } else {
-                            thirdPlaceMatch.awayTeam = loser;
-                            thirdPlaceMatch.awayFlag = loserFlag;
-                            thirdPlaceMatch.awayTeamPlaceholder = null;
-                        }
-                        await this.matchesRepository.save(thirdPlaceMatch);
-                        console.log(`🥉 Sent loser ${loser} to 3RD_PLACE match`);
-                    }
-                }
-
-                // Trigger automático de promoción si es partido de grupo
-                if (match.phase === 'GROUP' && match.group) {
-                    // Use void to not await and block, but we are inside try-catch so await is safer to catch errors
-                    await this.tournamentService.promoteFromGroup(match.group);
-                }
-
-                // Trigger automático de promoción si existe un siguiente partido
-                if (match.nextMatchId) {
-                    const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
-                    if (nextMatch) {
-                        const isHome = (match.bracketId % 2) !== 0;
-                        const winner = match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
-                        const winnerFlag = match.homeScore > match.awayScore ? match.homeFlag : match.awayFlag;
-
-                        if (isHome) {
-                            nextMatch.homeTeam = winner;
-                            nextMatch.homeFlag = winnerFlag;
-                            nextMatch.homeTeamPlaceholder = null;
-                        } else {
-                            nextMatch.awayTeam = winner;
-                            nextMatch.awayFlag = winnerFlag;
-                            nextMatch.awayTeamPlaceholder = null;
-                        }
-                        await this.matchesRepository.save(nextMatch);
-                        console.log(`➡️ Promocionado ${winner} al partido ${nextMatch.id} (${nextMatch.phase})`);
-                    }
-                }
-            } catch (secondaryError) {
-                console.error(`⚠️ Error in secondary effects for match ${id}:`, secondaryError);
-                // No re-throw to allow the simulation to proceed with other matches
-            }
+            // Emit event to handle scoring and progression asynchronously
+            // We use emitAsync but we don't await it here to let the HTTP response return immediately
+            this.eventEmitter.emit('match.finished', new MatchFinishedEvent(savedMatch, match.homeScore, match.awayScore));
+            console.log(`⚡ Event 'match.finished' emitted for match ${id}`);
         }
 
         return savedMatch;

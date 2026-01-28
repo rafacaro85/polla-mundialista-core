@@ -20,6 +20,7 @@ import { KnockoutPhasesModule } from './knockout-phases/knockout-phases.module';
 import { MailModule } from './mail/mail.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -142,6 +143,7 @@ import { APP_GUARD } from '@nestjs/core';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

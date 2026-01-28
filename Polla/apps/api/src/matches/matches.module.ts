@@ -16,6 +16,8 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 
+import { MatchListener } from './listeners/match.listener';
+
 @Module({
     imports: [
         TypeOrmModule.forFeature([
@@ -43,7 +45,7 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
         ScheduleModule.forRoot(),
     ],
     controllers: [MatchesController],
-    providers: [MatchesService, MatchSyncService],
+    providers: [MatchesService, MatchSyncService, MatchListener],
     exports: [MatchesService],
 })
 export class MatchesModule { }

@@ -216,14 +216,121 @@ async function seed() {
             }
         }
 
+        console.log('\n✅ Fase de Grupos completada.\n');
+        console.log('🌍 Generando Fase Final (Knockout Shells)...');
+
+        // LÓGICA DE FASE FINAL (Copiada de MatchesService para asegurar consistencia)
+        // 1. ROUND_32 mapping
+        const r32Mapping = [
+            { h: '1A', a: '3RD-1' }, { h: '1B', a: '3RD-2' }, { h: '1C', a: '3RD-3' }, { h: '1D', a: '3RD-4' },
+            { h: '1E', a: '3RD-5' }, { h: '1F', a: '3RD-6' }, { h: '1G', a: '3RD-7' }, { h: '1H', a: '3RD-8' },
+            { h: '1I', a: '2A' }, { h: '1J', a: '2B' }, { h: '1K', a: '2C' }, { h: '1L', a: '2D' },
+            { h: '2E', a: '2F' }, { h: '2G', a: '2H' }, { h: '2I', a: '2J' }, { h: '2K', a: '2L' }
+        ];
+
+        // Fechas Estimadas R32 (Junio 28 - Julio 3)
+        let r32Date = new Date('2026-06-28T16:00:00Z');
+        
+        for (let i = 0; i < 16; i++) {
+            const m = matchRepository.create({
+                phase: 'ROUND_32',
+                bracketId: i + 1,
+                status: 'PENDING',
+                homeTeam: '', awayTeam: '',
+                homeFlag: '', awayFlag: '',
+                homeScore: null, awayScore: null,
+                homeTeamPlaceholder: r32Mapping[i].h,
+                awayTeamPlaceholder: r32Mapping[i].a,
+                date: new Date(r32Date),
+                isLocked: false
+            });
+            await matchRepository.save(m);
+            // Incrementar medio día aprox para distribuir fechas
+            if (i % 3 === 0) r32Date.setDate(r32Date.getDate() + 1);
+        }
+        console.log('✅ Round of 32 shells creados (16 partidos)');
+
+        // 2. ROUND_16 (8 partidos)
+        let r16Date = new Date('2026-07-04T16:00:00Z');
+        for (let i = 1; i <= 8; i++) {
+            const m = matchRepository.create({
+                phase: 'ROUND_16',
+                bracketId: i,
+                status: 'PENDING',
+                homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `W32-${(i * 2) - 1}`,
+                awayTeamPlaceholder: `W32-${i * 2}`,
+                date: new Date(r16Date),
+                isLocked: false
+            });
+            await matchRepository.save(m);
+            if (i % 2 === 0) r16Date.setDate(r16Date.getDate() + 1);
+        }
+        console.log('✅ Round of 16 shells creados (8 partidos)');
+
+        // 3. QUARTER (4 partidos)
+        let qfDate = new Date('2026-07-09T16:00:00Z');
+        for (let i = 1; i <= 4; i++) {
+            const m = matchRepository.create({
+                phase: 'QUARTER',
+                bracketId: i,
+                status: 'PENDING',
+                homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `W16-${(i * 2) - 1}`,
+                awayTeamPlaceholder: `W16-${i * 2}`,
+                date: new Date(qfDate),
+                isLocked: false
+            });
+            await matchRepository.save(m);
+            if (i % 2 === 0) qfDate.setDate(qfDate.getDate() + 1);
+        }
+        console.log('✅ Quarter Finals shells creados (4 partidos)');
+
+        // 4. SEMI (2 partidos)
+        const semiDate = new Date('2026-07-14T20:00:00Z');
+        for (let i = 1; i <= 2; i++) {
+            const m = matchRepository.create({
+                phase: 'SEMI',
+                bracketId: i,
+                status: 'PENDING',
+                homeTeam: '', awayTeam: '',
+                homeTeamPlaceholder: `WQ-${(i * 2) - 1}`,
+                awayTeamPlaceholder: `WQ-${i * 2}`,
+                date: new Date(semiDate),
+                isLocked: false
+            });
+            await matchRepository.save(m);
+            semiDate.setDate(semiDate.getDate() + 1);
+        }
+        console.log('✅ Semi Finals shells creados (2 partidos)');
+
+        // 5. 3RD PLACE & FINAL
+        const thirdPlace = matchRepository.create({
+            phase: '3RD_PLACE', bracketId: 1, status: 'PENDING',
+            homeTeam: '', awayTeam: '',
+            homeTeamPlaceholder: 'L-Semi-1', awayTeamPlaceholder: 'L-Semi-2',
+            date: new Date('2026-07-18T20:00:00Z'), isLocked: false
+        });
+        await matchRepository.save(thirdPlace);
+
+        const finalMatch = matchRepository.create({
+            phase: 'FINAL', bracketId: 1, status: 'PENDING',
+            homeTeam: '', awayTeam: '',
+            homeTeamPlaceholder: 'W-Semi-1', awayTeamPlaceholder: 'W-Semi-2',
+            date: new Date('2026-07-19T20:00:00Z'), isLocked: false
+        });
+        await matchRepository.save(finalMatch);
+        console.log('✅ Final & 3rd Place shells creados');
+
+
         console.log('\n' + '='.repeat(60));
-        console.log(`✅ Partidos insertados: ${insertedCount}`);
+        console.log(`✅ Partidos Grupos: ${insertedCount}`);
+        console.log(`✅ Fase Final: 32 Shells generados`);
         console.log(`❌ Errores: ${errorCount}`);
         console.log('='.repeat(60) + '\n');
 
-        console.log('🎉 ¡Carga de partidos completada!');
-        console.log('📊 Total: 72 partidos de fase de grupos del Mundial 2026');
-        console.log('📌 NOTA: Los equipos marcados como "TBD" se definirán en los playoffs\n');
+        console.log('🎉 ¡Carga COMPLETADA (Grupos + Llaves)!');
+        console.log('📊 Total: 104 partidos configurados.\n');
 
         process.exit(0);
     } catch (error) {

@@ -66,7 +66,7 @@ const REAL_MATCHES = [
     { date: '2026-06-13T01:00:00Z', home: 'Estados Unidos', away: 'Paraguay', group: 'D', stadium: 'Los Angeles Stadium' },
 
     // Sábado, 13 de junio 2026
-    { date: '2026-06-13T19:00:00Z', home: 'Catar', away: 'PLA_A', group: 'B', stadium: 'San Francisco Bay Area Stadium' },
+    { date: '2026-06-13T19:00:00Z', home: 'Catar', away: 'Suiza', group: 'B', stadium: 'San Francisco Bay Area Stadium' },
     { date: '2026-06-13T22:00:00Z', home: 'Brasil', away: 'Marruecos', group: 'C', stadium: 'Nueva York Nueva Jersey Stadium' },
     { date: '2026-06-14T01:00:00Z', home: 'Haití', away: 'Escocia', group: 'C', stadium: 'Boston Stadium' },
     { date: '2026-06-14T04:00:00Z', home: 'Australia', away: 'PLA_C', group: 'D', stadium: 'BC Place Vancouver' },

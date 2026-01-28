@@ -55,8 +55,9 @@ const getVisualCode = (name: string) => {
 
 export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) {
   // 1. EXTRAER DATOS DEL PARTIDO
-  const homeTeamName = match.homeTeam || match.homeTeamPlaceholder || 'LOC';
-  const awayTeamName = match.awayTeam || match.awayTeamPlaceholder || 'VIS';
+  // Fallback a snake_case por si la API cambió serialización
+  const homeTeamName = match.homeTeam || match.home_team || match.homeTeamPlaceholder || 'LOC';
+  const awayTeamName = match.awayTeam || match.away_team || match.awayTeamPlaceholder || 'VIS';
 
   const homeCode = getVisualCode(homeTeamName);
   const awayCode = getVisualCode(awayTeamName);

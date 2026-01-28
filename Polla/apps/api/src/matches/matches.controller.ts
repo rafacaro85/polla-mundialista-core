@@ -166,4 +166,23 @@ export class MatchesController {
     async fixEmptyTeams() {
         return this.matchesService.fixEmptyTeamFields();
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Patch('teams/rename')
+    async renameTeam(
+        @Body() body: { oldName: string; newCode: string },
+    ) {
+        return this.matchesService.renameTeam(body.oldName, body.newCode);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Patch(':id/set-teams')
+    async setTeams(
+        @Param('id') id: string,
+        @Body() body: { homeTeamCode: string; awayTeamCode: string },
+    ) {
+        return this.matchesService.setTeams(id, body.homeTeamCode, body.awayTeamCode);
+    }
 }

@@ -80,6 +80,16 @@ export const superAdminService = {
         return response.data;
     },
 
+    setTeams: async (matchId: string, homeCode: string, awayCode: string) => {
+        const response = await api.patch(`/matches/${matchId}/set-teams`, { homeTeamCode: homeCode, awayTeamCode: awayCode });
+        return response.data;
+    },
+
+    renameTeam: async (oldName: string, newCode: string) => {
+        const response = await api.patch('/matches/teams/rename', { oldName, newCode });
+        return response.data;
+    },
+
     simulateMatches: async () => {
         const response = await api.post('/matches/simulate-results');
         return response.data;

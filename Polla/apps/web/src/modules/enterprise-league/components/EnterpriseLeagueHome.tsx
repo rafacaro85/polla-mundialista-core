@@ -1,5 +1,7 @@
 import React from 'react';
 import { Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, ArrowLeft, ArrowRight, Lock, Megaphone, MessageCircle, Swords, Instagram, Facebook, Linkedin, Zap, CheckCircle2, Crown, Youtube, Globe, Share2 } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PrizeHero } from '@/components/PrizeHero';
@@ -56,54 +58,38 @@ const EnterpriseFeatureLock = ({ title, minPlanName, icon: Icon }: any) => {
 };
 
 const AdBanner = ({ league }: { league: any }) => {
-    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-    const images = league.adImages || [];
-    const hasImages = images.length > 0;
+    // 1. Logic: If disabled or no images, HIDE completely (User Request: "vamos a quitarlo")
+    if (!league.showAds || !league.adImages || league.adImages.length === 0) {
+        return null;
+    }
 
-    React.useEffect(() => {
-        if (!hasImages) return;
-        const interval = setInterval(() => {
-            setCurrentImageIndex(prev => (prev + 1) % images.length);
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [hasImages, images.length]);
-
-    // If ads are disabled in config, hide completely
-    if (!league.showAds) return null;
+    // 2. Carousel Setup
+    const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
 
     return (
-        <div className="w-full md:rounded-xl md:mt-4 max-w-4xl mx-auto h-[120px] md:h-[160px] relative overflow-hidden shadow-2xl bg-[#0F172A] group mb-6 md:mb-0">
-             {/* If images exist, rotate them */}
-             {hasImages ? (
-                <>
-                   {images.map((src: string, index: number) => (
-                       <img
-                           key={index}
-                           src={src}
-                           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
-                           alt="Publicidad"
-                       />
-                   ))}
-                   {/* Gradient Overlay for text readability if needed, or just bottom shade */}
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                   
-                   {/* Dots indicator */}
-                   <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
-                       {images.map((_: any, idx: number) => (
-                           <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/40'}`} />
-                       ))}
-                   </div>
-                </>
-             ) : (
-                /* Fallback Static if enabled but no images */
-                <div className="w-full h-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center relative">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                     <p className="relative z-10 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-                        <Megaphone size={14} className="animate-bounce" />
-                        Espacio Publicitario Reservado para {league.companyName}
-                    </p>
+        <div className="w-full md:rounded-xl md:mt-4 max-w-4xl mx-auto h-[120px] md:h-[160px] relative shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 bg-[#0F172A] mb-6 md:mb-0 overflow-hidden group">
+            
+            {/* Carousel Viewport */}
+            <div className="overflow-hidden h-full" ref={emblaRef}>
+                <div className="flex h-full touch-pan-y">
+                    {league.adImages.map((src: string, index: number) => (
+                        <div className="flex-[0_0_100%] min-w-0 relative h-full" key={index}>
+                            <img 
+                                src={src} 
+                                alt={`Publicidad ${index + 1}`} 
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Gradient Overlay for premium feel */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent opacity-60"></div>
+                        </div>
+                    ))}
                 </div>
-             )}
+            </div>
+
+            {/* "Publicidad" Badge */}
+            <div className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm border border-white/10 px-2 py-0.5 rounded text-[9px] text-white/50 font-bold uppercase tracking-widest pointer-events-none">
+                Publicidad
+            </div>
         </div>
     );
 };

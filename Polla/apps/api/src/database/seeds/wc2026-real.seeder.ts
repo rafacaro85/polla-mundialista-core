@@ -16,7 +16,7 @@ const AppDataSource = process.env.DATABASE_URL
         url: process.env.DATABASE_URL,
         entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization],
         synchronize: false,
-        ssl: { rejectUnauthorized: false },
+        ssl: false,
     })
     : new DataSource({
         type: 'postgres',
@@ -29,6 +29,7 @@ const AppDataSource = process.env.DATABASE_URL
         synchronize: false,
     });
 
+// Códigos ISO para banderas
 // Códigos ISO para banderas
 const FLAG_CODES: Record<string, string> = {
     'México': 'mx', 'Sudáfrica': 'za', 'República de Corea': 'kr',
@@ -44,6 +45,9 @@ const FLAG_CODES: Record<string, string> = {
     'Portugal': 'pt', 'Inglaterra': 'gb-eng', 'Croacia': 'hr',
     'Ghana': 'gh', 'Panamá': 'pa', 'Uzbekistán': 'uz', 'Colombia': 'co',
     'Dinamarca': 'dk',
+    // Equipos de Repechaje (Prueba)
+    'Chile': 'cl', 'Suecia': 'se', 'Perú': 'pe', 'Gales': 'gb-wls', 
+    'Polonia': 'pl', 'Costa Rica': 'cr'
 };
 
 function getFlag(team: string): string {
@@ -55,23 +59,23 @@ function getFlag(team: string): string {
 const REAL_MATCHES = [
     // Jueves, 11 de junio 2026
     { date: '2026-06-11T19:00:00Z', home: 'México', away: 'Sudáfrica', group: 'A', stadium: 'Estadio Ciudad de México' },
-    { date: '2026-06-12T02:00:00Z', home: 'República de Corea', away: 'TBD', group: 'A', stadium: 'Estadio Guadalajara' },
+    { date: '2026-06-12T02:00:00Z', home: 'República de Corea', away: 'PLA_A', group: 'A', stadium: 'Estadio Guadalajara' },
 
     // Viernes, 12 de junio 2026
-    { date: '2026-06-12T19:00:00Z', home: 'Canadá', away: 'TBD', group: 'B', stadium: 'Toronto Stadium' },
+    { date: '2026-06-12T19:00:00Z', home: 'Canadá', away: 'PLA_B', group: 'B', stadium: 'Toronto Stadium' },
     { date: '2026-06-13T01:00:00Z', home: 'Estados Unidos', away: 'Paraguay', group: 'D', stadium: 'Los Angeles Stadium' },
 
     // Sábado, 13 de junio 2026
-    { date: '2026-06-13T19:00:00Z', home: 'Catar', away: 'Suiza', group: 'B', stadium: 'San Francisco Bay Area Stadium' },
+    { date: '2026-06-13T19:00:00Z', home: 'Catar', away: 'PLA_A', group: 'B', stadium: 'San Francisco Bay Area Stadium' },
     { date: '2026-06-13T22:00:00Z', home: 'Brasil', away: 'Marruecos', group: 'C', stadium: 'Nueva York Nueva Jersey Stadium' },
     { date: '2026-06-14T01:00:00Z', home: 'Haití', away: 'Escocia', group: 'C', stadium: 'Boston Stadium' },
-    { date: '2026-06-14T04:00:00Z', home: 'Australia', away: 'TBD', group: 'D', stadium: 'BC Place Vancouver' },
+    { date: '2026-06-14T04:00:00Z', home: 'Australia', away: 'PLA_C', group: 'D', stadium: 'BC Place Vancouver' },
 
     // Domingo, 14 de junio 2026
     { date: '2026-06-14T17:00:00Z', home: 'Alemania', away: 'Curazao', group: 'E', stadium: 'Houston Stadium' },
     { date: '2026-06-14T20:00:00Z', home: 'Países Bajos', away: 'Japón', group: 'F', stadium: 'Dallas Stadium' },
     { date: '2026-06-14T23:00:00Z', home: 'Costa del Marfil', away: 'Ecuador', group: 'E', stadium: 'Philadelphia Stadium' },
-    { date: '2026-06-15T02:00:00Z', home: 'TBD', away: 'Túnez', group: 'F', stadium: 'Estadio Monterrey' },
+    { date: '2026-06-15T02:00:00Z', home: 'PLA_D', away: 'Túnez', group: 'F', stadium: 'Estadio Monterrey' },
 
     // Lunes, 15 de junio 2026
     { date: '2026-06-15T16:00:00Z', home: 'España', away: 'Cabo Verde', group: 'H', stadium: 'Atlanta Stadium' },
@@ -81,19 +85,19 @@ const REAL_MATCHES = [
 
     // Martes, 16 de junio 2026
     { date: '2026-06-16T19:00:00Z', home: 'Francia', away: 'Senegal', group: 'I', stadium: 'New York New Jersey Stadium' },
-    { date: '2026-06-16T22:00:00Z', home: 'TBD', away: 'Noruega', group: 'I', stadium: 'Boston Stadium' },
+    { date: '2026-06-16T22:00:00Z', home: 'PLA_E', away: 'Noruega', group: 'I', stadium: 'Boston Stadium' },
     { date: '2026-06-17T01:00:00Z', home: 'Argentina', away: 'Argelia', group: 'J', stadium: 'Kansas City Stadium' },
     { date: '2026-06-17T04:00:00Z', home: 'Austria', away: 'Jordania', group: 'J', stadium: 'San Francisco Bay Area Stadium' },
 
     // Miércoles, 17 de junio 2026
-    { date: '2026-06-17T17:00:00Z', home: 'Portugal', away: 'TBD', group: 'K', stadium: 'Houston Stadium' },
+    { date: '2026-06-17T17:00:00Z', home: 'Portugal', away: 'PLA_F', group: 'K', stadium: 'Houston Stadium' },
     { date: '2026-06-17T20:00:00Z', home: 'Inglaterra', away: 'Croacia', group: 'L', stadium: 'Dallas Stadium' },
     { date: '2026-06-17T23:00:00Z', home: 'Ghana', away: 'Panamá', group: 'L', stadium: 'Toronto Stadium' },
     { date: '2026-06-18T02:00:00Z', home: 'Uzbekistán', away: 'Colombia', group: 'K', stadium: 'Estadio Ciudad de México' },
 
     // Jueves, 18 de junio 2026
-    { date: '2026-06-18T16:00:00Z', home: 'TBD', away: 'Sudáfrica', group: 'A', stadium: 'Atlanta Stadium' },
-    { date: '2026-06-18T19:00:00Z', home: 'Suiza', away: 'TBD', group: 'B', stadium: 'Los Angeles Stadium' },
+    { date: '2026-06-18T16:00:00Z', home: 'PLA_A', away: 'Sudáfrica', group: 'A', stadium: 'Atlanta Stadium' },
+    { date: '2026-06-18T19:00:00Z', home: 'Suiza', away: 'PLA_B', group: 'B', stadium: 'Los Angeles Stadium' },
     { date: '2026-06-18T22:00:00Z', home: 'Canadá', away: 'Catar', group: 'B', stadium: 'BC Place Vancouver' },
     { date: '2026-06-19T01:00:00Z', home: 'México', away: 'República de Corea', group: 'A', stadium: 'Estadio Guadalajara' },
 
@@ -101,10 +105,10 @@ const REAL_MATCHES = [
     { date: '2026-06-19T19:00:00Z', home: 'Estados Unidos', away: 'Australia', group: 'D', stadium: 'Seattle Stadium' },
     { date: '2026-06-19T22:00:00Z', home: 'Escocia', away: 'Marruecos', group: 'C', stadium: 'Boston Stadium' },
     { date: '2026-06-20T01:00:00Z', home: 'Brasil', away: 'Haití', group: 'C', stadium: 'Philadelphia Stadium' },
-    { date: '2026-06-20T04:00:00Z', home: 'TBD', away: 'Paraguay', group: 'D', stadium: 'San Francisco Bay Area Stadium' },
+    { date: '2026-06-20T04:00:00Z', home: 'PLA_C', away: 'Paraguay', group: 'D', stadium: 'San Francisco Bay Area Stadium' },
 
     // Sábado, 20 de junio 2026
-    { date: '2026-06-20T17:00:00Z', home: 'Países Bajos', away: 'TBD', group: 'F', stadium: 'Houston Stadium' },
+    { date: '2026-06-20T17:00:00Z', home: 'Países Bajos', away: 'PLA_D', group: 'F', stadium: 'Houston Stadium' },
     { date: '2026-06-20T20:00:00Z', home: 'Alemania', away: 'Costa del Marfil', group: 'E', stadium: 'Toronto Stadium' },
     { date: '2026-06-21T02:00:00Z', home: 'Ecuador', away: 'Curazao', group: 'E', stadium: 'Kansas City Stadium' },
     { date: '2026-06-21T04:00:00Z', home: 'Túnez', away: 'Japón', group: 'F', stadium: 'Estadio Monterrey' },
@@ -117,7 +121,7 @@ const REAL_MATCHES = [
 
     // Lunes, 22 de junio 2026
     { date: '2026-06-22T17:00:00Z', home: 'Argentina', away: 'Austria', group: 'J', stadium: 'Dallas Stadium' },
-    { date: '2026-06-22T21:00:00Z', home: 'Francia', away: 'TBD', group: 'I', stadium: 'Philadelphia Stadium' },
+    { date: '2026-06-22T21:00:00Z', home: 'Francia', away: 'PLA_E', group: 'I', stadium: 'Philadelphia Stadium' },
     { date: '2026-06-23T00:00:00Z', home: 'Noruega', away: 'Senegal', group: 'I', stadium: 'Nueva York Nueva Jersey Stadium' },
     { date: '2026-06-23T03:00:00Z', home: 'Jordania', away: 'Argelia', group: 'J', stadium: 'San Francisco Bay Area Stadium' },
 
@@ -125,27 +129,27 @@ const REAL_MATCHES = [
     { date: '2026-06-23T17:00:00Z', home: 'Portugal', away: 'Uzbekistán', group: 'K', stadium: 'Houston Stadium' },
     { date: '2026-06-23T20:00:00Z', home: 'Inglaterra', away: 'Ghana', group: 'L', stadium: 'Boston Stadium' },
     { date: '2026-06-23T23:00:00Z', home: 'Panamá', away: 'Croacia', group: 'L', stadium: 'Toronto Stadium' },
-    { date: '2026-06-24T02:00:00Z', home: 'Colombia', away: 'TBD', group: 'K', stadium: 'Estadio Guadalajara' },
+    { date: '2026-06-24T02:00:00Z', home: 'Colombia', away: 'PLA_F', group: 'K', stadium: 'Estadio Guadalajara' },
 
     // Miércoles, 24 de junio 2026
     { date: '2026-06-24T19:00:00Z', home: 'Suiza', away: 'Canadá', group: 'B', stadium: 'BC Place Vancouver' },
-    { date: '2026-06-24T19:00:00Z', home: 'TBD', away: 'Catar', group: 'B', stadium: 'Seattle Stadium' },
+    { date: '2026-06-24T19:00:00Z', home: 'PLA_B', away: 'Catar', group: 'B', stadium: 'Seattle Stadium' },
     { date: '2026-06-24T22:00:00Z', home: 'Brasil', away: 'Escocia', group: 'C', stadium: 'Miami Stadium' },
     { date: '2026-06-24T22:00:00Z', home: 'Marruecos', away: 'Haití', group: 'C', stadium: 'Atlanta Stadium' },
-    { date: '2026-06-25T01:00:00Z', home: 'TBD', away: 'México', group: 'A', stadium: 'Estadio Ciudad de México' },
+    { date: '2026-06-25T01:00:00Z', home: 'PLA_A', away: 'México', group: 'A', stadium: 'Estadio Ciudad de México' },
     { date: '2026-06-25T01:00:00Z', home: 'Sudáfrica', away: 'República de Corea', group: 'A', stadium: 'Estadio Monterrey' },
 
     // Jueves, 25 de junio 2026
     { date: '2026-06-25T20:00:00Z', home: 'Curazao', away: 'Costa del Marfil', group: 'E', stadium: 'Philadelphia Stadium' },
     { date: '2026-06-25T20:00:00Z', home: 'Ecuador', away: 'Alemania', group: 'E', stadium: 'New York New Jersey Stadium' },
-    { date: '2026-06-25T23:00:00Z', home: 'Japón', away: 'TBD', group: 'F', stadium: 'Dallas Stadium' },
+    { date: '2026-06-25T23:00:00Z', home: 'Japón', away: 'PLA_D', group: 'F', stadium: 'Dallas Stadium' },
     { date: '2026-06-25T23:00:00Z', home: 'Túnez', away: 'Países Bajos', group: 'F', stadium: 'Kansas City Stadium' },
-    { date: '2026-06-26T02:00:00Z', home: 'TBD', away: 'Estados Unidos', group: 'D', stadium: 'Los Angeles Stadium' },
+    { date: '2026-06-26T02:00:00Z', home: 'PLA_C', away: 'Estados Unidos', group: 'D', stadium: 'Los Angeles Stadium' },
     { date: '2026-06-26T02:00:00Z', home: 'Paraguay', away: 'Australia', group: 'D', stadium: 'San Francisco Bay Area Stadium' },
 
     // Viernes, 26 de junio 2026
     { date: '2026-06-26T19:00:00Z', home: 'Noruega', away: 'Francia', group: 'I', stadium: 'Boston Stadium' },
-    { date: '2026-06-26T19:00:00Z', home: 'Senegal', away: 'TBD', group: 'I', stadium: 'Toronto Stadium' },
+    { date: '2026-06-26T19:00:00Z', home: 'Senegal', away: 'PLA_E', group: 'I', stadium: 'Toronto Stadium' },
     { date: '2026-06-27T00:00:00Z', home: 'Cabo Verde', away: 'Arabia Saudí', group: 'H', stadium: 'Houston Stadium' },
     { date: '2026-06-27T00:00:00Z', home: 'Uruguay', away: 'España', group: 'H', stadium: 'Estadio Guadalajara' },
     { date: '2026-06-27T03:00:00Z', home: 'Egipto', away: 'Irán', group: 'G', stadium: 'Seattle Stadium' },
@@ -155,7 +159,7 @@ const REAL_MATCHES = [
     { date: '2026-06-27T21:00:00Z', home: 'Panamá', away: 'Inglaterra', group: 'L', stadium: 'New York New Jersey Stadium' },
     { date: '2026-06-27T21:00:00Z', home: 'Croacia', away: 'Ghana', group: 'L', stadium: 'Philadelphia Stadium' },
     { date: '2026-06-27T23:30:00Z', home: 'Colombia', away: 'Portugal', group: 'K', stadium: 'Miami Stadium' },
-    { date: '2026-06-27T23:30:00Z', home: 'TBD', away: 'Uzbekistán', group: 'K', stadium: 'Atlanta Stadium' },
+    { date: '2026-06-27T23:30:00Z', home: 'PLA_F', away: 'Uzbekistán', group: 'K', stadium: 'Atlanta Stadium' },
     { date: '2026-06-28T02:00:00Z', home: 'Argelia', away: 'Austria', group: 'J', stadium: 'Kansas City Stadium' },
     { date: '2026-06-28T02:00:00Z', home: 'Jordania', away: 'Argentina', group: 'J', stadium: 'Dallas Stadium' },
 ];

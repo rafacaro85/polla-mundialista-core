@@ -273,7 +273,7 @@ export class TournamentService {
                     const q = qualifiers[qualifierIndex];
                     match.homeTeam = q.team;
                     match.homeFlag = teamFlags[q.team];
-                    match.homeTeamPlaceholder = null; // Limpiar placeholder
+                    // match.homeTeamPlaceholder = null; // Limpiar placeholder
                     await this.matchesRepository.save(match);
                     updatedCount++;
                     qualifierIndex++;
@@ -290,7 +290,7 @@ export class TournamentService {
                     const q = qualifiers[qualifierIndex];
                     match.awayTeam = q.team;
                     match.awayFlag = teamFlags[q.team];
-                    match.awayTeamPlaceholder = null;
+                    // match.awayTeamPlaceholder = null;
                     await this.matchesRepository.save(match);
                     updatedCount++;
                     qualifierIndex++;

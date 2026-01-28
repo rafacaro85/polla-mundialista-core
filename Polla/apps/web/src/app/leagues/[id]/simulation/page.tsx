@@ -27,15 +27,7 @@ export default function SimulationPage() {
                 // FIX: Para ligas empresariales, limpiar los equipos hardcodeados en fases finales
                 // para que el simulador funcione desde cero (calculando cruces dinámicamente).
                 // Respetamos la orden de "no tocar las otras".
-                if (leagueData.isEnterprise) {
-                    matchesData = matchesData.map((m: any) => {
-                        // Si es fase KO y el partido no ha terminado, limpiar contendientes
-                        if (['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'].includes(m.phase) && m.status !== 'FINISHED') {
-                            return { ...m, homeTeam: null, awayTeam: null };
-                        }
-                        return m;
-                    });
-                }
+                // (Logic removed: enterprise leagues should see knockout teams now)
 
                 setMatches(matchesData);
             } catch (error) {

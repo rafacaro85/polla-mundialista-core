@@ -33,7 +33,6 @@ export class MatchesService {
             .leftJoinAndSelect('match.predictions', 'prediction', 'prediction.userId = :userId', { userId });
 
         if (!isAdmin) {
-            // Obtenemos solo las fases desbloqueadas para usuarios normales
             const unlockedPhases = await this.phaseStatusRepository.find({
                 where: { isUnlocked: true }
             });
@@ -758,6 +757,58 @@ export class MatchesService {
         
         console.log(`✅ [FIX] Total matches fixed: ${totalFixed}`);
         return { message: 'Fixed empty team fields', totalFixed, phases: knockoutPhases };
+    }
+
+    // --- ADMIN TEAM MANAGEMENT ---
+
+    async setTeams(matchId: string, homeCode: string, awayCode: string) {
+        // Dynamic import based on migration
+        const { getTeamInfo } = require('../common/teams-dictionary');
+
+        const match = await this.matchesRepository.findOneBy({ id: matchId });
+        if (!match) throw new NotFoundException('Match not found');
+
+        if (homeCode) {
+            const home = getTeamInfo(homeCode);
+            match.homeTeam = home.name;
+            match.homeFlag = home.flag;
+            match.homeTeamPlaceholder = null;
+        }
+
+        if (awayCode) {
+            const away = getTeamInfo(awayCode);
+            match.awayTeam = away.name;
+            match.awayFlag = away.flag;
+            match.awayTeamPlaceholder = null;
+        }
+        
+        // If both teams are set, we can enable the match
+        if (match.homeTeam && match.awayTeam) {
+            match.status = 'PENDING';
+        }
+
+        return this.matchesRepository.save(match);
+    }
+
+    async renameTeam(oldName: string, newCode: string) {
+        const { getTeamInfo } = require('../common/teams-dictionary');
+        const newTeam = getTeamInfo(newCode);
+        
+        // Update as Home Team
+        await this.matchesRepository.createQueryBuilder()
+            .update(Match)
+            .set({ homeTeam: newTeam.name, homeFlag: newTeam.flag })
+            .where("homeTeam = :oldName", { oldName })
+            .execute();
+
+        // Update as Away Team
+        await this.matchesRepository.createQueryBuilder()
+            .update(Match)
+            .set({ awayTeam: newTeam.name, awayFlag: newTeam.flag })
+            .where("awayTeam = :oldName", { oldName })
+            .execute();
+
+        return { success: true, oldName, newTeam };
     }
 }
 

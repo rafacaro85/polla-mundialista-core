@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { superAdminService } from '@/services/superAdminService';
 import {
-    Calendar, RefreshCw, Edit, Lock, Unlock, Save, X, Shield, Clock, CheckCircle, Trophy, Database
+    Calendar, RefreshCw, Edit, Lock, Unlock, Save, X, Shield, Clock, CheckCircle, Trophy, Database, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
@@ -205,7 +205,12 @@ export function MatchesList() {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
+    const [assignMatch, setAssignMatch] = useState<any>(null); // New State
     const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isLocked: false, status: '' });
+    const [assignForm, setAssignForm] = useState({ homeCode: '', awayCode: '' }); // New State
+    // Rename Team State
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+    const [renameForm, setRenameForm] = useState({ oldName: '', newCode: '' });
     const [filterPhase, setFilterPhase] = useState<string>('ALL');
 
     // Create Match State
@@ -276,6 +281,41 @@ export function MatchesList() {
         }
     };
 
+    const handleAssignSave = async () => {
+        if (!assignMatch) return;
+        try {
+            if (!assignForm.homeCode && !assignForm.awayCode) {
+                 toast.error("Ingresa al menos un código");
+                 return;
+            }
+            await superAdminService.setTeams(assignMatch.id, assignForm.homeCode.toUpperCase(), assignForm.awayCode.toUpperCase());
+            toast.success("Equipos asignados correctamente");
+            setAssignMatch(null);
+            setAssignForm({ homeCode: '', awayCode: '' });
+            loadMatches();
+        } catch (error) {
+            console.error("Error assigning teams:", error);
+            toast.error("Error al asignar equipos. Verifica los códigos.");
+        }
+    };
+
+    const handleRenameTeam = async () => {
+        if (!renameForm.oldName || !renameForm.newCode) {
+             toast.error("Completa ambos campos");
+             return;
+        }
+        try {
+             const res = await superAdminService.renameTeam(renameForm.oldName, renameForm.newCode.toUpperCase());
+             toast.success(`Equipo renombrado: ${res.oldName} -> ${res.newTeam?.name}`);
+             setIsRenameModalOpen(false);
+             setRenameForm({ oldName: '', newCode: '' });
+             loadMatches();
+        } catch (error) {
+            console.error("Error renaming team:", error);
+            toast.error("Error al renombrar equipo");
+        }
+    };
+
     const openEditModal = (match: any) => {
         setEditingMatch(match);
         setFormData({
@@ -315,7 +355,6 @@ export function MatchesList() {
     const filteredMatches = matches
         .filter(m => filterPhase === 'ALL' || m.phase === filterPhase)
         .sort((a, b) => {
-            // Ordenar por fecha, pero si son iguales, por bracketId
             const dateA = new Date(a.date).getTime();
             const dateB = new Date(b.date).getTime();
             if (dateA !== dateB) return dateA - dateB;
@@ -385,6 +424,13 @@ export function MatchesList() {
                             onClick={() => setIsCreateModalOpen(true)}
                         >
                             ➕ Nuevo
+                        </button>
+
+                        <button
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#3B82F6', color: 'white' }}
+                            onClick={() => setIsRenameModalOpen(true)}
+                        >
+                            🔄 Revelar Equipo
                         </button>
 
                         <button
@@ -599,7 +645,7 @@ export function MatchesList() {
                                 <div style={STYLES.teamLogo}>
                                     {match.homeTeam ? match.homeTeam.charAt(0) : 'L'}
                                 </div>
-                                <div style={STYLES.teamName}>{match.homeTeam || 'Local'}</div>
+                                <div style={STYLES.teamName}>{match.homeTeam || match.homeTeamPlaceholder || 'Local'}</div>
                             </div>
 
                             {/* Marcador */}
@@ -617,7 +663,7 @@ export function MatchesList() {
                                 <div style={STYLES.teamLogo}>
                                     {match.awayTeam ? match.awayTeam.charAt(0) : 'V'}
                                 </div>
-                                <div style={STYLES.teamName}>{match.awayTeam || 'Visitante'}</div>
+                                <div style={STYLES.teamName}>{match.awayTeam || match.awayTeamPlaceholder || 'Visitante'}</div>
                             </div>
                         </div>
 
@@ -627,7 +673,16 @@ export function MatchesList() {
                                 style={STYLES.actionBtn}
                                 onClick={() => openEditModal(match)}
                             >
-                                <Edit size={14} /> Editar Marcador
+                                <Edit size={14} /> Editar
+                            </button>
+                            <button
+                                style={STYLES.actionBtn}
+                                onClick={() => {
+                                    setAssignMatch(match);
+                                    setAssignForm({ homeCode: '', awayCode: '' });
+                                }}
+                            >
+                                <Users size={14} /> Asignar
                             </button>
                             <div style={{
                                 display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px',
@@ -695,11 +750,94 @@ export function MatchesList() {
                             >
                                 <option value="SCHEDULED">📅 Programado (SCHEDULED)</option>
                                 <option value="LIVE">🔴 En Vivo (LIVE)</option>
+                                <option value="PENDING">🕒 Pendiente (PENDING)</option>
                                 <option value="FINISHED">✅ Finalizado (FINISHED)</option>
                             </select>
                         </div>
 
                         <button style={STYLES.saveBtn} onClick={handleSave}><Save size={16} /> Guardar Cambios</button>
+                    </div>
+                </div>
+            )}
+
+            {/* RENAME MODAL */}
+            {isRenameModalOpen && (
+                <div style={STYLES.modalOverlay}>
+                    <div style={STYLES.modal}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>Revelar / Renombrar Equipo</h3>
+                            <button onClick={() => setIsRenameModalOpen(false)} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+                        
+                        <p style={{ color: '#94A3B8', fontSize: '12px', marginBottom: '16px' }}>
+                            Esto cambiará el equipo en TODOS los partidos (Grupos y Playoffs). Útil para revelar repechajes.
+                        </p>
+
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={STYLES.label}>Nombre ACTUAL (o Placeholder)</label>
+                            <input 
+                                type="text" 
+                                style={STYLES.input} 
+                                value={renameForm.oldName} 
+                                onChange={e => setRenameForm({ ...renameForm, oldName: e.target.value })}
+                                placeholder="Ej: Ganador Repechaje A"
+                            />
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={STYLES.label}>Nuevo CÓDIGO Real</label>
+                            <input 
+                                type="text" 
+                                style={{ ...STYLES.input, textTransform: 'uppercase' }} 
+                                value={renameForm.newCode} 
+                                onChange={e => setRenameForm({ ...renameForm, newCode: e.target.value })}
+                                placeholder="Ej: CRC" 
+                            />
+                        </div>
+
+                        <button style={STYLES.saveBtn} onClick={handleRenameTeam}>
+                            <Save size={16} /> Renombrar Globalmente
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ASSIGN MODAL */}
+            {assignMatch && (
+                <div style={STYLES.modalOverlay}>
+                    <div style={STYLES.modal}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>Asignar Equipos (Manual)</h3>
+                            <button onClick={() => setAssignMatch(null)} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+                        
+                        <p style={{ color: '#94A3B8', fontSize: '12px', marginBottom: '16px' }}>
+                            Ingresa los CÓDIGOS de los equipos (ej: BRA, MEX, USA, PLA_A).
+                        </p>
+
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={STYLES.label}>Código Local (Home)</label>
+                            <input 
+                                type="text" 
+                                style={{ ...STYLES.input, textTransform: 'uppercase' }} 
+                                value={assignForm.homeCode} 
+                                onChange={e => setAssignForm({ ...assignForm, homeCode: e.target.value })}
+                                placeholder="Ej: BRA"
+                            />
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={STYLES.label}>Código Visitante (Away)</label>
+                            <input 
+                                type="text" 
+                                style={{ ...STYLES.input, textTransform: 'uppercase' }} 
+                                value={assignForm.awayCode} 
+                                onChange={e => setAssignForm({ ...assignForm, awayCode: e.target.value })}
+                                placeholder="Ej: PLA_A" 
+                            />
+                        </div>
+
+                        <button style={STYLES.saveBtn} onClick={handleAssignSave}>
+                            <Save size={16} /> Guardar Asignación
+                        </button>
                     </div>
                 </div>
             )}

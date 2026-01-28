@@ -139,17 +139,25 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     if (isNaN(pH) || isNaN(pA) || isNaN(mH) || isNaN(mA)) return 0;
 
     let pts = 0;
-    if (mH === pH && mA === pA) {
-        pts = 3; // Marcador Exacto
-    } else if (Math.sign(mH - mA) === Math.sign(pH - pA)) {
-        pts = 1; // Ganador/Empate
-    }
+    
+    // 1. Goles Individuales (+1 c/u)
+    if (mH === pH) pts += 1;
+    if (mA === pA) pts += 1;
+
+    // 2. Resultado (+2)
+    const signM = Math.sign(mH - mA);
+    const signP = Math.sign(pH - pA);
+    if (signM === signP) pts += 2;
+
+    // 3. Marcador Exacto (+3)
+    if (mH === pH && mA === pA) pts += 3;
 
     // Verificar Joker guardado
-    const jokerActive = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker);
+    const jokerActive = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker || isJoker);
     if (jokerActive) pts *= 2;
 
     return pts;
+  };
   };
 
   const points = calculateOptimisticPoints();

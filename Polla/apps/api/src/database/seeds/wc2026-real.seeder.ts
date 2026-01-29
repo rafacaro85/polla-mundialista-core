@@ -6,6 +6,7 @@ import { AccessCode } from '../entities/access-code.entity';
 import { LeagueParticipant } from '../entities/league-participant.entity';
 import { League } from '../entities/league.entity';
 import { Organization } from '../entities/organization.entity';
+import { Notification } from '../entities/notification.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,9 +15,9 @@ const AppDataSource = process.env.DATABASE_URL
     ? new DataSource({
         type: 'postgres',
         url: process.env.DATABASE_URL,
-        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization],
+        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
         synchronize: false,
-        ssl: false,
+        ssl: { rejectUnauthorized: false }, // Fix for Railway SSL
     })
     : new DataSource({
         type: 'postgres',
@@ -25,7 +26,7 @@ const AppDataSource = process.env.DATABASE_URL
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'polla_mundialista',
-        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization],
+        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
         synchronize: false,
     });
 

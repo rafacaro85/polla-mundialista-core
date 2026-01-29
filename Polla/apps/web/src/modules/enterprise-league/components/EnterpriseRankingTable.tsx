@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Minus, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import TieBreakerDialog from '@/components/TieBreakerDialog'; // We might need to duplicate this too later if logic differs
@@ -15,6 +15,12 @@ interface RankingUser {
     trend: 'up' | 'down' | 'same';
     tieBreakerGuess?: number;
     members?: number; // For departments
+    breakdown?: {
+        matches: number;
+        phases: number;
+        wildcard: number;
+        bonus: number;
+    };
 }
 
 /* =============================================================================
@@ -34,6 +40,7 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
     const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users');
     const [loading, setLoading] = useState(false);
     const [isTieBreakerOpen, setIsTieBreakerOpen] = useState(false);
+    const [expandedRow, setExpandedRow] = useState<number | null>(null);
     
     // Check URL params for initial tab
     const searchParams = useSearchParams();
@@ -92,7 +99,8 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                         avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
                         isUser: (item.id === user?.id) || (item.user?.id === user?.id),
                         trend: 'same',
-                        tieBreakerGuess: item.tieBreakerGuess
+                        tieBreakerGuess: item.tieBreakerGuess,
+                        breakdown: item.breakdown
                     })) : [];
 
                     setRanking(mappedRanking);
@@ -153,49 +161,87 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                     currentList.map((item, index) => {
                         const isLast = index === currentList.length - 1 && currentList.length > 1;
                         const rankStyle = getRankStyle(item.rank, isLast);
+                        const isExpanded = expandedRow === item.rank;
 
                         return (
-                            <div
-                                key={item.rank}
-                                className={`flex items-center p-4 border-b border-white/5 relative transition-colors hover:bg-white/5 ${item.isUser ? 'bg-brand-primary/10' : ''}`}
-                            >
-                                {item.isUser && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary shadow-[0_0_10px_var(--brand-primary)]" />
-                                )}
-
-                                <div className="w-8 flex justify-center items-center mr-3 font-russo text-lg">
-                                    {rankStyle.icon}
-                                </div>
-
-                                <div className={`w-9 h-9 rounded-${activeTab === 'departments' ? 'lg' : 'full'} bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-white mr-3`}>
-                                    {item.avatar}
-                                </div>
-
-                                <div className="flex-1 flex flex-col justify-center">
-                                    <div className="flex items-center">
-                                        <span className={`text-sm font-bold ${item.rank <= 3 ? 'text-white' : 'text-slate-200'} ${item.isUser ? 'text-brand-primary' : ''}`}>
-                                            {item.name}
-                                        </span>
-                                        {item.isUser && <span className="text-[9px] text-brand-primary ml-2 uppercase tracking-wider font-extrabold">(TÚ)</span>}
-                                    </div>
-                                    {activeTab === 'departments' && (
-                                        <span className="text-[10px] text-slate-500">
-                                            {item.members} miembros
-                                        </span>
+                            <React.Fragment key={item.rank}>
+                                <div
+                                    className={`flex items-center p-4 relative transition-colors cursor-pointer ${item.isUser ? 'bg-brand-primary/10' : ''} ${isExpanded ? '' : 'border-b border-white/5'} hover:bg-white/5`}
+                                    onClick={() => activeTab === 'users' && setExpandedRow(isExpanded ? null : item.rank)}
+                                >
+                                    {item.isUser && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary shadow-[0_0_10px_var(--brand-primary)]" />
                                     )}
+
+                                    <div className="w-8 flex justify-center items-center mr-3 font-russo text-lg">
+                                        {rankStyle.icon}
+                                    </div>
+
+                                    <div className={`w-9 h-9 rounded-${activeTab === 'departments' ? 'lg' : 'full'} bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-white mr-3`}>
+                                        {item.avatar}
+                                    </div>
+
+                                    <div className="flex-1 flex flex-col justify-center">
+                                        <div className="flex items-center">
+                                            <span className={`text-sm font-bold ${item.rank <= 3 ? 'text-white' : 'text-slate-200'} ${item.isUser ? 'text-brand-primary' : ''}`}>
+                                                {item.name}
+                                            </span>
+                                            {item.isUser && <span className="text-[9px] text-brand-primary ml-2 uppercase tracking-wider font-extrabold">(TÚ)</span>}
+                                        </div>
+                                        {activeTab === 'departments' && (
+                                            <span className="text-[10px] text-slate-500">
+                                                {item.members} miembros
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="text-right flex items-center gap-2">
+                                        <div>
+                                            <div className={`font-russo text-lg ${item.isUser ? 'text-brand-primary' : 'text-white'}`}>
+                                                {item.points}
+                                            </div>
+                                            <div className="flex justify-end mt-0.5">
+                                                {item.trend === 'up' && <TrendingUp size={12} className="text-green-500" />}
+                                                {item.trend === 'down' && <TrendingDown size={12} className="text-red-500" />}
+                                                {item.trend === 'same' && <Minus size={12} className="text-slate-500" />}
+                                            </div>
+                                        </div>
+                                        {activeTab === 'users' && (
+                                            <ChevronDown 
+                                                size={16} 
+                                                className={`text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div className="text-right">
-                                    <div className={`font-russo text-lg ${item.isUser ? 'text-brand-primary' : 'text-white'}`}>
-                                        {item.points}
+                                {isExpanded && item.breakdown && activeTab === 'users' && (
+                                    <div className="bg-black/30 p-4 border-b border-white/5">
+                                        <div className="grid grid-cols-4 gap-2 text-center">
+                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <span className="text-xl">⚽</span>
+                                                <span className="text-xs text-slate-400 font-bold uppercase">Partidos</span>
+                                                <span className="text-white font-mono text-sm">{item.breakdown.matches}</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <span className="text-xl">🔮</span>
+                                                <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
+                                                <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <span className="text-xl">🃏</span>
+                                                <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
+                                                <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <span className="text-xl">❓</span>
+                                                <span className="text-xs text-slate-400 font-bold uppercase">Bonus</span>
+                                                <span className="text-white font-mono text-sm">{item.breakdown.bonus}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-end mt-0.5">
-                                        {item.trend === 'up' && <TrendingUp size={12} className="text-green-500" />}
-                                        {item.trend === 'down' && <TrendingDown size={12} className="text-red-500" />}
-                                        {item.trend === 'same' && <Minus size={12} className="text-slate-500" />}
-                                    </div>
-                                </div>
-                            </div>
+                                )}
+                            </React.Fragment>
                         );
                     })
                 ) : (

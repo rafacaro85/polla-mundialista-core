@@ -15,6 +15,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
   const { user, selectedLeagueId, setSelectedLeague } = useAppStore();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
+  // Force Frontend Rebuild - Notification UI
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0F172A] border-b border-slate-800 shadow-md">
       <div className="container flex h-20 items-center justify-between px-4">

@@ -713,7 +713,13 @@ export class LeaguesService {
 
     return finalRanking.map((user, index) => ({
       ...user,
-      rank: index + 1
+      rank: index + 1,
+      breakdown: {
+        matches: user.predictionPoints || 0,
+        phases: user.bracketPoints || 0,
+        wildcard: 0, // Joker points are included in predictionPoints
+        bonus: user.bonusPoints || 0
+      }
     }));
   }
 

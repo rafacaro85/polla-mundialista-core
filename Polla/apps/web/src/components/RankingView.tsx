@@ -497,6 +497,15 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                                                 {item.trend === 'same' && <Minus size={12} color="#64748B" />}
                                             </div>
                                         </div>
+                                        <ChevronDown 
+                                            size={16} 
+                                            color="#64748B" 
+                                            style={{ 
+                                                marginLeft: '8px',
+                                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                transition: 'transform 0.2s'
+                                            }}
+                                        />
                                     </div>
 
                                     {/* EXPANDED BREAKDOWN */}

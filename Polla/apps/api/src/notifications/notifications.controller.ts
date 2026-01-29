@@ -10,19 +10,19 @@ export class NotificationsController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async findAll(@Request() req) {
+    async findAll(@Request() req: any) {
         return this.notificationsService.findAll(req.user.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Patch('read-all')
-    async markAllRead(@Request() req) {
+    async markAllRead(@Request() req: any) {
         return this.notificationsService.markAllRead(req.user.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('admin/broadcast')
-    async broadcast(@Request() req, @Body() body: { title: string; message: string; type: NotificationType; targetAudience: 'ALL' | 'FREE' | 'PAID' }) {
+    async broadcast(@Request() req: any, @Body() body: { title: string; message: string; type: NotificationType; targetAudience: 'ALL' | 'FREE' | 'PAID' }) {
         if (req.user.role !== UserRole.ADMIN && req.user.email !== 'racv85@gmail.com') { // Hardcoded super admin fallback
              throw new ForbiddenException('Only admins can broadcast');
         }

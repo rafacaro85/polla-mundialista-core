@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import TieBreakerDialog from './TieBreakerDialog';
 
 // --- INTERFACES ---
+// Updated: Ranking breakdown implementation
 interface RankingUser {
     rank: number;
     name: string;
@@ -449,6 +450,8 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                             const rankStyle = getRankStyle(item.rank, isLast);
                             const isUserStyle = item.isUser ? STYLES.userRow : {};
                             const isExpanded = expandedRow === item.rank;
+                            
+                            console.log('[RankingView] Rendering row:', { rank: item.rank, isExpanded, hasBreakdown: !!item.breakdown });
 
                             return (
                                 <React.Fragment key={item.rank}>

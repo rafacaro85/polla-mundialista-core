@@ -63,12 +63,15 @@ export class TelegramService {
         await this.sendMessage(msg);
     }
 
-    async notifyNewLeague(leagueName: string, code: string, userEmail: string, phone?: string, fullName?: string, isPaid: boolean = false): Promise<void> {
+    async notifyNewLeague(leagueName: string, code: string, userEmail: string, phone?: string, fullName?: string, packageType: string = 'starter'): Promise<void> {
         const name = this.formatName(fullName || '');
         const waLink = this.formatWhatsAppLink(phone || '');
-        const typeEmoji = isPaid ? '💲 PAGA' : '🆓 GRATIS';
+        
+        const isFree = ['familia', 'starter', 'free'].includes(packageType.toLowerCase());
+        const typeEmoji = isFree ? '🆓 GRATIS' : '💲 PAGA';
+        const planLabel = packageType.toUpperCase();
 
-        const msg = `🏆 <b>Nueva Polla (${typeEmoji})</b>\n\n<b>Nombre:</b> ${leagueName}\n<b>Código:</b> ${code}\n<b>Admin:</b> ${name} (${userEmail})\n<b>Celular:</b> ${phone || 'N/A'}\n\n${waLink}`;
+        const msg = `🏆 <b>Nueva Polla (${typeEmoji} - ${planLabel})</b>\n\n<b>Nombre:</b> ${leagueName}\n<b>Código:</b> ${code}\n<b>Admin:</b> ${name} (${userEmail})\n<b>Celular:</b> ${phone || 'N/A'}\n\n${waLink}`;
         await this.sendMessage(msg);
     }
 }

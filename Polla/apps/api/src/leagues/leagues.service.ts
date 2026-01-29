@@ -136,7 +136,7 @@ export class LeaguesService {
           creator.email, 
           creatorPhone, 
           creatorName, 
-          isPaid
+          packageType
       ).catch(e => console.error('Telegram Error (Leagues):', e));
 
       // ACTUALIZAR DATOS DEL USUARIO (Fidelización)

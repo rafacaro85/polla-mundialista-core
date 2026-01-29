@@ -254,13 +254,13 @@ export function NotificationBell() {
       {isOpen && (
         <div 
             style={STYLES.dropdown}
-            className="absolute top-[120%] -right-16 md:right-0 w-[85vw] md:w-[320px] max-w-[320px] z-50"
+            className="absolute top-[120%] -right-12 md:right-0 w-[85vw] md:w-[320px] max-w-[320px] z-50"
         >
             <div style={STYLES.header}>
                 <span style={STYLES.title}>Notificaciones</span>
                 {unreadCount > 0 && (
                     <button style={STYLES.markReadBtn} onClick={handleMarkAllRead}>
-                        <CheckCheck size={14} /> Marcar ledías
+                        <CheckCheck size={14} /> Marcar leídas
                     </button>
                 )}
             </div>

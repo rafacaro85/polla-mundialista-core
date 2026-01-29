@@ -125,6 +125,20 @@ export class LeaguesService {
 
       const savedLeague = await this.leaguesRepository.save(league);
 
+      // 📢 Admin Alert (🏆) - New League
+      const isPaid = ['familia', 'starter', 'FREE'].includes(packageType); // Logic copied from isPaid above
+      const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
+      const creatorName = adminName || creator.fullName;
+
+      this.telegramService.notifyNewLeague(
+          savedLeague.name, 
+          savedLeague.accessCodePrefix || 'N/A', 
+          creator.email, 
+          creatorPhone, 
+          creatorName, 
+          isPaid
+      ).catch(e => console.error('Telegram Error (Leagues):', e));
+
       // ACTUALIZAR DATOS DEL USUARIO (Fidelización)
       // Si el usuario proporcionó un teléfono de contacto para la liga, lo guardamos en su perfil
       // Solo si NO acabamos de crear al usuario con ese dato

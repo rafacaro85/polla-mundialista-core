@@ -144,7 +144,7 @@ export class AuthService {
     }
 
     // 📢 Admin Alert
-    this.telegramService.notifyNewUser(registerDto.email, registerDto.name).catch(e => console.error('Telegram Error:', e));
+    this.telegramService.notifyNewUser(registerDto.email, registerDto.name, registerDto.phoneNumber).catch(e => console.error('Telegram Error:', e));
 
     // Se omite la contraseña en el objeto de usuario retornado
     const { password, ...result } = user;
@@ -234,8 +234,8 @@ export class AuthService {
     // Google users are verified by default
     await this.usersService.update(newUser, { isVerified: true });
 
-    // 📢 Admin Alert
-    this.telegramService.notifyNewUser(newUser.email, newUser.fullName).catch(e => console.error('Telegram Error:', e));
+    // 📢 Admin Alert (si es nuevo)
+    this.telegramService.notifyNewUser(newUser.email, newUser.fullName, newUser.phoneNumber).catch(e => console.error('Telegram Error:', e));
 
     console.log(`✅ [Google OAuth] Nuevo usuario creado`);
     console.log(`   ID: ${newUser.id}`);

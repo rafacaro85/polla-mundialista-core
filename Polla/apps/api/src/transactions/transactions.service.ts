@@ -69,7 +69,7 @@ export class TransactionsService {
         });
 
         // 📢 Admin Alert (💰)
-        this.telegramService.notifyPayment(amount, user.email, league?.packageType).catch(e => console.error('Telegram Error:', e));
+        this.telegramService.notifyPayment(amount, user.email, league?.packageType, user.phoneNumber, user.fullName).catch(e => console.error('Telegram Error:', e));
 
         return this.transactionsRepository.save(transaction);
     }

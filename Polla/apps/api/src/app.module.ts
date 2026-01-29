@@ -143,6 +143,7 @@ import { APP_GUARD } from '@nestjs/core';
     UploadModule,
     DebugModule,
     KnockoutPhasesModule,
+    NotificationsModule,
     MailModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),

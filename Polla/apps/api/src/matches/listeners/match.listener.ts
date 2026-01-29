@@ -35,31 +35,46 @@ export class MatchListener {
 
     @OnEvent('match.finished', { async: true })
     async handleMatchFinishedEvent(event: MatchFinishedEvent) {
-        const { match, homeScore, awayScore } = event;
-        const matchId = match.id;
+        const { match: eventMatch } = event; // No confiamos en los scores del evento para el cálculo crítico
+        const matchId = eventMatch.id;
 
-        this.logger.log(`⚡ Async processing for finished match ${matchId} (Home: ${homeScore} - Away: ${awayScore})`);
+        this.logger.log(`⚡ [START] Buscando data fresca para partido ${matchId}...`);
+        
+        // 🛡️ PEQUEÑO DELAY DE SEGURIDAD (500ms)
+        // Esto asegura que la transacción principal de "matches.service" haya hecho commit
+        // y la base de datos tenga los datos finales disponibles para lectura.
+        await new Promise(resolve => setTimeout(resolve, 500)); 
 
         try {
-            // 1. Recalcular puntos para todas las predicciones
-            const predictionsToUpdate: Prediction[] = [];
-            
-            // Re-fetch match with predictions to ensure we have them (or pass them in event if feasible, but fetching is safer for freshness)
-            // Actually, querying predictions separately might be better for memory if there are thousands.
-            // For now, let's assume we fetch them.
-            const matchWithPreds = await this.matchesRepository.findOne({
+            // 🔎 FETCH DE "LA VERDAD" (Source of Truth)
+            const freshMatch = await this.matchesRepository.findOne({
                 where: { id: matchId },
                 relations: ['predictions']
             });
 
-            if (matchWithPreds && matchWithPreds.predictions) {
-                for (const prediction of matchWithPreds.predictions) {
-                    // Update prediction with the finalized score
-                    // Note: The match passed in event has the new scores, but the DB object 'matchWithPreds' 
-                    // should have them too if we saved before emitting.
-                    // We'll trust the DB state is up to date since we emit AFTER save.
-                    
-                    const points = this['scoringService'].calculatePoints(matchWithPreds, prediction);
+            if (!freshMatch) {
+                this.logger.error(`❌ CRÍTICO: No se encontró el partido ${matchId} en base de datos al procesar evento.`);
+                return;
+            }
+
+            // Validación de integridad de datos
+            if (freshMatch.homeScore === null || freshMatch.awayScore === null) {
+                this.logger.warn(`⚠️ ALERTA: El partido ${matchId} se leyó con scores NULL. Es posible que la transacción no haya terminado.`);
+                return;
+            }
+
+            const homeScore = freshMatch.homeScore;
+            const awayScore = freshMatch.awayScore;
+
+            this.logger.log(`📊 [CALCULO] Data confirmada BD: ${freshMatch.homeTeam} (${homeScore}) - (${awayScore}) ${freshMatch.awayTeam}`);
+
+            // 1. Recalcular puntos para todas las predicciones
+            const predictionsToUpdate: Prediction[] = [];
+          
+            if (freshMatch.predictions) {
+                for (const prediction of freshMatch.predictions) {
+                    // Usamos freshMatch que tiene los scores reales de la BD
+                    const points = this.scoringService.calculatePoints(freshMatch, prediction);
                     prediction.points = points;
                     predictionsToUpdate.push(prediction);
                 }
@@ -71,25 +86,25 @@ export class MatchListener {
             }
 
             // 2. Calculate bracket points
-            const winner = homeScore > awayScore ? match.homeTeam : match.awayTeam;
+            const winner = homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
             await this.bracketsService.calculateBracketPoints(matchId, winner);
             this.logger.log(`🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`);
 
             // 3. Status updates & Progression
             
             // Check and unlock next knockout phase
-            if (match.phase) {
-                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
+            if (freshMatch.phase) {
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(freshMatch.phase);
             }
 
             // Handling Semifinal Losers -> 3rd Place
-            if (match.phase === 'SEMI') {
-                const loser = homeScore < awayScore ? match.homeTeam : match.awayTeam;
-                const loserFlag = homeScore < awayScore ? match.homeFlag : match.awayFlag;
+            if (freshMatch.phase === 'SEMI') {
+                const loser = homeScore < awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
+                const loserFlag = homeScore < awayScore ? freshMatch.homeFlag : freshMatch.awayFlag;
                 const thirdPlaceMatch = await this.matchesRepository.findOne({ where: { phase: '3RD_PLACE' } });
                 
                 if (thirdPlaceMatch && loser) {
-                    const isHome = (match.bracketId % 2) !== 0;
+                    const isHome = (freshMatch.bracketId % 2) !== 0;
                     if (isHome) {
                         thirdPlaceMatch.homeTeam = loser;
                         thirdPlaceMatch.homeFlag = loserFlag;
@@ -105,17 +120,17 @@ export class MatchListener {
             }
 
             // Group Promotion
-            if (match.phase === 'GROUP' && match.group) {
-                await this.tournamentService.promoteFromGroup(match.group);
+            if (freshMatch.phase === 'GROUP' && freshMatch.group) {
+                await this.tournamentService.promoteFromGroup(freshMatch.group);
             }
 
             // Next Match Promotion
-            if (match.nextMatchId) {
-                const nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
+            if (freshMatch.nextMatchId) {
+                const nextMatch = await this.matchesRepository.findOne({ where: { id: freshMatch.nextMatchId } });
                 if (nextMatch) {
-                    const isHome = (match.bracketId % 2) !== 0;
-                    const winner = homeScore > awayScore ? match.homeTeam : match.awayTeam;
-                    const winnerFlag = homeScore > awayScore ? match.homeFlag : match.awayFlag;
+                    const isHome = (freshMatch.bracketId % 2) !== 0;
+                    const winner = homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
+                    const winnerFlag = homeScore > awayScore ? freshMatch.homeFlag : freshMatch.awayFlag;
 
                     if (isHome) {
                         nextMatch.homeTeam = winner;

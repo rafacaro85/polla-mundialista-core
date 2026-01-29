@@ -21,6 +21,9 @@ import { MailModule } from './mail/mail.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotificationsModule } from './notifications/notifications.module';
+import { TelegramModule } from './telegram/telegram.module';
+
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';

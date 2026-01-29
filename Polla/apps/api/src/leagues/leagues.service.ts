@@ -22,6 +22,8 @@ import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { PdfService } from '../common/pdf/pdf.service';
 
+import { TelegramService } from '../telegram/telegram.service';
+
 @Injectable()
 export class LeaguesService {
   constructor(
@@ -37,6 +39,7 @@ export class LeaguesService {
     private leagueCommentsRepository: Repository<LeagueComment>,
     private transactionsService: TransactionsService,
     private pdfService: PdfService,
+    private telegramService: TelegramService,
   ) { }
 
   async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {

@@ -9,6 +9,7 @@ import { UserRole } from '../enums/user-role.enum';
 import { Prediction } from './prediction.entity';
 import { AccessCode } from './access-code.entity';
 import { LeagueParticipant } from './league-participant.entity';
+import { Notification } from './notification.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -66,4 +67,7 @@ export class User {
 
   @OneToMany(() => LeagueParticipant, leagueParticipant => leagueParticipant.user)
   leagueParticipants: LeagueParticipant[];
+
+  @OneToMany(() => Notification, notification => notification.user)
+  notifications: Notification[];
 }

@@ -18,6 +18,9 @@ const NEXT_PHASE: { [key: string]: string | null } = {
     'FINAL': null,
 };
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PhaseCompletedEvent } from '../notifications/listeners/phase-completed.listener';
+
 @Injectable()
 export class KnockoutPhasesService {
     constructor(
@@ -25,6 +28,7 @@ export class KnockoutPhasesService {
         private phaseStatusRepository: Repository<KnockoutPhaseStatus>,
         @InjectRepository(Match)
         private matchRepository: Repository<Match>,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     /**
@@ -117,6 +121,9 @@ export class KnockoutPhasesService {
             currentStatus.allMatchesCompleted = true;
             await this.phaseStatusRepository.save(currentStatus);
             console.log(`✅ ${currentPhase} marked as completed`);
+
+            // 📢 Notify Users (Phase Summary)
+            this.eventEmitter.emit('phase.completed', new PhaseCompletedEvent(currentPhase));
         }
 
         // Unlock next phase

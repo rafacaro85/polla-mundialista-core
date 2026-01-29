@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto, ForgotPasswordDto, VerifyEmailDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
+import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly telegramService: TelegramService,
   ) { }
 
   async validateUser(email: string, pass: string): Promise<User | null> {
@@ -137,8 +139,12 @@ export class AuthService {
       console.log('📱 [MOCK SMS SERVICE] --------------------------------------------------');
       console.log(`   To: ${registerDto.phoneNumber}`);
       console.log(`   Message: Your verification code is: ${verificationCode}`);
+      console.log(`   Message: Your verification code is: ${verificationCode}`);
       console.log('----------------------------------------------------------------------');
     }
+
+    // 📢 Admin Alert
+    this.telegramService.notifyNewUser(registerDto.email, registerDto.name).catch(e => console.error('Telegram Error:', e));
 
     // Se omite la contraseña en el objeto de usuario retornado
     const { password, ...result } = user;
@@ -227,6 +233,9 @@ export class AuthService {
 
     // Google users are verified by default
     await this.usersService.update(newUser, { isVerified: true });
+
+    // 📢 Admin Alert
+    this.telegramService.notifyNewUser(newUser.email, newUser.fullName).catch(e => console.error('Telegram Error:', e));
 
     console.log(`✅ [Google OAuth] Nuevo usuario creado`);
     console.log(`   ID: ${newUser.id}`);

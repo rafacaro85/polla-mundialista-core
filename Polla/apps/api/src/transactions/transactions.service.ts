@@ -7,6 +7,8 @@ import { League } from '../database/entities/league.entity';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { LeagueType } from '../database/enums/league-type.enum';
 
+import { TelegramService } from '../telegram/telegram.service';
+
 @Injectable()
 export class TransactionsService {
     constructor(
@@ -17,6 +19,7 @@ export class TransactionsService {
         @InjectRepository(User)
         private usersRepository: Repository<User>,
         private dataSource: DataSource,
+        private telegramService: TelegramService,
     ) { }
 
     async createTransaction(
@@ -64,6 +67,9 @@ export class TransactionsService {
             status: TransactionStatus.PENDING,
             referenceCode: referenceCode || `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         });
+
+        // 📢 Admin Alert (💰)
+        this.telegramService.notifyPayment(amount, user.email, league?.packageType).catch(e => console.error('Telegram Error:', e));
 
         return this.transactionsRepository.save(transaction);
     }

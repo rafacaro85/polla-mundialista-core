@@ -115,30 +115,37 @@ export class KnockoutPhasesService {
             return;
         }
 
-        // Mark current phase as completed
-        const currentStatus = await this.getPhaseStatus(currentPhase);
-        if (!currentStatus.allMatchesCompleted) {
-            currentStatus.allMatchesCompleted = true;
-            await this.phaseStatusRepository.save(currentStatus);
-            console.log(`✅ ${currentPhase} marked as completed`);
+        // ATOMIC UPDATE: Only update if strictly false to avoid race conditions
+        const updateResult = await this.phaseStatusRepository.createQueryBuilder()
+            .update(KnockoutPhaseStatus)
+            .set({ allMatchesCompleted: true })
+            .where("phase = :phase", { phase: currentPhase })
+            .andWhere("allMatchesCompleted = :status", { status: false })
+            .execute();
 
-            // 📢 Notify Users (Phase Summary)
+        if (updateResult.affected && updateResult.affected > 0) {
+            console.log(`✅ ${currentPhase} marked as completed (Atomic Update)`);
+
+            // 📢 Notify Users (Phase Summary) - Guaranteed Single Emission
             this.eventEmitter.emit('phase.completed', new PhaseCompletedEvent(currentPhase));
-        }
 
-        // Unlock next phase
-        const nextPhase = NEXT_PHASE[currentPhase];
-        if (!nextPhase) {
-            console.log(`🏆 ${currentPhase} is the final phase`);
-            return;
-        }
+            // Unlock next phase logic can remain non-atomic as it's idempotent-ish or less critical duplication risk
+            // Unlock next phase
+            const nextPhase = NEXT_PHASE[currentPhase];
+            if (!nextPhase) {
+                console.log(`🏆 ${currentPhase} is the final phase`);
+                return;
+            }
 
-        const nextStatus = await this.getPhaseStatus(nextPhase);
-        if (!nextStatus.isUnlocked) {
-            nextStatus.isUnlocked = true;
-            nextStatus.unlockedAt = new Date();
-            await this.phaseStatusRepository.save(nextStatus);
-            console.log(`🔓 ${nextPhase} has been unlocked!`);
+            const nextStatus = await this.getPhaseStatus(nextPhase);
+            if (!nextStatus.isUnlocked) {
+                nextStatus.isUnlocked = true;
+                nextStatus.unlockedAt = new Date();
+                await this.phaseStatusRepository.save(nextStatus);
+                console.log(`🔓 ${nextPhase} has been unlocked!`);
+            }
+        } else {
+            console.log(`ℹ️ ${currentPhase} was already completed or updated by another process.`);
         }
     }
 

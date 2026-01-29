@@ -34,6 +34,7 @@ export class PhaseCompletedListener {
                 .addSelect('COUNT(CASE WHEN p.points > 0 THEN 1 END)', 'hits')
                 .leftJoin('p.match', 'm')
                 .where('m.phase = :phase', { phase })
+                .andWhere('p.leagueId IS NULL') // GLOBAL PREDICTIONS ONLY (Prevent duplicates per league)
                 .groupBy('p.userId')
                 .getRawMany();
 
@@ -51,17 +52,27 @@ export class PhaseCompletedListener {
             // Let's manually implement bulk insert here or improve service.
             // For now, loop with Promise.all in chunks is safer.
 
+            // Dictionary for readable phase names
+            const PHASE_NAMES: { [key: string]: string } = {
+                'GROUP': 'Fase de Grupos',
+                'ROUND_32': 'Dieciseisavos de Final',
+                'ROUND_16': 'Octavos de Final',
+                'QUARTER': 'Cuartos de Final',
+                'SEMI': 'Semifinales',
+                '3RD_PLACE': 'Tercer Puesto',
+                'FINAL': 'Gran Final',
+            };
+
+            const phaseName = PHASE_NAMES[phase] || `Fase ${phase}`;
+
             const notificationsData = stats.map(stat => {
                 const points = parseInt(stat.totalPoints) || 0;
                 const hits = parseInt(stat.hits) || 0;
                 
-                // Customize message based on performance?
-                // Generic requested: "Fase {phase} finalizada. ✅ Tuviste {hits} aciertos y sumaste {points} puntos. ¡Mira tu posición en el ranking!"
-                
                 return {
                     userId: stat.userId,
-                    title: `Fase ${phase} Finalizada 🏁`,
-                    message: `La fase de grupos ha terminado. ✅ Tuviste ${hits} aciertos y sumaste ${points} puntos. ¡Mira tu posición en el ranking!`,
+                    title: `${phaseName} Finalizada 🏁`,
+                    message: `La ${phaseName} ha terminado. ✅ Tuviste ${hits} aciertos y sumaste ${points} puntos en esta ronda. ¡Mira tu posición en el ranking!`,
                     type: NotificationType.INFO
                 };
             });

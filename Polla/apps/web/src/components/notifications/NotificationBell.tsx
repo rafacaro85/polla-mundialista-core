@@ -121,11 +121,6 @@ export function NotificationBell() {
         border: '2px solid #0F172A'
     },
     dropdown: {
-      position: 'absolute' as const,
-      top: '120%', 
-      right: '-80px', // Shift slightly left so it doesn't go off screen on mobile if positioned right
-      width: '320px',
-      maxWidth: '90vw', // Responsive width
       backgroundColor: '#1E293B', 
       border: '1px solid #334155',
       borderRadius: '12px',
@@ -257,7 +252,10 @@ export function NotificationBell() {
 
       {/* POPUP */}
       {isOpen && (
-        <div style={STYLES.dropdown}>
+        <div 
+            style={STYLES.dropdown}
+            className="absolute top-[120%] -right-16 md:right-0 w-[85vw] md:w-[320px] max-w-[320px] z-50"
+        >
             <div style={STYLES.header}>
                 <span style={STYLES.title}>Notificaciones</span>
                 {unreadCount > 0 && (

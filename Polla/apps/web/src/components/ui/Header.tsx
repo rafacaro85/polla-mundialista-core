@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { UserNav } from '@/components/UserNav';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { Settings, ChevronLeft } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -48,6 +49,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <UserNav />
         </div>
 

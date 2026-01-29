@@ -20,6 +20,8 @@ import { LeaguesTable } from '@/components/admin/LeaguesTable';
 import { MatchesList } from '@/components/admin/MatchesList';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
 import { GroupStandingsOverride } from '@/components/admin/GroupStandingsOverride';
+import { CommunicationPanel } from '@/components/admin/CommunicationPanel';
+import { Megaphone } from 'lucide-react';
 
 /* =============================================================================
    DATOS MOCK
@@ -340,6 +342,7 @@ export default function SuperAdminDashboard() {
                     { id: 'standings', label: 'Posiciones', icon: <ListOrdered size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },
+                    { id: 'communication', label: 'Difusión', icon: <Megaphone size={14} /> },
                     // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
                     { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> }
                 ].map(tab => (
@@ -770,6 +773,10 @@ export default function SuperAdminDashboard() {
                     </div>
                 )
             }
+
+            {/* I. PESTAÑA COMUNICACIÓN */}
+            {activeTab === 'communication' && <CommunicationPanel />}
+
             {/* Image Modal for Transactions */}
             {selectedImage && (
                 <div

@@ -57,6 +57,15 @@ export class Match {
   @Column({ nullable: true })
   stadium: string;
 
+  @Column({ type: 'text', nullable: true })
+  aiPrediction: string | null; // JSON stringified analysis
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  aiPredictionScore: string | null; // e.g., "2-1"
+
+  @Column({ type: 'timestamp', nullable: true })
+  aiPredictionGeneratedAt: Date | null;
+
   @OneToMany(() => Prediction, prediction => prediction.match, { cascade: true, onDelete: 'CASCADE' })
   predictions: Prediction[];
 }

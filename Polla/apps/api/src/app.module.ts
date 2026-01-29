@@ -23,6 +23,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TelegramModule } from './telegram/telegram.module';
+import { AiPredictionModule } from './ai-prediction/ai-prediction.module';
 
 
 // Import all entities
@@ -145,6 +146,7 @@ import { APP_GUARD } from '@nestjs/core';
     KnockoutPhasesModule,
     NotificationsModule,
     MailModule,
+    AiPredictionModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import axios from 'axios';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export function CommunicationPanel() {
 
         setIsLoading(true);
         try {
-            const endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications/admin/broadcast`;
+            const endpoint = '/notifications/admin/broadcast';
             const payload = {
                 title,
                 message,
@@ -33,7 +33,7 @@ export function CommunicationPanel() {
                 targetAudience: audience
             };
 
-            const response = await axios.post(endpoint, payload, { withCredentials: true });
+            const response = await api.post(endpoint, payload);
             
             toast.success(`Mensaje enviado a ${response.data.count} usuarios`);
             

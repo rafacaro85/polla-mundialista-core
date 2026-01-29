@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] });
 const russo = Russo_One({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Polla Mundialista [DEBUG]",
+  title: "Polla Mundialista 2026",
   description: "Participa y gana",
 };
 

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import useSWR from 'swr';
 import { Bell, CheckCheck, Info, Gift, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
-import axios from 'axios';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 
 // Tipos
@@ -17,7 +17,7 @@ interface Notification {
   createdAt: string;
 }
 
-const fetcher = (url: string) => axios.get(url, { withCredentials: true }).then(res => res.data);
+const fetcher = (url: string) => api.get(url).then(res => res.data);
 
 /* =============================================================================
    COMPONENTE: NOTIFICATION BELL
@@ -29,7 +29,7 @@ export function NotificationBell() {
 
   // SWR Polling cada 30 segundos
   const { data: notifications, mutate } = useSWR<Notification[]>(
-    user ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications` : null,
+    user ? '/notifications' : null,
     fetcher,
     { refreshInterval: 30000 }
   );
@@ -53,7 +53,7 @@ export function NotificationBell() {
         const updated = notifications?.map(n => ({ ...n, isRead: true }));
         mutate(updated, false); // Update locally without revalidation immediately
 
-        await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications/read-all`, {}, { withCredentials: true });
+        await api.patch('/notifications/read-all');
         mutate(); // Revalidate with server (just in case)
         toast.success("Todo marcado como leído");
     } catch (error) {

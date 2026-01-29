@@ -10,6 +10,7 @@ import { AccessCodesService } from '../access-codes/access-codes.service';
 import { LeagueParticipantsService } from '../league-participants/league-participants.service';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { PdfModule } from '../common/pdf/pdf.module';
+import { TelegramModule } from '../telegram/telegram.module';
 
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
@@ -19,6 +20,7 @@ import { LeagueComment } from '../database/entities/league-comment.entity';
     TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode, Prediction, LeagueComment]),
     TransactionsModule,
     PdfModule,
+    TelegramModule,
   ],
   providers: [LeaguesService, AccessCodesService, LeagueParticipantsService],
   controllers: [LeaguesController],

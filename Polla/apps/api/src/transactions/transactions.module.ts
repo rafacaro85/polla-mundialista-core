@@ -9,12 +9,14 @@ import { PdfModule } from '../common/pdf/pdf.module';
 
 import { UploadModule } from '../upload/upload.module';
 import { User } from '../database/entities/user.entity';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Transaction, League, User]),
         PdfModule,
         UploadModule,
+        TelegramModule,
     ],
     controllers: [TransactionsController],
     providers: [TransactionsService],

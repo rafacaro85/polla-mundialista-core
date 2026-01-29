@@ -13,6 +13,12 @@ interface RankingUser {
     isUser: boolean;
     trend: 'up' | 'down' | 'same';
     tieBreakerGuess?: number;
+    breakdown?: {
+        matches: number;
+        phases: number;
+        wildcard: number;
+        bonus: number;
+    };
 }
 
 interface LeagueOption {
@@ -39,6 +45,7 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
     const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users'); // New state
     const [loading, setLoading] = useState(false);
     const [isTieBreakerOpen, setIsTieBreakerOpen] = useState(false);
+    const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
     // SISTEMA DE DISEÑO
     const COLORS = {
@@ -292,7 +299,8 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                         avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
                         isUser: (item.id === user?.id) || (item.user?.id === user?.id),
                         trend: 'same',
-                        tieBreakerGuess: item.tieBreakerGuess
+                        tieBreakerGuess: item.tieBreakerGuess,
+                        breakdown: item.breakdown
                     })) : [];
 
                     setRanking(mappedRanking);
@@ -440,51 +448,85 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                             const isLast = index === currentList.length - 1 && currentList.length > 1;
                             const rankStyle = getRankStyle(item.rank, isLast);
                             const isUserStyle = item.isUser ? STYLES.userRow : {};
+                            const isExpanded = expandedRow === item.rank;
 
                             return (
-                                <div key={item.rank} style={{ ...STYLES.row, ...isUserStyle }}>
-                                    {item.isUser && (
-                                        <div style={{
-                                            position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
-                                            backgroundColor: COLORS.signal,
-                                            boxShadow: '0 0 10px #00E676'
-                                        }} />
-                                    )}
-                                    <div style={{ ...STYLES.rankCol, color: rankStyle.color }}>
-                                        {rankStyle.icon}
-                                    </div>
-                                    <div style={{
-                                        ...STYLES.avatar,
-                                        borderColor: item.isUser ? COLORS.signal : '#475569',
-                                        color: item.isUser ? COLORS.signal : 'white',
-                                        borderRadius: activeTab === 'departments' ? '8px' : '50%' // Cuadrado para deptos
-                                    }}>
-                                        {item.avatar}
-                                    </div>
-                                    <div style={STYLES.infoCol}>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span style={{ ...STYLES.name, color: item.rank <= 3 ? rankStyle.color : 'white' }}>
-                                                {item.name}
-                                            </span>
-                                            {item.isUser && <span style={STYLES.youTag}>(TÚ)</span>}
-                                        </div>
-                                        {activeTab === 'departments' && (
-                                            <span style={{ fontSize: '10px', color: '#64748B' }}>
-                                                {item.members} miembros
-                                            </span>
+                                <React.Fragment key={item.rank}>
+                                    <div 
+                                        style={{ ...STYLES.row, ...isUserStyle, cursor: 'pointer', borderBottom: isExpanded ? 'none' : '1px solid #334155' }}
+                                        onClick={() => setExpandedRow(isExpanded ? null : item.rank)}
+                                    >
+                                        {item.isUser && (
+                                            <div style={{
+                                                position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
+                                                backgroundColor: COLORS.signal,
+                                                boxShadow: '0 0 10px #00E676'
+                                            }} />
                                         )}
-                                    </div>
-                                    <div style={STYLES.pointsCol}>
-                                        <div style={{ ...STYLES.points, color: item.isUser ? COLORS.signal : 'white' }}>
-                                            {item.points}
+                                        <div style={{ ...STYLES.rankCol, color: rankStyle.color }}>
+                                            {rankStyle.icon}
                                         </div>
-                                        <div style={STYLES.trendIcon}>
-                                            {item.trend === 'up' && <TrendingUp size={12} color="#00E676" />}
-                                            {item.trend === 'down' && <TrendingDown size={12} color="#FF1744" />}
-                                            {item.trend === 'same' && <Minus size={12} color="#64748B" />}
+                                        <div style={{
+                                            ...STYLES.avatar,
+                                            borderColor: item.isUser ? COLORS.signal : '#475569',
+                                            color: item.isUser ? COLORS.signal : 'white',
+                                            borderRadius: activeTab === 'departments' ? '8px' : '50%'
+                                        }}>
+                                            {item.avatar}
+                                        </div>
+                                        <div style={STYLES.infoCol}>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <span style={{ ...STYLES.name, color: item.rank <= 3 ? rankStyle.color : 'white' }}>
+                                                    {item.name}
+                                                </span>
+                                                {item.isUser && <span style={STYLES.youTag}>(TÚ)</span>}
+                                            </div>
+                                            {activeTab === 'departments' && (
+                                                <span style={{ fontSize: '10px', color: '#64748B' }}>
+                                                    {item.members} miembros
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div style={STYLES.pointsCol}>
+                                            <div style={{ ...STYLES.points, color: item.isUser ? COLORS.signal : 'white' }}>
+                                                {item.points}
+                                            </div>
+                                            <div style={STYLES.trendIcon}>
+                                                {item.trend === 'up' && <TrendingUp size={12} color="#00E676" />}
+                                                {item.trend === 'down' && <TrendingDown size={12} color="#FF1744" />}
+                                                {item.trend === 'same' && <Minus size={12} color="#64748B" />}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+
+                                    {/* EXPANDED BREAKDOWN */}
+                                    {isExpanded && item.breakdown && (
+                                        <div className="bg-slate-900/50 p-4 border-b border-slate-700 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="grid grid-cols-4 gap-2 text-center">
+                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                    <span className="text-xl">⚽</span>
+                                                    <span className="text-xs text-slate-400 font-bold uppercase">Partidos</span>
+                                                    <span className="text-white font-mono text-sm">{item.breakdown.matches}</span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                    <span className="text-xl">🔮</span>
+                                                    <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
+                                                    <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                    <span className="text-xl">🃏</span>
+                                                    <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
+                                                    <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                    <span className="text-xl">❓</span>
+                                                    <span className="text-xs text-slate-400 font-bold uppercase">Bonus</span>
+                                                    <span className="text-white font-mono text-sm">{item.breakdown.bonus}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </React.Fragment>
                             );
                         })
                     ) : (

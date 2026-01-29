@@ -510,7 +510,14 @@ export class LeaguesService {
         avatarUrl: p.user.avatarUrl,
         phoneNumber: p.user.phoneNumber,
       },
-      status: p.isBlocked ? 'BLOCKED' : 'ACTIVE'
+      status: p.isBlocked ? 'BLOCKED' : 'ACTIVE',
+      // Breakdown for Transparency UI
+      breakdown: {
+        matches: p.predictionPoints || 0,
+        phases: p.bracketPoints || 0,
+        wildcard: p.jokerPoints || 0,
+        bonus: p.triviaPoints || 0
+      }
     }));
   }
 

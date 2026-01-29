@@ -42,6 +42,7 @@ import { SystemSettings } from './system-settings/entities/system-setting.entity
 import { KnockoutPhaseStatus } from './database/entities/knockout-phase-status.entity';
 import { LeagueComment } from './database/entities/league-comment.entity';
 import { GroupStandingOverride } from './database/entities/group-standing-override.entity';
+import { Notification } from './database/entities/notification.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';

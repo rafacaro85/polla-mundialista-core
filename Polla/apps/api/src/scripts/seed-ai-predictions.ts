@@ -1,5 +1,12 @@
 import { DataSource } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
+import { Prediction } from '../database/entities/prediction.entity';
+import { User } from '../database/entities/user.entity';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { League } from '../database/entities/league.entity';
+import { Organization } from '../database/entities/organization.entity';
+import { Notification } from '../database/entities/notification.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,12 +37,12 @@ try {
     process.exit(1);
 }
 
-// Database connection
+// Database connection - support both local and production
 const AppDataSource = process.env.DATABASE_URL
     ? new DataSource({
         type: 'postgres',
         url: process.env.DATABASE_URL,
-        entities: [Match],
+        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
         synchronize: false,
         ssl: { rejectUnauthorized: false },
     })
@@ -46,7 +53,7 @@ const AppDataSource = process.env.DATABASE_URL
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'polla_mundialista',
-        entities: [Match],
+        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
         synchronize: false,
     });
 
@@ -118,7 +125,8 @@ async function seedAiPredictions() {
         console.log(`📊 Found ${matches.length} matches without AI predictions\n`);
 
         if (matches.length === 0) {
-            console.log('✅ All matches already have predictions. Nothing to do.');
+            console.log('✅ No group stage matches found. Nothing to do.');
+            await AppDataSource.destroy();
             process.exit(0);
         }
 

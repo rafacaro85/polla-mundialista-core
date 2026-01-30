@@ -4,6 +4,7 @@ import { Repository, IsNull } from 'typeorm';
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { Match } from '../database/entities/match.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 import { SaveBracketDto } from './dto/save-bracket.dto';
 
 const PHASE_POINTS = {
@@ -24,6 +25,8 @@ export class BracketsService {
         private matchRepository: Repository<Match>,
         @InjectRepository(LeagueParticipant)
         private leagueParticipantRepository: Repository<LeagueParticipant>,
+        @InjectRepository(KnockoutPhaseStatus)
+        private knockoutPhaseStatusRepository: Repository<KnockoutPhaseStatus>,
     ) { }
 
     async saveBracket(userId: string, dto: SaveBracketDto): Promise<UserBracket> {
@@ -43,6 +46,9 @@ export class BracketsService {
                 throw new ForbiddenException('No puedes guardar tu bracket porque estás bloqueado en esta liga.');
             }
         }
+
+        // ✅ NEW: Validate bracket is not locked (manual or automatic)
+        await this.validateBracketNotLocked(dto.picks);
 
         // Find existing bracket or create new one
         const whereClause: any = { userId };
@@ -71,6 +77,72 @@ export class BracketsService {
         }
 
         return this.userBracketRepository.save(bracket);
+    }
+
+    /**
+     * Validates that the bracket is not locked (manual or automatic)
+     * Checks all phases that have picks in the bracket
+     */
+    private async validateBracketNotLocked(picks: Record<string, string>): Promise<void> {
+        if (!picks || Object.keys(picks).length === 0) {
+            return; // Empty bracket, nothing to validate
+        }
+
+        // Get all match IDs from picks
+        const matchIds = Object.keys(picks);
+
+        // Get all matches involved
+        const matches = await this.matchRepository.find({
+            where: matchIds.map(id => ({ id })),
+        });
+
+        if (matches.length === 0) {
+            return; // No matches found, nothing to validate
+        }
+
+        // Get unique phases from matches
+        const phases = [...new Set(matches.map(m => m.phase).filter(Boolean))];
+
+        // Define phase order (earliest to latest)
+        const PHASE_ORDER = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+
+        // Get the earliest phase
+        const earliestPhase = phases.sort((a, b) => {
+            return PHASE_ORDER.indexOf(a) - PHASE_ORDER.indexOf(b);
+        })[0];
+
+        if (!earliestPhase) {
+            return; // No valid phase found
+        }
+
+        // 1. Check manual lock for the earliest phase
+        const phaseStatus = await this.knockoutPhaseStatusRepository.findOne({
+            where: { phase: earliestPhase },
+        });
+
+        if (phaseStatus?.isManuallyLocked) {
+            throw new ForbiddenException(
+                `La fase ${earliestPhase} ha sido bloqueada manualmente por el administrador. No se pueden guardar brackets.`
+            );
+        }
+
+        // 2. Check automatic time-based lock (10 minutes before first match of earliest phase)
+        const firstMatchOfPhase = await this.matchRepository.findOne({
+            where: { phase: earliestPhase },
+            order: { date: 'ASC' },
+        });
+
+        if (firstMatchOfPhase) {
+            const now = new Date();
+            const matchDate = new Date(firstMatchOfPhase.date);
+            const lockTime = new Date(matchDate.getTime() - 10 * 60 * 1000); // 10 minutes before
+
+            if (now >= lockTime) {
+                throw new ForbiddenException(
+                    `Ya no se pueden guardar brackets para la fase ${earliestPhase}. El bloqueo automático se activó 10 minutos antes del primer partido.`
+                );
+            }
+        }
     }
 
     async getMyBracket(userId: string, leagueId?: string): Promise<UserBracket | null> {

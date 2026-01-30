@@ -136,6 +136,16 @@ export const superAdminService = {
         };
     },
 
+    getPhaseStatus: async () => {
+        const response = await api.get('/matches/phases/status');
+        return response.data;
+    },
+
+    setPhaseLock: async (phase: string, locked: boolean) => {
+        const response = await api.patch(`/matches/phases/${phase}/lock`, { locked });
+        return response.data;
+    },
+
     // --- STATS (Calculated on frontend for now) ---
     getDashboardStats: async () => {
         const [users, leagues, transactions] = await Promise.all([

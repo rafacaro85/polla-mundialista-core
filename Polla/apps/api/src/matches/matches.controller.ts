@@ -199,4 +199,28 @@ export class MatchesController {
     ) {
         return this.matchesService.setManualLock(id, body.locked);
     }
+
+    /**
+     * Toggle manual lock for an entire knockout phase
+     * Blocks/unblocks all bracket predictions for that phase
+     */
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Patch('phases/:phase/lock')
+    async togglePhaseLock(
+        @Param('phase') phase: string,
+        @Body() body: { locked: boolean },
+    ) {
+        return this.matchesService.setPhaseLock(phase, body.locked);
+    }
+
+    /**
+     * Get status of all knockout phases
+     */
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Get('phases/status')
+    async getPhaseStatus() {
+        return this.matchesService.getAllPhaseStatus();
+    }
 }

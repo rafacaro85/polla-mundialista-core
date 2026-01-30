@@ -759,6 +759,63 @@ export class MatchesService {
             awayTeam: match.awayTeam
         };
     }
+
+    /**
+     * Set manual lock for an entire knockout phase
+     * @param phase Phase name (ROUND_32, ROUND_16, QUARTER, SEMI, 3RD_PLACE, FINAL)
+     * @param locked true to lock, false to unlock
+     */
+    async setPhaseLock(phase: string, locked: boolean) {
+        const validPhases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+        
+        if (!validPhases.includes(phase)) {
+            throw new NotFoundException(`Invalid phase: ${phase}. Valid phases: ${validPhases.join(', ')}`);
+        }
+
+        // Find or create phase status
+        let phaseStatus = await this.phaseStatusRepository.findOne({ where: { phase } });
+
+        if (!phaseStatus) {
+            phaseStatus = this.phaseStatusRepository.create({
+                phase,
+                isManuallyLocked: locked,
+                isUnlocked: false,
+                allMatchesCompleted: false,
+            });
+        } else {
+            phaseStatus.isManuallyLocked = locked;
+        }
+
+        await this.phaseStatusRepository.save(phaseStatus);
+
+        return {
+            message: `Phase ${phase} ${locked ? 'locked 🔒' : 'unlocked 🔓'} successfully`,
+            phase,
+            isManuallyLocked: locked,
+        };
+    }
+
+    /**
+     * Get status of all knockout phases
+     */
+    async getAllPhaseStatus() {
+        const phases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+        const statuses = await this.phaseStatusRepository.find();
+
+        // Create a map for easy lookup
+        const statusMap = new Map(statuses.map(s => [s.phase, s]));
+
+        // Return all phases with their status (or default if not found)
+        return phases.map(phase => {
+            const status = statusMap.get(phase);
+            return {
+                phase,
+                isManuallyLocked: status?.isManuallyLocked || false,
+                isUnlocked: status?.isUnlocked || false,
+                allMatchesCompleted: status?.allMatchesCompleted || false,
+            };
+        });
+    }
 }
 
 

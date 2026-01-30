@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { PhaseLocksManager } from './PhaseLocksManager';
 
 const STYLES = {
     container: {
@@ -617,6 +618,9 @@ export function MatchesList() {
                     </details>
                 </div>
             </div>
+
+            {/* PHASE LOCKS MANAGER */}
+            <PhaseLocksManager />
 
             {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>

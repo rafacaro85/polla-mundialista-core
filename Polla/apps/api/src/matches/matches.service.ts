@@ -712,7 +712,19 @@ export class MatchesService {
             match.status = 'PENDING';
         }
 
-        return this.matchesRepository.save(match);
+        const savedMatch = await this.matchesRepository.save(match);
+
+        // 🤖 Emit event for AI prediction generation
+        if (match.homeTeam && match.awayTeam) {
+            this.eventEmitter.emit('match.teams.assigned', {
+                matchId: savedMatch.id,
+                homeTeam: savedMatch.homeTeam,
+                awayTeam: savedMatch.awayTeam,
+            });
+            console.log(`⚡ Event 'match.teams.assigned' emitted for ${savedMatch.homeTeam} vs ${savedMatch.awayTeam}`);
+        }
+
+        return savedMatch;
     }
 
     async renameTeam(oldName: string, newCode: string) {

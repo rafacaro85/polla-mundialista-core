@@ -29,7 +29,8 @@ export class AiPredictionService {
   }
 
   /**
-   * Main entry point - implements cache-first pattern
+   * Main entry point - READ-ONLY mode (no API calls)
+   * Returns cached predictions or "pending" state
    */
   async getPrediction(matchId: string) {
     const match = await this.matchRepository.findOne({ where: { id: matchId } });
@@ -49,22 +50,20 @@ export class AiPredictionService {
       };
     }
 
-    // ❌ CACHE MISS - Generate new prediction
-    this.logger.log(`[CACHE MISS] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`);
-
-    try {
-      const prediction = await this.generatePrediction(match);
-      await this.savePredictionToCache(match, prediction);
-      return {
-        cached: false,
-        generatedAt: new Date(),
-        score: prediction.predictedScore,
-        analysis: prediction,
-      };
-    } catch (error) {
-      this.logger.error(`[GEMINI ERROR] ${error.message}`);
-      return this.handleFallback(error, match);
-    }
+    // ❌ CACHE MISS - Return "pending" state (NO API CALL)
+    this.logger.log(`[PENDING] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`);
+    
+    return {
+      cached: false,
+      pending: true,
+      generatedAt: null,
+      score: '?-?',
+      analysis: {
+        predictedScore: '?-?',
+        confidence: 'pending',
+        reasoning: '⏳ La IA está analizando este cruce. La predicción se generará automáticamente cuando los equipos estén confirmados.'
+      }
+    };
   }
 
   /**
@@ -118,6 +117,54 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
 
     await this.matchRepository.save(match);
     this.logger.log(`[CACHE SAVED] Match ${match.id} - Score: ${prediction.predictedScore}`);
+  }
+
+  /**
+   * Generate and save prediction for background jobs
+   * Used by event listeners when teams are assigned to knockout matches
+   */
+  async generateAndSave(matchId: string): Promise<void> {
+    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+
+    if (!match) {
+      this.logger.error(`[GENERATE_AND_SAVE] Match ${matchId} not found`);
+      return;
+    }
+
+    // Skip if already has prediction
+    if (match.aiPrediction && match.aiPredictionScore) {
+      this.logger.log(`[GENERATE_AND_SAVE] Match ${matchId} already has prediction. Skipping.`);
+      return;
+    }
+
+    // Skip if teams are not defined
+    if (!match.homeTeam || !match.awayTeam) {
+      this.logger.warn(`[GENERATE_AND_SAVE] Match ${matchId} has undefined teams. Skipping.`);
+      return;
+    }
+
+    try {
+      this.logger.log(`[GENERATE_AND_SAVE] Generating prediction for ${match.homeTeam} vs ${match.awayTeam}`);
+      const prediction = await this.generatePrediction(match);
+      await this.savePredictionToCache(match, prediction);
+      this.logger.log(`[GENERATE_AND_SAVE] ✅ Success for match ${matchId}`);
+    } catch (error) {
+      this.logger.error(`[GENERATE_AND_SAVE] ❌ Error for match ${matchId}:`, error.message);
+      
+      // Save fallback prediction on error
+      const fallback = {
+        predictedScore: '1-1',
+        confidence: 'low',
+        reasoning: 'Predicción generada automáticamente debido a error en servicio de IA'
+      };
+      
+      match.aiPrediction = JSON.stringify(fallback);
+      match.aiPredictionScore = fallback.predictedScore;
+      match.aiPredictionGeneratedAt = new Date();
+      await this.matchRepository.save(match);
+      
+      this.logger.log(`[GENERATE_AND_SAVE] Saved fallback prediction for match ${matchId}`);
+    }
   }
 
   /**

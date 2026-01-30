@@ -139,4 +139,29 @@ export class AuthController {
       };
     }
   }
+
+  @Get('diag/network')
+  async diagNetwork() {
+    const net = require('net');
+    const targets = [
+      { host: 'smtp.gmail.com', port: 465 },
+      { host: 'smtp.gmail.com', port: 587 },
+      { host: 'google.com', port: 80 }
+    ];
+    
+    const results = [];
+    for (const t of targets) {
+      const start = Date.now();
+      const connected = await new Promise((resolve) => {
+        const socket = new net.Socket();
+        socket.setTimeout(3000);
+        socket.on('connect', () => { socket.destroy(); resolve(true); });
+        socket.on('timeout', () => { socket.destroy(); resolve(false); });
+        socket.on('error', () => { socket.destroy(); resolve(false); });
+        socket.connect(t.port, t.host);
+      });
+      results.push({ ...t, success: connected, time: `${Date.now() - start}ms` });
+    }
+    return results;
+  }
 }

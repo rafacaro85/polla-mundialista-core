@@ -81,7 +81,7 @@ export class MatchesService {
             homeScore: 0,
             awayScore: 0,
             status: 'NS', // Not Started
-            isLocked: false,
+            isManuallyLocked: false,
         });
         return this.matchesRepository.save(newMatch);
     }
@@ -183,7 +183,7 @@ export class MatchesService {
         if (data.date !== undefined) match.date = data.date;
         if (data.bracketId !== undefined) match.bracketId = data.bracketId;
         if (data.nextMatchId !== undefined) match.nextMatchId = data.nextMatchId;
-        if (data.isLocked !== undefined) match.isLocked = data.isLocked;
+        if (data.isManuallyLocked !== undefined) match.isManuallyLocked = data.isManuallyLocked;
 
         const savedMatch = await this.matchesRepository.save(match);
 
@@ -475,7 +475,7 @@ export class MatchesService {
                 match.homeScore = null;
                 match.awayScore = null;
                 match.status = 'PENDING';
-                match.isLocked = false;
+                match.isManuallyLocked = false;
 
                 // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
                 if (match.phase !== 'GROUP' && (match.homeTeamPlaceholder || match.awayTeamPlaceholder)) {
@@ -734,6 +734,30 @@ export class MatchesService {
             .execute();
 
         return { success: true, oldName, newTeam };
+    }
+
+    /**
+     * Set manual lock for a match (Admin Kill Switch)
+     * @param matchId Match ID
+     * @param locked true to lock, false to unlock
+     */
+    async setManualLock(matchId: string, locked: boolean) {
+        const match = await this.matchesRepository.findOne({ where: { id: matchId } });
+
+        if (!match) {
+            throw new NotFoundException('Match not found');
+        }
+
+        match.isManuallyLocked = locked;
+        await this.matchesRepository.save(match);
+
+        return {
+            message: `Match ${locked ? 'locked 🔒' : 'unlocked 🔓'} successfully`,
+            matchId,
+            isManuallyLocked: locked,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam
+        };
     }
 }
 

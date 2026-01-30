@@ -52,7 +52,7 @@ export class Match {
   externalId: number;
 
   @Column({ default: false })
-  isLocked: boolean;
+  isManuallyLocked: boolean; // Admin override lock
 
   @Column({ nullable: true })
   stadium: string;

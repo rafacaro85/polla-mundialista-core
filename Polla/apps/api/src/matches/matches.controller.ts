@@ -69,7 +69,7 @@ export class MatchesController {
             date?: Date;
             bracketId?: number;
             nextMatchId?: string;
-            isLocked?: boolean;
+            isManuallyLocked?: boolean;
         }
     ) {
         return this.matchesService.updateMatch(id, body);
@@ -184,5 +184,19 @@ export class MatchesController {
         @Body() body: { homeTeamCode: string; awayTeamCode: string },
     ) {
         return this.matchesService.setTeams(id, body.homeTeamCode, body.awayTeamCode);
+    }
+
+    /**
+     * Toggle manual lock for a match
+     * Emergency kill switch for admins
+     */
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
+    @Patch(':id/lock')
+    async toggleMatchLock(
+        @Param('id') id: string,
+        @Body() body: { locked: boolean },
+    ) {
+        return this.matchesService.setManualLock(id, body.locked);
     }
 }

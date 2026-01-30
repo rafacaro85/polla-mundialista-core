@@ -15,6 +15,7 @@ interface Match {
     awayScore: number | null;
     status: string;
     date: string;
+    isManuallyLocked?: boolean;
 }
 
 export function AdminMatchTable() {
@@ -50,6 +51,31 @@ export function AdminMatchTable() {
         setSelectedMatch(null);
     };
 
+    /**
+     * Toggle manual lock with optimistic UI update
+     * Emergency kill switch for admins
+     */
+    const toggleLock = async (matchId: string, currentLockState: boolean) => {
+        const newLockState = !currentLockState;
+
+        // Optimistic UI update
+        setMatches(prev => prev.map(m =>
+            m.id === matchId ? { ...m, isManuallyLocked: newLockState } : m
+        ));
+
+        try {
+            await api.patch(`/matches/${matchId}/lock`, { locked: newLockState });
+            toast.success(newLockState ? '🔒 Partido bloqueado' : '🔓 Partido desbloqueado');
+        } catch (error) {
+            // Revert optimistic update on error
+            setMatches(prev => prev.map(m =>
+                m.id === matchId ? { ...m, isManuallyLocked: currentLockState } : m
+            ));
+            console.error('Error toggling lock:', error);
+            toast.error('Error al cambiar estado de bloqueo');
+        }
+    };
+
     if (loading) {
         return <p className="text-white">Cargando partidos...</p>;
     }
@@ -63,6 +89,7 @@ export function AdminMatchTable() {
                         <TableHead className="text-signal font-russo">Partido</TableHead>
                         <TableHead className="text-signal font-russo">Marcador</TableHead>
                         <TableHead className="text-signal font-russo">Estado</TableHead>
+                        <TableHead className="text-signal font-russo text-center">🔒 Lock</TableHead>
                         <TableHead className="text-signal font-russo">Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -92,6 +119,20 @@ export function AdminMatchTable() {
                                     }`}>
                                     {match.status}
                                 </span>
+                            </TableCell>
+                            <TableCell className="text-center">
+                                <button
+                                    onClick={() => toggleLock(match.id, match.isManuallyLocked || false)}
+                                    className={`p-2 rounded-lg transition-all transform hover:scale-110 ${match.isManuallyLocked
+                                            ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50'
+                                            : 'bg-green-500 hover:bg-green-600 shadow-lg shadow-green-500/50'
+                                        }`}
+                                    title={match.isManuallyLocked ? 'Desbloquear partido' : 'Bloquear partido'}
+                                >
+                                    <span className="text-2xl">
+                                        {match.isManuallyLocked ? '🔒' : '🔓'}
+                                    </span>
+                                </button>
                             </TableCell>
                             <TableCell>
                                 <Button

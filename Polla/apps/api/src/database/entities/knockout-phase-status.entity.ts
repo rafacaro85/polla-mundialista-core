@@ -17,6 +17,9 @@ export class KnockoutPhaseStatus {
     @Column({ name: 'all_matches_completed', default: false })
     allMatchesCompleted: boolean;
 
+    @Column({ name: 'is_manually_locked', default: false })
+    isManuallyLocked: boolean; // Admin override lock for entire phase
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 

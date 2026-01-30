@@ -172,11 +172,19 @@ async function seed() {
 
         const matchRepository = AppDataSource.getRepository(Match);
 
+        // Check if matches already exist
+        const count = await matchRepository.count();
+        if (count > 0) {
+            console.log(`⚠️  Matches already exist in database (${count}). Skipping seeding to preserve data.`);
+            await AppDataSource.destroy();
+            process.exit(0);
+        }
+
         console.log('🌍 Iniciando carga del Mundial 2026 con DATOS REALES...');
 
-        // Limpiar partidos existentes
-        console.log('🗑️  Limpiando partidos anteriores...');
-        await AppDataSource.query('TRUNCATE TABLE "matches" CASCADE');
+        // Limpiar partidos existentes (Comentado por seguridad)
+        // console.log('🗑️  Limpiando partidos anteriores...');
+        // await AppDataSource.query('TRUNCATE TABLE "matches" CASCADE');
 
         console.log(`📝 Insertando ${REAL_MATCHES.length} partidos de fase de grupos...\n`);
 

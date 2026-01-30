@@ -30,7 +30,7 @@ export class MailService {
 
         try {
             const response = await axios.post('https://api.resend.com/emails', {
-                from: 'Polla Mundialista <onboarding@resend.dev>', // Usar dominio de prueba de Resend por defecto
+                from: 'Polla Mundialista <soporte@lapollavirtual.com>', // Usar dominio de prueba de Resend por defecto
                 to: [to],
                 subject,
                 html,

@@ -12,16 +12,10 @@ export class MailService {
         console.log(`📡 [MailService] SMTP Config: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${process.env.SMTP_PORT || 587} (User: ${user ? '✅ set' : '❌ missing'})`);
 
         this.transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: 587, // Puerto estándar para STARTTLS
-            secure: false, // Debe ser false para el puerto 587
+            service: 'gmail',
             auth: {
                 user: user,
-                pass: pass,
-            },
-            tls: {
-                rejectUnauthorized: false,
-                minVersion: 'TLSv1.2'
+                pass: pass, // Debes usar la "Contraseña de aplicación" de 16 caracteres
             },
             connectionTimeout: 5000, // 5 segundos max para conectar
             greetingTimeout: 5000,   // 5 segundos max para el saludo SMTP

@@ -27,9 +27,7 @@ export function useKnockoutPhases() {
     const fetchPhases = async () => {
         try {
             setLoading(true);
-            console.log('🔍 Fetching knockout phases...');
             const { data } = await api.get('/knockout-phases/status');
-            console.log('✅ Phases fetched:', data);
             setPhases(data);
             setError(null);
         } catch (err: any) {
@@ -43,26 +41,17 @@ export function useKnockoutPhases() {
 
     const fetchNextPhaseInfo = async () => {
         try {
-            console.log('🔍 Fetching next phase info...');
             const { data } = await api.get('/knockout-phases/next/info');
-            console.log('✅ Next phase info:', data);
             setNextPhaseInfo(data);
         } catch (err) {
             console.error('❌ Error fetching next phase info:', err);
+            // Error fetching next phase info, can be ignored if not critical
         }
     };
 
     useEffect(() => {
         fetchPhases();
         fetchNextPhaseInfo();
-
-        // Poll every 30 seconds to check for phase unlocks
-        const interval = setInterval(() => {
-            fetchPhases();
-            fetchNextPhaseInfo();
-        }, 30000);
-
-        return () => clearInterval(interval);
     }, []);
 
     const isPhaseUnlocked = (phase: string): boolean => {

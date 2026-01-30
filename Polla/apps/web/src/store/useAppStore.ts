@@ -50,7 +50,6 @@ export const useAppStore = create<AppState>()(
                  * Actualiza el usuario en el store y localStorage
                  */
                 setUser: (user) => {
-                    console.log('🔄 [Store] Actualizando usuario:', user?.email);
                     set({ user }, false, 'setUser');
 
                     // Sincronizar con localStorage manualmente para compatibilidad
@@ -112,13 +111,9 @@ export const useAppStore = create<AppState>()(
                  */
                 syncUserFromServer: async () => {
                     try {
-                        console.log('🔄 [Store] Sincronizando usuario desde servidor...');
                         set({ isLoading: true }, false, 'syncUserFromServer:start');
 
                         const { data } = await api.get('/auth/profile');
-
-                        console.log('✅ [Store] Usuario sincronizado:', data.email);
-                        console.log('   📌 Rol:', data.role);
 
                         get().setUser(data);
                     } catch (error) {

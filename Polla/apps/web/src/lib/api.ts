@@ -15,7 +15,6 @@ api.interceptors.request.use(
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (token) {
       config.headers.Authorization = 'Bearer ' + token;
-      console.log('Enviando Token:', token);
     }
     return config;
   },

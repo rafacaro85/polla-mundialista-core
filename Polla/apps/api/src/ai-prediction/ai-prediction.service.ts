@@ -75,13 +75,28 @@ export class AiPredictionService {
       throw new Error('Gemini AI not initialized');
     }
 
+    // 🗺️ Phase mapping for better AI context
+    const phaseMap: Record<string, string> = {
+      'GROUP': 'Fase de Grupos',
+      'ROUND_32': 'Dieciseisavos de Final (Round of 32) - Partido Eliminatorio',
+      'ROUND_16': 'Octavos de Final - Partido Eliminatorio',
+      'QUARTER': 'Cuartos de Final - Partido Eliminatorio',
+      'SEMI': 'Semifinales - Partido Eliminatorio',
+      '3RD_PLACE': 'Partido por el Tercer Puesto',
+      'FINAL': 'Final del Mundial',
+    };
+
+    const phaseName = phaseMap[match.phase] || match.phase || 'Fase de Grupos';
+
     const prompt = `Actúa como un analista deportivo experto. Sé breve y directo.
 
 Analiza el siguiente partido de fútbol y predice el resultado:
 
 **${match.homeTeam}** vs **${match.awayTeam}**
-Fase: ${match.phase || 'Fase de Grupos'}
+Fase: ${phaseName}
 ${match.stadium ? `Estadio: ${match.stadium}` : ''}
+
+${match.phase && match.phase !== 'GROUP' ? 'IMPORTANTE: Este es un partido ELIMINATORIO. No hay empates en tiempo reglamentario si hay prórroga.' : ''}
 
 Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
 {

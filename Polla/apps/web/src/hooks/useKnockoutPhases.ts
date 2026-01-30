@@ -63,6 +63,10 @@ export function useKnockoutPhases() {
         return phases.find(p => p.phase === phase);
     };
 
+    const refetchAll = async () => {
+        await Promise.all([fetchPhases(), fetchNextPhaseInfo()]);
+    };
+
     return {
         phases,
         nextPhaseInfo,
@@ -70,6 +74,6 @@ export function useKnockoutPhases() {
         error,
         isPhaseUnlocked,
         getPhaseStatus,
-        refetch: fetchPhases,
+        refetch: refetchAll,
     };
 }

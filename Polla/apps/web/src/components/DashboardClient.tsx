@@ -32,6 +32,7 @@ import { EnterpriseRankingTable } from '@/modules/enterprise-league/components/E
 
 import { useMatches } from '@/hooks/useMatches';
 import { useCurrentLeague } from '@/hooks/useCurrentLeague';
+import { useKnockoutPhases } from '@/hooks/useKnockoutPhases';
 
 interface Match {
   id: string;
@@ -104,6 +105,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // Custom Hooks
   const { currentLeague, participants, isEnterpriseMode, isWallEnabled } = useCurrentLeague(selectedLeagueId, activeTab);
   const { matches, matchesData, loading: isLoadingMatchesSWR, isRefreshing, handleManualRefresh } = useMatches(predictions);
+  const { refetch: refetchPhases } = useKnockoutPhases();
+
+  const handleFullRefresh = async () => {
+    // Refresh both matches and tournament phases
+    await Promise.all([
+      handleManualRefresh(),
+      refetchPhases()
+    ]);
+  };
 
   // Data Fetching
   const { data: latestTransaction } = useSWR(user ? '/transactions/my-latest?scope=account' : null, async (url) => {
@@ -280,7 +290,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             <SocialFixture
               matchesData={matchesData}
               loading={isLoadingMatchesSWR}
-              onRefresh={handleManualRefresh}
+              onRefresh={handleFullRefresh}
               isRefreshing={isRefreshing}
               leagueId={selectedLeagueId}
             />

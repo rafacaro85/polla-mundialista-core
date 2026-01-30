@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, ForgotPasswordDto, VerifyEmailDto, ResetPasswordDto, ResendVerificationCodeDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
+import { MailService } from '../mail/mail.service';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 
@@ -12,6 +13,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly mailService: MailService,
   ) { }
 
   @Get('google')
@@ -109,5 +111,25 @@ export class AuthController {
       message: 'Logout successful',
       success: true
     });
+  }
+
+  @Get('debug/mail')
+  async debugMail(@Req() req: any) {
+    const testEmail = 'racv85@hotmail.com';
+    console.log(`🧪 [Debug] Testing email to: ${testEmail}`);
+    
+    // Direct call to MailService bypasses user checks
+    const result = await this.mailService.sendVerificationEmail(testEmail, '123456');
+    
+    return {
+      status: 'Diagnostic check complete',
+      mail_response: result,
+      smtp_config: {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || 465,
+        user: (process.env.SMTP_USER || process.env.SMTP_user) ? '✅ set' : '❌ missing',
+        secure: process.env.SMTP_SECURE
+      }
+    };
   }
 }

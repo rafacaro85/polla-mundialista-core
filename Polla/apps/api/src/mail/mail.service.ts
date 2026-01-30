@@ -13,8 +13,8 @@ export class MailService {
 
         this.transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: Number(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_SECURE === 'true',
+            port: Number(process.env.SMTP_PORT) || 465, // Puerto 465 para SSL
+            secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465, 
             auth: {
                 user: user,
                 pass: pass,
@@ -67,10 +67,11 @@ export class MailService {
         try {
             const info = await this.transporter.sendMail(mailOptions);
             console.log('✅ [MailService] Verification email sent to %s (ID: %s)', to, info.messageId);
-            return info;
+            return { success: true, messageId: info.messageId };
         } catch (error) {
-            console.error('❌ [MailService] Error sending email:', error);
-            // No lanzamos error para no romper el flujo de registro, pero logueamos
+            console.error('❌ [MailService] Error enviando correo a %s:', to, error);
+            // Devolver el error para que podamos diagnosticarlo
+            return { success: false, error: error.message, code: error.code };
         }
     }
     async sendResetPasswordEmail(to: string, resetLink: string) {

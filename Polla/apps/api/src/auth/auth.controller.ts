@@ -118,18 +118,25 @@ export class AuthController {
     const testEmail = 'racv85@hotmail.com';
     console.log(`🧪 [Debug] Testing email to: ${testEmail}`);
     
-    // Direct call to MailService bypasses user checks
-    const result = await this.mailService.sendVerificationEmail(testEmail, '123456');
-    
-    return {
-      status: 'Diagnostic check complete',
-      mail_response: result,
-      smtp_config: {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 465,
-        user: (process.env.SMTP_USER || process.env.SMTP_user) ? '✅ set' : '❌ missing',
-        secure: process.env.SMTP_SECURE
-      }
-    };
+    try {
+      // Direct call to MailService bypasses user checks
+      const result = await this.mailService.sendVerificationEmail(testEmail, '123456');
+      
+      return {
+        status: 'Diagnostic check complete',
+        mail_response: result,
+        smtp_config: {
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: process.env.SMTP_PORT || 465,
+          user: (process.env.SMTP_USER || process.env.SMTP_user) ? '✅ set' : '❌ missing',
+          secure: process.env.SMTP_SECURE
+        }
+      };
+    } catch (e) {
+      return {
+        status: 'Error in diagnostic',
+        error: e.message
+      };
+    }
   }
 }

@@ -13,14 +13,15 @@ export class MailService {
 
         this.transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: Number(process.env.SMTP_PORT) || 465, // Puerto 465 para SSL
-            secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465, 
+            port: 587, // Puerto estándar para STARTTLS
+            secure: false, // Debe ser false para el puerto 587
             auth: {
                 user: user,
                 pass: pass,
             },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: false,
+                minVersion: 'TLSv1.2'
             },
             connectionTimeout: 5000, // 5 segundos max para conectar
             greetingTimeout: 5000,   // 5 segundos max para el saludo SMTP

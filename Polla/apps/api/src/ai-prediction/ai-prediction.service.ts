@@ -18,7 +18,7 @@ export class AiPredictionService {
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        this.model = this.genAI.getGenerativeModel({ model: 'models/gemini-2.0-flash' });
+        this.model = this.genAI.getGenerativeModel({ model: 'models/gemini-flash-latest' });
         this.logger.log('✅ Gemini AI initialized successfully');
       } catch (error) {
         this.logger.warn('⚠️ Failed to initialize Gemini AI:', error.message);

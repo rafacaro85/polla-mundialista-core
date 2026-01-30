@@ -8,6 +8,7 @@ import { League } from '../database/entities/league.entity';
 import { Organization } from '../database/entities/organization.entity';
 import { Notification } from '../database/entities/notification.entity';
 import * as dotenv from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -28,9 +29,8 @@ let genAI: any;
 let model: any;
 
 try {
-    const { GoogleGenerativeAI } = require('@google/generative-ai');
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: 'models/gemini-2.0-flash' });
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+    model = genAI.getGenerativeModel({ model: 'models/gemini-2.5-flash' });
     console.log('✅ Gemini AI initialized successfully');
 } catch (error) {
     console.error('❌ Failed to initialize Gemini AI:', error);
@@ -154,9 +154,9 @@ async function seedAiPredictions() {
                 console.log(`✅ ${progress} Saved: ${prediction.predictedScore} (${prediction.confidence})`);
                 successCount++;
 
-                // Throttle: Wait 5-10 seconds before next request
+                // Throttle: Wait 120-130 seconds before next request (extreme safety for free tier)
                 if (i < matches.length - 1) {
-                    const delay = Math.floor(Math.random() * 5000) + 5000; // 5-10 seconds
+                    const delay = Math.floor(Math.random() * 10000) + 120000; // 120-130 seconds
                     console.log(`⏳ Waiting ${(delay / 1000).toFixed(1)}s before next request...\n`);
                     await sleep(delay);
                 }
@@ -165,13 +165,16 @@ async function seedAiPredictions() {
                 console.error(`❌ ${progress} Error:`, error.message);
                 errorCount++;
 
-                // If rate limit error, wait longer
-                if (error.status === 429 || error.message?.includes('429')) {
-                    console.log('⚠️ Rate limit detected. Waiting 60 seconds...\n');
-                    await sleep(60000);
+                // If rate limit error (429), wait much longer
+                if (error.status === 429 || error.message?.includes('429') || error.message?.includes('Quota')) {
+                    console.log('⚠️ Rate limit detected. Waiting 120 seconds for quota reset...\n');
+                    await sleep(120000);
+                    // Decrement i to retry this same match
+                    i--;
+                    errorCount--; // Don't count as error if we retry
                 } else {
-                    // Wait 10 seconds before continuing
-                    await sleep(10000);
+                    // Wait 15 seconds before continuing on other errors
+                    await sleep(15000);
                 }
             }
         }

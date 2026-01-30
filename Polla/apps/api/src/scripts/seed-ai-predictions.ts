@@ -30,7 +30,7 @@ let model: any;
 try {
     const { GoogleGenerativeAI } = require('@google/generative-ai');
     genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    model = genAI.getGenerativeModel({ model: 'models/gemini-2.0-flash' });
     console.log('✅ Gemini AI initialized successfully');
 } catch (error) {
     console.error('❌ Failed to initialize Gemini AI:', error);

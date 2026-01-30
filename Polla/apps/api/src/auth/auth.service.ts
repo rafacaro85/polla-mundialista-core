@@ -90,13 +90,10 @@ export class AuthService {
         phoneNumber: registerDto.phoneNumber || existingUser.phoneNumber
       });
 
-      // Enviar EMAIL REAL
-      try {
-        await this.mailService.sendVerificationEmail(registerDto.email, verificationCode);
-        console.log(`📧 [AuthService] Correo de verificación enviado a: ${registerDto.email}`);
-      } catch (error) {
-        console.error(`❌ [AuthService] Error enviando correo:`, error);
-      }
+      // Enviar correo en segundo plano
+      this.mailService.sendVerificationEmail(registerDto.email, verificationCode)
+        .then(() => console.log(`📧 [AuthService] Correo enviado a: ${registerDto.email}`))
+        .catch(err => console.error(`❌ [AuthService] Error enviando correo:`, err));
 
       // MOCK SMS SERVICE (Si hay teléfono)
       if (registerDto.phoneNumber) {
@@ -126,13 +123,10 @@ export class AuthService {
     // Guardar código de verificación
     await this.usersService.update(user, { verificationCode, isVerified: false });
 
-    // Enviar EMAIL REAL
-    try {
-      await this.mailService.sendVerificationEmail(registerDto.email, verificationCode);
-      console.log(`📧 [AuthService] Correo de verificación enviado a: ${registerDto.email}`);
-    } catch (error) {
-      console.error(`❌ [AuthService] Error enviando correo:`, error);
-    }
+    // Enviar correo en segundo plano
+    this.mailService.sendVerificationEmail(registerDto.email, verificationCode)
+      .then(() => console.log(`📧 [AuthService] Correo enviado a: ${registerDto.email}`))
+      .catch(err => console.error(`❌ [AuthService] Error enviando correo:`, err));
 
     // MOCK SMS SERVICE (Si hay teléfono)
     if (registerDto.phoneNumber) {
@@ -187,12 +181,10 @@ export class AuthService {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     await this.usersService.update(user, { verificationCode });
 
-    try {
-      await this.mailService.sendVerificationEmail(user.email, verificationCode);
-      console.log(`📧 [AuthService] Código de verificación reenviado a: ${user.email}`);
-    } catch (error) {
-      console.error(`❌ [AuthService] Error reenviando correo:`, error);
-    }
+    // Enviar código en segundo plano
+    this.mailService.sendVerificationEmail(user.email, verificationCode)
+      .then(() => console.log(`📧 [AuthService] Código reenviado a: ${user.email}`))
+      .catch(err => console.error(`❌ [AuthService] Error reenviando correo:`, err));
 
     return { message: 'New verification code sent' };
   }

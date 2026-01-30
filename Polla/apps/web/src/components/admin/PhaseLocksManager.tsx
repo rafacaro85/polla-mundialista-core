@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Unlock, RefreshCw } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { superAdminService } from '@/services/superAdminService';
 
 interface PhaseStatus {

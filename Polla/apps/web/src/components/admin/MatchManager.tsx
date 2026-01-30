@@ -151,12 +151,25 @@ const STYLES = {
     },
 };
 
+interface Match {
+    id: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeScore: number | null;
+    awayScore: number | null;
+    isManuallyLocked?: boolean;
+    status: string;
+    date: string;
+    homeTeamPlaceholder?: string;
+    awayTeamPlaceholder?: string;
+}
+
 export default function MatchManager() {
-    const [matches, setMatches] = useState<any[]>([]);
+    const [matches, setMatches] = useState<Match[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
-    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isLocked: false, status: '' });
+    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '' });
 
     // Create Match State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -229,12 +242,32 @@ export default function MatchManager() {
         }
     };
 
+    const toggleLock = async (matchId: string, currentLockState: boolean) => {
+        const newLockState = !currentLockState;
+        
+        // Optimistic UI update
+        setMatches(prev => prev.map(m =>
+            m.id === matchId ? { ...m, isManuallyLocked: newLockState } : m
+        ));
+        
+        try {
+            await superAdminService.updateMatch(matchId, { isManuallyLocked: newLockState });
+        } catch (error) {
+            // Revert on error
+            setMatches(prev => prev.map(m =>
+                m.id === matchId ? { ...m, isManuallyLocked: currentLockState } : m
+            ));
+            console.error('Error toggling lock:', error);
+            alert('Error al cambiar estado de bloqueo');
+        }
+    };
+
     const openEditModal = (match: any) => {
         setEditingMatch(match);
         setFormData({
             homeScore: match.homeScore || 0,
             awayScore: match.awayScore || 0,
-            isLocked: match.isLocked || false,
+            isManuallyLocked: match.isManuallyLocked || false,
             status: match.status
         });
     };
@@ -245,7 +278,7 @@ export default function MatchManager() {
             await superAdminService.updateMatch(editingMatch.id, {
                 homeScore: Number(formData.homeScore),
                 awayScore: Number(formData.awayScore),
-                isLocked: formData.isLocked,
+                isManuallyLocked: formData.isManuallyLocked,
                 status: formData.status // Optional: allow updating status manually too if needed
             });
             setEditingMatch(null);
@@ -261,7 +294,7 @@ export default function MatchManager() {
         setFormData(prev => ({
             ...prev,
             [field]: value,
-            isLocked: true // Auto-lock
+            isManuallyLocked: true // Auto-lock
         }));
     };
 
@@ -298,6 +331,7 @@ export default function MatchManager() {
                             <th style={STYLES.th}>Fecha</th>
                             <th style={STYLES.th}>Equipos</th>
                             <th style={STYLES.th}>Marcador</th>
+                            <th style={STYLES.th}>🔒 Lock</th>
                             <th style={STYLES.th}>Estado Sync</th>
                             <th style={STYLES.th}>Estado</th>
                             <th style={STYLES.th}>Acciones</th>
@@ -324,9 +358,31 @@ export default function MatchManager() {
                                     </div>
                                 </td>
                                 <td style={STYLES.td}>
-                                    <div style={STYLES.statusBadge(match.isLocked)}>
-                                        {match.isLocked ? <Lock size={10} /> : <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>}
-                                        {match.isLocked ? 'MANUAL' : 'AUTO'}
+                                    <button
+                                        onClick={() => toggleLock(match.id, match.isManuallyLocked || false)}
+                                        style={{
+                                            padding: '8px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            transform: 'scale(1)',
+                                            backgroundColor: match.isManuallyLocked ? '#EF4444' : '#10B981',
+                                            boxShadow: match.isManuallyLocked ? '0 4px 12px rgba(239, 68, 68, 0.3)' : '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                        title={match.isManuallyLocked ? 'Desbloquear partido' : 'Bloquear partido'}
+                                    >
+                                        <span style={{ fontSize: '20px' }}>
+                                            {match.isManuallyLocked ? '🔒' : '🔓'}
+                                        </span>
+                                    </button>
+                                </td>
+                                <td style={STYLES.td}>
+                                    <div style={STYLES.statusBadge(match.isManuallyLocked || false)}>
+                                        {match.isManuallyLocked ? <Lock size={10} /> : <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>}
+                                        {match.isManuallyLocked ? 'MANUAL' : 'AUTO'}
                                     </div>
                                 </td>
                                 <td style={STYLES.td}>
@@ -434,21 +490,21 @@ export default function MatchManager() {
 
                         <div style={STYLES.toggleContainer}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {formData.isLocked ? <Lock size={16} color="#F59E0B" /> : <Unlock size={16} color="#00E676" />}
-                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: formData.isLocked ? '#F59E0B' : '#00E676' }}>
-                                    {formData.isLocked ? 'Bloqueado (Manual)' : 'Sincronización Auto'}
+                                {formData.isManuallyLocked ? <Lock size={16} color="#F59E0B" /> : <Unlock size={16} color="#00E676" />}
+                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: formData.isManuallyLocked ? '#F59E0B' : '#00E676' }}>
+                                    {formData.isManuallyLocked ? 'Bloqueado (Manual)' : 'Sincronización Auto'}
                                 </span>
                             </div>
                             <div
-                                onClick={() => setFormData(prev => ({ ...prev, isLocked: !prev.isLocked }))}
+                                onClick={() => setFormData(prev => ({ ...prev, isManuallyLocked: !prev.isManuallyLocked }))}
                                 style={{
-                                    width: '40px', height: '20px', backgroundColor: formData.isLocked ? '#F59E0B' : '#334155',
+                                    width: '40px', height: '20px', backgroundColor: formData.isManuallyLocked ? '#F59E0B' : '#334155',
                                     borderRadius: '10px', position: 'relative', cursor: 'pointer', transition: 'all 0.2s'
                                 }}
                             >
                                 <div style={{
                                     width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%',
-                                    position: 'absolute', top: '2px', left: formData.isLocked ? '22px' : '2px', transition: 'all 0.2s'
+                                    position: 'absolute', top: '2px', left: formData.isManuallyLocked ? '22px' : '2px', transition: 'all 0.2s'
                                 }} />
                             </div>
                         </div>

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import axios from 'axios';
 
 @Injectable()
 export class MailService {
@@ -23,18 +24,31 @@ export class MailService {
         });
     }
 
-    async sendVerificationEmail(to: string, code: string) {
-        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
-        if (!smtpUser) {
-            console.warn('⚠️ [MailService] SMTP_USER is not set. Email cannot be sent.');
-            return;
-        }
+    private async sendViaResend(to: string, subject: string, html: string) {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) return null;
 
-        const mailOptions = {
-            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
-            to,
-            subject: 'Verifica tu correo electrónico - Polla Mundialista',
-            html: `
+        try {
+            const response = await axios.post('https://api.resend.com/emails', {
+                from: 'Polla Mundialista <onboarding@resend.dev>', // Usar dominio de prueba de Resend por defecto
+                to: [to],
+                subject,
+                html,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return { success: true, messageId: response.data.id };
+        } catch (error: any) {
+            console.error('❌ [Resend] Error:', error.response?.data || error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async sendVerificationEmail(to: string, code: string) {
+        const html = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           <!-- Header -->
           <div style="background-color: #0F172A; padding: 20px; text-align: center;">
@@ -59,31 +73,42 @@ export class MailService {
             <p style="margin: 0;">© 2026 Polla Mundialista. Todos los derechos reservados.</p>
           </div>
         </div>
-      `,
+      `;
+
+        // Intentar Resend primero si hay API KEY
+        if (process.env.RESEND_API_KEY) {
+            const result = await this.sendViaResend(to, 'Verifica tu correo electrónico - Polla Mundialista', html);
+            if (result?.success) {
+                console.log('✅ [MailService] Verification email sent via Resend to %s (ID: %s)', to, result.messageId);
+                return result;
+            }
+        }
+
+        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
+        if (!smtpUser) {
+            console.warn('⚠️ [MailService] SMTP_USER is not set and Resend not configured. Email cannot be sent.');
+            return { success: false, error: 'SMTP_USER is not set and Resend not configured.' };
+        }
+
+        const mailOptions = {
+            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
+            to,
+            subject: 'Verifica tu correo electrónico - Polla Mundialista',
+            html,
         };
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
-            console.log('✅ [MailService] Verification email sent to %s (ID: %s)', to, info.messageId);
+            console.log('✅ [MailService] Verification email sent to %s', to);
             return { success: true, messageId: info.messageId };
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ [MailService] Error enviando correo a %s:', to, error);
             // Devolver el error para que podamos diagnosticarlo
             return { success: false, error: error.message, code: error.code };
         }
     }
     async sendResetPasswordEmail(to: string, resetLink: string) {
-        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
-        if (!smtpUser) {
-            console.warn('⚠️ [MailService] SMTP_USER is not set. Email cannot be sent.');
-            return;
-        }
-
-        const mailOptions = {
-            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
-            to,
-            subject: 'Recupera tu contraseña - Polla Mundialista',
-            html: `
+        const html = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           <div style="background-color: #0F172A; padding: 20px; text-align: center;">
             <h2 style="color: #00E676; margin: 0; font-family: 'Arial Black', sans-serif; text-transform: uppercase;">Polla Mundialista</h2>
@@ -108,15 +133,36 @@ export class MailService {
             <p style="margin: 0;">© 2026 Polla Mundialista. Todos los derechos reservados.</p>
           </div>
         </div>
-      `,
+      `;
+
+        if (process.env.RESEND_API_KEY) {
+            const result = await this.sendViaResend(to, 'Recupera tu contraseña - Polla Mundialista', html);
+            if (result?.success) {
+                console.log('✅ [MailService] Reset password email sent via Resend to %s (ID: %s)', to, result.messageId);
+            }
+            return result;
+        }
+
+        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
+        if (!smtpUser) {
+            console.warn('⚠️ [MailService] SMTP_USER is not set and Resend not configured. Email cannot be sent.');
+            return { success: false, error: 'SMTP_USER is not set and Resend not configured.' };
+        }
+
+        const mailOptions = {
+            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
+            to,
+            subject: 'Recupera tu contraseña - Polla Mundialista',
+            html,
         };
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
             console.log('✅ [MailService] Reset password email sent to %s', to);
-            return info;
-        } catch (error) {
-            console.error('❌ [MailService] Error sending email:', error);
+            return { success: true, messageId: info.messageId };
+        } catch (error: any) {
+            console.error('❌ [MailService] Error enviando correo de recuperación:', to, error);
+            return { success: false, error: error.message, code: error.code };
         }
     }
 }

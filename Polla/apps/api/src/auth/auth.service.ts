@@ -203,7 +203,7 @@ export class AuthService {
       { expiresIn: '1h' }
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://www.lapollavirtual.com';
+    const frontendUrl = (process.env.FRONTEND_URL || 'https://lapollavirtual.com').replace(/\/$/, '');
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     try {

@@ -28,6 +28,7 @@
     "seed:promote-admin": "ts-node -r tsconfig-paths/register src/database/seeds/promote-admin.seeder.ts",
     "seed:list-users": "ts-node -r tsconfig-paths/register src/database/seeds/list-users.seeder.ts",
     "promote:me": "ts-node -r tsconfig-paths/register src/database/seeds/promote-me.seeder.ts",
+    "migrate:manual-lock": "ts-node -r tsconfig-paths/register src/database/migrations/add-manual-lock-columns.ts",
     "promote:racv": "ts-node -r tsconfig-paths/register src/database/seeds/promote-racv.seeder.ts",
     "debug:users": "ts-node -r tsconfig-paths/register src/database/seeds/debug-users.seeder.ts",
     "seed:qatar-full": "ts-node -r tsconfig-paths/register src/database/seeds/qatar-full.seeder.ts",

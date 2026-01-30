@@ -37,3 +37,17 @@ export class VerifyEmailDto {
     @IsString()
     code: string;
 }
+
+export class ResetPasswordDto {
+    @IsString()
+    token: string;
+
+    @IsString()
+    @MinLength(6)
+    newPassword: string;
+}
+
+export class ResendVerificationCodeDto {
+    @IsEmail()
+    email: string;
+}

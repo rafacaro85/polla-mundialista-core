@@ -6,29 +6,34 @@ export class MailService {
     private transporter;
 
     constructor() {
-        // Configuración robusta para manejar tanto GMAIL como otros SMTP
+        const user = process.env.SMTP_USER || process.env.SMTP_user;
+        const pass = process.env.SMTP_PASS || process.env.SMTP_pass;
+
+        console.log(`📡 [MailService] SMTP Config: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${process.env.SMTP_PORT || 587} (User: ${user ? '✅ set' : '❌ missing'})`);
+
         this.transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
             port: Number(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_SECURE === 'true', // true para 465, false para otros
+            secure: process.env.SMTP_SECURE === 'true',
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: user,
+                pass: pass,
             },
             tls: {
-                rejectUnauthorized: false // Ayuda con certificados auto-firmados en desarrollo
+                rejectUnauthorized: false
             }
         });
     }
 
     async sendVerificationEmail(to: string, code: string) {
-        if (!process.env.SMTP_user && !process.env.SMTP_USER) {
-            console.warn('⚠️ [MailService] SMTP credentials missing. Email not sent.');
+        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
+        if (!smtpUser) {
+            console.warn('⚠️ [MailService] SMTP_USER is not set. Email cannot be sent.');
             return;
         }
 
         const mailOptions = {
-            from: `"Soporte Polla Mundialista" <${process.env.SMTP_USER}>`,
+            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
             to,
             subject: 'Verifica tu correo electrónico - Polla Mundialista',
             html: `
@@ -66,6 +71,53 @@ export class MailService {
         } catch (error) {
             console.error('❌ [MailService] Error sending email:', error);
             // No lanzamos error para no romper el flujo de registro, pero logueamos
+        }
+    }
+    async sendResetPasswordEmail(to: string, resetLink: string) {
+        const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
+        if (!smtpUser) {
+            console.warn('⚠️ [MailService] SMTP_USER is not set. Email cannot be sent.');
+            return;
+        }
+
+        const mailOptions = {
+            from: `"Soporte Polla Mundialista" <${smtpUser}>`,
+            to,
+            subject: 'Recupera tu contraseña - Polla Mundialista',
+            html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <div style="background-color: #0F172A; padding: 20px; text-align: center;">
+            <h2 style="color: #00E676; margin: 0; font-family: 'Arial Black', sans-serif; text-transform: uppercase;">Polla Mundialista</h2>
+          </div>
+          
+          <div style="padding: 30px; color: #334155;">
+            <h3 style="margin-top: 0; color: #1E293B;">Recuperar Contraseña</h3>
+            <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente botón para continuar:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" style="background-color: #00E676; color: #0F172A; padding: 15px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">RESTABLECER CONTRASEÑA</a>
+            </div>
+            
+            <p style="font-size: 14px; color: #64748B;">Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+            <p style="font-size: 12px; color: #00E676; word-break: break-all;">${resetLink}</p>
+            
+            <p style="font-size: 14px; color: #64748B; margin-top: 20px;">Este enlace expirará en 1 hora.</p>
+            <p style="margin-top: 30px;">Si no has solicitado este cambio, puedes ignorar este mensaje.</p>
+          </div>
+          
+          <div style="background-color: #F1F5F9; padding: 15px; text-align: center; font-size: 12px; color: #94A3B8;">
+            <p style="margin: 0;">© 2026 Polla Mundialista. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      `,
+        };
+
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            console.log('✅ [MailService] Reset password email sent to %s', to);
+            return info;
+        } catch (error) {
+            console.error('❌ [MailService] Error sending email:', error);
         }
     }
 }

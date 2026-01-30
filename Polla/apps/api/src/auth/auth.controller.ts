@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Req, Res } from '@nestjs/common
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, VerifyEmailDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, VerifyEmailDto, ResetPasswordDto, ResendVerificationCodeDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
@@ -57,6 +57,16 @@ export class AuthController {
   @Post('verify')
   async verify(@Body() body: VerifyEmailDto) {
     return this.authService.verifyEmail(body);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(body);
+  }
+
+  @Post('resend-verification')
+  async resendVerification(@Body() body: ResendVerificationCodeDto) {
+    return this.authService.resendVerificationCode(body);
   }
 
   @UseGuards(AuthGuard('jwt'))

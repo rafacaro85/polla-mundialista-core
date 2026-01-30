@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, ForgotPasswordDto, VerifyEmailDto } from './dto/auth.dto';
+import { RegisterDto, ForgotPasswordDto, VerifyEmailDto, ResetPasswordDto, ResendVerificationCodeDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import { TelegramService } from '../telegram/telegram.service';
@@ -174,6 +174,29 @@ export class AuthService {
     return this.login(updatedUser);
   }
 
+  async resendVerificationCode(dto: ResendVerificationCodeDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (user.isVerified) {
+      return { message: 'Email already verified' };
+    }
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.usersService.update(user, { verificationCode });
+
+    try {
+      await this.mailService.sendVerificationEmail(user.email, verificationCode);
+      console.log(`📧 [AuthService] Código de verificación reenviado a: ${user.email}`);
+    } catch (error) {
+      console.error(`❌ [AuthService] Error reenviando correo:`, error);
+    }
+
+    return { message: 'New verification code sent' };
+  }
+
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.usersService.findByEmail(forgotPasswordDto.email);
     if (!user) {
@@ -181,11 +204,50 @@ export class AuthService {
       return { message: 'If the email exists, a recovery link has been sent.' };
     }
 
-    // Simulación de generación de token
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    console.log(`🔗 [Recovery Link] http://localhost:3000/reset-password?token=${token}`);
+    // Generar un token de recuperación usando JWT válido por 1 hora
+    // Incluimos el hash de la contraseña actual para que el token se invalide si la contraseña cambia
+    const resetToken = this.jwtService.sign(
+      { sub: user.id, email: user.email, type: 'reset-password' },
+      { expiresIn: '1h' }
+    );
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.lapollavirtual.com';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    try {
+      await this.mailService.sendResetPasswordEmail(user.email, resetLink);
+      console.log(`📧 [AuthService] Enlace de recuperación enviado a: ${user.email}`);
+    } catch (error) {
+      console.error(`❌ [AuthService] Error enviando correo de recuperación:`, error);
+    }
 
     return { message: 'If the email exists, a recovery link has been sent.' };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    try {
+      const payload = this.jwtService.verify(resetPasswordDto.token);
+      
+      if (payload.type !== 'reset-password') {
+        throw new BadRequestException('Invalid token type');
+      }
+
+      const user = await this.usersService.findByEmail(payload.email);
+      if (!user) {
+        throw new BadRequestException('User no longer exists');
+      }
+
+      const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+      await this.usersService.update(user, {
+        password: hashedPassword,
+        isVerified: true // Si puede recuperar contraseña, asumimos que tiene control del correo
+      });
+
+      return { message: 'Password reset successfully. You can now login.' };
+    } catch (error) {
+      console.error('❌ [AuthService] Error resetting password:', error);
+      throw new BadRequestException('Invalid or expired token');
+    }
   }
 
   async validateGoogleUser(profile: {
@@ -194,6 +256,7 @@ export class AuthService {
     lastName: string;
     picture: string;
   }): Promise<User> {
+
     console.log('🔍 [Google OAuth] Validando usuario de Google...');
     console.log(`   📧 Email: ${profile.email}`);
     console.log(`   👤 Nombre: ${profile.firstName} ${profile.lastName}`);

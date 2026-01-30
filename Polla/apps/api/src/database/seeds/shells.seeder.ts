@@ -81,7 +81,7 @@ async function seed() {
                     homeTeamPlaceholder: `Ganador Llave ${globalMatchNum}A`, // Placeholder genérico
                     awayTeamPlaceholder: `Ganador Llave ${globalMatchNum}B`,
                     status: 'SCHEDULED', // Nuevo estado para indicar "No listo"
-                    isLocked: false 
+                    isManuallyLocked: false 
                 });
 
                 await matchesRepo.save(match);

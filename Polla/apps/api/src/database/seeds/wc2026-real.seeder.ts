@@ -199,7 +199,7 @@ async function seed() {
                     homeScore: null,
                     awayScore: null,
                     status: 'PENDING',
-                    isLocked: false,
+                    isManuallyLocked: false,
                 });
 
                 await matchRepository.save(match);
@@ -243,7 +243,7 @@ async function seed() {
                 homeTeamPlaceholder: r32Mapping[i].h,
                 awayTeamPlaceholder: r32Mapping[i].a,
                 date: new Date(r32Date),
-                isLocked: false
+                isManuallyLocked: false
             });
             await matchRepository.save(m);
             // Incrementar medio día aprox para distribuir fechas
@@ -262,7 +262,7 @@ async function seed() {
                 homeTeamPlaceholder: `W32-${(i * 2) - 1}`,
                 awayTeamPlaceholder: `W32-${i * 2}`,
                 date: new Date(r16Date),
-                isLocked: false
+                isManuallyLocked: false
             });
             await matchRepository.save(m);
             if (i % 2 === 0) r16Date.setDate(r16Date.getDate() + 1);
@@ -280,7 +280,7 @@ async function seed() {
                 homeTeamPlaceholder: `W16-${(i * 2) - 1}`,
                 awayTeamPlaceholder: `W16-${i * 2}`,
                 date: new Date(qfDate),
-                isLocked: false
+                isManuallyLocked: false
             });
             await matchRepository.save(m);
             if (i % 2 === 0) qfDate.setDate(qfDate.getDate() + 1);
@@ -298,7 +298,7 @@ async function seed() {
                 homeTeamPlaceholder: `WQ-${(i * 2) - 1}`,
                 awayTeamPlaceholder: `WQ-${i * 2}`,
                 date: new Date(semiDate),
-                isLocked: false
+                isManuallyLocked: false
             });
             await matchRepository.save(m);
             semiDate.setDate(semiDate.getDate() + 1);
@@ -310,7 +310,7 @@ async function seed() {
             phase: '3RD_PLACE', bracketId: 1, status: 'PENDING',
             homeTeam: '', awayTeam: '',
             homeTeamPlaceholder: 'L-Semi-1', awayTeamPlaceholder: 'L-Semi-2',
-            date: new Date('2026-07-18T20:00:00Z'), isLocked: false
+            date: new Date('2026-07-18T20:00:00Z'), isManuallyLocked: false
         });
         await matchRepository.save(thirdPlace);
 
@@ -318,7 +318,7 @@ async function seed() {
             phase: 'FINAL', bracketId: 1, status: 'PENDING',
             homeTeam: '', awayTeam: '',
             homeTeamPlaceholder: 'W-Semi-1', awayTeamPlaceholder: 'W-Semi-2',
-            date: new Date('2026-07-19T20:00:00Z'), isLocked: false
+            date: new Date('2026-07-19T20:00:00Z'), isManuallyLocked: false
         });
         await matchRepository.save(finalMatch);
         console.log('✅ Final & 3rd Place shells creados');

@@ -64,7 +64,7 @@ export class MatchSyncService {
                 return false; // Match not tracked
             }
 
-            if (match.isLocked) {
+            if (match.isManuallyLocked) {
                 this.logger.log(`Partido ${match.id} (Ext: ${externalId}) está bloqueado manualmente. Saltando.`);
                 return false;
             }

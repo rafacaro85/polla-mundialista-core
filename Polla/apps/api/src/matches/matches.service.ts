@@ -403,7 +403,7 @@ export class MatchesService {
                         homeScore,
                         awayScore,
                         status: 'FINISHED',
-                        isLocked: true
+                        isManuallyLocked: true
                     });
                     
                     // Trigger Points Calculation (Ensure scores are updated)

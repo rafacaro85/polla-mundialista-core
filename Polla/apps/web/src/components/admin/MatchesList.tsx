@@ -206,7 +206,7 @@ export function MatchesList() {
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [assignMatch, setAssignMatch] = useState<any>(null); // New State
-    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isLocked: false, status: '' });
+    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '' });
     const [assignForm, setAssignForm] = useState({ homeCode: '', awayCode: '' }); // New State
     // Rename Team State
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -316,12 +316,36 @@ export function MatchesList() {
         }
     };
 
+    /**
+     * Toggle manual lock with optimistic UI update
+     */
+    const toggleLock = async (matchId: string, currentLockState: boolean) => {
+        const newLockState = !currentLockState;
+        
+        // Optimistic UI update
+        setMatches(prev => prev.map(m =>
+            m.id === matchId ? { ...m, isManuallyLocked: newLockState } : m
+        ));
+        
+        try {
+            await superAdminService.updateMatch(matchId, { isManuallyLocked: newLockState });
+            toast.success(newLockState ? '🔒 Partido bloqueado' : '🔓 Partido desbloqueado');
+        } catch (error) {
+            // Revert on error
+            setMatches(prev => prev.map(m =>
+                m.id === matchId ? { ...m, isManuallyLocked: currentLockState } : m
+            ));
+            console.error('Error toggling lock:', error);
+            toast.error('Error al cambiar estado de bloqueo');
+        }
+    };
+
     const openEditModal = (match: any) => {
         setEditingMatch(match);
         setFormData({
             homeScore: match.homeScore || 0,
             awayScore: match.awayScore || 0,
-            isLocked: match.isLocked || false,
+            isManuallyLocked: match.isManuallyLocked || false,
             status: match.status
         });
     };
@@ -332,7 +356,7 @@ export function MatchesList() {
             await superAdminService.updateMatch(editingMatch.id, {
                 homeScore: Number(formData.homeScore),
                 awayScore: Number(formData.awayScore),
-                isLocked: formData.isLocked,
+                isManuallyLocked: formData.isManuallyLocked,
                 status: formData.status
             });
             setEditingMatch(null);
@@ -348,7 +372,7 @@ export function MatchesList() {
         setFormData(prev => ({
             ...prev,
             [field]: value,
-            isLocked: true // Auto-lock
+            isManuallyLocked: true // Auto-lock
         }));
     };
 
@@ -684,14 +708,22 @@ export function MatchesList() {
                             >
                                 <Users size={14} /> Asignar
                             </button>
-                            <div style={{
-                                display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px',
-                                color: match.isLocked ? '#F59E0B' : '#00E676', fontWeight: 'bold',
-                                padding: '0 8px'
-                            }}>
-                                {match.isLocked ? <Lock size={12} /> : <Unlock size={12} />}
-                                {match.isLocked ? 'MANUAL' : 'AUTO'}
-                            </div>
+                            <button
+                                style={{
+                                    ...STYLES.actionBtn,
+                                    backgroundColor: match.isManuallyLocked ? '#EF4444' : '#10B981',
+                                    borderColor: match.isManuallyLocked ? '#EF4444' : '#10B981',
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                                onClick={() => toggleLock(match.id, match.isManuallyLocked || false)}
+                                title={match.isManuallyLocked ? 'Desbloquear partido' : 'Bloquear partido'}
+                            >
+                                <span style={{ fontSize: '16px' }}>
+                                    {match.isManuallyLocked ? '🔒' : '🔓'}
+                                </span>
+                                {match.isManuallyLocked ? 'LOCKED' : 'OPEN'}
+                            </button>
                         </div>
                     </div>
                 ))}

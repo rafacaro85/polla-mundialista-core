@@ -161,7 +161,7 @@ async function seedAiPredictions() {
                     await sleep(delay);
                 }
 
-            } catch (error) {
+            } catch (error: any) {
                 console.error(`❌ ${progress} Error:`, error.message);
                 errorCount++;
 
@@ -189,7 +189,7 @@ async function seedAiPredictions() {
 
         process.exit(0);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('💥 Fatal error during seeding:', error);
         process.exit(1);
     }

@@ -21,7 +21,10 @@ export class MailService {
             },
             tls: {
                 rejectUnauthorized: false
-            }
+            },
+            connectionTimeout: 5000, // 5 segundos max para conectar
+            greetingTimeout: 5000,   // 5 segundos max para el saludo SMTP
+            socketTimeout: 10000     // 10 segundos max para actividad de socket
         });
     }
 

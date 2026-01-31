@@ -291,40 +291,38 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                     </div>
                                 </div>
 
-                                {/* 2. Personalización */}
-                                <div style={STYLES.card}>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización de Polla</h3>
-                                    <LeagueBrandingForm
-                                        leagueId={currentLeague.id}
-                                        showEnterpriseFields={!!currentLeague.isEnterpriseActive}
-                                        packageType={currentLeague.packageType}
-                                        initialData={{
-                                            brandingLogoUrl: currentLeague.brandingLogoUrl,
-                                            prizeImageUrl: currentLeague.prizeImageUrl,
-                                            prizeDetails: currentLeague.prizeDetails,
-                                            welcomeMessage: currentLeague.welcomeMessage,
-                                            isEnterprise: currentLeague.isEnterprise,
-                                            companyName: currentLeague.companyName,
-                                            brandColorPrimary: currentLeague.brandColorPrimary,
-                                            brandColorSecondary: currentLeague.brandColorSecondary,
-                                            socialInstagram: currentLeague.socialInstagram,
-                                            socialFacebook: currentLeague.socialFacebook,
-                                            socialWhatsapp: currentLeague.socialWhatsapp,
-                                            socialYoutube: currentLeague.socialYoutube,
-                                            socialTiktok: currentLeague.socialTiktok,
-                                            socialLinkedin: currentLeague.socialLinkedin,
-                                            socialWebsite: currentLeague.socialWebsite,
-                                            // Enterprise / Diamond Features
-                                            showAds: currentLeague.showAds,
-                                            adImages: currentLeague.adImages,
-                                            enableDepartmentWar: currentLeague.enableDepartmentWar
-                                        }}
-                                        onSuccess={() => {
-                                            toast({ title: 'Guardado', description: 'Personalización actualizada.' });
-                                            loadLeagueData();
-                                        }}
-                                    />
-                                </div>
+                                {/* 2. Personalización (SOLO LIGAS SOCIALES - Enterprise usa Studio) */}
+                                {!currentLeague.isEnterprise && (
+                                    <div style={STYLES.card}>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización de Polla</h3>
+                                        <LeagueBrandingForm
+                                            leagueId={currentLeague.id}
+                                            showEnterpriseFields={!!currentLeague.isEnterpriseActive}
+                                            packageType={currentLeague.packageType}
+                                            initialData={{
+                                                brandingLogoUrl: currentLeague.brandingLogoUrl,
+                                                prizeImageUrl: currentLeague.prizeImageUrl,
+                                                prizeDetails: currentLeague.prizeDetails,
+                                                welcomeMessage: currentLeague.welcomeMessage,
+                                                isEnterprise: currentLeague.isEnterprise,
+                                                companyName: currentLeague.companyName,
+                                                brandColorPrimary: currentLeague.brandColorPrimary,
+                                                brandColorSecondary: currentLeague.brandColorSecondary,
+                                                socialInstagram: currentLeague.socialInstagram,
+                                                socialFacebook: currentLeague.socialFacebook,
+                                                socialWhatsapp: currentLeague.socialWhatsapp,
+                                                socialYoutube: currentLeague.socialYoutube,
+                                                socialTiktok: currentLeague.socialTiktok,
+                                                socialLinkedin: currentLeague.socialLinkedin,
+                                                socialWebsite: currentLeague.socialWebsite,
+                                            }}
+                                            onSuccess={() => {
+                                                toast({ title: 'Guardado', description: 'Personalización actualizada.' });
+                                                loadLeagueData();
+                                            }}
+                                        />
+                                    </div>
+                                )}
 
                                 {hideTabs && (
                                     <div className="border-t border-slate-700 pt-8 mt-8 space-y-6">

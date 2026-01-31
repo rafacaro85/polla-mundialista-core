@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
     Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, Lock,
-    Instagram, Facebook, Youtube, MessageCircle, Linkedin, Globe, Music
+    Instagram, Facebook, Youtube, MessageCircle, Linkedin, Globe, Music2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
@@ -87,7 +87,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                     {league.socialTiktok && (
                         <a href={league.socialTiktok} target="_blank" rel="noopener noreferrer" 
                            className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
-                            <Music size={20} className="group-hover:scale-110 transition-transform" />
+                            <Music2 size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialYoutube && (

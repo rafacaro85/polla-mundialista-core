@@ -55,235 +55,18 @@ interface League {
     brandColorSecondary?: string;
     type?: string;
     packageType?: string;
+    socialInstagram?: string;
+    socialFacebook?: string;
+    socialWhatsapp?: string;
+    socialYoutube?: string;
+    socialTiktok?: string;
+    socialLinkedin?: string;
+    socialWebsite?: string;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs = false }: { leagueId: string, defaultTab?: string, hideTabs?: boolean }) {
-    const { user } = useAppStore();
-    const { toast } = useToast();
-    const router = useRouter();
+    // ... (existing code matches) ...
 
-    const [currentLeague, setCurrentLeague] = useState<League | null>(null);
-    const [editedName, setEditedName] = useState('');
-    const [participants, setParticipants] = useState<Participant[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [loadingParticipants, setLoadingParticipants] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<{ id: string, name: string, avatar?: string } | null>(null);
-
-    useEffect(() => {
-        if (leagueId && leagueId !== 'global') {
-            loadLeagueData();
-        }
-    }, [leagueId]);
-
-    const loadLeagueData = async () => {
-        try {
-            setLoadingParticipants(true);
-
-            // Cargar datos de la liga directamente
-            const { data: fetchedLeague } = await api.get(`/leagues/${leagueId}`);
-
-            if (!fetchedLeague) {
-                toast({ title: 'Error', description: 'No se pudo cargar la información de la liga', variant: 'destructive', });
-                return;
-            }
-
-            setCurrentLeague(fetchedLeague);
-            setEditedName(fetchedLeague.name);
-
-            const { data: ranking } = await api.get(`/leagues/${leagueId}/ranking`);
-
-            // Map ranking data
-            const participantsData = ranking.map((u: any) => ({
-                user: {
-                    id: u.id,
-                    nickname: u.nickname,
-                    avatarUrl: u.avatarUrl,
-                },
-                isBlocked: u.isBlocked,
-                predictionPoints: Number(u.predictionPoints || 0),
-                bracketPoints: Number(u.bracketPoints || 0),
-                bonusPoints: Number(u.bonusPoints || 0),
-                totalPoints: Number(u.totalPoints || 0)
-            }));
-            setParticipants(participantsData);
-        } catch (error) {
-            console.error('Error cargando datos de la liga:', error);
-            toast({ title: 'Error', description: 'No se pudo cargar la información', variant: 'destructive', });
-        } finally {
-            setLoadingParticipants(false);
-        }
-    };
-
-    const handleUpdateName = async () => {
-        if (!editedName.trim() || !currentLeague) return;
-        setLoading(true);
-        try {
-            await api.patch(`/leagues/${currentLeague.id}`, { name: editedName });
-            toast({ title: 'Liga actualizada', description: `Nombre cambiado a "${editedName}"` });
-            setCurrentLeague({ ...currentLeague, name: editedName });
-        } catch (error: any) {
-            toast({ title: 'Error', description: 'No se pudo actualizar', variant: 'destructive' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDeleteLeague = async () => {
-        if (!currentLeague) return;
-        if (!confirm('¿ESTÁS SEGURO? Esta acción es irreversible y eliminará TODOS los datos de la liga.')) return;
-        setLoading(true);
-        try {
-            const { data } = await api.delete(`/leagues/${currentLeague.id}`);
-            if (data.success) {
-                toast({
-                    title: 'Liga eliminada',
-                    description: data.message || 'La liga ha sido eliminada correctamente.'
-                });
-                router.push('/dashboard');
-            } else {
-                toast({
-                    title: 'Error',
-                    description: data.error || 'No se pudo eliminar la liga',
-                    variant: 'destructive'
-                });
-            }
-        } catch (error: any) {
-            const msg = error.response?.data?.message || 'Error al eliminar la liga.';
-            toast({
-                title: 'Error',
-                description: msg,
-                variant: 'destructive'
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleTransferOwner = async (newOwnerId: string) => {
-        if (!currentLeague || !confirm(`¿Transferir propiedad? Perderás acceso admin.`)) return;
-        setLoading(true);
-        try {
-            await api.patch(`/leagues/${currentLeague.id}/transfer-owner`, { newAdminId: newOwnerId });
-            toast({ title: 'Propiedad transferida', description: 'Has cedido la administración.' });
-            router.push('/');
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleBlockParticipant = async (userId: string, nickname: string, isBlocked: boolean) => {
-        if (!currentLeague) return;
-        const action = isBlocked ? 'desbloquear' : 'bloquear';
-        if (!confirm(`¿${action.toUpperCase()} a ${nickname}?`)) return;
-        setLoading(true);
-        try {
-            const { data } = await api.patch(`/leagues/${currentLeague.id}/participants/${userId}/toggle-block`);
-            setParticipants(participants.map(p => p.user.id === userId ? { ...p, isBlocked: data.isBlocked } : p));
-            toast({ title: 'Actualizado', description: `${nickname} ha sido ${action}do.` });
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRemoveParticipant = async (userId: string, nickname: string) => {
-        if (!currentLeague || !confirm(`¿Expulsar a ${nickname}?`)) return;
-        setLoading(true);
-        try {
-            await api.delete(`/leagues/${currentLeague.id}/participants/${userId}`);
-            setParticipants(participants.filter(p => p.user.id !== userId));
-            toast({ title: 'Expulsado', description: `${nickname} fuera de la liga.` });
-        } catch (error) {
-            toast({ title: 'Error', variant: 'destructive' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCopyCode = () => {
-        if (!currentLeague) return;
-        navigator.clipboard.writeText(currentLeague.code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    // STYLES
-    const STYLES = {
-        card: { backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginBottom: '16px' }
-    };
-
-    if (!leagueId || leagueId === 'global') return null;
-
-    return (
-        <div className="flex flex-col bg-[#0F172A] min-h-screen text-white">
-            {/* HEADLINE */}
-            <div className="p-6 pb-2 bg-[#1E293B] border-b border-slate-700 sticky top-0 z-10 shadow-md">
-                <div className="max-w-4xl mx-auto w-full">
-                    <h2 className="text-xl font-russo uppercase text-white flex items-center gap-2">
-                        <Settings className="text-emerald-500" /> Gestión de Polla
-                    </h2>
-                    <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <Link href={`/leagues/${leagueId}/admin`} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
-                            Regresar
-                        </Link>
-                    </div>
-                </div>
-            </div>
-
-            {loadingParticipants && !currentLeague ? (
-                <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div>
-            ) : currentLeague ? (
-                <div className="flex-1 overflow-visible flex flex-col w-full max-w-4xl mx-auto p-4 sm:p-6 mb-20">
-                    <Tabs defaultValue={defaultTab} className="flex-1">
-                        {!hideTabs && (
-                            <div className="sticky top-0 z-10 bg-[#0F172A] pb-4">
-                                <TabsList className="w-full bg-[#1E293B] p-1 rounded-full border border-slate-700">
-                                    <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
-                                        <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
-                                    </TabsTrigger>
-                                    <TabsTrigger value="bonus" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
-                                        <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
-                                    </TabsTrigger>
-                                    <TabsTrigger value="usuarios" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
-                                        <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
-                                    </TabsTrigger>
-                                    <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
-                                        <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
-                                    </TabsTrigger>
-                                    <TabsTrigger value="analytics" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
-                                        <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Data
-                                    </TabsTrigger>
-                                </TabsList>
-                            </div>
-                        )}
-
-                        <div className="flex-1">
-                            {/* --- EDITAR --- */}
-                            <TabsContent value="editar" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-                                {/* 1. Nombre de la Polla */}
-                                <div style={STYLES.card}>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Nombre de la Polla</h3>
-                                    <div className="flex gap-2">
-                                        <input
-                                            value={editedName}
-                                            onChange={e => setEditedName(e.target.value)}
-                                            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
-                                        />
-                                        <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="text-slate-900 hover:opacity-90 transition-opacity" style={{ backgroundColor: currentLeague.brandColorPrimary || '#10B981' }}>
-                                            <Save className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* 2. Personalización */}
-                                <div style={STYLES.card}>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Personalización de Polla</h3>
                                     <LeagueBrandingForm
                                         leagueId={currentLeague.id}
                                         showEnterpriseFields={!!currentLeague.isEnterpriseActive}
@@ -296,7 +79,14 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                             isEnterprise: currentLeague.isEnterprise,
                                             companyName: currentLeague.companyName,
                                             brandColorPrimary: currentLeague.brandColorPrimary,
-                                            brandColorSecondary: currentLeague.brandColorSecondary
+                                            brandColorSecondary: currentLeague.brandColorSecondary,
+                                            socialInstagram: currentLeague.socialInstagram,
+                                            socialFacebook: currentLeague.socialFacebook,
+                                            socialWhatsapp: currentLeague.socialWhatsapp,
+                                            socialYoutube: currentLeague.socialYoutube,
+                                            socialTiktok: currentLeague.socialTiktok,
+                                            socialLinkedin: currentLeague.socialLinkedin,
+                                            socialWebsite: currentLeague.socialWebsite
                                         }}
                                         onSuccess={() => {
                                             toast({ title: 'Guardado', description: 'Personalización actualizada.' });

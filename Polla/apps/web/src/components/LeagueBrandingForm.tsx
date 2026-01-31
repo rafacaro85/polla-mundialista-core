@@ -16,6 +16,13 @@ interface LeagueBrandingFormProps {
         companyName?: string;
         brandColorPrimary?: string;
         brandColorSecondary?: string;
+        socialInstagram?: string;
+        socialFacebook?: string;
+        socialWhatsapp?: string;
+        socialYoutube?: string;
+        socialTiktok?: string;
+        socialLinkedin?: string;
+        socialWebsite?: string;
     };
     packageType?: string;
     onSuccess?: () => void;
@@ -80,7 +87,14 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         isEnterprise: initialData.isEnterprise || false,
         companyName: initialData.companyName || '',
         brandColorPrimary: initialData.brandColorPrimary || '#00E676',
-        brandColorSecondary: initialData.brandColorSecondary || '#1E293B'
+        brandColorSecondary: initialData.brandColorSecondary || '#1E293B',
+        socialInstagram: initialData.socialInstagram || '',
+        socialFacebook: initialData.socialFacebook || '',
+        socialWhatsapp: initialData.socialWhatsapp || '',
+        socialYoutube: initialData.socialYoutube || '',
+        socialTiktok: initialData.socialTiktok || '',
+        socialLinkedin: initialData.socialLinkedin || '',
+        socialWebsite: initialData.socialWebsite || ''
     });
     const [loading, setLoading] = useState(false);
 
@@ -292,7 +306,6 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             {/* REDES SOCIALES */}
             <div className="mb-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
-                {(() => {
                     const plan = (packageType || 'familia').toLowerCase();
                     const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
                     const level = planLevels[plan] ?? 0;
@@ -300,8 +313,30 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                     return level < 4 ? ( // Requiere Influencer (Nivel 4)
                         <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
                     ) : (
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
-                            ✅ Redes Sociales Habilitadas
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                { key: 'socialInstagram', label: 'Instagram', icon: '📸', placeholder: 'https://instagram.com/...' },
+                                { key: 'socialFacebook', label: 'Facebook', icon: '👍', placeholder: 'https://facebook.com/...' },
+                                { key: 'socialTiktok', label: 'TikTok', icon: '🎵', placeholder: 'https://tiktok.com/@...' },
+                                { key: 'socialYoutube', label: 'YouTube', icon: '📺', placeholder: 'https://youtube.com/c/...' },
+                                { key: 'socialWhatsapp', label: 'WhatsApp', icon: '💬', placeholder: 'https://wa.me/...' },
+                                { key: 'socialLinkedin', label: 'LinkedIn', icon: '💼', placeholder: 'https://linkedin.com/in/...' },
+                                { key: 'socialWebsite', label: 'Sitio Web', icon: '🌐', placeholder: 'https://misito.com' },
+                            ].map((social) => (
+                                <div key={social.key} className="bg-[#0F172A] p-2 rounded-lg border border-[#334155] flex items-center gap-2">
+                                    <span className="text-lg select-none w-8 text-center">{social.icon}</span>
+                                    <div className="flex-1">
+                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">{social.label}</label>
+                                        <input
+                                            type="text"
+                                            value={(formData as any)[social.key] || ''}
+                                            onChange={(e) => handleChange(social.key, e.target.value)}
+                                            className="w-full bg-transparent border-none text-white text-[11px] p-0 placeholder-slate-600 focus:ring-0"
+                                            placeholder={social.placeholder}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     );
                 })()}

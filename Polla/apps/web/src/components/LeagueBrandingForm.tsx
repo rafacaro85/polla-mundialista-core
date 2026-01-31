@@ -46,15 +46,30 @@ const PlanLock = ({ featureName, planNeeded }: { featureName: string, planNeeded
 
 export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = false, packageType = 'familia' }: LeagueBrandingFormProps) {
     const isFeatureEnabled = (feature: 'logo' | 'prizeImage') => {
-        // Mapeo de compatibilidad con planes antiguos
-        const plan = packageType.toLowerCase();
+        const plan = (packageType || 'familia').toLowerCase();
+        
+        // Jerarquía de Planes (Niveles)
+        // 0: Familia / Starter (Solo Básicos)
+        // 1: Parche (Foto Premio)
+        // 2: Amigos (Logo)
+        // 3: Líder (Chat)
+        // 4: Influencer (Redes)
+        // 5: Enterprise (Todo)
 
-        if (feature === 'prizeImage') {
-            return !['familia', 'starter'].includes(plan);
-        }
-        if (feature === 'logo') {
-            return !['familia', 'starter', 'parche', 'amateur'].includes(plan);
-        }
+        const planLevels: Record<string, number> = {
+            'familia': 0, 'starter': 0, 'free': 0,
+            'parche': 1,
+            'amigos': 2,
+            'lider': 3,
+            'influencer': 4,
+            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5
+        };
+
+        const currentLevel = planLevels[plan] ?? 0;
+
+        if (feature === 'prizeImage') return currentLevel >= 1; // Desde Parche
+        if (feature === 'logo') return currentLevel >= 2;       // Desde Amigos
+        
         return true;
     };
     const [formData, setFormData] = useState({
@@ -268,25 +283,37 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             {/* MURO DE COMENTARIOS */}
             <div className="mb-5 border-t border-[#334155] pt-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Muro de Comentarios</label>
-                {!['lider', 'influencer', 'pro', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
-                    <PlanLock featureName="Muro de Comentarios" planNeeded="Líder" />
-                ) : (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
-                        ✅ El Muro de Comentarios está Habilitado
-                    </div>
-                )}
+                {(() => {
+                    const plan = (packageType || 'familia').toLowerCase();
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const level = planLevels[plan] ?? 0;
+                    
+                    return level < 3 ? ( // Requiere Líder (Nivel 3)
+                        <PlanLock featureName="Muro de Comentarios" planNeeded="Líder" />
+                    ) : (
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
+                            ✅ El Muro de Comentarios está Habilitado
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* REDES SOCIALES */}
             <div className="mb-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
-                {!['influencer', 'elite', 'legend'].includes((packageType || '').toLowerCase()) ? (
-                    <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
-                ) : (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
-                        ✅ Redes Sociales Habilitadas
-                    </div>
-                )}
+                {(() => {
+                    const plan = (packageType || 'familia').toLowerCase();
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const level = planLevels[plan] ?? 0;
+
+                    return level < 4 ? ( // Requiere Influencer (Nivel 4)
+                        <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
+                    ) : (
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
+                            ✅ Redes Sociales Habilitadas
+                        </div>
+                    );
+                })()}
             </div>
 
             <button

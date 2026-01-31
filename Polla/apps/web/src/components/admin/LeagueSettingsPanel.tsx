@@ -287,6 +287,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                     <LeagueBrandingForm
                                         leagueId={currentLeague.id}
                                         showEnterpriseFields={!!currentLeague.isEnterpriseActive}
+                                        packageType={currentLeague.packageType}
                                         initialData={{
                                             brandingLogoUrl: currentLeague.brandingLogoUrl,
                                             prizeImageUrl: currentLeague.prizeImageUrl,

@@ -21,7 +21,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
 
     const nickname = user?.nickname || 'Jugador';
     const packageType = (league.packageType || 'familia').toLowerCase();
-    const isWallEnabled = ['lider', 'influencer', 'pro', 'elite', 'legend'].includes(packageType);
+
 
     return (
         <div className="flex flex-col gap-8 font-sans pb-32">
@@ -185,48 +185,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                     </Table>
                 </div>
 
-                {/* 7. MURO SOCIAL */}
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <RankingIcon size={16} className="text-[#00E676]" />
-                            <h3 className="text-white text-xs font-black uppercase tracking-widest italic">MURO SOCIAL</h3>
-                        </div>
-                        {!isWallEnabled && (
-                            <span className="flex items-center gap-1 text-[10px] text-amber-500 font-bold uppercase">
-                                <Lock size={10} /> Plan Líder+
-                            </span>
-                        )}
-                    </div>
 
-                    <div className="relative">
-                        <div className={!isWallEnabled ? 'opacity-20 pointer-events-none grayscale' : ''}>
-                            <SocialWallWidget leagueId={league.id} limit={2} />
-                        </div>
-
-                        {!isWallEnabled && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-[2px] rounded-2xl border border-white/5 p-6 text-center">
-                                <div className="bg-amber-500/20 p-3 rounded-full mb-3">
-                                    <Lock className="text-amber-500" size={24} />
-                                </div>
-                                <h4 className="text-white font-black text-sm uppercase mb-1">Función Exclusiva</h4>
-                                <p className="text-slate-400 text-[10px] max-w-[200px] leading-relaxed">
-                                    El muro de comentarios está disponible en planes <strong>Líder</strong> e <strong>Influencer</strong>.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    {isWallEnabled && (
-                        <button
-                            onClick={() => onTabChange('muro')}
-                            className="w-full bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] hover:bg-slate-700 transition-colors"
-                        >
-                            Ver conversación completa
-                        </button>
-                    )}
-
-                </div>
             </div>
         </div>
     );

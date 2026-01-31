@@ -40,6 +40,18 @@ const getPriceForPlan = (type?: string) => {
     return 180000;
 };
 
+const getPlanLevel = (type?: string) => {
+    if (!type) return 1;
+    const t = type.toUpperCase();
+    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
+    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
+    if (t.includes('BUSINESS_CORP')) return 4;
+    if (t.includes('GOLD') || t.includes('ORO')) return 3;
+    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
+    if (t.includes('BUSINESS_GROWTH')) return 2;
+    return 1;
+};
+
 export default function StudioPage() {
     const params = useParams();
     const router = useRouter();
@@ -64,6 +76,7 @@ export default function StudioPage() {
         isEnterprise: true,
         isEnterpriseActive: true,
         enableDepartmentWar: false,
+        packageType: 'familia',
         // Social Media
         socialInstagram: '',
         socialFacebook: '',
@@ -103,6 +116,9 @@ export default function StudioPage() {
     };
 
     // ADVERTISING HANDLERS
+    // Plan Level Calculation
+    const currentPlanLevel = getPlanLevel((config as any).packageType);
+
     const handleAdImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         await uploadImage('ad_loading', e, (url) => {
             setConfig(prev => {
@@ -330,6 +346,7 @@ export default function StudioPage() {
                                 onUploadAdImage={handleAdImageUpload}
                                 onRemoveAdImage={handleRemoveAdImage}
                                 uploadingAd={uploadingState['ad_loading']}
+                                planLevel={currentPlanLevel}
                             />
                         )}
 
@@ -337,6 +354,7 @@ export default function StudioPage() {
                             <SocialTab
                                 config={config}
                                 setConfig={setConfig}
+                                planLevel={currentPlanLevel}
                             />
                         )}
 

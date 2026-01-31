@@ -5,6 +5,7 @@ import { Instagram, Facebook, MessageCircle, Youtube, Linkedin, Globe, Lock, Sha
 interface SocialTabProps {
     config: any;
     setConfig: (newConfig: any) => void;
+    planLevel: number;
 }
 
 const SocialInput = ({
@@ -13,16 +14,18 @@ const SocialInput = ({
     onChange,
     icon: Icon,
     placeholder,
-    prefix
+    prefix,
+    disabled
 }: {
     label: string,
     value: string,
     onChange: (val: string) => void,
     icon: any,
     placeholder: string,
-    prefix?: string
+    prefix?: string,
+    disabled?: boolean
 }) => (
-    <div className="group">
+    <div className={`group ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
         <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-focus-within:text-[#00E676] transition-colors">
             <Icon size={14} /> {label}
         </label>
@@ -38,6 +41,7 @@ const SocialInput = ({
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 className={`w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all font-mono ${prefix && 'md:pl-[35%]'}`} // Simple alignment for prefix
+                disabled={disabled}
             />
         </div>
     </div>
@@ -48,15 +52,17 @@ const SocialInputSimple = ({
     value,
     onChange,
     icon: Icon,
-    placeholder
+    placeholder,
+    disabled
 }: {
     label: string,
     value: string,
     onChange: (val: string) => void,
     icon: any,
-    placeholder: string
+    placeholder: string,
+    disabled?: boolean
 }) => (
-    <div className="group">
+    <div className={`group ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
         <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-focus-within:text-[#00E676] transition-colors">
             <Icon size={14} /> {label}
         </label>
@@ -66,21 +72,35 @@ const SocialInputSimple = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all"
+            disabled={disabled}
         />
     </div>
 );
 
-export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
-
-    // Check plan level? (Optional based on user request "como el plan es platino tiene acceso...")
-    // But logic should probably be just allow editing if they have access to studio.
+export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig, planLevel }) => {
 
     const handleChange = (key: string, value: string) => {
         setConfig({ ...config, [key]: value });
     };
 
+    const isLocked = planLevel < 2;
+
     return (
-        <div className="grid md:grid-cols-2 gap-8 md:gap-12 animate-in slide-in-from-bottom-4 fade-in duration-500">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 animate-in slide-in-from-bottom-4 fade-in duration-500 relative">
+             {isLocked && (
+                <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center backdrop-blur-[2px] rounded-3xl">
+                    <div className="flex flex-col items-center gap-3 p-6 bg-[#0F172A] border border-[#334155] rounded-2xl shadow-xl">
+                        <div className="p-3 bg-slate-800 rounded-full">
+                            <Lock size={24} className="text-slate-400" />
+                        </div>
+                        <div className="text-center">
+                            <h4 className="text-white font-bold text-sm uppercase tracking-wide">Función Bloqueada</h4>
+                            <p className="text-slate-400 text-xs mt-1">Redes Sociales requiere Plan <strong className="text-white">Plata</strong> o superior</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div>
                 <SectionTitle title="Redes Principales" subtitle="Conecta tus canales oficiales." />
                 <div className="space-y-4">
@@ -90,6 +110,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialInstagram}
                         onChange={(v) => handleChange('socialInstagram', v)}
                         placeholder="https://instagram.com/miempresa"
+                        disabled={isLocked}
                     />
                     <SocialInputSimple
                         label="Facebook"
@@ -97,6 +118,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialFacebook}
                         onChange={(v) => handleChange('socialFacebook', v)}
                         placeholder="https://facebook.com/miempresa"
+                        disabled={isLocked}
                     />
                     <SocialInputSimple
                         label="WhatsApp"
@@ -104,6 +126,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialWhatsapp}
                         onChange={(v) => handleChange('socialWhatsapp', v)}
                         placeholder="https://wa.me/57300..."
+                        disabled={isLocked}
                     />
                     <SocialInputSimple
                         label="YouTube"
@@ -111,6 +134,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialYoutube}
                         onChange={(v) => handleChange('socialYoutube', v)}
                         placeholder="https://youtube.com/@miempresa"
+                        disabled={isLocked}
                     />
                 </div>
             </div>
@@ -124,8 +148,9 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialLinkedin}
                         onChange={(v) => handleChange('socialLinkedin', v)}
                         placeholder="https://linkedin.com/company/miempresa"
+                        disabled={isLocked}
                     />
-                    <div className="group">
+                    <div className={`group ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
                         <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-focus-within:text-[#00E676] transition-colors">
                             <Share2 size={14} /> TikTok
                         </label>
@@ -135,6 +160,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                             onChange={(e) => handleChange('socialTiktok', e.target.value)}
                             placeholder="https://tiktok.com/@miempresa"
                             className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all"
+                            disabled={isLocked}
                         />
                     </div>
 
@@ -144,6 +170,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig }) => {
                         value={config.socialWebsite}
                         onChange={(v) => handleChange('socialWebsite', v)}
                         placeholder="https://miempresa.com"
+                        disabled={isLocked}
                     />
                 </div>
 

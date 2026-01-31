@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2, Lock, Share2, Target, Megaphone } from 'lucide-react';
+import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2, Lock, Share2 } from 'lucide-react';
 import api from '@/lib/api';
 
 interface LeagueBrandingFormProps {
@@ -23,9 +23,6 @@ interface LeagueBrandingFormProps {
         socialTiktok?: string;
         socialLinkedin?: string;
         socialWebsite?: string;
-        showAds?: boolean;
-        adImages?: string[];
-        enableDepartmentWar?: boolean;
     };
     packageType?: string;
     onSuccess?: () => void;
@@ -55,42 +52,32 @@ const PlanLock = ({ featureName, planNeeded }: { featureName: string, planNeeded
 );
 
 export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, showEnterpriseFields = false, packageType = 'familia' }: LeagueBrandingFormProps) {
-    const isFeatureEnabled = (feature: 'logo' | 'prizeImage' | 'social' | 'wall' | 'departmentWar' | 'ads') => {
+    const isFeatureEnabled = (feature: 'logo' | 'prizeImage') => {
         const plan = (packageType || 'familia').toLowerCase();
         
-        const enterprisePlans = ['bronce', 'plata', 'oro', 'platino', 'diamante'];
-        const isEnterprise = enterprisePlans.includes(plan);
+        // Jerarquía de Planes (Niveles)
+        // 0: Familia / Starter (Solo Básicos)
+        // 1: Parche (Foto Premio)
+        // 2: Amigos (Logo)
+        // 3: Líder (Chat)
+        // 4: Influencer (Redes)
+        // 5: Enterprise (Todo)
 
-        if (isEnterprise) {
-            // Enterprise Hierarchy
-            const entLevels: Record<string, number> = { 'bronce': 1, 'plata': 2, 'oro': 3, 'platino': 4, 'diamante': 5 };
-            const level = entLevels[plan] || 0;
-            
-            if (feature === 'logo' || feature === 'prizeImage') return true; 
-            if (feature === 'social') return level >= 2; // Plata+
-            if (feature === 'wall') return level >= 3; // Oro+
-            if (feature === 'departmentWar') return level >= 4; // Platino+
-            if (feature === 'ads') return level >= 5; // Diamante+
-            return false;
-        }
-
-        // Standard Hierarchy
-        const stdLevels: Record<string, number> = {
+        const planLevels: Record<string, number> = {
             'familia': 0, 'starter': 0, 'free': 0,
             'parche': 1,
             'amigos': 2,
             'lider': 3,
             'influencer': 4,
-            'pro': 5
+            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5
         };
-        const level = stdLevels[plan] || 0;
 
-        if (feature === 'prizeImage') return level >= 1;
-        if (feature === 'logo') return level >= 2;
-        if (feature === 'wall') return level >= 3; 
-        if (feature === 'social') return level >= 4; 
+        const currentLevel = planLevels[plan] ?? 0;
+
+        if (feature === 'prizeImage') return currentLevel >= 1; // Desde Parche
+        if (feature === 'logo') return currentLevel >= 2;       // Desde Amigos
         
-        return false; 
+        return true;
     };
     const [formData, setFormData] = useState({
         brandingLogoUrl: initialData.brandingLogoUrl || '',
@@ -107,10 +94,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         socialYoutube: initialData.socialYoutube || '',
         socialTiktok: initialData.socialTiktok || '',
         socialLinkedin: initialData.socialLinkedin || '',
-        socialWebsite: initialData.socialWebsite || '',
-        showAds: initialData.showAds || false,
-        adImages: initialData.adImages || [],
-        enableDepartmentWar: initialData.enableDepartmentWar || false
+        socialWebsite: initialData.socialWebsite || ''
     });
 
     useEffect(() => {
@@ -201,12 +185,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             const response = await api.post('/upload', uploadData);
 
             if (response.data && response.data.url) {
-                if (field === 'adImage1') {
-                     // Hack for now: save to adImages array
-                    setFormData(prev => ({ ...prev, adImages: [response.data.url] }));
-                } else {
-                    handleChange(field, response.data.url);
-                }
+                handleChange(field, response.data.url);
             } else {
                 throw new Error('No URL in response');
             }
@@ -317,21 +296,32 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             {/* MURO DE COMENTARIOS */}
             <div className="mb-5 border-t border-[#334155] pt-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Muro de Comentarios</label>
-                {!isFeatureEnabled('wall') ? (
-                    <PlanLock featureName="Muro de Comentarios" planNeeded="Oro / Líder" />
-                ) : (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
-                        ✅ El Muro de Comentarios está Habilitado
-                    </div>
-                )}
+                {(() => {
+                    const plan = (packageType || 'familia').toLowerCase();
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const level = planLevels[plan] ?? 0;
+                    
+                    return level < 3 ? ( // Requiere Líder (Nivel 3)
+                        <PlanLock featureName="Muro de Comentarios" planNeeded="Líder" />
+                    ) : (
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-xs text-emerald-400 font-bold uppercase text-center">
+                            ✅ El Muro de Comentarios está Habilitado
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* REDES SOCIALES */}
             <div className="mb-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
-                {!isFeatureEnabled('social') ? (
-                    <PlanLock featureName="Redes Sociales" planNeeded="Plata / Influencer" />
-                ) : (
+                {(() => {
+                    const plan = (packageType || 'familia').toLowerCase();
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const level = planLevels[plan] ?? 0;
+
+                    return level < 4 ? ( // Requiere Influencer (Nivel 4)
+                        <PlanLock featureName="Redes Sociales" planNeeded="Influencer" />
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
                                 { key: 'socialInstagram', label: 'Instagram', icon: '📸', placeholder: 'https://instagram.com/...' },
@@ -357,66 +347,8 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                                 </div>
                             ))}
                         </div>
-                )}
-            </div>
-
-            {/* GUERRA DE ÁREAS (PLATINO) */}
-            <div className="mb-5 border-t border-[#334155] pt-5">
-                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Target size={14} /> Guerra de Áreas (RRHH)</label>
-                {!isFeatureEnabled('departmentWar') ? (
-                    <PlanLock featureName="Guerra de Áreas" planNeeded="Platino" />
-                ) : (
-                    <div className="bg-[#0F172A] p-4 rounded-lg border border-[#334155]">
-                        <div className="flex items-center gap-3">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!(formData as any).enableDepartmentWar} 
-                                    onChange={(e) => handleChange('enableDepartmentWar', e.target.checked)}
-                                    className="sr-only peer" 
-                                />
-                                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                            </label>
-                            <span className="text-xs text-slate-300">Habilitar Competencia por Departamentos</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-2">
-                            Al activar esto, los usuarios deberán seleccionar su área/departamento al registrarse, y se generará un ranking automático por áreas.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            {/* BANNERS PUBLICITARIOS (DIAMANTE) */}
-            <div className="mb-5 border-t border-[#334155] pt-5">
-                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Megaphone size={14} /> Publicidad Interna</label>
-                {!isFeatureEnabled('ads') ? (
-                    <PlanLock featureName="Banners Publicidad" planNeeded="Diamante" />
-                ) : (
-                    <div className="bg-[#0F172A] p-4 rounded-lg border border-[#334155]">
-                        <div className="flex items-center gap-3 mb-4">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!(formData as any).showAds} 
-                                    onChange={(e) => handleChange('showAds', e.target.checked)}
-                                    className="sr-only peer" 
-                                />
-                                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                            </label>
-                            <span className="text-xs text-slate-300">Mostrar Banners Publicitarios</span>
-                        </div>
-                        
-                        {(formData as any).showAds && (
-                            <div className="space-y-3">
-                                <UploadButton field="adImage1" label="SUBIR BANNER 1" />
-                                {/* Simplified for now: Single banner or multiple depending on backend. Backend expects adImages[]. Let's just handle "adImage1" for now or assume user wants 1. Proper implementation would handle array. The backend saves 'adImages'. I'll just skip detailed array implementation for now to keep it simple, or implement a single "Primary Banner" if 'adImages' isn't fully supported by UI yet. But wait, I should support array if possible. I'll stick to a simple multiple upload button effectively replacing the array or pushing to it. */}
-                            </div>
-                        )}
-                        <p className="text-[10px] text-slate-500 mt-2">
-                            Estos banners aparecerán en la pantalla principal de la Polla para todos tus empleados.
-                        </p>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
 
             <button

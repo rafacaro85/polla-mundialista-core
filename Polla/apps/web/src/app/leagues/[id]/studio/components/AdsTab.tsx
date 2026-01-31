@@ -9,9 +9,10 @@ interface AdsTabProps {
     onUploadAdImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveAdImage: (index: number) => void;
     uploadingAd: boolean;
+    planLevel: number;
 }
 
-export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdImage, onRemoveAdImage, uploadingAd }) => {
+export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdImage, onRemoveAdImage, uploadingAd, planLevel }) => {
     return (
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 animate-in fade-in duration-500">
             <div>
@@ -20,7 +21,15 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                     subtitle="Activa y gestiona el banner publicitario."
                 />
 
-                <div className="bg-[#0F172A] border border-[#334155] rounded-2xl p-6 space-y-6">
+                <div className={`bg-[#0F172A] border border-[#334155] rounded-2xl p-6 space-y-6 relative overflow-hidden transition-all ${planLevel < 5 ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
+                     {planLevel < 5 && (
+                        <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center backdrop-blur-[1px]">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 rounded-full border border-[#00E676]/30 text-[#00E676]">
+                                <Megaphone size={12} className="text-[#00E676]" /> <span className="text-[10px] font-bold uppercase tracking-wider">Plan Diamante Requerido</span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Toggle Switch */}
                     <div className="flex items-center justify-between">
                         <div>
@@ -30,12 +39,13 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                             </h4>
                             <p className="text-slate-400 text-xs mt-1">Habilita el banner rotativo en el inicio.</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className={`relative inline-flex items-center ${planLevel < 5 ? 'pointer-events-none' : 'cursor-pointer'}`}>
                             <input
                                 type="checkbox"
                                 checked={!!config.showAds}
                                 onChange={(e) => setConfig({ ...config, showAds: e.target.checked })}
                                 className="sr-only peer"
+                                disabled={planLevel < 5}
                             />
                             <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#00E676]"></div>
                         </label>
@@ -44,7 +54,7 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                     <div className="h-px bg-slate-800 w-full" />
 
                     {/* Image Uploader */}
-                    <div className={!config.showAds ? 'opacity-50 pointer-events-none' : ''}>
+                    <div className={!config.showAds || planLevel < 5 ? 'opacity-50 pointer-events-none' : ''}>
                         <div className="flex items-center justify-between mb-4">
                             <h5 className="text-white font-bold text-xs uppercase">Imágenes del Banner ({config.adImages?.length || 0}/3)</h5>
                             {config.adImages?.length < 3 && (

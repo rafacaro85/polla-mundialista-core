@@ -306,6 +306,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             {/* REDES SOCIALES */}
             <div className="mb-5">
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
+                {(() => {
                     const plan = (packageType || 'familia').toLowerCase();
                     const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
                     const level = planLevels[plan] ?? 0;

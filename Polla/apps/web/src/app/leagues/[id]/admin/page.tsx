@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
 
     const isEnterprise = league.isEnterprise || league.type === 'COMPANY';
 
-    const allModules = [
+    const allModules: (DashboardCardProps & { hidden?: boolean })[] = [
         {
             icon: <Settings size={24} />,
             title: 'Configuración',
@@ -302,9 +302,14 @@ export default function AdminDashboardPage() {
                             <p className="text-sm text-slate-400 mb-4">
                                 Si tienes dudas sobre cómo gestionar tu polla, contáctanos.
                             </p>
-                            <button className="text-sm font-bold text-brand-primary hover:underline">
+                            <a
+                                href="https://wa.me/573105973421"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-bold text-brand-primary hover:underline inline-flex items-center gap-1"
+                            >
                                 Contactar Soporte →
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>

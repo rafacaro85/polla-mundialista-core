@@ -66,6 +66,47 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                 </div>
             </header>
 
+            {/* SOCIAL MEDIA LINKS */}
+            {(league.socialInstagram || league.socialFacebook || league.socialTiktok || league.socialYoutube || league.socialWhatsapp || league.socialLinkedin || league.socialWebsite) && (
+                <div className="flex flex-wrap justify-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                    {league.socialInstagram && (
+                        <a href={league.socialInstagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-pink-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">📸</span>
+                        </a>
+                    )}
+                    {league.socialFacebook && (
+                        <a href={league.socialFacebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-blue-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">👍</span>
+                        </a>
+                    )}
+                    {league.socialTiktok && (
+                        <a href={league.socialTiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-black rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">🎵</span>
+                        </a>
+                    )}
+                    {league.socialYoutube && (
+                        <a href={league.socialYoutube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-red-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">📺</span>
+                        </a>
+                    )}
+                    {league.socialWhatsapp && (
+                        <a href={league.socialWhatsapp} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-green-500 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">💬</span>
+                        </a>
+                    )}
+                    {league.socialLinkedin && (
+                        <a href={league.socialLinkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-blue-700 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">💼</span>
+                        </a>
+                    )}
+                    {league.socialWebsite && (
+                        <a href={league.socialWebsite} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-emerald-500 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
+                            <span className="text-xl">🌐</span>
+                        </a>
+                    )}
+                </div>
+            )}
+
             {/* 3. SHORTCUT CARDS (Modern Grid) */}
             <div className="grid grid-cols-2 gap-3">
                 <button

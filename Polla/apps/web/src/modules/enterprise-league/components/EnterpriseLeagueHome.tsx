@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, ArrowLeft, ArrowRight, Lock, Megaphone, MessageCircle, Swords, Instagram, Facebook, Linkedin, Zap, CheckCircle2, Crown, Youtube, Globe, Share2 } from 'lucide-react';
+import { Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, ArrowLeft, ArrowRight, Lock, Megaphone, MessageCircle, Swords, Instagram, Facebook, Linkedin, Zap, CheckCircle2, Crown, Youtube, Globe, Music2 } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -177,7 +177,7 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                                     )}
                                     {league.socialTiktok && (
                                         <a href={league.socialTiktok} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-black/40 hover:text-white hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Share2 size={20} className="text-slate-300 group-hover:text-white transition-colors" />
+                                            <Music2 size={20} className="text-slate-300 group-hover:text-white transition-colors" />
                                         </a>
                                     )}
                                     {league.socialWebsite && (

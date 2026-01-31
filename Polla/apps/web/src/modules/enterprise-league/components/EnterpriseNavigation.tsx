@@ -18,9 +18,10 @@ interface NavItem {
 interface EnterpriseNavigationProps {
     leagueId: string;
     isEnterpriseActive: boolean;
+    planLevel?: number;
 }
 
-export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive }: EnterpriseNavigationProps) => {
+export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1 }: EnterpriseNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
 
@@ -33,7 +34,8 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive }: Enterpris
         { id: 'bonus', label: 'Bonus', icon: <Star size={20} />, href: `${basePath}/bonus` },
     ];
 
-    if (isEnterpriseActive) {
+    // Enterprise Feature: Wall (Plan Oro+ / Level 3+)
+    if (isEnterpriseActive && planLevel >= 3) {
         items.push({ id: 'wall', label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall` });
     }
 

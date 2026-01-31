@@ -10,6 +10,19 @@ import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 
+// Helper for Plan Levels
+const getPlanLevel = (type?: string) => {
+    if (!type) return 1;
+    const t = type.toUpperCase();
+    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
+    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
+    if (t.includes('BUSINESS_CORP')) return 4; // Legacy
+    if (t.includes('GOLD') || t.includes('ORO')) return 3;
+    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
+    if (t.includes('BUSINESS_GROWTH')) return 2; // Legacy
+    return 1;
+};
+
 // Theme Engine Layout
 export default function LeagueLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();
@@ -43,7 +56,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                 try {
                     const { data: myLeagues } = await api.get('/leagues/my');
                     foundLeague = myLeagues.find((l: any) => l.id === params.id);
-                } catch (e) { console.warn("Could not fetch my leagues", e); }
+                } catch (e) { 
+                    // Silent fail, try direct
+                }
 
                 // 2. If not found (e.g. SuperAdmin viewing another's league), try direct fetch
                 if (!foundLeague) {
@@ -95,6 +110,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const secondaryColor = isEnterprise ? (league.brandColorSecondary || '#1E293B') : '#1E293B';
     const bgColor = isEnterprise ? (league.brandColorBg || '#0F172A') : '#0F172A';
     const textColor = isEnterprise ? (league.brandColorText || '#F8FAFC') : '#F8FAFC';
+    
+    // Calculate Plan Level for Navigation Restrictions
+    const planLevel = getPlanLevel(league.packageType);
 
     // Check if we are on the main dashboard page
     const isDashboardRoot = pathname === `/leagues/${params.id}`;
@@ -119,6 +137,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     <EnterpriseNavigation
                         leagueId={league.id}
                         isEnterpriseActive={league.isEnterpriseActive || false}
+                        planLevel={planLevel}
                     />
                 )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Image, Gift, MessageSquare, AlertCircle, Briefcase, Trash2, Lock, Share2 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -96,6 +96,14 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         socialLinkedin: initialData.socialLinkedin || '',
         socialWebsite: initialData.socialWebsite || ''
     });
+
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            ...initialData
+        }));
+    }, [initialData]);
+
     const [loading, setLoading] = useState(false);
 
     const [uploadingField, setUploadingField] = useState<string | null>(null);

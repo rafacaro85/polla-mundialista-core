@@ -1,5 +1,8 @@
 import React from 'react';
-import { Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, Lock } from 'lucide-react';
+import { 
+    Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, Lock,
+    Instagram, Facebook, Youtube, MessageCircle, Linkedin, Globe, Music
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PrizeHero } from '@/components/PrizeHero';
@@ -68,40 +71,47 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
 
             {/* SOCIAL MEDIA LINKS */}
             {(league.socialInstagram || league.socialFacebook || league.socialTiktok || league.socialYoutube || league.socialWhatsapp || league.socialLinkedin || league.socialWebsite) && (
-                <div className="flex flex-wrap justify-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex flex-wrap justify-center gap-4 animate-in fade-in slide-in-from-bottom-2">
                     {league.socialInstagram && (
-                        <a href={league.socialInstagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-pink-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">📸</span>
+                        <a href={league.socialInstagram} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Instagram size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialFacebook && (
-                        <a href={league.socialFacebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-blue-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">👍</span>
+                        <a href={league.socialFacebook} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Facebook size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialTiktok && (
-                        <a href={league.socialTiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-black rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">🎵</span>
+                        <a href={league.socialTiktok} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Music size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialYoutube && (
-                        <a href={league.socialYoutube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-red-600 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">📺</span>
+                        <a href={league.socialYoutube} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Youtube size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialWhatsapp && (
-                        <a href={league.socialWhatsapp} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-green-500 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">💬</span>
+                        <a href={league.socialWhatsapp} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <MessageCircle size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialLinkedin && (
-                        <a href={league.socialLinkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-blue-700 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">💼</span>
+                        <a href={league.socialLinkedin} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Linkedin size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                     {league.socialWebsite && (
-                        <a href={league.socialWebsite} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#1E293B] hover:bg-emerald-500 rounded-full flex items-center justify-center text-white border border-white/10 transition-colors shadow-lg">
-                            <span className="text-xl">🌐</span>
+                        <a href={league.socialWebsite} target="_blank" rel="noopener noreferrer" 
+                           className="w-12 h-12 bg-[#0F172A] hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-slate-700 hover:border-white/20 transition-all shadow-md group">
+                            <Globe size={20} className="group-hover:scale-110 transition-transform" />
                         </a>
                     )}
                 </div>

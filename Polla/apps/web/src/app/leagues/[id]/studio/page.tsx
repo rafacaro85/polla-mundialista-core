@@ -156,8 +156,8 @@ export default function StudioPage() {
                         socialLinkedin: data.socialLinkedin || data.social_linkedin || '',
                         socialWebsite: data.socialWebsite || data.social_website || '',
                         // Ensure other fields are robust
-                        showAds: data.showAds ?? prev.showAds,
-                        enableDepartmentWar: data.enableDepartmentWar ?? prev.enableDepartmentWar,
+                        showAds: data.showAds ?? data.show_ads ?? prev.showAds,
+                        enableDepartmentWar: data.enableDepartmentWar ?? data.enable_department_war ?? prev.enableDepartmentWar,
                         packageType: data.packageType || prev.packageType
                     }));
                 } else {

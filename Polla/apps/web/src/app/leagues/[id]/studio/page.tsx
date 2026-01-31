@@ -141,10 +141,25 @@ export default function StudioPage() {
         const load = async () => {
             try {
                 // Fetching specific league details to allow Admin access as well
-                const { data } = await api.get(`/leagues/${params.id}`);
-                console.log('STUDIO LOAD DATA:', data); // DEBUG
+                const { data } = await api.get(`/leagues/${params.id}?t=${Date.now()}`); // Cache busting
+                
                 if (data) {
-                    setConfig(prev => ({ ...prev, ...data }));
+                    setConfig(prev => ({
+                        ...prev,
+                        ...data,
+                        // Ensure Social Media fields are correctly mapped (Robustness)
+                        socialInstagram: data.socialInstagram || data.social_instagram || '',
+                        socialFacebook: data.socialFacebook || data.social_facebook || '',
+                        socialWhatsapp: data.socialWhatsapp || data.social_whatsapp || '',
+                        socialYoutube: data.socialYoutube || data.social_youtube || '',
+                        socialTiktok: data.socialTiktok || data.social_tiktok || '',
+                        socialLinkedin: data.socialLinkedin || data.social_linkedin || '',
+                        socialWebsite: data.socialWebsite || data.social_website || '',
+                        // Ensure other fields are robust
+                        showAds: data.showAds ?? prev.showAds,
+                        enableDepartmentWar: data.enableDepartmentWar ?? prev.enableDepartmentWar,
+                        packageType: data.packageType || prev.packageType
+                    }));
                 } else {
                     toast({ title: 'Error', description: 'No se encontró la liga', variant: 'destructive' });
                 }

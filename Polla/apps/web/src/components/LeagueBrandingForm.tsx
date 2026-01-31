@@ -269,16 +269,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 />
             </div>
 
-            {/* MENSAJE DE BIENVENIDA */}
-            <div className="mb-5">
-                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Mensaje de Bienvenida</label>
-                <textarea
-                    value={formData.welcomeMessage}
-                    onChange={(e) => handleChange('welcomeMessage', e.target.value)}
-                    className="w-full p-3 bg-[#0F172A] border border-[#334155] rounded-lg text-white text-[13px] outline-none min-h-[80px] resize-y"
-                    placeholder="Escribe un saludo para tus jugadores..."
-                />
-            </div>
+
 
             {/* MURO DE COMENTARIOS */}
             <div className="mb-5 border-t border-[#334155] pt-5">

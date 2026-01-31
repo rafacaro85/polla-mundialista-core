@@ -24,6 +24,7 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
 
     const nickname = user?.nickname || 'Jugador';
     const packageType = (league.packageType || 'familia').toLowerCase();
+    const isEnterprise = ['bronce', 'plata', 'oro', 'platino', 'diamante'].includes(packageType);
 
 
     return (
@@ -69,8 +70,25 @@ export const SocialLeagueHome: React.FC<SocialLeagueHomeProps> = ({ league, part
                 </div>
             </header>
 
-            {/* SOCIAL MEDIA LINKS */}
-            {(league.socialInstagram || league.socialFacebook || league.socialTiktok || league.socialYoutube || league.socialWhatsapp || league.socialLinkedin || league.socialWebsite) && (
+            {/* ADS BANNER (DIAMANTE) */}
+            {league.showAds && isEnterprise && ['diamante'].includes(packageType) && league.adImages && league.adImages.length > 0 && (
+                <div className="w-full mb-4 animate-in fade-in zoom-in duration-700">
+                    <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative group">
+                        <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold tracking-widest backdrop-blur-sm z-10">
+                            Publicidad
+                        </div>
+                        <img 
+                            src={league.adImages[0]} 
+                            alt="Publicidad" 
+                            className="w-full h-auto object-cover max-h-[120px] sm:max-h-[160px]"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* SOCIAL MEDIA LINKS (Plata+ or Influencer+) */}
+            {((isEnterprise && ['plata', 'oro', 'platino', 'diamante'].includes(packageType)) || (!isEnterprise && ['influencer', 'pro', 'elite', 'legend'].includes(packageType))) &&
+            (league.socialInstagram || league.socialFacebook || league.socialTiktok || league.socialYoutube || league.socialWhatsapp || league.socialLinkedin || league.socialWebsite) && (
                 <div className="flex flex-wrap justify-center gap-4 animate-in fade-in slide-in-from-bottom-2">
                     {league.socialInstagram && (
                         <a href={league.socialInstagram} target="_blank" rel="noopener noreferrer" 

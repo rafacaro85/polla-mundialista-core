@@ -62,6 +62,9 @@ interface League {
     socialTiktok?: string;
     socialLinkedin?: string;
     socialWebsite?: string;
+    showAds?: boolean;
+    adImages?: string[];
+    enableDepartmentWar?: boolean;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs = false }: { leagueId: string, defaultTab?: string, hideTabs?: boolean }) {
@@ -310,7 +313,11 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                             socialYoutube: currentLeague.socialYoutube,
                                             socialTiktok: currentLeague.socialTiktok,
                                             socialLinkedin: currentLeague.socialLinkedin,
-                                            socialWebsite: currentLeague.socialWebsite
+                                            socialWebsite: currentLeague.socialWebsite,
+                                            // Enterprise / Diamond Features
+                                            showAds: currentLeague.showAds,
+                                            adImages: currentLeague.adImages,
+                                            enableDepartmentWar: currentLeague.enableDepartmentWar
                                         }}
                                         onSuccess={() => {
                                             toast({ title: 'Guardado', description: 'Personalización actualizada.' });

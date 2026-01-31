@@ -32,11 +32,33 @@ export const PrizeHero = ({ league }: { league: any }) => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                     </div>
                 ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/20 to-[var(--brand-secondary)] flex items-center justify-center">
-                        <Trophy className="w-24 h-24 text-[var(--brand-primary)] opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/20 to-[var(--brand-secondary)] flex flex-col items-center justify-center p-8 text-center">
+                        {league.prizeDetails ? (
+                            <div className="max-w-2xl animate-in zoom-in-95 duration-500">
+                                <Trophy className="w-12 h-12 text-[var(--brand-primary)] mx-auto mb-4 opacity-80" />
+                                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-snug font-russo">
+                                    {league.prizeDetails}
+                                </h3>
+                            </div>
+                        ) : (
+                            <Trophy className="w-24 h-24 text-[var(--brand-primary)] opacity-50" />
+                        )}
                     </div>
                 )}
             </div>
+
+            {/* Details Text (Only if Image exists AND Text exists) */}
+            {league.prizeImageUrl && league.prizeDetails && (
+                <div className="bg-[#1E293B] border border-white/5 p-4 rounded-xl shadow-lg flex items-start gap-4 animate-in slide-in-from-bottom-2">
+                    <div className="p-2 bg-[var(--brand-primary)]/10 rounded-lg shrink-0">
+                        <Trophy className="w-5 h-5 text-[var(--brand-primary)]" />
+                    </div>
+                    <div>
+                        <h4 className="text-[var(--brand-primary)] text-xs font-black uppercase tracking-widest mb-1">Detalles del Premio</h4>
+                        <p className="text-white text-sm leading-relaxed">{league.prizeDetails}</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

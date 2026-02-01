@@ -162,12 +162,20 @@ export function WompiButton({
 
       const signatureData = response.data;
 
+      // 🔍 DEBUG WOMPI INICIO 🔍
+      console.log("🔍 DEBUG WOMPI INICIO 🔍");
+      console.log("Public Key (Variable):", process.env.NEXT_PUBLIC_WOMPI_PUB_KEY); // Logueamos la variable original para ver qué tiene
+      console.log("Public Key (Hardcoded Test):", 'pub_test_XrGpTNMdKbnbwYqpmgACkFwbcbxXevcu');
+      console.log("Reference:", signatureData.reference);
+      console.log("Integrity Signature:", signatureData.integritySignature);
+      console.log("Amount in Cents:", signatureData.amountInCents);
+
       // 2. Configurar el widget de Wompi
       const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents: signatureData.amountInCents,
         reference: signatureData.reference,
-        publicKey: 'pub_test_XrGpTNMdKbnbwYqpmgACkFwbcbxXevcu', // HOTFIX: Hardcoded para Vercel (process.env.NEXT_PUBLIC_WOMPI_PUB_KEY retorna undefined)
+        publicKey: 'pub_test_XrGpTNMdKbnbwYqpmgACkFwbcbxXevcu', // <--- HARDCODED AQUÍ TAMBIÉN
         signature: {
           integrity: signatureData.integritySignature,
         },

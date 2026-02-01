@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface WompiButtonProps {
   amount: number; // En pesos (ej: 50000)
@@ -30,7 +30,6 @@ export function WompiButton({
   className = "",
 }: WompiButtonProps) {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handlePayment = async () => {
     if (loading) return; // Prevenir doble click
@@ -78,28 +77,17 @@ export function WompiButton({
       // 4. Abrir el widget
       checkout.open((result: any) => {
         if (result.transaction?.status === "APPROVED") {
-          toast({
-            title: "¡Pago exitoso!",
-            description: "Tu pago ha sido procesado correctamente.",
-          });
+          toast.success("¡Pago exitoso! Tu pago ha sido procesado correctamente.");
           onSuccess?.();
         } else if (result.transaction?.status === "DECLINED") {
-          toast({
-            title: "Pago rechazado",
-            description: "Tu pago fue rechazado. Por favor, intenta nuevamente.",
-            variant: "destructive",
-          });
+          toast.error("Pago rechazado. Por favor, intenta nuevamente.");
           onError?.("Pago rechazado");
         }
         setLoading(false);
       });
     } catch (error: any) {
       console.error("Error al procesar el pago:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Ocurrió un error al procesar el pago",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Ocurrió un error al procesar el pago");
       onError?.(error.message);
       setLoading(false);
     }

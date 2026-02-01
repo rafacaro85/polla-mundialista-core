@@ -38,10 +38,13 @@ export function WompiButton({
 
     try {
       // 1. Solicitar firma al backend
+      const token = localStorage.getItem('token');
+      
       const response = await fetch("/api/payments/signature", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` }),
         },
         body: JSON.stringify({
           amount,

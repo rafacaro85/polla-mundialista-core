@@ -5,6 +5,7 @@ import { AuthProvider } from "../lib/auth.tsx";
 import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 const russo = Russo_One({ weight: "400", subsets: ["latin"] });

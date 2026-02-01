@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -21,6 +21,9 @@ declare global {
   }
 }
 
+const WOMPI_SCRIPT_URL = "https://checkout.wompi.co/widget.js";
+const SCRIPT_ID = "wompi-widget-script";
+
 export function WompiButton({
   amount,
   packageId,
@@ -31,50 +34,118 @@ export function WompiButton({
   className = "",
 }: WompiButtonProps) {
   const [loading, setLoading] = useState(false);
-  const [isWidgetReady, setIsWidgetReady] = useState(false);
+  const [scriptStatus, setScriptStatus] = useState<"loading" | "ready" | "error">("loading");
 
-  // Verificar si el script de Wompi está cargado
+  // Cargar el script de Wompi dinámicamente
   useEffect(() => {
-    const checkWidgetAvailability = () => {
-      if (typeof window !== "undefined" && typeof window.WidgetCheckout !== "undefined") {
-        setIsWidgetReady(true);
-        return true;
+    const loadWompiScript = () => {
+      // Verificar si el script ya está cargado
+      if (typeof window.WidgetCheckout !== "undefined") {
+        setScriptStatus("ready");
+        return;
       }
-      return false;
+
+      // Verificar si el script ya existe en el DOM
+      const existingScript = document.getElementById(SCRIPT_ID);
+      if (existingScript) {
+        // El script existe pero puede no haber cargado aún
+        // Esperar a que window.WidgetCheckout esté disponible
+        const checkInterval = setInterval(() => {
+          if (typeof window.WidgetCheckout !== "undefined") {
+            setScriptStatus("ready");
+            clearInterval(checkInterval);
+          }
+        }, 100);
+
+        // Timeout de 15 segundos
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          if (typeof window.WidgetCheckout === "undefined") {
+            setScriptStatus("error");
+          }
+        }, 15000);
+        return;
+      }
+
+      // Crear y cargar el script dinámicamente
+      const script = document.createElement("script");
+      script.id = SCRIPT_ID;
+      script.src = WOMPI_SCRIPT_URL;
+      script.async = true;
+
+      script.onload = () => {
+        // Verificar que WidgetCheckout esté disponible
+        if (typeof window.WidgetCheckout !== "undefined") {
+          setScriptStatus("ready");
+        } else {
+          // A veces el script carga pero WidgetCheckout no está inmediatamente disponible
+          setTimeout(() => {
+            if (typeof window.WidgetCheckout !== "undefined") {
+              setScriptStatus("ready");
+            } else {
+              setScriptStatus("error");
+            }
+          }, 500);
+        }
+      };
+
+      script.onerror = () => {
+        console.error("Error al cargar el script de Wompi");
+        setScriptStatus("error");
+      };
+
+      document.body.appendChild(script);
     };
 
-    // Verificar inmediatamente
-    if (checkWidgetAvailability()) {
-      return;
-    }
-
-    // Si no está disponible, hacer polling cada 100ms hasta que esté listo
-    const interval = setInterval(() => {
-      if (checkWidgetAvailability()) {
-        clearInterval(interval);
-      }
-    }, 100);
-
-    // Timeout de 10 segundos
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      if (!isWidgetReady) {
-        console.warn("Wompi widget no se cargó después de 10 segundos");
-      }
-    }, 10000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
+    loadWompiScript();
   }, []);
 
-  const handlePayment = async () => {
-    if (loading) return; // Prevenir doble click
+  const handleRetry = () => {
+    setScriptStatus("loading");
+    
+    // Eliminar el script existente si hay uno
+    const existingScript = document.getElementById(SCRIPT_ID);
+    if (existingScript) {
+      existingScript.remove();
+    }
 
-    // Safety check: verificar que el widget esté disponible
+    // Reintentar carga
+    const script = document.createElement("script");
+    script.id = SCRIPT_ID;
+    script.src = WOMPI_SCRIPT_URL;
+    script.async = true;
+
+    script.onload = () => {
+      if (typeof window.WidgetCheckout !== "undefined") {
+        setScriptStatus("ready");
+        toast.success("Sistema de pagos cargado correctamente");
+      } else {
+        setTimeout(() => {
+          if (typeof window.WidgetCheckout !== "undefined") {
+            setScriptStatus("ready");
+            toast.success("Sistema de pagos cargado correctamente");
+          } else {
+            setScriptStatus("error");
+          }
+        }, 500);
+      }
+    };
+
+    script.onerror = () => {
+      setScriptStatus("error");
+      toast.error("No se pudo cargar el sistema de pagos. Verifica tu conexión.");
+    };
+
+    document.body.appendChild(script);
+  };
+
+  const handlePayment = async () => {
+    if (loading || scriptStatus !== "ready") return;
+
+    // Safety check final
     if (typeof window.WidgetCheckout === "undefined") {
-      toast.error("El sistema de pagos está cargando, intenta en 2 segundos...");
+      toast.error("El sistema de pagos no está disponible. Intenta recargar la página.");
+      setScriptStatus("error");
       return;
     }
 
@@ -91,12 +162,7 @@ export function WompiButton({
 
       const signatureData = response.data;
 
-      // 2. Verificar nuevamente que el script de Wompi esté cargado
-      if (typeof window.WidgetCheckout === "undefined") {
-        throw new Error("Widget de Wompi no está cargado");
-      }
-
-      // 3. Configurar el widget de Wompi
+      // 2. Configurar el widget de Wompi
       const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents: signatureData.amountInCents,
@@ -108,7 +174,7 @@ export function WompiButton({
         redirectUrl: `${window.location.origin}/payment/success?ref=${signatureData.reference}`,
       });
 
-      // 4. Abrir el widget
+      // 3. Abrir el widget
       checkout.open((result: any) => {
         if (result.transaction?.status === "APPROVED") {
           toast.success("¡Pago exitoso! Tu pago ha sido procesado correctamente.");
@@ -128,16 +194,39 @@ export function WompiButton({
     }
   };
 
-  const isDisabled = loading || !isWidgetReady;
+  // Estado de error: mostrar botón de reintentar
+  if (scriptStatus === "error") {
+    return (
+      <button
+        onClick={handleRetry}
+        className={`relative ${className} bg-yellow-600 hover:bg-yellow-500`}
+      >
+        <div className="flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4" />
+          <span>Reintentar Carga</span>
+        </div>
+      </button>
+    );
+  }
+
+  const isDisabled = loading || scriptStatus !== "ready";
 
   return (
     <button
       onClick={handlePayment}
       disabled={isDisabled}
-      className={`relative ${className} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      title={!isWidgetReady ? "Cargando sistema de pagos..." : ""}
+      className={`relative ${className} ${isDisabled ? 'opacity-70 cursor-wait' : ''}`}
+      title={scriptStatus === "loading" ? "Cargando pasarela de pagos..." : ""}
     >
-      {(loading || !isWidgetReady) && (
+      {scriptStatus === "loading" && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-white" />
+            <span className="text-xs text-white">Cargando pasarela...</span>
+          </div>
+        </div>
+      )}
+      {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
           <Loader2 className="w-5 h-5 animate-spin text-white" />
         </div>

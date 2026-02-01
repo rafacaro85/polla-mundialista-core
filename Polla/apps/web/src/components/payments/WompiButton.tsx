@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 interface WompiButtonProps {
   amount: number; // En pesos (ej: 50000)
@@ -37,28 +38,15 @@ export function WompiButton({
     setLoading(true);
 
     try {
-      // 1. Solicitar firma al backend
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch("/api/payments/signature", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          amount,
-          currency: "COP",
-          packageId,
-          leagueId,
-        }),
+      // 1. Solicitar firma al backend usando axios (con auth interceptor)
+      const response = await api.post("/payments/signature", {
+        amount,
+        currency: "COP",
+        packageId,
+        leagueId,
       });
 
-      if (!response.ok) {
-        throw new Error("Error al generar la firma de pago");
-      }
-
-      const signatureData = await response.json();
+      const signatureData = response.data;
 
       // 2. Verificar que el script de Wompi esté cargado
       if (typeof window.WidgetCheckout === "undefined") {
@@ -90,8 +78,9 @@ export function WompiButton({
       });
     } catch (error: any) {
       console.error("Error al procesar el pago:", error);
-      toast.error(error.message || "Ocurrió un error al procesar el pago");
-      onError?.(error.message);
+      const errorMessage = error.response?.data?.message || error.message || "Ocurrió un error al procesar el pago";
+      toast.error(errorMessage);
+      onError?.(errorMessage);
       setLoading(false);
     }
   };

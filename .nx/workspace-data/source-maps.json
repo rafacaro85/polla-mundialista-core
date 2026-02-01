@@ -1,0 +1,1250 @@
+{
+  "Polla/apps/api": {
+    "root": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "name": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "tags": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.1": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.2": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.3": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.4": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.5": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.6": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.7": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.8": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.9": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.10": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.11": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.12": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.13": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.14": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.15": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.16": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.17": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.18": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.19": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.20": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.21": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.22": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.23": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.24": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.25": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.26": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.27": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.28": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.29": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.30": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.31": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.description": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.format.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:dev.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:debug.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start:prod.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:watch.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:cov.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:debug.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test:e2e.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:matches.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ranking.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-matches.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:promote-admin.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:list-users.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:me.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.promote:racv.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.debug:users.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:qatar-full.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:bracket-playable.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:complete.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-full.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:wc2026-real.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:shells.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:reset-knockout.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:generate.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:run.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.typeorm:migration:revert.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ]
+  },
+  "Polla/apps/web": {
+    "root": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "name": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "tags": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.1": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.2": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.3": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.executor": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options.script": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.scriptContent": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.runCommand": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.executor": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.options": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.options.script": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata.scriptContent": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.build.metadata.runCommand": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.executor": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options.script": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.scriptContent": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.runCommand": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.executor": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.options": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.options.script": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata.scriptContent": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.lint.metadata.runCommand": [
+      "Polla/apps/web/package.json",
+      "nx/core/package-json"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+npm warn config ignoring workspace config at C:\AppWeb\Polla\apps\web/.npmrc
+
+> web@0.1.0 build
+> next build
+
+ [33m[1m⚠[22m[39m `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+ [33m[1m⚠[22m[39m Invalid next.config.ts options detected: 
+ [33m[1m⚠[22m[39m     Unrecognized key(s) in object: 'eslint'
+ [33m[1m⚠[22m[39m See more info here: https://nextjs.org/docs/messages/invalid-next-config
+   [1m[38;2;173;127;168m▲ Next.js 16.0.10[39m[22m (Turbopack)
+   - Environments: .env.local, .env
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [32m[1m✓[22m[39m Compiled successfully in 7.8s
+ [37m[1m [22m[39m Skipping validation of types
+ [37m[1m [22m[39m Collecting page data using 15 workers ...
+ [37m[1m [22m[39m Generating static pages using 15 workers (0/16) ...
+🌍 API URL CONFIGURADA: /api
+ [37m[1m [22m[39m Generating static pages using 15 workers (4/16) 
+ [37m[1m [22m[39m Generating static pages using 15 workers (8/16) 
+ [37m[1m [22m[39m Generating static pages using 15 workers (12/16) 
+ [32m[1m✓[22m[39m Generating static pages using 15 workers (16/16) in 1513.5ms
+ [37m[1m [22m[39m Finalizing page optimization ...
+
+[4mRoute (app)[24m
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/leagues
+├ ○ /admin/transactions
+├ ○ /auth/success
+├ ○ /business/new
+├ ○ /dashboard
+├ ○ /instructions
+├ ƒ /invite/[code]
+├ ƒ /league-admin/[id]
+├ ○ /leagues-admin
+├ ƒ /leagues/[id]
+├ ƒ /leagues/[id]/admin
+├ ƒ /leagues/[id]/admin/analytics
+├ ƒ /leagues/[id]/admin/bonus
+├ ƒ /leagues/[id]/admin/settings
+├ ƒ /leagues/[id]/admin/users
+├ ƒ /leagues/[id]/bonus
+├ ƒ /leagues/[id]/predictions
+├ ƒ /leagues/[id]/ranking
+├ ƒ /leagues/[id]/simulation
+├ ƒ /leagues/[id]/studio
+├ ƒ /leagues/[id]/wall
+├ ○ /login
+├ ○ /planes
+├ ○ /profile
+└ ○ /super-admin
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

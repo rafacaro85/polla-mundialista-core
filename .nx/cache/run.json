@@ -1,0 +1,21 @@
+{
+  "run": {
+    "command": "nx run web:build --skip-nx-cache",
+    "startTime": "2026-01-28T02:22:47.446Z",
+    "endTime": "2026-01-28T02:23:04.197Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "web:build",
+      "target": "build",
+      "projectName": "web",
+      "hash": "7458716808710453714",
+      "startTime": "2026-01-28T02:22:47.470Z",
+      "endTime": "2026-01-28T02:23:04.195Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 0
+    }
+  ]
+}

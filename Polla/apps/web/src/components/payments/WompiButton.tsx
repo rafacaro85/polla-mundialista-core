@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -31,9 +31,52 @@ export function WompiButton({
   className = "",
 }: WompiButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [isWidgetReady, setIsWidgetReady] = useState(false);
+
+  // Verificar si el script de Wompi está cargado
+  useEffect(() => {
+    const checkWidgetAvailability = () => {
+      if (typeof window !== "undefined" && typeof window.WidgetCheckout !== "undefined") {
+        setIsWidgetReady(true);
+        return true;
+      }
+      return false;
+    };
+
+    // Verificar inmediatamente
+    if (checkWidgetAvailability()) {
+      return;
+    }
+
+    // Si no está disponible, hacer polling cada 100ms hasta que esté listo
+    const interval = setInterval(() => {
+      if (checkWidgetAvailability()) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    // Timeout de 10 segundos
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!isWidgetReady) {
+        console.warn("Wompi widget no se cargó después de 10 segundos");
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   const handlePayment = async () => {
     if (loading) return; // Prevenir doble click
+
+    // Safety check: verificar que el widget esté disponible
+    if (typeof window.WidgetCheckout === "undefined") {
+      toast.error("El sistema de pagos está cargando, intenta en 2 segundos...");
+      return;
+    }
 
     setLoading(true);
 
@@ -48,7 +91,7 @@ export function WompiButton({
 
       const signatureData = response.data;
 
-      // 2. Verificar que el script de Wompi esté cargado
+      // 2. Verificar nuevamente que el script de Wompi esté cargado
       if (typeof window.WidgetCheckout === "undefined") {
         throw new Error("Widget de Wompi no está cargado");
       }
@@ -85,13 +128,16 @@ export function WompiButton({
     }
   };
 
+  const isDisabled = loading || !isWidgetReady;
+
   return (
     <button
       onClick={handlePayment}
-      disabled={loading}
-      className={`relative ${className}`}
+      disabled={isDisabled}
+      className={`relative ${className} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      title={!isWidgetReady ? "Cargando sistema de pagos..." : ""}
     >
-      {loading && (
+      {(loading || !isWidgetReady) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
           <Loader2 className="w-5 h-5 animate-spin text-white" />
         </div>

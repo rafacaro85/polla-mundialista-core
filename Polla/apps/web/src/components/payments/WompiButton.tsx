@@ -167,7 +167,7 @@ export function WompiButton({
         currency: "COP",
         amountInCents: signatureData.amountInCents,
         reference: signatureData.reference,
-        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUB_KEY,
+        publicKey: 'pub_test_XrGpTNMdKbnbwYqpmgACkFwbcbxXevcu', // HOTFIX: Hardcoded para Vercel (process.env.NEXT_PUBLIC_WOMPI_PUB_KEY retorna undefined)
         signature: {
           integrity: signatureData.integritySignature,
         },

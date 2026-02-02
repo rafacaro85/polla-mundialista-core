@@ -4,6 +4,7 @@ import { Match } from './match.entity';
 
 @Entity('predictions')
 @Index(['match']) // Fast lookup for match scoring
+@Index(['user', 'leagueId']) // Optimized for loading Game Screen (User in League)
 @Index(['user', 'match', 'leagueId'], { unique: true }) // Prevent duplicate predictions per match + league
 export class Prediction {
   @PrimaryGeneratedColumn('uuid')

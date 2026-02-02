@@ -1,0 +1,503 @@
+﻿+-- Polla
+    |-- apps
+    |   |-- api
+    |   |   |-- scripts
+    |   |   |-- src
+    |   |   |   |-- access-codes
+    |   |   |   |   |-- access-codes.module.ts
+    |   |   |   |   +-- access-codes.service.ts
+    |   |   |   |-- ai-prediction
+    |   |   |   |   |-- listeners
+    |   |   |   |   |   +-- match-teams-assigned.listener.ts
+    |   |   |   |   |-- ai-prediction.controller.ts
+    |   |   |   |   |-- ai-prediction.module.ts
+    |   |   |   |   +-- ai-prediction.service.ts
+    |   |   |   |-- auth
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- auth.dto.ts
+    |   |   |   |   |   |-- login-user.dto.ts
+    |   |   |   |   |   +-- register-user.dto.ts
+    |   |   |   |   |-- guards
+    |   |   |   |   |   |-- google-auth.guard.ts
+    |   |   |   |   |   |-- jwt-auth.guard.ts
+    |   |   |   |   |   +-- local-auth.guard.ts
+    |   |   |   |   |-- strategies
+    |   |   |   |   |   |-- google.strategy.ts
+    |   |   |   |   |   |-- jwt.strategy.ts
+    |   |   |   |   |   +-- local.strategy.ts
+    |   |   |   |   |-- auth.controller.ts
+    |   |   |   |   |-- auth.module.ts
+    |   |   |   |   +-- auth.service.ts
+    |   |   |   |-- bonus
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- create-question.dto.ts
+    |   |   |   |   |   |-- grade-question.dto.ts
+    |   |   |   |   |   +-- save-answer.dto.ts
+    |   |   |   |   |-- bonus.controller.ts
+    |   |   |   |   |-- bonus.module.ts
+    |   |   |   |   +-- bonus.service.ts
+    |   |   |   |-- brackets
+    |   |   |   |   |-- dto
+    |   |   |   |   |   +-- save-bracket.dto.ts
+    |   |   |   |   |-- brackets.controller.ts
+    |   |   |   |   |-- brackets.module.ts
+    |   |   |   |   +-- brackets.service.ts
+    |   |   |   |-- common
+    |   |   |   |   |-- decorators
+    |   |   |   |   |   |-- public.decorator.ts
+    |   |   |   |   |   +-- roles.decorator.ts
+    |   |   |   |   |-- guards
+    |   |   |   |   |   |-- roles.guard.ts
+    |   |   |   |   |   +-- time-lock.guard.ts
+    |   |   |   |   |-- pdf
+    |   |   |   |   |   |-- pdf.module.ts
+    |   |   |   |   |   +-- pdf.service.ts
+    |   |   |   |   +-- teams-dictionary.ts
+    |   |   |   |-- database
+    |   |   |   |   |-- entities
+    |   |   |   |   |   |-- access-code.entity.ts
+    |   |   |   |   |   |-- bonus-question.entity.ts
+    |   |   |   |   |   |-- group-standing-override.entity.ts
+    |   |   |   |   |   |-- knockout-phase-status.entity.ts
+    |   |   |   |   |   |-- league-comment.entity.ts
+    |   |   |   |   |   |-- league-participant.entity.ts
+    |   |   |   |   |   |-- league.entity.ts
+    |   |   |   |   |   |-- match.entity.ts
+    |   |   |   |   |   |-- notification.entity.ts
+    |   |   |   |   |   |-- organization.entity.ts
+    |   |   |   |   |   |-- prediction.entity.ts
+    |   |   |   |   |   |-- system-config.entity.ts
+    |   |   |   |   |   |-- transaction.entity.ts
+    |   |   |   |   |   |-- user-bonus-answer.entity.ts
+    |   |   |   |   |   |-- user-bracket.entity.ts
+    |   |   |   |   |   +-- user.entity.ts
+    |   |   |   |   |-- enums
+    |   |   |   |   |   |-- access-code-status.enum.ts
+    |   |   |   |   |   |-- league-status.enum.ts
+    |   |   |   |   |   |-- league-type.enum.ts
+    |   |   |   |   |   |-- transaction-status.enum.ts
+    |   |   |   |   |   +-- user-role.enum.ts
+    |   |   |   |   |-- migrations
+    |   |   |   |   |   |-- 1734912000000-CreateKnockoutPhaseStatus.ts
+    |   |   |   |   |   |-- 1764649438287-ExpandSchemaForAdvancedFeatures.ts
+    |   |   |   |   |   |-- 1765427245958-AddEnterpriseActiveManual.ts
+    |   |   |   |   |   |-- 1765430000000-AddDepartmentToParticipant.ts
+    |   |   |   |   |   |-- 1765484000000-AddEnterpriseBranding.ts
+    |   |   |   |   |   |-- 1765500000000-AddBrandFontFamily.ts
+    |   |   |   |   |   |-- 1766900000000-AddDepartmentWarToLeague.ts
+    |   |   |   |   |   +-- add-manual-lock-columns.ts
+    |   |   |   |   +-- seeds
+    |   |   |   |       |-- bracket-playable.seeder.ts
+    |   |   |   |       |-- check-env.ts
+    |   |   |   |       |-- clean-all-users.sql
+    |   |   |   |       |-- clean-database.seeder.ts
+    |   |   |   |       |-- complete-tournament.seeder.ts
+    |   |   |   |       |-- create-admin-manual.seeder.ts
+    |   |   |   |       |-- create-admin.ts
+    |   |   |   |       |-- create-browser-admin.seeder.ts
+    |   |   |   |       |-- create-knockout-matches.seeder.ts
+    |   |   |   |       |-- create-knockout-matches.sql
+    |   |   |   |       |-- create-racv.seeder.ts
+    |   |   |   |       |-- debug-users.seeder.ts
+    |   |   |   |       |-- find-all-racv.seeder.ts
+    |   |   |   |       |-- fix-racv-role.seeder.ts
+    |   |   |   |       |-- investigate-users.seeder.ts
+    |   |   |   |       |-- list-users.seeder.ts
+    |   |   |   |       |-- match.seeder.ts
+    |   |   |   |       |-- promote-actual-user.seeder.ts
+    |   |   |   |       |-- promote-admin.seeder.ts
+    |   |   |   |       |-- promote-me.seeder.ts
+    |   |   |   |       |-- promote-racv.seeder.ts
+    |   |   |   |       |-- qatar-full.seeder.ts
+    |   |   |   |       |-- ranking.seeder.ts
+    |   |   |   |       |-- reset-knockout.seeder.ts
+    |   |   |   |       |-- reset-matches.seeder.ts
+    |   |   |   |       |-- shells.seeder.ts
+    |   |   |   |       |-- update-leagues-limit.seeder.ts
+    |   |   |   |       |-- update-user-by-id.seeder.ts
+    |   |   |   |       |-- verify-user.seeder.ts
+    |   |   |   |       |-- wc2026-real.seeder.ts
+    |   |   |   |       |-- world-cup-2026-matches.seeder.ts
+    |   |   |   |       +-- WORLD_CUP_2026_README.md
+    |   |   |   |-- debug
+    |   |   |   |   |-- debug.controller.ts
+    |   |   |   |   +-- debug.module.ts
+    |   |   |   |-- knockout-phases
+    |   |   |   |   |-- knockout-phases-init.service.ts
+    |   |   |   |   |-- knockout-phases.controller.ts
+    |   |   |   |   |-- knockout-phases.module.ts
+    |   |   |   |   +-- knockout-phases.service.ts
+    |   |   |   |-- league-participants
+    |   |   |   |   |-- league-participants.controller.ts
+    |   |   |   |   |-- league-participants.module.ts
+    |   |   |   |   +-- league-participants.service.ts
+    |   |   |   |-- leagues
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- create-league.dto.ts
+    |   |   |   |   |   |-- generate-access-codes.dto.ts
+    |   |   |   |   |   |-- join-league.dto.ts
+    |   |   |   |   |   |-- transfer-owner.dto.ts
+    |   |   |   |   |   |-- update-league.dto.ts
+    |   |   |   |   |   |-- update-participant-score.dto.ts
+    |   |   |   |   |   +-- update-tie-breaker.dto.ts
+    |   |   |   |   |-- leagues.controller.ts
+    |   |   |   |   |-- leagues.module.ts
+    |   |   |   |   +-- leagues.service.ts
+    |   |   |   |-- mail
+    |   |   |   |   |-- mail.module.ts
+    |   |   |   |   +-- mail.service.ts
+    |   |   |   |-- matches
+    |   |   |   |   |-- listeners
+    |   |   |   |   |   +-- match.listener.ts
+    |   |   |   |   |-- match-sync.service.ts
+    |   |   |   |   |-- matches.controller.ts
+    |   |   |   |   |-- matches.module.ts
+    |   |   |   |   +-- matches.service.ts
+    |   |   |   |-- notifications
+    |   |   |   |   |-- listeners
+    |   |   |   |   |   +-- phase-completed.listener.ts
+    |   |   |   |   |-- notifications.controller.ts
+    |   |   |   |   |-- notifications.module.ts
+    |   |   |   |   +-- notifications.service.ts
+    |   |   |   |-- payments
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- create-signature.dto.ts
+    |   |   |   |   |   +-- wompi-webhook.dto.ts
+    |   |   |   |   |-- payments.controller.ts
+    |   |   |   |   |-- payments.module.ts
+    |   |   |   |   +-- payments.service.ts
+    |   |   |   |-- predictions
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- create-bulk-predictions.dto.ts
+    |   |   |   |   |   +-- create-prediction.dto.ts
+    |   |   |   |   |-- predictions.controller.ts
+    |   |   |   |   |-- predictions.module.ts
+    |   |   |   |   +-- predictions.service.ts
+    |   |   |   |-- scoring
+    |   |   |   |   |-- scoring.module.ts
+    |   |   |   |   |-- scoring.service.spec.ts
+    |   |   |   |   +-- scoring.service.ts
+    |   |   |   |-- scripts
+    |   |   |   |   |-- net-diag.js
+    |   |   |   |   |-- seed-ai-predictions.ts
+    |   |   |   |   +-- test-smtp-simple.js
+    |   |   |   |-- standings
+    |   |   |   |   |-- standings.controller.ts
+    |   |   |   |   |-- standings.module.ts
+    |   |   |   |   +-- standings.service.ts
+    |   |   |   |-- system-settings
+    |   |   |   |   |-- dto
+    |   |   |   |   |   |-- create-system-setting.dto.ts
+    |   |   |   |   |   +-- update-system-setting.dto.ts
+    |   |   |   |   |-- entities
+    |   |   |   |   |   +-- system-setting.entity.ts
+    |   |   |   |   |-- system-settings.controller.ts
+    |   |   |   |   |-- system-settings.module.ts
+    |   |   |   |   +-- system-settings.service.ts
+    |   |   |   |-- telegram
+    |   |   |   |   |-- telegram.module.ts
+    |   |   |   |   +-- telegram.service.ts
+    |   |   |   |-- tournament
+    |   |   |   |   |-- tournament.module.ts
+    |   |   |   |   +-- tournament.service.ts
+    |   |   |   |-- transactions
+    |   |   |   |   |-- transactions.controller.ts
+    |   |   |   |   |-- transactions.module.ts
+    |   |   |   |   +-- transactions.service.ts
+    |   |   |   |-- types
+    |   |   |   |   +-- express.d.ts
+    |   |   |   |-- upload
+    |   |   |   |   |-- cloudinary.provider.ts
+    |   |   |   |   |-- cloudinary.service.ts
+    |   |   |   |   |-- upload.controller.ts
+    |   |   |   |   +-- upload.module.ts
+    |   |   |   |-- users
+    |   |   |   |   |-- dto
+    |   |   |   |   |   +-- create-user.dto.ts
+    |   |   |   |   |-- users.controller.ts
+    |   |   |   |   |-- users.module.ts
+    |   |   |   |   +-- users.service.ts
+    |   |   |   |-- app.controller.spec.ts
+    |   |   |   |-- app.controller.ts
+    |   |   |   |-- app.module.ts
+    |   |   |   |-- app.service.ts
+    |   |   |   |-- check-knockout.ts
+    |   |   |   |-- check_final_phases.ts
+    |   |   |   |-- check_phase.ts
+    |   |   |   |-- check_placeholders.ts
+    |   |   |   |-- check_quarter.ts
+    |   |   |   |-- check_round_16.ts
+    |   |   |   |-- check_thirds_count.ts
+    |   |   |   |-- cleanup_phases.ts
+    |   |   |   |-- data-source.ts
+    |   |   |   |-- diagnose_colombia.ts
+    |   |   |   |-- fix_calendar_and_phases.ts
+    |   |   |   |-- fix_calendar_quarter.ts
+    |   |   |   |-- fix_calendar_round_16.ts
+    |   |   |   |-- fix_colombia.ts
+    |   |   |   |-- fix_final_calendar.ts
+    |   |   |   |-- lock_phases.ts
+    |   |   |   |-- main.ts
+    |   |   |   |-- promote-all.ts
+    |   |   |   |-- reset-knockout-full.ts
+    |   |   |   |-- reset-knockout.ts
+    |   |   |   |-- seed-knockout.ts
+    |   |   |   +-- test-email.ts
+    |   |   |-- test
+    |   |   |-- uploads
+    |   |   |-- .env
+    |   |   |-- .gitignore
+    |   |   |-- .prettierrc
+    |   |   |-- api@0.0.1
+    |   |   |-- check_round_16_output.txt
+    |   |   |-- console.error(err))
+    |   |   |-- ENV_VARS.md
+    |   |   |-- eslint.config.mjs
+    |   |   |-- find_match.ts
+    |   |   |-- migration_debug.txt
+    |   |   |-- migration_debug_utf8.txt
+    |   |   |-- nest-cli.json
+    |   |   |-- npm
+    |   |   |-- package.json
+    |   |   |-- railway.json
+    |   |   |-- README.md
+    |   |   |-- ts-node
+    |   |   |-- tsconfig.build.json
+    |   |   |-- tsconfig.json
+    |   |   +-- {
+    |   +-- web
+    |       |-- public
+    |       |-- src
+    |       |   |-- actions
+    |       |   |   +-- ai-predictions.ts
+    |       |   |-- app
+    |       |   |   |-- admin
+    |       |   |   |   |-- communication
+    |       |   |   |   |   +-- page.tsx
+    |       |   |   |   |-- leagues
+    |       |   |   |   |   +-- page.tsx
+    |       |   |   |   |-- transactions
+    |       |   |   |   |   +-- page.tsx
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- auth
+    |       |   |   |   +-- success
+    |       |   |   |       +-- page.tsx
+    |       |   |   |-- business
+    |       |   |   |   +-- new
+    |       |   |   |       +-- page.tsx
+    |       |   |   |-- dashboard
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- instructions
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- invite
+    |       |   |   |   +-- [code]
+    |       |   |   |-- league-admin
+    |       |   |   |   +-- [id]
+    |       |   |   |-- leagues
+    |       |   |   |   +-- [id]
+    |       |   |   |-- leagues-admin
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- login
+    |       |   |   |   |-- page.tsx
+    |       |   |   |   +-- page_footer.tsx
+    |       |   |   |-- offline
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- payment
+    |       |   |   |   +-- success
+    |       |   |   |       +-- page.tsx
+    |       |   |   |-- planes
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- profile
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- reset-password
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- super-admin
+    |       |   |   |   +-- page.tsx
+    |       |   |   |-- favicon.ico
+    |       |   |   |-- globals.css
+    |       |   |   |-- layout.tsx
+    |       |   |   +-- page.tsx
+    |       |   |-- components
+    |       |   |   |-- admin
+    |       |   |   |   |-- BonusQuestionsTable.tsx
+    |       |   |   |   |-- BulkUserImport.tsx
+    |       |   |   |   |-- CommunicationPanel.tsx
+    |       |   |   |   |-- CreateEnterpriseLeagueForm.tsx
+    |       |   |   |   |-- CreateLeagueDialog.tsx
+    |       |   |   |   |-- CreateQuestionDialog.tsx
+    |       |   |   |   |-- CreateUserDialog.tsx
+    |       |   |   |   |-- EditLeagueDialog.tsx
+    |       |   |   |   |-- EditQuestionDialog.tsx
+    |       |   |   |   |-- EditUserDialog.tsx
+    |       |   |   |   |-- EnterpriseLock.tsx
+    |       |   |   |   |-- GradeQuestionDialog.tsx
+    |       |   |   |   |-- GroupStandingsOverride.tsx
+    |       |   |   |   |-- LeagueAnalyticsPanel.tsx
+    |       |   |   |   |-- LeagueSettingsPanel.tsx
+    |       |   |   |   |-- LeaguesTable.tsx
+    |       |   |   |   |-- ManageLeagueLimitDialog.tsx
+    |       |   |   |   |-- MatchesList.tsx
+    |       |   |   |   |-- MatchManager.tsx
+    |       |   |   |   |-- PhaseLocksManager.tsx
+    |       |   |   |   |-- SuperAdminDashboard.tsx
+    |       |   |   |   |-- TransferOwnerDialog.tsx
+    |       |   |   |   |-- UserDetailDialog.tsx
+    |       |   |   |   |-- UsersTable.tsx
+    |       |   |   |   +-- ViewLeagueDialog.tsx
+    |       |   |   |-- dashboard
+    |       |   |   |   |-- PaymentLockOverlay.tsx
+    |       |   |   |   |-- PaymentMethods.tsx
+    |       |   |   |   |-- PaymentStatusCard.tsx
+    |       |   |   |   +-- PendingInviteBanner.tsx
+    |       |   |   |-- leagues
+    |       |   |   |   +-- LeagueHeader.tsx
+    |       |   |   |-- notifications
+    |       |   |   |   +-- NotificationBell.tsx
+    |       |   |   |-- payments
+    |       |   |   |   +-- WompiButton.tsx
+    |       |   |   |-- providers
+    |       |   |   |   +-- BrandThemeProvider.tsx
+    |       |   |   |-- ui
+    |       |   |   |   |-- avatar.tsx
+    |       |   |   |   |-- badge.tsx
+    |       |   |   |   |-- button.tsx
+    |       |   |   |   |-- card.tsx
+    |       |   |   |   |-- dialog.tsx
+    |       |   |   |   |-- dropdown-menu.tsx
+    |       |   |   |   |-- Header.tsx
+    |       |   |   |   |-- input.tsx
+    |       |   |   |   |-- label.tsx
+    |       |   |   |   |-- LeaderboardRow.tsx
+    |       |   |   |   |-- MatchCard.tsx
+    |       |   |   |   |-- progress.tsx
+    |       |   |   |   |-- select.tsx
+    |       |   |   |   |-- sheet.tsx
+    |       |   |   |   |-- sonner.tsx
+    |       |   |   |   |-- StatsCard.tsx
+    |       |   |   |   |-- table.tsx
+    |       |   |   |   |-- tabs.tsx
+    |       |   |   |   |-- toast.tsx
+    |       |   |   |   +-- toaster.tsx
+    |       |   |   |-- AdminLeagueSettings.tsx
+    |       |   |   |-- AdminMatchTable.tsx
+    |       |   |   |-- AiSuggestionsButton.tsx
+    |       |   |   |-- BonusView.tsx
+    |       |   |   |-- BottomNav.tsx
+    |       |   |   |-- BracketView.tsx
+    |       |   |   |-- BrandLogo.tsx
+    |       |   |   |-- BrandProvider.tsx
+    |       |   |   |-- CreateBusinessLeagueDialog.tsx
+    |       |   |   |-- CreateLeagueDialog.tsx
+    |       |   |   |-- DashboardClient.tsx
+    |       |   |   |-- DateFilter.tsx
+    |       |   |   |-- DynamicPredictionsWrapper.tsx
+    |       |   |   |-- EditMatchDialog.tsx
+    |       |   |   |-- EnterpriseLeagueView.tsx
+    |       |   |   |-- EnterpriseSocialWallWidget.tsx
+    |       |   |   |-- Footer.tsx
+    |       |   |   |-- GlobalHomeView.tsx
+    |       |   |   |-- GlobalThemeProvider.tsx
+    |       |   |   |-- GroupStageView.tsx
+    |       |   |   |-- InviteHandler.tsx
+    |       |   |   |-- JoinLeagueDialog.tsx
+    |       |   |   |-- LandingPage.tsx
+    |       |   |   |-- LeagueBonusQuestions.tsx
+    |       |   |   |-- LeagueBrandingForm.tsx
+    |       |   |   |-- LeagueNavigation.tsx
+    |       |   |   |-- LeagueSelector.tsx
+    |       |   |   |-- LeaguesView.tsx
+    |       |   |   |-- LeagueThemeProvider.tsx
+    |       |   |   |-- LockedPhaseView.tsx
+    |       |   |   |-- MatchCard.tsx
+    |       |   |   |-- MatchInfoSheet.tsx
+    |       |   |   |-- NikeCard.tsx
+    |       |   |   |-- PhaseProgressDashboard.tsx
+    |       |   |   |-- PhaseStatusIndicator.tsx
+    |       |   |   |-- PrizeCard.tsx
+    |       |   |   |-- PrizeHero.tsx
+    |       |   |   |-- PromoBanner.tsx
+    |       |   |   |-- RankingView.tsx
+    |       |   |   |-- SocialWallWidget.tsx
+    |       |   |   |-- TieBreakerDialog.tsx
+    |       |   |   |-- TournamentPodium.tsx
+    |       |   |   |-- UserNav.tsx
+    |       |   |   +-- UserPredictionsDialog.tsx
+    |       |   |-- hooks
+    |       |   |   |-- use-toast.ts
+    |       |   |   |-- useCurrentLeague.ts
+    |       |   |   |-- useImageUpload.ts
+    |       |   |   |-- useKnockoutPhases.ts
+    |       |   |   |-- useLeagues.ts
+    |       |   |   |-- useMatches.ts
+    |       |   |   +-- useSystemConfig.ts
+    |       |   |-- lib
+    |       |   |   |-- api.ts
+    |       |   |   |-- auth.tsx
+    |       |   |   |-- auth.utils.ts
+    |       |   |   +-- utils.ts
+    |       |   |-- modules
+    |       |   |   |-- core-dashboard
+    |       |   |   |   +-- components
+    |       |   |   |       |-- GlobalHome.tsx
+    |       |   |   |       |-- GlobalRankingTable.tsx
+    |       |   |   |       +-- LeaguesList.tsx
+    |       |   |   |-- enterprise-league
+    |       |   |   |   |-- components
+    |       |   |   |   |   |-- EnterpriseFixture.tsx
+    |       |   |   |   |   |-- EnterpriseLeagueHome.tsx
+    |       |   |   |   |   |-- EnterpriseNavigation.tsx
+    |       |   |   |   |   |-- EnterpriseRankingTable.tsx
+    |       |   |   |   |   +-- EnterpriseSocialWallWidget.tsx
+    |       |   |   |   +-- views
+    |       |   |   |       +-- EnterpriseLeagueView.tsx
+    |       |   |   +-- social-league
+    |       |   |       |-- components
+    |       |   |       |   |-- SocialFixture.tsx
+    |       |   |       |   |-- SocialLeagueHome.tsx
+    |       |   |       |   +-- SocialRankingTable.tsx
+    |       |   |       +-- views
+    |       |   |           +-- SocialLeagueView.tsx
+    |       |   |-- services
+    |       |   |   +-- superAdminService.ts
+    |       |   |-- shared
+    |       |   |   |-- components
+    |       |   |   |   +-- ui
+    |       |   |   |       +-- LoadingSpinner.tsx
+    |       |   |   |-- hooks
+    |       |   |   |   |-- useLeague.ts
+    |       |   |   |   +-- useMyPredictions.ts
+    |       |   |   +-- utils
+    |       |   |       +-- flags.ts
+    |       |   |-- store
+    |       |   |   +-- useAppStore.ts
+    |       |   +-- types
+    |       |       +-- types.ts
+    |       |-- .env
+    |       |-- .env.local
+    |       |-- .gitignore
+    |       |-- .npmrc
+    |       |-- CENTRALIZED_PREDICTIONS_IMPLEMENTATION.md
+    |       |-- components.json
+    |       |-- ENV_VARS.md
+    |       |-- eslint.config.mjs
+    |       |-- next-env.d.ts
+    |       |-- next.config.ts
+    |       |-- package.json
+    |       |-- postcss.config.js
+    |       |-- PWA_SETUP.md
+    |       |-- README.md
+    |       |-- REFACTOR_SUMMARY.md
+    |       |-- tailwind.config.js
+    |       |-- tsconfig.json
+    |       |-- tsconfig.tsbuildinfo
+    |       +-- vercel.json
+    |-- docs
+    |-- .env.example
+    |-- docker-compose.yml
+    |-- matches.json
+    |-- matches_full.json
+    |-- package-lock.json
+    |-- package.json
+    |-- structure.txt
+    |-- structure_clean.txt
+    +-- teams.json

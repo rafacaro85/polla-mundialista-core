@@ -197,7 +197,7 @@ export class TransactionsService {
         return this.transactionsRepository.find({
             where: { status: TransactionStatus.PENDING },
             relations: ['user', 'league'],
-            order: { createdAt: 'ASC' },
+            order: { createdAt: 'DESC' },
         });
     }
 

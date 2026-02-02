@@ -111,7 +111,7 @@ export default function AdminTransactionsPage() {
                             </div>
 
                             {/* Image Preview */}
-                            <div className="relative h-48 bg-black/40 group overflow-hidden cursor-pointer" onClick={() => setSelectedImage(tx.imageUrl)}>
+                            <div className="relative h-48 bg-black/40 group overflow-hidden cursor-pointer" onClick={() => tx.imageUrl && setSelectedImage(tx.imageUrl)}>
                                 {tx.imageUrl ? (
                                     <>
                                         <img src={tx.imageUrl} alt="Comprobante" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
@@ -122,9 +122,11 @@ export default function AdminTransactionsPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-600">
-                                        <ImageIcon size={32} />
-                                        <span className="text-xs mt-2">Sin Imagen</span>
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-900/50">
+                                        <ImageIcon size={32} className="opacity-50" />
+                                        <span className="text-xs mt-2 font-medium">
+                                            {tx.referenceCode.startsWith('TX-') ? 'Intento Wompi (Sin Foto)' : 'Sin Comprobante'}
+                                        </span>
                                     </div>
                                 )}
                             </div>

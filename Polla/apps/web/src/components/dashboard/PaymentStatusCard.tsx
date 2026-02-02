@@ -172,7 +172,7 @@ export default function PaymentStatusCard({ user, pendingTransaction }: PaymentS
                                 {selectedQR && (
                                     <div className="bg-slate-900/50 p-4 rounded-xl mb-6 flex flex-col items-center animate-in fade-in duration-300">
                                          {/* QR Image */}
-                                         <div className="w-56 h-auto bg-white rounded-lg mb-4 overflow-hidden border-4 border-white shadow-lg">
+                                         <div className="w-56 h-64 bg-white rounded-lg mb-4 overflow-hidden border-4 border-white shadow-lg flex items-center justify-center">
                                             {selectedQR === 'NEQUI' && <img src="/images/qr-nequi.jpg" alt="QR Nequi" className="w-full h-full object-contain" />}
                                             {selectedQR === 'DAVIPLATA' && <img src="/images/qr-daviplata.jpg" alt="QR Daviplata" className="w-full h-full object-contain" />}
                                             {selectedQR === 'BANCOLOMBIA' && <img src="/images/qr-bancolombia.jpg" alt="QR Bancolombia" className="w-full h-full object-contain" />}

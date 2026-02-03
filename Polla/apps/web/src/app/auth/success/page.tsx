@@ -58,14 +58,14 @@ function SuccessLogic() {
             window.location.href = '/business/new';
           } else {
 
-            console.log('🏠 [AUTH] Sin flag - Redirigiendo al Dashboard...');
-            window.location.href = '/dashboard';
+            console.log('🏠 [AUTH] Sin flag - Redirigiendo al Hub...');
+            window.location.href = '/hub';
           }
         })
         .catch(error => {
           console.error('Error obteniendo datos del usuario:', error);
-          // Aún así redirigir al dashboard
-          window.location.href = '/dashboard';
+          // Aún así redirigir al hub
+          window.location.href = '/hub';
         });
     } else {
       console.error('No se encontró el token en la URL.');

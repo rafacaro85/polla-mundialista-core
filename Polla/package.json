@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "seed:champions:prod": "node apps/api/dist/database/seeds/seed-ucl-beta.js"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1"
-  }
+  },
+  "workspaces": [
+    "apps/*"
+  ]
 }

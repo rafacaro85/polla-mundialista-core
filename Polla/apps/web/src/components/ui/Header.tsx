@@ -16,8 +16,14 @@ export function Header({ userName, leagueName }: HeaderProps) {
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   // Force Frontend Rebuild - Notification UI
+  const isChampionsTheme = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS';
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0F172A] border-b border-slate-800 shadow-md">
+    <header className={`sticky top-0 z-40 w-full border-b shadow-md ${
+      isChampionsTheme 
+        ? 'bg-[#1e293b] border-blue-900' // Dark slate/blue for Champions
+        : 'bg-[#0F172A] border-slate-800' // Default dark
+    }`}>
       <div className="container flex h-20 items-center justify-between px-4">
 
         {/* Left: Logo or Back Button */}
@@ -42,8 +48,13 @@ export function Header({ userName, leagueName }: HeaderProps) {
             </Link>
           ) : (
             <div className="flex flex-col">
-              <h1 className="text-white font-russo text-lg leading-none tracking-wide">POLLA <br /> MUNDIALISTA</h1>
-              <span className="text-slate-400 text-[10px] font-bold tracking-widest mt-1">FIFA WORLD CUP 2026</span>
+               <h1 className={`font-russo text-lg leading-none tracking-wide ${isChampionsTheme ? 'text-blue-400' : 'text-white'}`}>
+                {isChampionsTheme ? 'CHAMPIONS' : 'POLLA'} <br /> 
+                {isChampionsTheme ? 'LEAGUE' : 'MUNDIALISTA'}
+              </h1>
+              <span className="text-slate-400 text-[10px] font-bold tracking-widest mt-1">
+                {isChampionsTheme ? 'BETA 25/26' : 'FIFA WORLD CUP 2026'}
+              </span>
             </div>
           )}
         </div>

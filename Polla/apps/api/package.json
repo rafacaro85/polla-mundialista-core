@@ -38,6 +38,7 @@
     "seed:wc2026": "ts-node -r tsconfig-paths/register src/database/seeds/world-cup-2026-matches.seeder.ts",
     "seed:wc2026-full": "ts-node -r tsconfig-paths/register src/database/seeds/world-cup-2026-full.seeder.ts",
     "seed:wc2026-real": "ts-node -r tsconfig-paths/register src/database/seeds/wc2026-real.seeder.ts",
+    "seed:ucl-beta": "ts-node -r tsconfig-paths/register src/database/seeds/seed-ucl-beta.ts",
     "seed:shells": "ts-node -r tsconfig-paths/register src/database/seeds/shells.seeder.ts",
     "seed:reset-knockout": "npx ts-node src/reset-knockout-full.ts",
     "typeorm": "typeorm-ts-node-commonjs",

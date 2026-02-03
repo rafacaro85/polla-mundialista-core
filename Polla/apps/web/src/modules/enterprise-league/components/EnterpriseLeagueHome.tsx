@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PrizeHero } from '@/components/PrizeHero';
 import { useRouter } from 'next/navigation';
+import { SocialWallWidget } from '@/components/SocialWallWidget';
+import { OnboardingMissions } from '@/components/dashboard/home/OnboardingMissions';
 
 interface EnterpriseLeagueHomeProps {
     league: any;
@@ -103,9 +105,6 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
     return (
         <div className="flex flex-col gap-2 font-sans pb-48 min-h-screen bg-[#0F172A] px-4 md:px-0">
 
-            {/* --- FEATURE: BANNERS (Dynamic Integration) --- */}
-            <AdBanner league={league} />
-
             {/* 1. WELCOME HEADER (Premium Custom) */}
             <div className="flex flex-col gap-1 pt-2 text-center animate-in slide-in-from-top-4 duration-700">
                 <p className="text-[#00E676] text-xs font-black uppercase tracking-[0.3em] mb-2">
@@ -118,11 +117,10 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                     {/* FIFA WORLD CUP TEXT */}
                     <span className="text-slate-500 text-xs italic tracking-[0.2em] font-russo uppercase mt-3 block opacity-80">FIFA WORLD CUP 2026</span>
                 </h1>
-
             </div>
 
-            <div className="max-w-md mx-auto w-full flex flex-col gap-8">
-                {/* 2. HERO HEADER (Identity Card) */}
+            {/* 2. HERO HEADER (Identity Card) - MOVED HERE */}
+            <div className="max-w-md mx-auto w-full mt-6 px-4 md:px-0">
                 <header className="relative w-full min-h-[14rem] bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 flex flex-col items-center justify-center p-6 gap-4 overflow-hidden rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center animate-in zoom-in-95 duration-500">
                     {/* Background Decor */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
@@ -147,7 +145,7 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                                 Polla Activa
                             </span>
 
-                            {/* SOCIAL MEDIA SECTION (SILVER - Level 2) */}
+                            {/* SOCIAL MEDIA SECTION */}
                             {planLevel >= 2 ? (
                                 <div className="flex flex-wrap justify-center gap-3 mt-4 animate-in fade-in slide-in-from-bottom-2">
                                     {league.socialInstagram && (
@@ -195,13 +193,34 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                         </div>
                     </div>
                 </header>
+            </div>
 
-                {/* 3. SHORTCUT CARDS (Modern Grid) */}
+            {/* ONBOARDING MISSIONS */}
+            <div className="max-w-md mx-auto w-full mt-6 px-4 md:px-0">
+                 <OnboardingMissions 
+                    hasLeagues={true} 
+                    currentLeague={{
+                        ...league,
+                        isAdmin: true // DEBUG: FORCING TRUE TO VERIFY BUTTON
+                    }}
+                    onNavigate={(tab) => {
+                        if (tab === 'predictions') router.push(`/leagues/${league.id}/predictions`);
+                        else if (tab === 'ranking') router.push(`/leagues/${league.id}/ranking`);
+                        else if (tab === 'bonus') router.push(`/leagues/${league.id}/bonus`);
+                        else if (tab === 'leagues') router.push(`/leagues/${league.id}`); 
+                    }} 
+                />
+            </div>
 
+            <div className="max-w-md mx-auto w-full flex flex-col gap-8 mt-4">
+                {/* 2. HERO HEADER (Identity Card) - Moved to top */}
 
+                {/* 3. SHORTCUT CARDS - REMOVED AS PER USER REQUEST */}
 
+                {/* 4. ADS BANNER (Now Below Cards) */}
+                <AdBanner league={league} />
 
-                {/* 4. PREMIO (Full Width) */}
+                {/* 5. PREMIO (Full Width) */}
                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
                     <div className="flex items-center gap-2 mb-4 pl-2">
                         <Trophy size={18} className="text-[#00E676]" />
@@ -218,36 +237,80 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                     )}
                 </div>
 
-                {/* 3. SHORTCUT CARDS (Moved Below Prize) */}
-                <div className="grid grid-cols-2 gap-4">
-                    <button
-                        onClick={() => router.push(`/leagues/${league.id}/predictions`)}
-                        className="group bg-[#1E293B] active:scale-95 border border-white/5 p-5 rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-[#00E676]/50 transition-all hover:-translate-y-1 shadow-xl overflow-hidden relative h-32"
-                    >
-                        <div className="absolute top-0 right-0 w-10 h-10 bg-[#00E676]/10 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-12 h-12 bg-[#00E676]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#00E676] transition-colors">
-                            <PlayCircle className="w-6 h-6 text-[#00E676] group-hover:text-[#0F172A]" />
+                {/* 6. PARTICIPANTS OVERVIEW (Reordered) */}
+                <div className="bg-[#1E293B] border border-white/5 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden">
+                    <div className="flex items-center justify-between z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                <Users size={20} className="text-indigo-400" />
+                            </div>
+                            <div>
+                                <h4 className="text-white font-black text-xs uppercase tracking-wide">Participantes</h4>
+                                <p className="text-slate-400 text-[10px] font-bold">{participants.length} usuarios compitiendo</p>
+                            </div>
                         </div>
-                        <span className="text-[10px] font-black text-white uppercase tracking-widest text-center">Predecir<br />Ahora</span>
-                    </button>
+                    </div>
 
-                    <button
-                        onClick={() => {
-                            const el = document.getElementById('ranking-list');
-                            el?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="group bg-[#1E293B] active:scale-95 border border-white/5 p-5 rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-[#FACC15]/50 transition-all hover:-translate-y-1 shadow-xl overflow-hidden relative h-32"
-                    >
-                        <div className="absolute top-0 right-0 w-10 h-10 bg-yellow-500/10 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-12 h-12 bg-yellow-500/10 rounded-2xl flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
-                            <RankingIcon className="w-6 h-6 text-yellow-500 group-hover:text-[#0F172A]" />
-                        </div>
-                        <span className="text-[10px] font-black text-white uppercase tracking-widest text-center">Ver<br />Ranking</span>
-                    </button>
+                    <div className="flex -space-x-3 overflow-hidden relative z-10 pl-2">
+                        {participants.slice(0, 5).map((p, i) => (
+                            <Avatar key={p.id} className="inline-block h-10 w-10 border-2 border-[#1E293B] ring-2 ring-white/5" style={{ zIndex: 10 - i }}>
+                                <AvatarImage src={p.avatarUrl} />
+                                <AvatarFallback className="bg-slate-700 text-[10px] font-bold text-white">{p.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                        ))}
+                        {participants.length > 5 && (
+                            <div className="h-10 w-10 border-2 border-[#1E293B] bg-slate-800 flex items-center justify-center text-[10px] text-[#00E676] font-black rounded-full shadow-lg z-0">
+                                +{participants.length - 5}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
+                {/* 7. TOP RANKING TABLE */}
+                <div id="ranking-list" className="bg-[#1E293B] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
+                        <h3 className="font-russo italic text-white uppercase text-xs flex items-center gap-2 tracking-widest">
+                            <RankingIcon size={14} className="text-yellow-500" />
+                            TOP Líderes
+                        </h3>
+                    </div>
+                    <Table>
+                        <TableBody>
+                            {participants.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center py-8 text-slate-500 text-xs">Aún no hay puntos registrados</TableCell>
+                                </TableRow>
+                            ) : (
+                                participants.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 5).map((participant, index) => (
+                                    <TableRow key={participant.id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                        <TableCell className="w-10 text-center py-4">
+                                            <span className={`font-russo text-lg ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-300' : index === 2 ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                {index + 1}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src={participant.avatarUrl} />
+                                                    <AvatarFallback className="text-[10px]">{participant.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-bold text-white text-xs truncate max-w-[120px]">{participant.nickname}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right px-6">
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-russo text-[#00E676] text-sm">{participant.points || 0}</span>
+                                                <span className="text-[8px] text-slate-500 uppercase font-bold">PTS</span>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
 
-                {/* --- FEATURE: GUERRA DE ÁREAS (PLATINUM - Level 4) --- */}
+                {/* 8. GUERRA DE ÁREAS (Moved down as per flow) */}
                 {planLevel >= 4 ? (
                     <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-6 relative shadow-xl">
                         <div className="flex items-center justify-between mb-4">
@@ -263,7 +326,6 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                                     const currentPoints = parseFloat(dept.avgPoints);
                                     const percentage = (currentPoints / maxPoints) * 100;
                                     
-                                    // Colors for Top 3
                                     let color = "bg-blue-500";
                                     let shadow = "";
                                     let textColor = "text-blue-500";
@@ -310,80 +372,19 @@ export function EnterpriseLeagueHome({ league, participants, analytics }: Enterp
                     <EnterpriseFeatureLock title="Guerra de Áreas" minPlanName="PLATINO" icon={Swords} />
                 )}
 
-                {/* 5. PARTICIPANTS OVERVIEW */}
-                <div className="bg-[#1E293B] border border-white/5 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden">
-                    <div className="flex items-center justify-between z-10">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/10 rounded-lg">
-                                <Users size={20} className="text-indigo-400" />
-                            </div>
-                            <div>
-                                <h4 className="text-white font-black text-xs uppercase tracking-wide">Participantes</h4>
-                                <p className="text-slate-400 text-[10px] font-bold">{participants.length} usuarios compitiendo</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex -space-x-3 overflow-hidden relative z-10 pl-2">
-                        {participants.slice(0, 5).map((p, i) => (
-                            <Avatar key={p.id} className="inline-block h-10 w-10 border-2 border-[#1E293B] ring-2 ring-white/5" style={{ zIndex: 10 - i }}>
-                                <AvatarImage src={p.avatarUrl} />
-                                <AvatarFallback className="bg-slate-700 text-[10px] font-bold text-white">{p.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                        ))}
-                        {participants.length > 5 && (
-                            <div className="h-10 w-10 border-2 border-[#1E293B] bg-slate-800 flex items-center justify-center text-[10px] text-[#00E676] font-black rounded-full shadow-lg z-0">
-                                +{participants.length - 5}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* 6. TOP RANKING TABLE */}
-                <div id="ranking-list" className="bg-[#1E293B] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                    <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
-                        <h3 className="font-russo italic text-white uppercase text-xs flex items-center gap-2 tracking-widest">
-                            <RankingIcon size={14} className="text-yellow-500" />
-                            TOP Líderes
+                {/* 9. SOCIAL WALL (Feature Level 3+) */}
+                {planLevel >= 3 && (
+                     <div className="mt-2">
+                        <h3 className="text-white font-bold mb-2 ml-1 text-sm flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00E676]"></span>
+                            Muro de la Afición
                         </h3>
+                        <SocialWallWidget leagueId={league.id} />
                     </div>
-                    <Table>
-                        <TableBody>
-                            {participants.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-8 text-slate-500 text-xs">Aún no hay puntos registrados</TableCell>
-                                </TableRow>
-                            ) : (
-                                participants.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 5).map((participant, index) => (
-                                    <TableRow key={participant.id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                        <TableCell className="w-10 text-center py-4">
-                                            <span className={`font-russo text-lg ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-300' : index === 2 ? 'text-amber-600' : 'text-slate-600'}`}>
-                                                {index + 1}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={participant.avatarUrl} />
-                                                    <AvatarFallback className="text-[10px]">{participant.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="font-bold text-white text-xs truncate max-w-[120px]">{participant.nickname}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right px-6">
-                                            <div className="flex flex-col items-end">
-                                                <span className="font-russo text-[#00E676] text-sm">{participant.points || 0}</span>
-                                                <span className="text-[8px] text-slate-500 uppercase font-bold">PTS</span>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                )}
 
-                {/* --- FEATURE: BANNERS LOCK (If < Level 5 and we want to show lock at bottom) --- */}
+
+                {/* Lock for Ads if needed */}
                 {planLevel < 5 && (
                     <div className="opacity-70 hover:opacity-100 transition-opacity">
                         <EnterpriseFeatureLock title="Publicidad Exclusiva" minPlanName="DIAMANTE" icon={Megaphone} />

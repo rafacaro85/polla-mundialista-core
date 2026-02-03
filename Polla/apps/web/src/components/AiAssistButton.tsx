@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { generateAiPredictions } from '@/actions/ai-predictions';
-import { Loader2, Sparkles, Trash2, Save } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Match {
@@ -13,12 +13,12 @@ interface Match {
     [key: string]: any;
 }
 
-interface AiSuggestionsButtonProps {
+interface AiAssistButtonProps {
     matches: Match[];
     onPredictionsGenerated: (predictions: { [matchId: string]: [number, number] }) => void;
 }
 
-export function AiSuggestionsButton({ matches, onPredictionsGenerated }: AiSuggestionsButtonProps) {
+export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButtonProps) {
     const [loading, setLoading] = useState(false);
 
     const handleGenerate = async () => {

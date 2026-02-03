@@ -30,6 +30,8 @@ interface Match {
    2. COMPONENTES DE APOYO
    ============================================================================= */
 
+import { CheckCircle2, XCircle } from 'lucide-react';
+
 interface MatchNodeProps {
     matchId: string;
     team1: string;
@@ -41,14 +43,16 @@ interface MatchNodeProps {
     getTeamFlag: (team: string) => string;
     nextId?: string | null;
     isLocked?: boolean;
+    isFinished?: boolean;
+    correctWinner?: string | null;
 }
 
 const MatchNode = ({
     matchId, team1, team2, placeholder1, placeholder2,
-    winner, onPickWinner, getTeamFlag, nextId, isLocked
+    winner, onPickWinner, getTeamFlag, nextId, isLocked, isFinished, correctWinner
 }: MatchNodeProps) => {
-    const displayTeam1 = (team1 && team1 !== 'LOC') ? team1 : (placeholder1 || '-');
-    const displayTeam2 = (team2 && team2 !== 'VIS') ? team2 : (placeholder2 || '-');
+    const displayTeam1 = (team1 && team1 !== 'LOC' && team1 !== 'TBD') ? team1 : '-';
+    const displayTeam2 = (team2 && team2 !== 'VIS' && team2 !== 'TBD') ? team2 : '-';
 
     const handlePick = (team: string) => {
         if (isLocked) {
@@ -58,6 +62,18 @@ const MatchNode = ({
         onPickWinner(matchId, team);
     };
 
+    const getStatusColor = (team: string) => {
+        if (!winner || winner !== team) return 'bg-[#1E293B]/80 text-slate-300'; // No selected or other team
+        
+        if (isFinished && correctWinner) {
+            return correctWinner === team 
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' // WON
+                : 'bg-red-500/20 text-red-400 border-red-500/50'; // LOST
+        }
+        
+        return 'bg-[#00E676]/20 text-[#00E676]'; // Pending/Selected
+    };
+
     return (
         <div className="relative flex flex-col justify-center my-1 select-none">
             <div className="bg-transparent border border-slate-700 rounded-md overflow-hidden w-32 shadow-md z-10 backdrop-blur-sm">
@@ -65,32 +81,40 @@ const MatchNode = ({
                 <button
                     onClick={() => handlePick(displayTeam1)}
                     disabled={isLocked}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 border-b border-slate-700/50 transition-colors ${winner === displayTeam1 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'} ${isLocked ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700/50'}`}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 border-b border-slate-700/50 transition-colors ${getStatusColor(displayTeam1)} ${isLocked ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700/50'}`}
                 >
-                    <img src={getTeamFlag(displayTeam1)} alt={displayTeam1} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
-                    <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === displayTeam1 ? 'text-[#00E676]' : 'text-slate-300'}`}>
+                    {displayTeam1 !== '-' && <img src={getTeamFlag(displayTeam1)} alt={displayTeam1} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />}
+                    <span className="text-[9px] font-bold truncate text-left flex-1">
                         {displayTeam1}
                     </span>
-                    {winner === displayTeam1 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
+                    {winner === displayTeam1 && (
+                        isFinished && correctWinner ? (
+                            correctWinner === displayTeam1 ? <CheckCircle2 size={12} /> : <XCircle size={12} />
+                        ) : <div className="w-1.5 h-1.5 rounded-full bg-current shadow-sm" />
+                    )}
                 </button>
 
                 {/* EQUIPO 2 */}
                 <button
                     onClick={() => handlePick(displayTeam2)}
                     disabled={isLocked}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 transition-colors ${winner === displayTeam2 ? 'bg-[#00E676]/20' : 'bg-[#1E293B]/80'} ${isLocked ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700/50'}`}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 transition-colors ${getStatusColor(displayTeam2)} ${isLocked ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-700/50'}`}
                 >
-                    <img src={getTeamFlag(displayTeam2)} alt={displayTeam2} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />
-                    <span className={`text-[9px] font-bold truncate text-left flex-1 ${winner === displayTeam2 ? 'text-[#00E676]' : 'text-slate-300'}`}>
+                    {displayTeam2 !== '-' && <img src={getTeamFlag(displayTeam2)} alt={displayTeam2} className="w-4 h-3 object-cover rounded-[1px] opacity-90" />}
+                    <span className="text-[9px] font-bold truncate text-left flex-1">
                         {displayTeam2}
                     </span>
-                    {winner === displayTeam2 && <div className="w-1 h-1 rounded-full bg-[#00E676] shadow-[0_0_5px_#00E676]" />}
+                    {winner === displayTeam2 && (
+                        isFinished && correctWinner ? (
+                            correctWinner === displayTeam2 ? <CheckCircle2 size={12} /> : <XCircle size={12} />
+                        ) : <div className="w-1.5 h-1.5 rounded-full bg-current shadow-sm" />
+                    )}
                 </button>
             </div>
 
             {/* CONECTOR (Línea hacia la derecha) */}
             {nextId && (
-                <div className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? 'bg-[#00E676] shadow-[0_0_2px_rgba(0,230,118,0.5)]' : 'bg-slate-700'}`}></div>
+                <div className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? (isFinished && correctWinner && winner === correctWinner ? 'bg-emerald-500' : 'bg-[#00E676] shadow-[0_0_2px_rgba(0,230,118,0.5)]') : 'bg-slate-700'}`}></div>
             )}
         </div>
     );
@@ -179,6 +203,49 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
     const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
+    const getActualWinner = (match: Match) => {
+        if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return null;
+        if (typeof match.homeScore === 'number' && typeof match.awayScore === 'number') {
+            if (match.homeScore > match.awayScore) return match.homeTeam;
+            if (match.awayScore > match.homeScore) return match.awayTeam;
+        }
+        return null; 
+    };
+
+    // LÓGICA DE FASES SECUENCIALES (PHASE BY PHASE)
+    const phasesStatus = useMemo(() => {
+        const isFinished = (list: Match[]) => list.length > 0 && list.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
+        
+        const r32Finished = isFinished(r32Matches);
+        const r16Finished = isFinished(r16Matches);
+        const quarterFinished = isFinished(quarterMatches);
+        const semiFinished = isFinished(semiMatches);
+
+        // Una fase está abierta SOLO si la anterior terminó.
+        // ROUND_32 siempre está 'abierta' a menos que el tiempo expire (isLocked global).
+        return {
+            ROUND_32: true, 
+            ROUND_16: r32Finished,
+            QUARTER: r16Finished,
+            SEMI: quarterFinished,
+            FINAL: semiFinished,
+            '3RD_PLACE': semiFinished
+        };
+    }, [r32Matches, r16Matches, quarterMatches, semiMatches]);
+
+    const isMatchLocked = (match: Match) => {
+        // 1. Bloqueo Global por Tiempo (30 min antes del primer partido del torneo)
+        if (isLocked) return true;
+
+        // 2. Bloqueo Secuencial (Fase por Fase)
+        // Si la fase anterior NO ha terminado, esta fase está BLOQUEADA.
+        if (match.phase && phasesStatus[match.phase as keyof typeof phasesStatus] === false) {
+            return true;
+        }
+
+        return false;
+    };
+
     // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
         // 1. Si el partido ya tiene equipos reales en la DB, los usamos
@@ -189,20 +256,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
             return team;
         }
 
-        // 2. Si no, buscamos el ganador del partido previo en nuestro bracket local
-        // Buscamos partidos que apunten a este match
-        const previousMatches = matches.filter(m => (m as any).nextMatchId === match.id);
-
-        // El slot se determina por el bracketId: los nones son home del siguiente, pares son away
-        // (O según la lógica de tu seeder, ajustamos si es necesario)
-        let sourceMatch;
-        if (side === 'home') {
-            sourceMatch = previousMatches.find(m => (m.bracketId || 0) % 2 !== 0);
-        } else {
-            sourceMatch = previousMatches.find(m => (m.bracketId || 0) % 2 === 0);
-        }
-
-        return sourceMatch ? winners[sourceMatch.id] : undefined;
+        // 2. RETIRADO: No propagamos la predicción del usuario a la siguiente fase visualmente.
+        // El usuario solicitó que la siguiente casilla permanezca vacía hasta que el partido real termine.
+        return undefined;
     };
 
     // FUNCIÓN: Seleccionar Ganador
@@ -256,7 +312,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         <div className="bg-[#0F172A] min-h-screen text-white font-sans pb-32">
 
             {/* HEADER INSTRUCCIONES & ACCIONES */}
-            <div className="p-4 sticky top-0 bg-[#0F172A]/95 backdrop-blur z-30 border-b border-slate-800">
+            <div className="p-6 pt-24 sticky top-0 bg-[#0F172A]/95 backdrop-blur z-30 border-b border-slate-800">
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="font-russo text-xl uppercase text-white mb-1">Llaves del Torneo</h2>
@@ -320,7 +376,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                     onPickWinner={pickWinner}
                                     getTeamFlag={getTeamFlag}
                                     nextId={(m as any).nextMatchId}
-                                    isLocked={isLocked}
+                                    isLocked={isMatchLocked(m)}
+                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                    correctWinner={getActualWinner(m)}
                                 />
                             ))}
                         </div>
@@ -341,7 +399,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                 onPickWinner={pickWinner}
                                 getTeamFlag={getTeamFlag}
                                 nextId={(m as any).nextMatchId}
-                                isLocked={isLocked}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
                             />
                         )) : (
                             <div className="text-gray-500 text-xs p-4">Sin partidos</div>
@@ -363,7 +423,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                 onPickWinner={pickWinner}
                                 getTeamFlag={getTeamFlag}
                                 nextId={(m as any).nextMatchId}
-                                isLocked={isLocked}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
                             />
                         ))}
                     </div>
@@ -383,7 +445,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                 onPickWinner={pickWinner}
                                 getTeamFlag={getTeamFlag}
                                 nextId={(m as any).nextMatchId}
-                                isLocked={isLocked}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
                             />
                         ))}
                     </div>
@@ -409,7 +473,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                     onPickWinner={pickWinner}
                                     getTeamFlag={getTeamFlag}
                                     nextId={null}
-                                    isLocked={isLocked}
+                                    isLocked={isMatchLocked(m)}
+                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                    correctWinner={getActualWinner(m)}
                                 />
                             ))}
                         </div>
@@ -430,7 +496,9 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                                         onPickWinner={pickWinner}
                                         getTeamFlag={getTeamFlag}
                                         nextId={null}
-                                        isLocked={isLocked}
+                                        isLocked={isMatchLocked(m)}
+                                        isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                        correctWinner={getActualWinner(m)}
                                     />
                                 ))}
                             </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, Trophy, Star, MessageSquare, Activity } from 'lucide-react';
+import { Calendar, Trophy, Star, MessageSquare, ClipboardPen, BarChartBig, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // --- ENTERPRISE NAVIGATION ---
@@ -27,10 +27,9 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
 
     // Icons match the General Dashboard (Social)
     const items: NavItem[] = [
-        { id: 'home', label: 'Inicio', icon: null, href: basePath, exact: true }, // Icon handled specially
-        { id: 'game', label: 'Juego', icon: <Calendar size={20} />, href: `${basePath}/predictions` },
-        { id: 'ranking', label: 'Rank', icon: <Trophy size={20} />, href: `${basePath}/ranking` },
-        { id: 'sim', label: 'Sim', icon: <Activity size={20} />, href: `${basePath}/simulation` },
+        { id: 'home', label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
+        { id: 'game', label: 'Predicciones', icon: <ClipboardPen size={20} />, href: `${basePath}/predictions` },
+        { id: 'ranking', label: 'Ranking', icon: <BarChartBig size={20} />, href: `${basePath}/ranking` },
         { id: 'bonus', label: 'Bonus', icon: <Star size={20} />, href: `${basePath}/bonus` },
     ];
 
@@ -61,17 +60,7 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                             )}
                         >
                             <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
-                                {item.id === 'home' ? (
-                                    // Custom N Logo for Desktop Sidebar
-                                    <div className={cn(
-                                        "w-5 h-5 rounded-full flex items-center justify-center border border-current",
-                                        isActive(item) ? "bg-brand-primary text-brand-bg" : "bg-transparent"
-                                    )}>
-                                        <span className="font-black text-[9px]">N</span>
-                                    </div>
-                                ) : (
-                                    item.icon
-                                )}
+                                {item.icon}
                             </span>
                             {item.label}
                         </Link>
@@ -101,24 +90,11 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                 )}
 
                                 {/* ICON RENDER */}
-                                {item.id === 'home' ? (
-                                    // Custom N Logo
-                                    <div className={cn(
-                                        "w-6 h-6 rounded-full flex items-center justify-center border transition-all shadow-lg",
-                                        active
-                                            ? "bg-brand-primary border-brand-primary text-brand-bg"
-                                            : "border-slate-400 bg-transparent text-slate-400"
-                                    )}>
-                                        <span className="font-black text-[10px]">N</span>
-                                    </div>
-                                ) : (
-                                    // Standard Lucide Icon
-                                    React.cloneElement(item.icon as React.ReactElement<any>, {
-                                        size: 22,
-                                        strokeWidth: active ? 2.5 : 2,
-                                        className: active ? "text-brand-primary" : "text-slate-400"
-                                    })
-                                )}
+                                {React.cloneElement(item.icon as React.ReactElement<any>, {
+                                    size: 22,
+                                    strokeWidth: active ? 2.5 : 2,
+                                    className: active ? "text-brand-primary" : "text-slate-400"
+                                })}
 
                                 <span className={cn(
                                     "text-[9px] font-black tracking-widest uppercase mt-1",

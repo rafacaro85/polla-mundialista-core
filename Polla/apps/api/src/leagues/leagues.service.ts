@@ -328,19 +328,23 @@ export class LeaguesService {
 
     const userIds = users.map(u => u.id);
 
-    // 2. Fetch Prediction Points (Global - Máximo por partido entre todas las ligas)
+    // 2. Fetch Prediction Points (Global - Separated by Joker/Regular)
+    // We use DISTINCT ON to get the best scoring prediction for each match per user
     const predictionPointsRows = (await this.predictionRepository.manager.query(`
-      SELECT "userId", SUM(match_points) as points
+      SELECT "userId", 
+             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points ELSE 0 END) as joker_points,
+             SUM(CASE WHEN "isJoker" IS NOT TRUE THEN match_points ELSE 0 END) as regular_points
       FROM (
-        SELECT "userId", "matchId", MAX(points) as match_points
+        SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
         FROM predictions
         WHERE "userId" = ANY($1)
-        GROUP BY "userId", "matchId"
+        ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"
     `, [userIds])) as any[];
 
-    const predMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || 0)]));
+    const predRegularMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.regular_points || 0)]));
+    const predJokerMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.joker_points || 0)]));
 
     // 3. Fetch Bracket Points (Global - Máximo por bracket entre todas las ligas)
     const bracketPointsRows = (await this.userRepository.manager.query(`
@@ -370,16 +374,20 @@ export class LeaguesService {
 
     // 5. Combinar
     const finalRanking = users.map(u => {
-      const predictionPoints: number = predMap.get(u.id) || 0;
+      const regularPoints: number = predRegularMap.get(u.id) || 0;
+      const jokerPoints: number = predJokerMap.get(u.id) || 0;
       const bracketPoints: number = bracketMap.get(u.id) || 0;
       const bonusPoints: number = bonusMap.get(u.id) || 0;
-      const totalPoints = Number(predictionPoints) + Number(bracketPoints) + Number(bonusPoints);
+      
+      const predictionTotal = regularPoints + jokerPoints;
+      const totalPoints = predictionTotal + Number(bracketPoints) + Number(bonusPoints);
 
       return {
         id: u.id,
         nickname: u.nickname || u.fullName?.split(' ')[0] || 'Usuario',
         avatarUrl: u.avatarUrl,
-        predictionPoints,
+        regularPoints,
+        jokerPoints,
         bracketPoints,
         bonusPoints,
         totalPoints,
@@ -393,10 +401,10 @@ export class LeaguesService {
       position: index + 1,
       ...user,
       breakdown: {
-        matches: user.predictionPoints || 0,
-        phases: user.bracketPoints || 0,
-        wildcard: 0, // Joker points are included in predictionPoints
-        bonus: user.bonusPoints || 0
+        matches: user.regularPoints,
+        phases: user.bracketPoints,
+        wildcard: user.jokerPoints,
+        bonus: user.bonusPoints
       }
     }));
   }
@@ -560,6 +568,17 @@ export class LeaguesService {
         isPaid: participant.league.isPaid,
         maxParticipants: participant.league.maxParticipants,
         packageType: participant.league.packageType,
+        // Missing fields essential for Admin Panels Hydration
+        enableDepartmentWar: participant.league.enableDepartmentWar,
+        socialInstagram: participant.league.socialInstagram,
+        socialFacebook: participant.league.socialFacebook,
+        socialWhatsapp: participant.league.socialWhatsapp,
+        socialYoutube: participant.league.socialYoutube,
+        socialTiktok: participant.league.socialTiktok,
+        socialLinkedin: participant.league.socialLinkedin,
+        socialWebsite: participant.league.socialWebsite,
+        showAds: participant.league.showAds,
+        adImages: participant.league.adImages,
       };
     }
 
@@ -598,8 +617,20 @@ export class LeaguesService {
           isPaid: league.isPaid,
           maxParticipants: league.maxParticipants,
           packageType: league.packageType,
+          // Missing fields essential for Admin Panels Hydration
+          enableDepartmentWar: league.enableDepartmentWar,
+          socialInstagram: league.socialInstagram,
+          socialFacebook: league.socialFacebook,
+          socialWhatsapp: league.socialWhatsapp,
+          socialYoutube: league.socialYoutube,
+          socialTiktok: league.socialTiktok,
+          socialLinkedin: league.socialLinkedin,
+          socialWebsite: league.socialWebsite,
+          showAds: league.showAds,
+          adImages: league.adImages,
         };
       }
+
     }
 
     throw new NotFoundException('League not found or user is not a participant');
@@ -626,24 +657,25 @@ export class LeaguesService {
       .getRawOne();
     const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
 
-    // Prediction Points (Improved to include Global Fallback)
+    // Prediction Points (Improved to include Global Fallback and Joker separation)
     const isGlobal = league.type === LeagueType.GLOBAL;
     const allPredictions = await this.predictionRepository.createQueryBuilder('p')
       .innerJoin('p.match', 'm')
-      .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId'])
+      .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId', 'p.isJoker'])
       .where('p.userId IN (:...userIds)', { userIds })
       .andWhere(isGlobal ? 'p.leagueId IS NULL' : '(p.leagueId = :leagueId OR p.leagueId IS NULL)', { leagueId })
       .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawMany();
 
-    // Map to keep track of points: { userId: { matchId: points } }
+    // Map to keep track of points: { userId: { matchId: { points, isJoker } } }
     // We prioritize league-specific predictions over global fallback
-    const userPointsMap = new Map<string, Map<string, number>>();
+    const userPointsMap = new Map<string, Map<string, { points: number, isJoker: boolean }>>();
 
     allPredictions.forEach(r => {
       const uId = r.userId || r.userid || r.p_user_id;
       const mId = r.matchId || r.matchid || r.p_match_id;
       const points = Number(r.points || r.p_points || 0);
+      const isJoker = !!(r.isJoker || r.p_isJoker);
       const pLeagueId = r.leagueId || r.leagueid || r.p_league_id;
 
       if (!userPointsMap.has(uId)) {
@@ -654,15 +686,22 @@ export class LeaguesService {
 
       // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
       if (!userMatches.has(mId) || (pLeagueId === leagueId)) {
-        userMatches.set(mId, points);
+        userMatches.set(mId, { points, isJoker });
       }
     });
 
-    const predMap = new Map<string, number>();
+    const predRegularMap = new Map<string, number>();
+    const predJokerMap = new Map<string, number>();
+
     userPointsMap.forEach((matchesMap, uId) => {
-      let total = 0;
-      matchesMap.forEach(pts => total += pts);
-      predMap.set(uId, total);
+      let regTotal = 0;
+      let jokerTotal = 0;
+      matchesMap.forEach(({ points, isJoker }) => {
+        if (isJoker) jokerTotal += points;
+        else regTotal += points;
+      });
+      predRegularMap.set(uId, regTotal);
+      predJokerMap.set(uId, jokerTotal);
     });
 
     // Bracket Points
@@ -690,18 +729,22 @@ export class LeaguesService {
 
     const finalRanking = activeParticipants.map(lp => {
       const uId = lp.user.id;
-      const predictionPoints = predMap.get(uId) || 0;
+      const regularPoints = predRegularMap.get(uId) || 0;
+      const jokerPoints = predJokerMap.get(uId) || 0;
       const bracketPoints = bracketMap.get(uId) || 0;
       const bonusPoints = bonusMap.get(uId) || 0;
       const triviaPoints = Number(lp.triviaPoints || 0);
-      const totalPoints = predictionPoints + bracketPoints + bonusPoints + triviaPoints;
+
+      const totalPoints = regularPoints + jokerPoints + bracketPoints + bonusPoints + triviaPoints;
+      
       const tieBreakerGuess = lp.tieBreakerGuess !== null && lp.tieBreakerGuess !== undefined ? Number(lp.tieBreakerGuess) : null;
 
       return {
         id: uId,
         nickname: lp.user.nickname || lp.user.fullName?.split(' ')[0] || 'Usuario',
         avatarUrl: lp.user.avatarUrl,
-        predictionPoints,
+        regularPoints,
+        jokerPoints,
         bracketPoints,
         bonusPoints,
         triviaPoints,
@@ -721,9 +764,9 @@ export class LeaguesService {
       ...user,
       rank: index + 1,
       breakdown: {
-        matches: user.predictionPoints || 0,
+        matches: user.regularPoints || 0,
         phases: user.bracketPoints || 0,
-        wildcard: 0, // Joker points are included in predictionPoints
+        wildcard: user.jokerPoints || 0,
         bonus: user.bonusPoints || 0
       }
     }));

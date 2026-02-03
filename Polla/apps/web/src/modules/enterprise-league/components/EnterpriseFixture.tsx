@@ -9,9 +9,12 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
-import { AiSuggestionsButton } from '@/components/AiSuggestionsButton';
+import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BracketView } from '@/components/BracketView';
+import { Calendar, Activity } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 // Helper to ensure flag is a URL
@@ -203,95 +206,133 @@ export const EnterpriseFixture = () => {
     return (
         <DynamicPredictionsWrapper currentPhase={currentPhase}>
             <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="max-w-4xl mx-auto px-4 pt-4 mb-6">
-                    <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
-
-                    <div className="mt-4 flex flex-col gap-3">
-                        <AiSuggestionsButton
-                            matches={matches}
-                            onPredictionsGenerated={handleAiPredictions}
-                        />
-
-                        <div className="flex gap-3">
-                            <Button
-                                onClick={handleSaveAiPredictions}
-                                disabled={Object.keys(aiSuggestions).length === 0}
-                                className={`flex-1 gap-2 font-bold shadow-md transition-all ${Object.keys(aiSuggestions).length > 0
-                                        ? 'bg-green-600 hover:bg-green-500 text-white hover:scale-[1.02] shadow-green-900/20'
-                                        : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                                    }`}
+                <Tabs defaultValue="matches" className="w-full">
+                    <div className="w-full max-w-lg mx-auto px-4 pt-4 mb-6">
+                         <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
+                            <TabsTrigger 
+                                value="matches"
+                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                             >
-                                <Save className="w-4 h-4" />
-                                GUARDAR
-                            </Button>
+                                <Calendar size={16} />
+                                Partidos
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="bracket"
+                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Activity size={16} />
+                                Llaves
+                            </TabsTrigger>
+                        </TabsList>
 
-                            {Object.keys(aiSuggestions).length > 0 ? (
-                                <Button
-                                    onClick={handleClearPredictions}
-                                    className="flex-1 gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold hover:scale-[1.02] transition-all"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    DESCARTAR
-                                </Button>
+                        <TabsContent value="matches" className="mt-0">
+                            <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
+
+                            <div className="mt-4 flex flex-col gap-3">
+                                <AiAssistButton
+                                    matches={matches}
+                                    onPredictionsGenerated={handleAiPredictions}
+                                />
+
+                                <div className="flex gap-3">
+                                    <Button
+                                        onClick={handleSaveAiPredictions}
+                                        disabled={Object.keys(aiSuggestions).length === 0}
+                                        className={`flex-1 gap-2 font-bold shadow-md transition-all ${Object.keys(aiSuggestions).length > 0
+                                                ? 'bg-green-600 hover:bg-green-500 text-white hover:scale-[1.02] shadow-green-900/20'
+                                                : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                                            }`}
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        GUARDAR
+                                    </Button>
+
+                                    {Object.keys(aiSuggestions).length > 0 ? (
+                                        <Button
+                                            onClick={handleClearPredictions}
+                                            className="flex-1 gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold hover:scale-[1.02] transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            DESCARTAR
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={async () => {
+                                                if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
+                                                    await clearAllPredictions();
+                                                    if (dates.length > 0) {
+                                                        setSelectedDate(dates[0]);
+                                                    }
+                                                }
+                                            }}
+                                            className="flex-1 gap-2 bg-slate-800 hover:bg-red-900/20 text-slate-400 hover:text-red-400 border border-slate-700 font-bold transition-all"
+                                        >
+                                            <Eraser className="w-4 h-4" />
+                                            LIMPIAR
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </TabsContent>
+                    </div>
+
+                    <TabsContent value="matches" className="w-full max-w-lg mx-auto px-4 mt-0">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex-1 overflow-x-auto">
+                                <DateFilter
+                                    dates={dates}
+                                    selectedDate={selectedDate}
+                                    onSelect={setSelectedDate}
+                                />
+                            </div>
+                            <Button
+                                onClick={handleRefresh}
+                                variant="outline"
+                                size="icon"
+                                className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[#00E676]"
+                                title="Actualizar Marcadores"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+
+                        <div className="flex flex-col gap-4 pb-4">
+                            {filteredMatches.length > 0 ? (
+                                filteredMatches.map((match: any) => (
+                                    <MatchCard
+                                        key={match.id}
+                                        match={match}
+                                        showInputs={true}
+                                        onSavePrediction={handlePredictionChange}
+                                    />
+                                ))
                             ) : (
-                                <Button
-                                    onClick={async () => {
-                                        if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                            await clearAllPredictions();
-                                            if (dates.length > 0) {
-                                                setSelectedDate(dates[0]);
-                                            }
-                                        }
-                                    }}
-                                    className="flex-1 gap-2 bg-slate-800 hover:bg-red-900/20 text-slate-400 hover:text-red-400 border border-slate-700 font-bold transition-all"
-                                >
-                                    <Eraser className="w-4 h-4" />
-                                    LIMPIAR
-                                </Button>
+                                <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-12 text-center shadow-lg">
+                                    <p className="text-slate-400 text-sm font-medium italic">
+                                        {selectedDate
+                                            ? `No hay partidos para ${selectedDate}`
+                                            : 'No hay partidos disponibles'}
+                                    </p>
+                                </div>
                             )}
                         </div>
-                    </div>
-                </div>
+                    </TabsContent>
 
-                <div className="max-w-4xl mx-auto px-4 space-y-4">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex-1 overflow-x-auto">
-                            <DateFilter
-                                dates={dates}
-                                selectedDate={selectedDate}
-                                onSelect={setSelectedDate}
-                            />
-                        </div>
-                        <Button
-                            onClick={handleRefresh}
-                            variant="outline"
-                            size="icon"
-                            className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[#00E676]"
-                            title="Actualizar Marcadores"
-                        >
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        </Button>
-                    </div>
-
-                    {filteredMatches.length > 0 ? (
-                        filteredMatches.map((match: any) => (
-                            <MatchCard
-                                key={match.id}
-                                match={match}
-                                showInputs={true}
-                                onSavePrediction={handlePredictionChange}
-                            />
-                        ))
-                    ) : (
-                        <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-12 text-center shadow-lg">
-                            <p className="text-slate-400 text-sm font-medium italic">
-                                {selectedDate
-                                    ? `No hay partidos para ${selectedDate}`
-                                    : 'No hay partidos disponibles'}
-                            </p>
-                        </div>
-                    )}
-                </div>
+                    <TabsContent value="bracket" className="max-w-md mx-auto px-4 mt-0">
+                         <BracketView
+                            matches={matches.map((m: any) => ({
+                                ...m,
+                                homeTeam: typeof m.homeTeam === 'object' ? (m.homeTeam as any).code : m.homeTeam,
+                                awayTeam: typeof m.awayTeam === 'object' ? (m.awayTeam as any).code : m.awayTeam,
+                                homeFlag: typeof m.homeTeam === 'object' ? (m.homeTeam as any).flag : m.homeFlag,
+                                awayFlag: typeof m.awayTeam === 'object' ? (m.awayTeam as any).flag : m.awayFlag,
+                                homeTeamPlaceholder: m.homeTeamPlaceholder,
+                                awayTeamPlaceholder: m.awayTeamPlaceholder,
+                            }))}
+                            leagueId={leagueId}
+                        />
+                    </TabsContent>
+                </Tabs>
             </div>
         </DynamicPredictionsWrapper>
     );

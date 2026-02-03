@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
-import { AiSuggestionsButton } from '@/components/AiSuggestionsButton';
+import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 
 interface SocialFixtureProps {
@@ -169,7 +169,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
 
                 <div className="mt-4 flex flex-col gap-3">
-                    <AiSuggestionsButton
+                    <AiAssistButton
                         matches={matches}
                         onPredictionsGenerated={handleAiPredictions}
                     />

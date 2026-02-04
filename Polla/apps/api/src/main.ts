@@ -23,39 +23,17 @@ async function bootstrap() {
 
   // 2. CORS (Configuración explícita)
   // 2. CORS (Configuración explícita)
-  // Definir orígenes permitidos combinando hardcoded + variables de entorno
-  const allowedOrigins: (string | RegExp)[] = [
-    'https://polla-mundialista-core-web.vercel.app',
-    'https://lapollavirtual.com',
-    'https://www.lapollavirtual.com',
-    'https://champions.lapollavirtual.com', // Nuevo dominio
-    'http://localhost:3000',
-    /\.vercel\.app$/, // Subdominios de Vercel
-  ];
-
-  // Agregar orígenes desde variables de entorno (Railway config)
-  const envOrigins = [
-    process.env.FRONTEND_URL, 
-    process.env.CORS_ORIGIN, 
-    process.env.CORS_ORIGINS
-  ];
-
-  envOrigins.forEach(originVar => {
-    if (originVar) {
-      const origins = originVar.split(',').map(o => o.trim());
-      allowedOrigins.push(...origins);
-    }
-  });
-
+  // 2. CORS (Configuración explícita - Permisiva para Producción/Beta)
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true, // Refleja el origen de la petición (Permite cualquier dominio)
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    credentials: true,
+    credentials: true, // Permitir cookies/headers de autorización
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     exposedHeaders: ['Authorization'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
+  logger.log('✅ CORS enabled with PERMISSIVE mode (origin: true)');
   logger.log('✅ CORS enabled with explicit configuration');
 
   // 3. PUERTO DINÁMICO (LA CLAVE)

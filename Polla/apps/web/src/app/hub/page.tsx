@@ -14,7 +14,9 @@ export default function TournamentHub() {
     // Si hay token, construir URL de "auto-login" para el dominio beta
     const token = localStorage.getItem('token');
     if (token) {
-      setChampionsUrl(`${BETA_APP_URL}/auth/success?token=${token}&redirect=/dashboard`);
+      // Usar encodeURIComponent para asegurar que caracteres especiales del JWT no rompan la URL
+      const safeToken = encodeURIComponent(token);
+      setChampionsUrl(`${BETA_APP_URL}/auth/success?token=${safeToken}&redirect=/dashboard`);
     }
   }, []);
 

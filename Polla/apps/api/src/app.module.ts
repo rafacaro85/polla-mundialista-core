@@ -91,39 +91,44 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: parseInt(configService.get<string>('DB_PORT')!, 10),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
-        entities: [
-          Organization,
-          User,
-          League,
-          LeagueParticipant,
-          AccessCode,
-          Match,
-          Prediction,
-          UserBracket,
-          BonusQuestion,
-          UserBonusAnswer,
-          Transaction,
-          SystemConfig,
-          SystemSettings,
-          KnockoutPhaseStatus,
-          LeagueComment,
-          GroupStandingOverride,
-          Notification,
-        ],
-        synchronize: true, // Note: synchronize: true should not be used in production
-        ssl: configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined,
-        extra: {
-          max: 50, // Aumentado para soportar alta concurrencia (Stress Test mostró necesidad)
-          connectionTimeoutMillis: 5000,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const url = configService.get<string>('DATABASE_URL');
+        return {
+          type: 'postgres',
+          url: url,
+          // Fallback if no URL
+          host: url ? undefined : configService.get<string>('DB_HOST'),
+          port: url ? undefined : parseInt(configService.get<string>('DB_PORT')!, 10),
+          username: url ? undefined : configService.get<string>('DB_USERNAME'),
+          password: url ? undefined : configService.get<string>('DB_PASSWORD'),
+          database: url ? undefined : configService.get<string>('DB_DATABASE'),
+          entities: [
+            Organization,
+            User,
+            League,
+            LeagueParticipant,
+            AccessCode,
+            Match,
+            Prediction,
+            UserBracket,
+            BonusQuestion,
+            UserBonusAnswer,
+            Transaction,
+            SystemConfig,
+            SystemSettings,
+            KnockoutPhaseStatus,
+            LeagueComment,
+            GroupStandingOverride,
+            Notification,
+          ],
+          synchronize: true, // Note: synchronize: true should not be used in production
+          ssl: url ? { rejectUnauthorized: false } : (configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined),
+          extra: {
+            max: 50, // Aumentado para soportar alta concurrencia
+            connectionTimeoutMillis: 5000,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([{

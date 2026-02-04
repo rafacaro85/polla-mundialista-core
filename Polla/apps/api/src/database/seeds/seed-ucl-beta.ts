@@ -88,12 +88,50 @@ async function seed() {
 
         const matchRepository = AppDataSource.getRepository(Match);
 
-        // Check safety
-        const count = await matchRepository.count();
+        // Check if tables exist by attempting a count
+        let count = 0;
+        try {
+            count = await matchRepository.count();
+        } catch (error: any) {
+            // Error code 42P01 = relation does not exist (table missing)
+            if (error.code === '42P01') {
+                console.log('⚠️  Tablas no encontradas. Sincronizando esquema...');
+                await AppDataSource.destroy();
+                
+                // Reinitialize with synchronize: true to create tables
+                const SyncDataSource = process.env.DATABASE_URL
+                    ? new DataSource({
+                        type: 'postgres',
+                        url: process.env.DATABASE_URL,
+                        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
+                        synchronize: true, // Force schema creation
+                        ssl: { rejectUnauthorized: false },
+                    })
+                    : new DataSource({
+                        type: 'postgres',
+                        host: process.env.DB_HOST || 'localhost',
+                        port: parseInt(process.env.DB_PORT || '5432', 10),
+                        username: process.env.DB_USERNAME || 'postgres',
+                        password: process.env.DB_PASSWORD || 'postgres',
+                        database: process.env.DB_DATABASE || 'polla_mundialista',
+                        entities: [Match, Prediction, User, AccessCode, LeagueParticipant, League, Organization, Notification],
+                        synchronize: true,
+                    });
+                
+                await SyncDataSource.initialize();
+                console.log('✅ Esquema sincronizado. Tablas creadas.');
+                await SyncDataSource.destroy();
+                
+                // Reconnect with normal settings
+                await AppDataSource.initialize();
+                count = 0; // Fresh DB
+            } else {
+                throw error; // Re-throw if it's a different error
+            }
+        }
+
         if (count > 0) {
             console.log(`⚠️  Base de datos no vacía (${count} partidos). Ejecutar reset si se desea limpiar.`);
-            // In BETA we might want to force clean, but let's be safe for now unless explicit.
-            // For now, if it's empty, we populate.
         }
 
         console.log('🌍 Iniciando carga de Champions League 25/26 (BETA)...');

@@ -60,24 +60,27 @@ export class AdminService {
       };
 
       const MATCHES = [
-        // IDA
-        { date: '2026-02-17T20:00:00Z', home: 'PSV', away: 'Arsenal', group: 'R16', stadium: 'Philips Stadion' },
-        { date: '2026-02-17T20:00:00Z', home: 'Benfica', away: 'Real Madrid', group: 'R16', stadium: 'Estádio da Luz' },
-        { date: '2026-02-18T20:00:00Z', home: 'Juventus', away: 'Manchester City', group: 'R16', stadium: 'Allianz Stadium' },
-        { date: '2026-02-18T20:00:00Z', home: 'AC Milan', away: 'Liverpool', group: 'R16', stadium: 'San Siro' },
-        { date: '2026-02-24T20:00:00Z', home: 'Atletico Madrid', away: 'Bayern Munich', group: 'R16', stadium: 'Metropolitano' },
-        { date: '2026-02-24T20:00:00Z', home: 'Bayer Leverkusen', away: 'Inter Milan', group: 'R16', stadium: 'BayArena' },
-        { date: '2026-02-25T20:00:00Z', home: 'Aston Villa', away: 'Barcelona', group: 'R16', stadium: 'Villa Park' },
-        { date: '2026-02-25T20:00:00Z', home: 'Borussia Dortmund', away: 'PSG', group: 'R16', stadium: 'Signal Iduna Park' },
-        // VUELTA
-        { date: '2026-03-10T20:00:00Z', home: 'Arsenal', away: 'PSV', group: 'R16', stadium: 'Emirates Stadium' },
-        { date: '2026-03-10T20:00:00Z', home: 'Real Madrid', away: 'Benfica', group: 'R16', stadium: 'Santiago Bernabéu' },
-        { date: '2026-03-11T20:00:00Z', home: 'Manchester City', away: 'Juventus', group: 'R16', stadium: 'Etihad Stadium' },
-        { date: '2026-03-11T20:00:00Z', home: 'Liverpool', away: 'AC Milan', group: 'R16', stadium: 'Anfield' },
-        { date: '2026-03-17T20:00:00Z', home: 'Bayern Munich', away: 'Atletico Madrid', group: 'R16', stadium: 'Allianz Arena' },
-        { date: '2026-03-17T20:00:00Z', home: 'Inter Milan', away: 'Bayer Leverkusen', group: 'R16', stadium: 'San Siro' },
-        { date: '2026-03-18T20:00:00Z', home: 'Barcelona', away: 'Aston Villa', group: 'R16', stadium: 'Camp Nou' },
-        { date: '2026-03-18T20:00:00Z', home: 'PSG', away: 'Borussia Dortmund', group: 'R16', stadium: 'Parc des Princes' }
+        // PLAY-OFFS IDA (Feb 17-18, 2026)
+        { date: '2026-02-17T20:00:00Z', home: 'Benfica', away: 'Real Madrid', group: 'PO', stadium: 'Estádio da Luz' },
+        { date: '2026-02-17T20:00:00Z', home: 'AC Milan', away: 'Liverpool', group: 'PO', stadium: 'San Siro' },
+        { date: '2026-02-17T20:00:00Z', home: 'PSV', away: 'Arsenal', group: 'PO', stadium: 'Philips Stadion' },
+        { date: '2026-02-17T20:00:00Z', home: 'Club Brugge', away: 'Atletico Madrid', group: 'PO', stadium: 'Jan Breydel Stadium' },
+        
+        { date: '2026-02-18T20:00:00Z', home: 'Juventus', away: 'Manchester City', group: 'PO', stadium: 'Allianz Stadium' },
+        { date: '2026-02-18T20:00:00Z', home: 'Bayer Leverkusen', away: 'Inter Milan', group: 'PO', stadium: 'BayArena' },
+        { date: '2026-02-18T20:00:00Z', home: 'Sporting CP', away: 'Bayern Munich', group: 'PO', stadium: 'Estádio José Alvalade' },
+        { date: '2026-02-18T20:00:00Z', home: 'Feyenoord', away: 'PSG', group: 'PO', stadium: 'De Kuip' },
+
+        // PLAY-OFFS VUELTA (Feb 24-25, 2026)
+        { date: '2026-02-24T20:00:00Z', home: 'Real Madrid', away: 'Benfica', group: 'PO', stadium: 'Santiago Bernabéu' },
+        { date: '2026-02-24T20:00:00Z', home: 'Liverpool', away: 'AC Milan', group: 'PO', stadium: 'Anfield' },
+        { date: '2026-02-24T20:00:00Z', home: 'Arsenal', away: 'PSV', group: 'PO', stadium: 'Emirates Stadium' },
+        { date: '2026-02-24T20:00:00Z', home: 'Atletico Madrid', away: 'Club Brugge', group: 'PO', stadium: 'Metropolitano' },
+
+        { date: '2026-02-25T20:00:00Z', home: 'Manchester City', away: 'Juventus', group: 'PO', stadium: 'Etihad Stadium' },
+        { date: '2026-02-25T20:00:00Z', home: 'Inter Milan', away: 'Bayer Leverkusen', group: 'PO', stadium: 'San Siro' },
+        { date: '2026-02-25T20:00:00Z', home: 'Bayern Munich', away: 'Sporting CP', group: 'PO', stadium: 'Allianz Arena' },
+        { date: '2026-02-25T20:00:00Z', home: 'PSG', away: 'Feyenoord', group: 'PO', stadium: 'Parc des Princes' }
       ];
 
       let insertedCount = 0;
@@ -89,7 +92,7 @@ export class AdminService {
           awayFlag: getLogo(matchData.away),
           date: new Date(matchData.date),
           group: matchData.group,
-          phase: 'ROUND_OF_16',
+          phase: 'PLAYOFFS', // Updated phase
           stadium: matchData.stadium,
           homeScore: null,
           awayScore: null,

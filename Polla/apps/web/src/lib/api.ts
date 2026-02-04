@@ -7,7 +7,7 @@ console.log('🌍 API URL CONFIGURADA:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+  // withCredentials: true, // Deshabilitado para evitar problemas de CORS/Cookies en subdominios
 });
 
 api.interceptors.request.use(

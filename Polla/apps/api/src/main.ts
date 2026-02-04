@@ -22,13 +22,33 @@ async function bootstrap() {
   logger.log('✅ Global prefix configured: /api');
 
   // 2. CORS (Configuración explícita)
+  // 2. CORS (Configuración explícita)
+  // Definir orígenes permitidos combinando hardcoded + variables de entorno
+  const allowedOrigins: (string | RegExp)[] = [
+    'https://polla-mundialista-core-web.vercel.app',
+    'https://lapollavirtual.com',
+    'https://www.lapollavirtual.com',
+    'https://champions.lapollavirtual.com', // Nuevo dominio
+    'http://localhost:3000',
+    /\.vercel\.app$/, // Subdominios de Vercel
+  ];
+
+  // Agregar orígenes desde variables de entorno (Railway config)
+  const envOrigins = [
+    process.env.FRONTEND_URL, 
+    process.env.CORS_ORIGIN, 
+    process.env.CORS_ORIGINS
+  ];
+
+  envOrigins.forEach(originVar => {
+    if (originVar) {
+      const origins = originVar.split(',').map(o => o.trim());
+      allowedOrigins.push(...origins);
+    }
+  });
+
   app.enableCors({
-    origin: [
-      'https://polla-mundialista-core-web.vercel.app',
-      'https://lapollavirtual.com',
-      'http://localhost:3000',
-      /\.vercel\.app$/,
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],

@@ -8,6 +8,16 @@ const MAIN_APP_URL = process.env.NEXT_PUBLIC_MAIN_APP_URL || "https://lapollavir
 const BETA_APP_URL = process.env.NEXT_PUBLIC_BETA_URL || "https://champions.lapollavirtual.com"; // Fallback
 
 export default function TournamentHub() {
+  const [championsUrl, setChampionsUrl] = React.useState(`${BETA_APP_URL}/dashboard`);
+
+  React.useEffect(() => {
+    // Si hay token, construir URL de "auto-login" para el dominio beta
+    const token = localStorage.getItem('token');
+    if (token) {
+      setChampionsUrl(`${BETA_APP_URL}/auth/success?token=${token}&redirect=/dashboard`);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
       <div className="max-w-4xl w-full">
@@ -39,7 +49,7 @@ export default function TournamentHub() {
 
           {/* Card 2: Champions League (Beta) */}
           <a
-            href={`${BETA_APP_URL}/dashboard`}
+            href={championsUrl}
             className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 to-slate-900 border border-blue-800 hover:border-blue-400 transition-all duration-300 p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl hover:shadow-blue-900/20"
           >
             <div className="absolute top-4 right-4 bg-blue-500 text-xs font-bold px-2 py-1 rounded text-white shadow-lg animate-pulse">

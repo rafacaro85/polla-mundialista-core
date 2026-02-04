@@ -51,15 +51,21 @@ function SuccessLogic() {
           console.log('🔍 [AUTH] Verificando flag de onboarding...');
           console.log('🔍 [AUTH] Flag onboarding_business:', isBusinessOnboarding);
 
-          if (isBusinessOnboarding) {
+            if (isBusinessOnboarding) {
             console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /business/new');
             localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
             document.cookie = `${BUSINESS_ONBOARDING_KEY}=; path=/; max-age=0`;
             window.location.href = '/business/new';
           } else {
-
-            console.log('🏠 [AUTH] Sin flag - Redirigiendo al Hub...');
-            window.location.href = '/hub';
+            // Check for custom redirect param
+            const redirectPath = searchParams.get('redirect');
+            if (redirectPath) {
+               console.log(`🔀 [AUTH] Redirección personalizada: ${redirectPath}`);
+               window.location.href = redirectPath;
+            } else {
+               console.log('🏠 [AUTH] Sin flag - Redirigiendo al Hub...');
+               window.location.href = '/hub';
+            }
           }
         })
         .catch(error => {

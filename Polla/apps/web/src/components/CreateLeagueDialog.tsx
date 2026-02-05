@@ -130,6 +130,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 isEnterprise: false,
                 adminName: adminName.trim(),
                 adminPhone: fullPhone,
+                tournamentId: process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026',
             });
 
             console.log('✅ [CreateLeague] Respuesta servidor:', response.data);

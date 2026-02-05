@@ -24,7 +24,8 @@ export const useLeagues = () => {
     const fetchLeagues = useCallback(async () => {
         try {
             setLoading(true);
-            const { data } = await api.get('/leagues/my');
+            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            const { data } = await api.get('/leagues/my', { params: { tournamentId } });
 
             // Map API data to local interface
             const mappedLeagues = data.map((l: any) => ({

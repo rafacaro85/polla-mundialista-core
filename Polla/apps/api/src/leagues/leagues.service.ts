@@ -382,6 +382,7 @@ export class LeaguesService {
       const predictionTotal = regularPoints + jokerPoints;
       const totalPoints = predictionTotal + Number(bracketPoints) + Number(bonusPoints);
 
+      return {
         id: u.id,
         fullName: u.fullName, // ADDED for frontend display
         nickname: u.nickname || u.fullName?.split(' ')[0] || 'Usuario',

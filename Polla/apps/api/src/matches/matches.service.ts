@@ -517,7 +517,7 @@ export class MatchesService {
                      homeFlag: null,
                      awayFlag: null
                  })
-                 .where("phase != 'GROUP' AND (homeTeamPlaceholder IS NOT NULL OR awayTeamPlaceholder IS NOT NULL)");
+                 .where("phase != 'GROUP' AND phase != 'PLAYOFF' AND (homeTeamPlaceholder IS NOT NULL OR awayTeamPlaceholder IS NOT NULL)");
             
             if (tid) {
                 qbPlaceholders.andWhere("tournamentId = :tid", { tid });

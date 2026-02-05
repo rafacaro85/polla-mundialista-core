@@ -110,11 +110,12 @@ export class MatchesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Post('simulate-results')
-    async simulateResults(@Body() body: { phase?: string }) {
+    async simulateResults(@Body() body: { phase?: string; tournamentId?: string }, @Request() req: any) {
         try {
             // body puede ser undefined si el request no tiene JSON
             const phase = body?.phase;
-            return await this.matchesService.simulateResults(phase);
+            const tournamentId = body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+            return await this.matchesService.simulateResults(phase, tournamentId);
         } catch (e: any) {
             const fs = require('fs');
             fs.writeFileSync('controller_error.log', JSON.stringify({

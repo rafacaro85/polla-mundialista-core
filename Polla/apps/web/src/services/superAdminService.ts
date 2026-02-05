@@ -90,8 +90,8 @@ export const superAdminService = {
         return response.data;
     },
 
-    simulateMatches: async () => {
-        const response = await api.post('/matches/simulate-results');
+    simulateMatches: async (tournamentId?: string) => {
+        const response = await api.post('/matches/simulate-results', { tournamentId });
         return response.data;
     },
 

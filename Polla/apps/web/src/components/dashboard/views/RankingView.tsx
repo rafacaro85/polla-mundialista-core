@@ -5,6 +5,7 @@ import { SocialRankingTable } from '@/modules/social-league/components/SocialRan
 import { EnterpriseRankingTable } from '@/modules/enterprise-league/components/EnterpriseRankingTable';
 import { GroupStageView } from '@/components/GroupStageView';
 import { Users, Globe } from 'lucide-react';
+import { useTournament } from '@/hooks/useTournament';
 
 interface RankingViewProps {
     leagueId?: string;
@@ -31,24 +32,30 @@ export const RankingView: React.FC<RankingViewProps> = ({
     currentLeague,
     matches = []
 }) => {
+    const { tournamentId } = useTournament();
+    const isChampions = tournamentId === 'UCL2526';
+
     return (
         <div className="h-full flex flex-col animate-in fade-in duration-300">
             <Tabs defaultValue="participants" className="w-full h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
+                <TabsList className={`w-full mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155] ${isChampions ? 'flex' : 'grid grid-cols-2'}`}>
                     <TabsTrigger 
                         value="participants"
-                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        className="w-full data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                     >
                         <Users size={16} />
                         Participantes
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="fifa"
-                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
-                    >
-                        <Globe size={16} />
-                        Tabla de posiciones
-                    </TabsTrigger>
+                    
+                    {!isChampions && (
+                        <TabsTrigger 
+                            value="fifa"
+                            className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        >
+                            <Globe size={16} />
+                            Tabla de posiciones
+                        </TabsTrigger>
+                    )}
                 </TabsList>
 
                 <TabsContent value="participants" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
@@ -64,9 +71,11 @@ export const RankingView: React.FC<RankingViewProps> = ({
                       ) : null}
                 </TabsContent>
 
-                <TabsContent value="fifa" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
-                    <GroupStageView matches={matches} />
-                </TabsContent>
+                {!isChampions && (
+                    <TabsContent value="fifa" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
+                        <GroupStageView matches={matches} />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );

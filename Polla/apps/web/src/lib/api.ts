@@ -12,10 +12,20 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    // 1. Token Injection
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (token) {
       config.headers.Authorization = 'Bearer ' + token;
     }
+
+    // 2. Tournament Context Injection (Dynamic Header)
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      // Simple logic: if subdomain is 'champions', send UCL, otherwise WC
+      const tournamentId = hostname.includes('champions') ? 'UCL2526' : 'WC2026';
+      config.headers['X-Tournament-Id'] = tournamentId;
+    }
+
     return config;
   },
   (error) => {

@@ -38,6 +38,7 @@ async function seedUCL() {
         await matchRepo.delete({ tournamentId: 'UCL2526' });
         
         // TEAM LOGOS (Using reliable CDN or placeholders)
+        const FLAGS: Record<string, string> = {
             'Benfica': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg&w=200&output=png', 
             'Real Madrid': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg&w=200&output=png', 
             'AC Milan': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg&w=200&output=png',
@@ -61,7 +62,6 @@ async function seedUCL() {
             'Qarabağ': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/e/e8/Qaraba%C4%9F_FK_logo.png&w=200&output=png',
             'Newcastle': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg&w=200&output=png',
             'Olympiacos': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/d/d8/Olympiacos_FC_logo.svg&w=200&output=png',
-            'Bodø/Glimt': 'https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/0/0e/FK_Bod%C3%B8_Glimt_logo.svg&w=200&output=png'
         };
 
         // MATCHES DATA

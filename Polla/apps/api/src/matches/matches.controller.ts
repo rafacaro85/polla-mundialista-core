@@ -43,12 +43,15 @@ export class MatchesController {
         externalId?: number;
         stadium?: string;
         leagueId?: number;
-    }) {
+        tournamentId?: string;
+    }, @Request() req: any) {
+        const tournamentId = body.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
         return this.matchesService.createMatch({
             homeTeam: body.homeTeam,
             awayTeam: body.awayTeam,
             date: body.date,
             externalId: body.externalId,
+            tournamentId,
         });
     }
 

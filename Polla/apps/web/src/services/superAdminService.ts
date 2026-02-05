@@ -60,8 +60,8 @@ export const superAdminService = {
     },
 
     // --- MATCHES ---
-    getAllMatches: async () => {
-        const response = await api.get('/matches');
+    getAllMatches: async (tournamentId?: string) => {
+        const response = await api.get('/matches', { params: { tournamentId } });
         return response.data;
     },
 

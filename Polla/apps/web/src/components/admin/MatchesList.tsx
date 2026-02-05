@@ -234,7 +234,8 @@ export function MatchesList() {
     const loadMatches = async () => {
         try {
             setLoading(true);
-            const data = await superAdminService.getAllMatches();
+            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            const data = await superAdminService.getAllMatches(tournamentId);
             setMatches(data);
         } catch (error) {
             console.error("Error loading matches:", error);

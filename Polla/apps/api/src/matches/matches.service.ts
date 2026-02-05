@@ -80,9 +80,11 @@ export class MatchesService {
         awayTeam: string;
         date: Date;
         externalId?: number;
+        tournamentId?: string;
     }): Promise<Match> {
         const newMatch = this.matchesRepository.create({
             ...data,
+            tournamentId: data.tournamentId || 'WC2026',
             homeScore: 0,
             awayScore: 0,
             status: 'NS', // Not Started

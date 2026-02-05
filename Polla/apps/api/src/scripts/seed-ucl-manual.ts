@@ -39,32 +39,30 @@ async function seedUCL() {
         
         // TEAM LOGOS (Using reliable CDN or placeholders)
         const FLAGS: Record<string, string> = {
-            'Benfica': 'https://upload.wikimedia.org/wikipedia/commons/a/a2/SL_Benfica_logo.svg', // Changed to commons/a/a2 if possible, or try another source. valid: https://upload.wikimedia.org/wikipedia/commons/a/a2/SL_Benfica_logo.svg (Redirects?) -> Try https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/SL_Benfica_logo.svg/1200px-SL_Benfica_logo.svg.png just to be safe? No, stick to SVG if possible but from commons.
-            // Let's use known working Commons URLs where possible.
-            // Removed duplicate 'Benfica': '...' here. 
-            'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/1200px-Real_Madrid_CF.svg.png', // Fallback to PNG for "en" wiki if SVG fails CORS
-            'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
+            'Benfica': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/SL_Benfica_logo.svg/1200px-SL_Benfica_logo.svg.png', 
+            'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/1200px-Real_Madrid_CF.svg.png', 
+            'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Logo_of_AC_Milan.svg/1200px-Logo_of_AC_Milan.svg.png',
             'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/1200px-Liverpool_FC.svg.png',
             'PSV': 'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/PSV_Eindhoven.svg/1200px-PSV_Eindhoven.svg.png',
             'Arsenal': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Arsenal_FC.svg/1200px-Arsenal_FC.svg.png',
-            'Club Brugge': 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Club_Brugge_KV_logo.svg/1200px-Club_Brugge_KV_logo.svg.png', // This worked? No, user said "CLU" (Logo) in Image 2. Wait. Image 2 has CLU logo. It was working.
+            'Club Brugge': 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Club_Brugge_KV_logo.svg/1200px-Club_Brugge_KV_logo.svg.png',
             'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/1200px-Atletico_Madrid_2017_logo.svg.png',
             'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Juventus_FC_2017_icon_%28black%29.svg/1200px-Juventus_FC_2017_icon_%28black%29.svg.png',
-            'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-            'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg', // Worked
-            'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg', // Worked
-            'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Logo%29.svg',
-            'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-            'Feyenoord': 'https://upload.wikimedia.org/wikipedia/en/e/e3/Feyenoord_logo.svg',
+            'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Manchester_City_FC_badge.svg/1200px-Manchester_City_FC_badge.svg.png',
+            'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Bayer_04_Leverkusen_logo.svg/1200px-Bayer_04_Leverkusen_logo.svg.png',
+            'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/FC_Internazionale_Milano_2021.svg/1200px-FC_Internazionale_Milano_2021.svg.png',
+            'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e1/Sporting_Clube_de_Portugal_%28Logo%29.svg/1200px-Sporting_Clube_de_Portugal_%28Logo%29.svg.png',
+            'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/1200px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png',
+            'Feyenoord': 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/Feyenoord_logo.svg/1200px-Feyenoord_logo.svg.png',
             'PSG': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/1200px-Paris_Saint-Germain_F.C..svg.png',
             'Galatasaray': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galatasaray_Sports_Club_Logo.png/1200px-Galatasaray_Sports_Club_Logo.png',
-            'Monaco': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/AS_Monaco_FC_logo.svg/1200px-AS_Monaco_FC_logo.svg.png', // Using PNG thumb for safety
-            'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg', // Worked
-            'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg', // Worked? Image 1: ATA logo. Yes.
+            'Monaco': 'https://upload.wikimedia.org/wikipedia/df/d5/AS_Monaco_FC_logo.png', // Trying simple PNG URL without thumb complexity if possible, or fallback to reliable source.
+            'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Borussia_Dortmund_logo.svg/1200px-Borussia_Dortmund_logo.svg.png',
+            'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/AtalantaBC.svg/1200px-AtalantaBC.svg.png',
             'Qarabağ': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Qaraba%C4%9F_FK_logo.png/1200px-Qaraba%C4%9F_FK_logo.png',
-            'Newcastle': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg', // Worked
+            'Newcastle': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Newcastle_United_Logo.svg/1200px-Newcastle_United_Logo.svg.png',
             'Olympiacos': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Olympiacos_FC_logo.svg/1200px-Olympiacos_FC_logo.svg.png',
-            'Bodø/Glimt': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/FK_Bod%C3%B8_Glimt.svg/1200px-FK_Bod%C3%B8_Glimt.svg.png'
+            'Bodø/Glimt': 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0e/FK_Bod%C3%B8_Glimt_logo.svg/1200px-FK_Bod%C3%B8_Glimt_logo.svg.png'
         };
 
         // MATCHES DATA

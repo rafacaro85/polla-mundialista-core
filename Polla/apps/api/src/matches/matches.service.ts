@@ -560,16 +560,18 @@ export class MatchesService {
             }
             await qbPhases.execute();
 
-            // Re-abrir fase de grupos (siempre)
-            const qbReopenGroup = queryRunner.manager.createQueryBuilder()
-                .update(KnockoutPhaseStatus)
-                .set({ isUnlocked: true })
-                .where("phase = :p", { p: 'GROUP' });
-            
-            if (tid) {
-                qbReopenGroup.andWhere("tournamentId = :tid", { tid });
+            // Re-abrir fases iniciales
+            const initialPhases = [];
+            if (!tid || tid === 'WC2026') initialPhases.push({ tid: 'WC2026', phase: 'GROUP' });
+            if (!tid || tid === 'UCL2526') initialPhases.push({ tid: 'UCL2526', phase: 'PLAYOFF' });
+
+            for (const item of initialPhases) {
+                await queryRunner.manager.createQueryBuilder()
+                    .update(KnockoutPhaseStatus)
+                    .set({ isUnlocked: true })
+                    .where("phase = :p AND \"tournamentId\" = :t", { p: item.phase, t: item.tid })
+                    .execute();
             }
-            await qbReopenGroup.execute();
 
 
             // 5. RECALCULAR Puntos de Participantes

@@ -66,9 +66,10 @@ async function runMigration() {
                  id: u.id,
                  // PROTECCIÓN CONTRA DESBORDAMIENTO (Truncar str a 100 chars)
                  // Intentamos mapear múltiples posibles nombres de columna
-                 fullName: (u.fullName || u.name || u.nombre || u.nombres || (u.firstName ? `${u.firstName} ${u.lastName}` : '') || 'Unknown').substring(0, 99),
+                 // FIX: Prioritize 'full_name' as seen in legacy DB inspection
+                 fullName: (u.full_name || u.fullName || u.name || u.nombre || u.nombres || (u.firstName ? `${u.firstName} ${u.lastName}` : '') || 'Unknown').substring(0, 99),
                  nickname: (u.nickname || u.username || u.alias || u.email.split('@')[0]).substring(0, 99),
-                 phoneNumber: (u.phoneNumber || u.phone || u.celular || u.mobile || u.telefono || '').substring(0, 20),
+                 phoneNumber: (u.phoneNumber || u.phone_number || u.phone || u.celular || u.mobile || u.telefono || '').substring(0, 20),
                  updatedAt: new Date()
             };
 

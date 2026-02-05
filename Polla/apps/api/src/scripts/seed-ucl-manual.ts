@@ -33,29 +33,23 @@ async function seedUCL() {
     const phaseRepo = ds.getRepository(KnockoutPhaseStatus);
 
     try {
+        // CLEANUP: Delete previous beta/test matches for this tournament
+        console.log('🧹 Clearing old UCL2526 matches...');
+        await matchRepo.delete({ tournamentId: 'UCL2526' });
+        
         // MATCHES DATA
         const MATCHES_DATA = [
-            // PLAY-OFFS IDA (Feb 17-18, 2026)
-            { date: '2026-02-17T20:00:00Z', home: 'Benfica', away: 'Real Madrid', group: 'PO', stadium: 'Estádio da Luz' },
-            { date: '2026-02-17T20:00:00Z', home: 'AC Milan', away: 'Liverpool', group: 'PO', stadium: 'San Siro' },
-            { date: '2026-02-17T20:00:00Z', home: 'PSV', away: 'Arsenal', group: 'PO', stadium: 'Philips Stadion' },
-            { date: '2026-02-17T20:00:00Z', home: 'Club Brugge', away: 'Atletico Madrid', group: 'PO', stadium: 'Jan Breydel Stadium' },
-            
-            { date: '2026-02-18T20:00:00Z', home: 'Juventus', away: 'Manchester City', group: 'PO', stadium: 'Allianz Stadium' },
-            { date: '2026-02-18T20:00:00Z', home: 'Bayer Leverkusen', away: 'Inter Milan', group: 'PO', stadium: 'BayArena' },
-            { date: '2026-02-18T20:00:00Z', home: 'Sporting CP', away: 'Bayern Munich', group: 'PO', stadium: 'Estádio José Alvalade' },
-            { date: '2026-02-18T20:00:00Z', home: 'Feyenoord', away: 'PSG', group: 'PO', stadium: 'De Kuip' },
-    
-            // PLAY-OFFS VUELTA (Feb 24-25, 2026)
-            { date: '2026-02-24T20:00:00Z', home: 'Real Madrid', away: 'Benfica', group: 'PO', stadium: 'Santiago Bernabéu' },
-            { date: '2026-02-24T20:00:00Z', home: 'Liverpool', away: 'AC Milan', group: 'PO', stadium: 'Anfield' },
-            { date: '2026-02-24T20:00:00Z', home: 'Arsenal', away: 'PSV', group: 'PO', stadium: 'Emirates Stadium' },
-            { date: '2026-02-24T20:00:00Z', home: 'Atletico Madrid', away: 'Club Brugge', group: 'PO', stadium: 'Metropolitano' },
-    
-            { date: '2026-02-25T20:00:00Z', home: 'Manchester City', away: 'Juventus', group: 'PO', stadium: 'Etihad Stadium' },
-            { date: '2026-02-25T20:00:00Z', home: 'Inter Milan', away: 'Bayer Leverkusen', group: 'PO', stadium: 'San Siro' },
-            { date: '2026-02-25T20:00:00Z', home: 'Bayern Munich', away: 'Sporting CP', group: 'PO', stadium: 'Allianz Arena' },
-            { date: '2026-02-25T20:00:00Z', home: 'PSG', away: 'Feyenoord', group: 'PO', stadium: 'Parc des Princes' }
+            // PLAY-OFFS IDA (Feb 17, 2026)
+            { date: '2026-02-17T12:45:00Z', home: 'Galatasaray', away: 'Juventus', group: 'PO', stadium: 'RAMS Park' },
+            { date: '2026-02-17T15:00:00Z', home: 'Monaco', away: 'PSG', group: 'PO', stadium: 'Stade Louis II' },
+            { date: '2026-02-17T15:00:00Z', home: 'Benfica', away: 'Real Madrid', group: 'PO', stadium: 'Estádio da Luz' },
+            { date: '2026-02-17T15:00:00Z', home: 'Borussia Dortmund', away: 'Atalanta', group: 'PO', stadium: 'Signal Iduna Park' },
+
+            // PLAY-OFFS IDA (Feb 18, 2026)
+            { date: '2026-02-18T12:45:00Z', home: 'Qarabağ', away: 'Newcastle', group: 'PO', stadium: 'Tofiq Bahramov Stadium' },
+            { date: '2026-02-18T15:00:00Z', home: 'Olympiacos', away: 'Bayer Leverkusen', group: 'PO', stadium: 'Karaiskakis Stadium' },
+            { date: '2026-02-18T15:00:00Z', home: 'Bodø/Glimt', away: 'Inter Milan', group: 'PO', stadium: 'Aspmyra Stadion' },
+            { date: '2026-02-18T15:00:00Z', home: 'Club Brugge', away: 'Atletico Madrid', group: 'PO', stadium: 'Jan Breydel Stadium' },
         ];
 
         let count = 0;

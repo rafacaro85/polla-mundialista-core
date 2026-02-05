@@ -35,7 +35,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   @Get()
   async getAllUsers() {
     console.log('📋 [GET /users] Listando todos los usuarios...');

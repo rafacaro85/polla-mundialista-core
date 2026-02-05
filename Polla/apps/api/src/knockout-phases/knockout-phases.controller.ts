@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, Headers, Query } from '@nestjs/common';
 import { KnockoutPhasesService } from './knockout-phases.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -8,21 +8,26 @@ import { Roles } from '../common/decorators/roles.decorator';
 export class KnockoutPhasesController {
     constructor(private readonly knockoutPhasesService: KnockoutPhasesService) { }
 
+    private getTournamentId(headers: any, query: any): string {
+        return headers['x-tournament-id'] || query.tournamentId || 'WC2026';
+    }
+
     /**
      * Get status of all phases
-     * Public endpoint - anyone can see which phases are unlocked
      */
     @Get('status')
-    async getAllPhasesStatus() {
-        return this.knockoutPhasesService.getAllPhasesStatus();
+    async getAllPhasesStatus(@Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        return this.knockoutPhasesService.getAllPhasesStatus(tournamentId);
     }
 
     /**
      * Get status of specific phase
      */
     @Get(':phase/status')
-    async getPhaseStatus(@Param('phase') phase: string) {
-        return this.knockoutPhasesService.getPhaseStatus(phase);
+    async getPhaseStatus(@Param('phase') phase: string, @Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        return this.knockoutPhasesService.getPhaseStatus(phase, tournamentId);
     }
 
     /**
@@ -31,8 +36,9 @@ export class KnockoutPhasesController {
      */
     @UseGuards(JwtAuthGuard)
     @Get(':phase/matches')
-    async getPhaseMatches(@Param('phase') phase: string) {
-        return this.knockoutPhasesService.getPhaseMatches(phase);
+    async getPhaseMatches(@Param('phase') phase: string, @Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        return this.knockoutPhasesService.getPhaseMatches(phase, tournamentId);
     }
 
     /**
@@ -41,16 +47,18 @@ export class KnockoutPhasesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('SUPER_ADMIN')
     @Post(':phase/unlock')
-    async unlockPhase(@Param('phase') phase: string) {
-        return this.knockoutPhasesService.unlockPhase(phase);
+    async unlockPhase(@Param('phase') phase: string, @Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        return this.knockoutPhasesService.unlockPhase(phase, tournamentId);
     }
 
     /**
      * Get info about next phase to unlock
      */
     @Get('next/info')
-    async getNextPhaseInfo() {
-        return this.knockoutPhasesService.getNextPhaseInfo();
+    async getNextPhaseInfo(@Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        return this.knockoutPhasesService.getNextPhaseInfo(tournamentId);
     }
 
     /**
@@ -59,8 +67,9 @@ export class KnockoutPhasesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('SUPER_ADMIN')
     @Post(':phase/check-unlock')
-    async checkAndUnlockNextPhase(@Param('phase') phase: string) {
-        await this.knockoutPhasesService.checkAndUnlockNextPhase(phase);
-        return { message: `Checked ${phase} and unlocked next phase if ready` };
+    async checkAndUnlockNextPhase(@Param('phase') phase: string, @Headers() headers: any, @Query() query: any) {
+        const tournamentId = this.getTournamentId(headers, query);
+        await this.knockoutPhasesService.checkAndUnlockNextPhase(phase, tournamentId);
+        return { message: `Checked ${phase} and unlocked next phase if ready for ${tournamentId}` };
     }
 }

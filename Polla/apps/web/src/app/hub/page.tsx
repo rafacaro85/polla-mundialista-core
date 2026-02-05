@@ -37,8 +37,12 @@ export default function TournamentHub() {
             className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-emerald-500 transition-all duration-300 p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl hover:shadow-emerald-900/20"
           >
             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="bg-emerald-500/20 p-4 rounded-full mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Trophy className="w-12 h-12 text-emerald-400" />
+            <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/2026_FIFA_World_Cup_logo.svg/1200px-2026_FIFA_World_Cup_logo.svg.png" 
+                alt="FIFA World Cup 2026" 
+                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] filter invert"
+              />
             </div>
             <h2 className="text-2xl font-bold mb-2 text-white">Mundial 2026</h2>
             <p className="text-sm text-slate-400 mb-6">
@@ -58,8 +62,12 @@ export default function TournamentHub() {
               BETA
             </div>
             <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="bg-blue-600/20 p-4 rounded-full mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Beaker className="w-12 h-12 text-blue-400" />
+            <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Official_logo_of_the_UEFA_Champions_League.svg/1200px-Official_logo_of_the_UEFA_Champions_League.svg.png" 
+                alt="UEFA Champions League" 
+                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] filter brightness-0 invert" 
+              />
             </div>
             <h2 className="text-2xl font-bold mb-2 text-white">Champions League 25/26</h2>
             <p className="text-sm text-slate-400 mb-6">

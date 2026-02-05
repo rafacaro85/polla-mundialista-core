@@ -99,7 +99,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount
 
                          <div className="flex flex-col items-center gap-1 w-full max-w-[250px]">
                              <div className="text-xl font-mono font-bold text-white bg-slate-800 px-4 py-2 rounded-lg border border-slate-600 select-all w-full text-center shadow-inner">
-                                 {selectedQR === 'BANCOLOMBIA' ? '27228258721' : '3105973421'}
+                                 {selectedQR === 'BANCOLOMBIA' ? '27228258721' : '3045414087'}
                              </div>
                              <p className="text-xs text-slate-500 font-medium">
                                 {selectedQR === 'BANCOLOMBIA' ? 'Ahorros Bancolombia' : (selectedQR === 'NEQUI' ? 'Nequi' : 'Daviplata')}

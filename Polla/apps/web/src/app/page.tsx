@@ -727,7 +727,7 @@ export default function LandingPage() {
       </footer>
 
       {/* --- WHATSAPP FLOATING BUTTON --- */}
-      <a href="https://wa.me/573105973421?text=Hola,%20me%20interesa%20la%20Polla%20Mundialista" target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">
+      <a href="https://wa.me/573045414087?text=Hola,%20me%20interesa%20la%20Polla%20Mundialista" target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-50 flex items-center gap-2 group">
         <MessageCircle size={24} fill="white" />
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 font-bold whitespace-nowrap">Chatea con Ventas</span>
       </a>

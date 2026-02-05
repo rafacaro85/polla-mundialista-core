@@ -8,7 +8,7 @@ export const useSystemConfig = () => {
         socials: {
             instagram: "https://instagram.com",
             facebook: "https://facebook.com",
-            whatsapp: "https://wa.me/123456",
+            whatsapp: "https://wa.me/573045414087",
             tiktok: "https://tiktok.com"
         },
         links: {

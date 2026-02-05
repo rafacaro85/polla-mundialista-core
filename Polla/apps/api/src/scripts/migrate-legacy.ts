@@ -1,9 +1,9 @@
 import { DataSource } from 'typeorm';
-import { User } from '../src/database/entities/user.entity';
-import { Match } from '../src/database/entities/match.entity';
-import { Prediction } from '../src/database/entities/prediction.entity';
-import { League } from '../src/database/entities/league.entity';
-import { LeagueParticipant } from '../src/database/entities/league-participant.entity';
+import { User } from '../database/entities/user.entity';
+import { Match } from '../database/entities/match.entity';
+import { Prediction } from '../database/entities/prediction.entity';
+import { League } from '../database/entities/league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { config } from 'dotenv';
 
 config();

@@ -319,7 +319,7 @@ export class MatchesService {
     }
 
 
-    async simulateResults(phase?: string, tournamentId: string = 'WC2026'): Promise<{ message: string; updated: number }> {
+    async simulateResults(phase?: string, tid: string = 'WC2026'): Promise<{ message: string; updated: number }> {
         try {
             // Determinamos qué fase simular
             let targetPhase = phase;
@@ -330,12 +330,12 @@ export class MatchesService {
                     where: { 
                         isUnlocked: true, 
                         allMatchesCompleted: false,
-                        tournamentId // 🔥 Critical fix: filter by tournament
+                        tournamentId: tid // 🔥 Critical fix: filter by tournament using tid
                     }
                 });
 
                 // Orden real de las fases (Merged order is OK, filtering handles isolation)
-                const phaseOrder = tournamentId === 'UCL2526' 
+                const phaseOrder = tid === 'UCL2526' 
                     ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
                     : ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
                     
@@ -344,11 +344,11 @@ export class MatchesService {
                 if (sortedUnlocked.length > 0) {
                     targetPhase = sortedUnlocked[0].phase;
                 } else {
-                    targetPhase = tournamentId === 'UCL2526' ? 'PLAYOFF' : 'GROUP'; // Default
+                    targetPhase = tid === 'UCL2526' ? 'PLAYOFF' : 'GROUP'; // Default
                 }
             }
 
-            console.log(`🤖 [SIMULATOR] Iniciando simulación para fase: ${targetPhase} (${tournamentId})`);
+            console.log(`🤖 [SIMULATOR] Iniciando simulación para fase: ${targetPhase} (${tid})`);
 
             // NEW: Ensure integrity of tournament structure before anything
             const integrityCheck = await this.ensureTournamentIntegrity();
@@ -363,7 +363,7 @@ export class MatchesService {
             // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
             // Esto corrige situaciones donde la fase N está vacía a pesar de que N-1 terminó.
             if (targetPhase !== 'GROUP' && targetPhase !== 'PLAYOFF') {
-                 const phaseOrder = tournamentId === 'UCL2526' 
+                 const phaseOrder = tid === 'UCL2526' 
                     ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
                     : ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
                     
@@ -383,7 +383,7 @@ export class MatchesService {
             const matches = await this.matchesRepository.find({
                 where: {
                     phase: targetPhase,
-                    tournamentId, // 🔥 Filter by tournament
+                    tournamentId: tid, // 🔥 Filter by tournament using tid
                     status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS', 'NOT_STARTED'])
                 }
             });

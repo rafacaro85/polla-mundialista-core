@@ -384,7 +384,7 @@ export class MatchesService {
                 where: {
                     phase: targetPhase,
                     tournamentId: tid, // 🔥 Filter by tournament using tid
-                    status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS', 'NOT_STARTED'])
+                    status: In(['PENDING', 'NS', 'LIVE', 'IN_PROGRESS', 'NOT_STARTED', 'SCHEDULED'])
                 }
             });
 

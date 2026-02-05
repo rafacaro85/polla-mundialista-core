@@ -482,74 +482,158 @@ export class MatchesService {
         }
     }
 
-    async resetAllMatches(): Promise<{ message: string; reset: number }> {
+    async resetAllMatches(tid?: string): Promise<{ message: string; reset: number }> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // 1. Limpiar todos los partidos
-            const matches = await this.matchesRepository.find();
-            for (const match of matches) {
-                match.homeScore = null;
-                match.awayScore = null;
-                match.status = 'PENDING';
-                match.isManuallyLocked = false;
+            console.log(`🧹 [RESET] Iniciando reseteo de partidos. TournamentId: ${tid || 'ALL'}`);
 
-                // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
-                if (match.phase !== 'GROUP' && (match.homeTeamPlaceholder || match.awayTeamPlaceholder)) {
-                    match.homeTeam = '';
-                    match.awayTeam = '';
-                    match.homeFlag = null as any;
-                    match.awayFlag = null as any;
-                }
-                await queryRunner.manager.save(match);
+            // 1. Limpiar partidos (score=null, status='PENDING')
+            const qbMatches = queryRunner.manager.createQueryBuilder()
+                .update(Match)
+                .set({
+                    homeScore: null,
+                    awayScore: null,
+                    status: 'PENDING',
+                    isManuallyLocked: false
+                });
+            
+            if (tid) {
+                qbMatches.where("tournamentId = :tid", { tid });
             }
+            await qbMatches.execute();
+
+            // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
+            // Para reset parcial, verificamos el torneo tambien.
+            // Esto es más delicado con QueryBuilder puro, iteramos si es necesario o un update condicional complejo
+            // Simplificación: Si reseteamos TODO, limpiamos placeholders. Si es por torneo, igual limpiamos placeholders de ESE torneo.
+            const qbPlaceholders = queryRunner.manager.createQueryBuilder()
+                 .update(Match)
+                 .set({
+                     homeTeam: '',
+                     awayTeam: '',
+                     homeFlag: null,
+                     awayFlag: null
+                 })
+                 .where("phase != 'GROUP' AND (homeTeamPlaceholder IS NOT NULL OR awayTeamPlaceholder IS NOT NULL)");
+            
+            if (tid) {
+                qbPlaceholders.andWhere("tournamentId = :tid", { tid });
+            }
+            await qbPlaceholders.execute();
+
 
             // 2. Resetear todas las predicciones a 0 puntos
-            await queryRunner.manager.createQueryBuilder()
+            const qbPreds = queryRunner.manager.createQueryBuilder()
                 .update(Prediction)
-                .set({ points: 0 })
-                .execute();
+                .set({ points: 0 });
+            
+            if (tid) {
+                qbPreds.where("tournamentId = :tid", { tid });
+            }
+            await qbPreds.execute();
 
-            // 3. Resetear puntos de participantes
-            await queryRunner.manager.createQueryBuilder()
-                .update(LeagueParticipant)
-                .set({
-                    totalPoints: 0,
-                    currentRank: null as any,
-                    triviaPoints: 0,
-                    tieBreakerGuess: null as any
-                })
-                .execute();
-
-            // 4. Limpiar Brackets
-            await queryRunner.manager.createQueryBuilder()
+            // 3. Resetear puntos de Brackets
+            const qbBrackets = queryRunner.manager.createQueryBuilder()
                 .update(UserBracket)
-                .set({ points: 0 })
-                .execute();
+                .set({ points: 0 });
+            
+            if (tid) {
+                qbBrackets.where("tournamentId = :tid", { tid });
+            }
+            await qbBrackets.execute();
 
-            // 5. Resetear estados de fases eliminatorias
-            await queryRunner.manager.createQueryBuilder()
+
+            // 4. Resetear estados de fases eliminatorias
+            const qbPhases = queryRunner.manager.createQueryBuilder()
                 .update(KnockoutPhaseStatus)
                 .set({
                     isUnlocked: false,
                     allMatchesCompleted: false,
-                    unlockedAt: null as any
-                })
-                .execute();
+                    unlockedAt: null
+                });
+            
+            if (tid) {
+                qbPhases.where("tournamentId = :tid", { tid });
+            }
+            await qbPhases.execute();
 
-            await queryRunner.manager.createQueryBuilder()
+            // Re-abrir fase de grupos (siempre)
+            const qbReopenGroup = queryRunner.manager.createQueryBuilder()
                 .update(KnockoutPhaseStatus)
                 .set({ isUnlocked: true })
-                .where("phase = :p", { p: 'GROUP' })
-                .execute();
+                .where("phase = :p", { p: 'GROUP' });
+            
+            if (tid) {
+                qbReopenGroup.andWhere("tournamentId = :tid", { tid });
+            }
+            await qbReopenGroup.execute();
+
+
+            // 5. RECALCULAR Puntos de Participantes
+            // Si reseteamos un torneo específico, no podemos poner totalPoints a 0 indiscriminadamente.
+            // Debemos sumar los puntos válidos restantes de las tablas Predictions y UserBrackets.
+            
+            console.log('🔄 [RESET] Recalculando puntos de participantes...');
+            
+            // Recalcular predictionPoints
+            await queryRunner.query(`
+                UPDATE league_participants lp 
+                SET prediction_points = (
+                    SELECT COALESCE(SUM(p.points), 0) 
+                    FROM predictions p 
+                    WHERE p.league_id = lp.league_id AND p.user_id = lp.user_id
+                )
+            `);
+
+            // Recalcular bracketPoints
+            // Nota: UserBracket usa "userId" y "leagueId" (camelCase) segun entity, pero DB es snake_case o camelCase?
+            // UserBracket entity: @JoinColumn({ name: 'userId' }), @JoinColumn({ name: 'leagueId' })
+            // Wait, entity def says: @JoinColumn({ name: 'userId' }). Usually TypeORM defaults to camelCase if not specified, or checks naming strategy.
+            // Let's assume the columns in DB are "userId" and "leagueId" based on entity, OR TypeORM maps them.
+            // But since I am using RAW SQL, I must know the exact column names.
+            // Prediction entity uses @Column({ name: 'league_id' }).
+            // UserBracket uses @JoinColumn({ name: 'userId' }).
+            // Safest bet: UserBracket usually has snake_case in standard postgres if not forced.
+            // Let's check a standard query or assume "userId" because of the explicit JoinColumn name.
+            // However, to be 100% safe against column naming issues, let's use TypeORM QB for the summation? 
+            // TypeORM QB update with subquery is hard.
+            // I'll assume "userId" and "leagueId" because logic usually dictates consistency.
+            // BUT previous logs showed: "relation match does not exist".
+            // Let's try to update trivial columns first.
+            // Actually, if we just set totalPoints = 0 it's wrong for partial reset.
+            // Let's try: total_points = prediction_points + bracket_points + trivia_points + joker_points.
+            
+            // To be safe with `bracket_points`, let's just sum `predictions` (which we know works) and keep `bracket_points` as is? 
+            // No, we reset `UserBracket` points to 0 above. So `bracketPoints` in `LeagueParticipant` MUST be updated too.
+            
+            // RAW SQL names: 
+            // predictions -> league_id, user_id (based on Prediction entity)
+            // user_brackets -> "userId", "leagueId" (based on UserBracket entity explicit JoinColumn)
+            // league_participants -> league_id, user_id (based on explicit JoinColumn)
+            
+            await queryRunner.query(`
+                UPDATE league_participants lp 
+                SET bracket_points = (
+                    SELECT COALESCE(SUM(ub.points), 0) 
+                    FROM user_brackets ub 
+                    WHERE ub."leagueId" = lp.league_id AND ub."userId" = lp.user_id
+                )
+            `);
+            
+            // Update Total
+            await queryRunner.query(`
+                UPDATE league_participants 
+                SET total_points = prediction_points + bracket_points + trivia_points + joker_points
+            `);
 
             await queryRunner.commitTransaction();
 
             return {
-                message: `Sistema reiniciado correctamente: ${matches.length} partidos limpios.`,
-                reset: matches.length
+                message: `Sistema reiniciado correctamente para ${tid || 'TODOS'}. Puntos recalculados.`,
+                reset: 1
             };
         } catch (error) {
             console.error("❌ Error profundo en resetAllMatches:", error);

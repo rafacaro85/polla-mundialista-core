@@ -140,8 +140,9 @@ export class MatchesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Post('reset-all')
-    async resetAllMatches() {
-        return this.matchesService.resetAllMatches();
+    async resetAllMatches(@Body() body: { tournamentId?: string }, @Request() req: any) {
+        const tournamentId = body?.tournamentId || req.headers['x-tournament-id'];
+        return this.matchesService.resetAllMatches(tournamentId);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

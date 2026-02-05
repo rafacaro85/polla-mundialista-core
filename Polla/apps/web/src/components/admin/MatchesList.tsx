@@ -427,10 +427,11 @@ export function MatchesList() {
                         <button
                             style={{ ...STYLES.syncBtn, backgroundColor: '#475569', color: 'white' }}
                             onClick={async () => {
-                                if (confirm("¿Estás seguro de REINICIAR TODO el sistema? Se borrarán marcadores y puntos.")) {
+                                if (confirm("¿Estás seguro de REINICIAR TODO el sistema para este torneo? Se borrarán marcadores y puntos.")) {
                                     try {
                                         setSyncing(true);
-                                        const res = await superAdminService.resetAllMatches();
+                                        const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+                                        const res = await superAdminService.resetAllMatches(tournamentId);
                                         toast.success(res.message);
                                         loadMatches();
                                     } catch (e) {

@@ -95,8 +95,8 @@ export const superAdminService = {
         return response.data;
     },
 
-    resetAllMatches: async () => {
-        const response = await api.post('/matches/reset-all');
+    resetAllMatches: async (tournamentId?: string) => {
+        const response = await api.post('/matches/reset-all', { tournamentId });
         return response.data;
     },
 

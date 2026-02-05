@@ -115,6 +115,11 @@ export const superAdminService = {
         return response.data;
     },
 
+    fixUCLData: async () => {
+        const response = await api.post('/matches/fix-ucl-data');
+        return response.data;
+    },
+
     diagnoseKnockout: async () => {
         const matches = await api.get('/matches');
         const phases = await api.get('/knockout-phases');

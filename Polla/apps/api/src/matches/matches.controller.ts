@@ -167,6 +167,13 @@ export class MatchesController {
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
+    @Post('fix-ucl-data')
+    async fixUCLData() {
+        return this.matchesService.fixUCLMatchData();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN')
     @Post('fix-empty-teams')
     async fixEmptyTeams() {
         return this.matchesService.fixEmptyTeamFields();

@@ -667,6 +667,41 @@ export class MatchesService {
         return { message: 'Brackets Rebuilt Cleanly' };
     }
 
+    async fixUCLMatchData() {
+        console.log('🔧 [FIX] Running manual fix for UCL Matches tagged as WC2026...');
+        const uclTeams = [
+            'Manchester City', 'Juventus',
+            'Real Madrid', 'Benfica',
+            'Liverpool', 'AC Milan',
+            'Arsenal', 'PSV',
+            'Atletico Madrid', 'Club Brugge',
+            'Inter Milan', 'Bayer Leverkusen',
+            'Bayern Munich', 'Sporting CP',
+            'PSG', 'Feyenoord'
+        ];
+
+        // Method 1: Update by Home Team
+        const res1 = await this.matchesRepository.createQueryBuilder()
+            .update(Match)
+            .set({ tournamentId: 'UCL2526' })
+            .where("homeTeam IN (:...teams)", { teams: uclTeams })
+            .andWhere("tournamentId = 'WC2026'")
+            .execute();
+
+        // Method 2: Update by Away Team
+        const res2 = await this.matchesRepository.createQueryBuilder()
+            .update(Match)
+            .set({ tournamentId: 'UCL2526' })
+            .where("awayTeam IN (:...teams)", { teams: uclTeams })
+            .andWhere("tournamentId = 'WC2026'")
+            .execute();
+
+        const total = (res1.affected || 0) + (res2.affected || 0);
+        console.log(`✅ [FIX] Updated ${total} UCL matches found in WC2026.`);
+        
+        return { message: `Corregidos ${total} partidos de Champions que estaban en Mundial`, updated: total };
+    }
+
     async fixEmptyTeamFields() {
         console.log('🔧 [FIX] Fixing empty team fields in knockout matches...');
         const knockoutPhases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL', '3RD_PLACE'];

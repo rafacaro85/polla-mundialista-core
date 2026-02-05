@@ -509,6 +509,26 @@ export function MatchesList() {
                             </button>
 
                             <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#0EA5E9', color: 'white' }}
+                                onClick={async () => {
+                                    try {
+                                        setSyncing(true);
+                                        const res = await superAdminService.fixUCLData();
+                                        toast.success(res.message);
+                                        loadMatches();
+                                    } catch (e) {
+                                        toast.error("Error al corregir datos");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                <Database size={14} />
+                                Corregir Datos Champions
+                            </button>
+
+                            <button
                                 style={{ ...STYLES.syncBtn, backgroundColor: '#6366F1', color: 'white' }}
                                 onClick={async () => {
                                     if (confirm("¿Crear llaves de Dieciseisavos y Octavos para el Mundial 2026?")) {

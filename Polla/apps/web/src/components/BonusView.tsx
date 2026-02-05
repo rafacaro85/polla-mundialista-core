@@ -45,10 +45,15 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
 
     const loadData = async () => {
         try {
-            const queryParam = leagueId ? `?leagueId=${leagueId}` : '';
+            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            const params = new URLSearchParams();
+            if (leagueId) params.append('leagueId', leagueId);
+            params.append('tournamentId', tournamentId);
+            const queryString = `?${params.toString()}`;
+
             const [questionsRes, answersRes] = await Promise.all([
-                api.get(`/bonus/questions${queryParam}`),
-                api.get(`/bonus/my-answers${queryParam}`)
+                api.get(`/bonus/questions${queryString}`),
+                api.get(`/bonus/my-answers${queryString}`)
             ]);
 
             setQuestions(questionsRes.data);

@@ -35,7 +35,8 @@ export const GlobalRankingTable = () => {
         const fetchRanking = async () => {
             setLoading(true);
             try {
-                const { data } = await api.get('/leagues/global/ranking');
+                const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+                const { data } = await api.get('/leagues/global/ranking', { params: { tournamentId } });
                 const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
                     rank: index + 1,
                     name: item.nickname || item.user?.nickname || 'Anónimo',

@@ -51,17 +51,31 @@ async function runMigration() {
         const oldUsers = await queryRunner.query('SELECT * FROM "users"'); // CORREGIDO: PLURAL
         
         let importedUsers = 0;
+        let updatedUsers = 0;
+
+        if (oldUsers.length > 0) {
+            console.log('🔍 [DEBUG] KEY CHECK - First User:', Object.keys(oldUsers[0]));
+            console.log('🔍 [DEBUG] RAW USER SAMPLE:', oldUsers[0]);
+        }
         for (const u of oldUsers) {
             const exists = await targetDS.getRepository(User).findOne({ where: { email: u.email } });
+            
+            // Build user object from raw data
+            const userData = {
+                 ...u,
+                 id: u.id,
+                 // PROTECCIÓN CONTRA DESBORDAMIENTO (Truncar str a 100 chars)
+                 // Intentamos mapear múltiples posibles nombres de columna
+                 fullName: (u.fullName || u.name || u.nombre || u.nombres || (u.firstName ? `${u.firstName} ${u.lastName}` : '') || 'Unknown').substring(0, 99),
+                 nickname: (u.nickname || u.username || u.alias || u.email.split('@')[0]).substring(0, 99),
+                 phoneNumber: (u.phoneNumber || u.phone || u.celular || u.mobile || u.telefono || '').substring(0, 20),
+                 updatedAt: new Date()
+            };
+
             if (!exists) {
                 const newUser = targetDS.getRepository(User).create({
-                    ...u,
-                    id: u.id, 
-                    // PROTECCIÓN CONTRA DESBORDAMIENTO (Truncar str a 100 chars)
-                    fullName: u.fullName ? u.fullName.substring(0, 99) : 'Unknown',
-                    nickname: u.nickname ? u.nickname.substring(0, 99) : 'Unknown',
+                    ...userData,
                     createdAt: new Date(),
-                    updatedAt: new Date()
                 });
                 
                 try {
@@ -70,8 +84,20 @@ async function runMigration() {
                 } catch (err) {
                     console.error(`⚠️ Error importando usuario ${u.email}:`, err.message);
                 }
+            } else {
+                // UPDATE if exists (Fix missing names)
+                if (exists.fullName === 'Unknown' || !exists.phoneNumber) {
+                     await targetDS.getRepository(User).update({ id: exists.id }, {
+                         fullName: userData.fullName,
+                         nickname: userData.nickname,
+                         phoneNumber: userData.phoneNumber
+                     });
+                     updatedUsers++;
+                }
             }
         }
+        console.log(`✅ ${importedUsers} usuarios nuevos importados.`);
+        console.log(`✅ ${updatedUsers} usuarios existentes actualizados (corregidos).`);
         console.log(`✅ ${importedUsers} usuarios nuevos importados (de ${oldUsers.length} encontrados).`);
 
         // --- PASO 2: PARTIDOS (Solo Mundial) ---

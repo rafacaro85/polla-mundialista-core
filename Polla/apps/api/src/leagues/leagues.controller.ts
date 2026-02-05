@@ -13,6 +13,7 @@ import {
   NotFoundException,
   Res,
   Put,
+  Query,
 } from '@nestjs/common';
 import { LeaguesService } from './leagues.service';
 import { CreateLeagueDto } from './dto/create-league.dto';

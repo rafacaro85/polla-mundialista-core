@@ -44,7 +44,7 @@ export class LeaguesService {
 
   async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {
     try {
-      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone, adminEmail, adminPassword } = createLeagueDto;
+      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone, adminEmail, adminPassword, tournamentId } = createLeagueDto;
 
       console.log('--- CREATE LEAGUE DEBUG ---');
       console.log('Package Type:', packageType);
@@ -121,6 +121,7 @@ export class LeaguesService {
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,
+        tournamentId: tournamentId || 'WC2026', // Default to WC2026 if not provided
       });
 
       const savedLeague = await this.leaguesRepository.save(league);
@@ -410,10 +411,11 @@ export class LeaguesService {
     }));
   }
 
-  async getAllLeagues() {
+  async getAllLeagues(tournamentId?: string) {
     console.log('🔍 getAllLeagues called');
     try {
       const leagues = await this.leaguesRepository.find({
+        where: tournamentId ? { tournamentId } : {},
         relations: ['creator', 'participants'],
         order: { name: 'ASC' }
       });
@@ -449,10 +451,13 @@ export class LeaguesService {
     }
   }
 
-  async getMyLeagues(userId: string) {
+  async getMyLeagues(userId: string, tournamentId?: string) {
     console.log('getMyLeagues - userId:', userId);
     const participants = await this.leagueParticipantsRepository.find({
-      where: { user: { id: userId } },
+      where: { 
+        user: { id: userId },
+        league: tournamentId ? { tournamentId } : {}
+      },
       relations: ['league', 'league.creator', 'league.participants'],
     });
     console.log('getMyLeagues - participants found:', participants.length);

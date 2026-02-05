@@ -58,21 +58,21 @@ export class LeaguesController {
   }
 
   @Get('my')
-  async getMyLeagues(@Req() req: Request) {
+  async getMyLeagues(@Req() req: Request, @Query('tournamentId') tournamentId?: string) {
     const userPayload = req.user as { id: string; userId?: string };
     const userId = userPayload.userId || userPayload.id;
     if (!userId) {
       throw new InternalServerErrorException('User ID not found in request after authentication.');
     }
-    return this.leaguesService.getMyLeagues(userId);
+    return this.leaguesService.getMyLeagues(userId, tournamentId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get('all')
-  async getAllLeagues() {
-    console.log('📋 [GET /leagues/all] Listando todas las ligas...');
-    return this.leaguesService.getAllLeagues();
+  async getAllLeagues(@Query('tournamentId') tournamentId?: string) {
+    console.log(`📋 [GET /leagues/all] Listando todas las ligas (tournamentId: ${tournamentId})...`);
+    return this.leaguesService.getAllLeagues(tournamentId);
   }
 
   @Get(':id')

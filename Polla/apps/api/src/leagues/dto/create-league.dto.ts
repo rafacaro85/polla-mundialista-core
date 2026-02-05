@@ -20,6 +20,10 @@ export class CreateLeagueDto {
   accessCodePrefix?: string;
 
   @IsString()
+  @IsOptional()
+  tournamentId?: string;
+
+  @IsString()
   @IsNotEmpty()
   packageType: string;
 

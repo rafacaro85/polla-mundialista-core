@@ -785,7 +785,7 @@ export class MatchesService {
      * @param phase Phase name (ROUND_32, ROUND_16, QUARTER, SEMI, 3RD_PLACE, FINAL)
      * @param locked true to lock, false to unlock
      */
-    async setPhaseLock(phase: string, locked: boolean) {
+    async setPhaseLock(phase: string, locked: boolean, tournamentId: string = 'WC2026') {
         const validPhases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
         
         if (!validPhases.includes(phase)) {
@@ -793,11 +793,12 @@ export class MatchesService {
         }
 
         // Find or create phase status
-        let phaseStatus = await this.phaseStatusRepository.findOne({ where: { phase } });
+        let phaseStatus = await this.phaseStatusRepository.findOne({ where: { phase, tournamentId } });
 
         if (!phaseStatus) {
             phaseStatus = this.phaseStatusRepository.create({
                 phase,
+                tournamentId,
                 isManuallyLocked: locked,
                 isUnlocked: false,
                 allMatchesCompleted: false,
@@ -818,9 +819,11 @@ export class MatchesService {
     /**
      * Get status of all knockout phases
      */
-    async getAllPhaseStatus() {
+    async getAllPhaseStatus(tournamentId: string = 'WC2026') {
         const phases = ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
-        const statuses = await this.phaseStatusRepository.find();
+        
+        // Ensure we filter by tournamentId
+        const statuses = await this.phaseStatusRepository.find({ where: { tournamentId } });
 
         // Create a map for easy lookup
         const statusMap = new Map(statuses.map(s => [s.phase, s]));
@@ -833,6 +836,7 @@ export class MatchesService {
                 isManuallyLocked: status?.isManuallyLocked || false,
                 isUnlocked: status?.isUnlocked || false,
                 allMatchesCompleted: status?.allMatchesCompleted || false,
+                tournamentId
             };
         });
     }

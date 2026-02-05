@@ -205,18 +205,16 @@ export class MatchesController {
         return this.matchesService.setManualLock(id, body.locked);
     }
 
-    /**
-     * Toggle manual lock for an entire knockout phase
-     * Blocks/unblocks all bracket predictions for that phase
-     */
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Patch('phases/:phase/lock')
     async togglePhaseLock(
         @Param('phase') phase: string,
-        @Body() body: { locked: boolean },
+        @Body() body: { locked: boolean; tournamentId?: string },
+        @Request() req: any
     ) {
-        return this.matchesService.setPhaseLock(phase, body.locked);
+        const tournamentId = body.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+        return this.matchesService.setPhaseLock(phase, body.locked, tournamentId);
     }
 
     /**
@@ -225,7 +223,8 @@ export class MatchesController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ADMIN')
     @Get('phases/status')
-    async getPhaseStatus() {
-        return this.matchesService.getAllPhaseStatus();
+    async getPhaseStatus(@Request() req: any) {
+        const tournamentId = req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+        return this.matchesService.getAllPhaseStatus(tournamentId);
     }
 }

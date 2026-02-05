@@ -136,13 +136,13 @@ export const superAdminService = {
         };
     },
 
-    getPhaseStatus: async () => {
-        const response = await api.get('/matches/phases/status');
+    getPhaseStatus: async (tournamentId?: string) => {
+        const response = await api.get('/matches/phases/status', { params: { tournamentId } });
         return response.data;
     },
 
-    setPhaseLock: async (phase: string, locked: boolean) => {
-        const response = await api.patch(`/matches/phases/${phase}/lock`, { locked });
+    setPhaseLock: async (phase: string, locked: boolean, tournamentId?: string) => {
+        const response = await api.patch(`/matches/phases/${phase}/lock`, { locked, tournamentId });
         return response.data;
     },
 

@@ -27,7 +27,8 @@ export function PhaseLocksManager() {
     const loadPhases = async () => {
         try {
             setLoading(true);
-            const data = await superAdminService.getPhaseStatus();
+            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            const data = await superAdminService.getPhaseStatus(tournamentId);
             setPhases(data);
         } catch (error) {
             console.error('Error loading phases:', error);
@@ -51,7 +52,8 @@ export function PhaseLocksManager() {
         ));
 
         try {
-            await superAdminService.setPhaseLock(phase, newLockState);
+            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            await superAdminService.setPhaseLock(phase, newLockState, tournamentId);
             toast.success(newLockState ? `🔒 Fase ${PHASE_LABELS[phase]} bloqueada` : `🔓 Fase ${PHASE_LABELS[phase]} desbloqueada`);
         } catch (error) {
             // Revert on error

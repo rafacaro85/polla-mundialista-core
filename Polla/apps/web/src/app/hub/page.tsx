@@ -66,7 +66,7 @@ export default function TournamentHub() {
               <img 
                 src="/images/ucl-logo.jpg" 
                 alt="UEFA Champions League" 
-                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] filter brightness-0 invert" 
+                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg" 
               />
             </div>
             <h2 className="text-2xl font-bold mb-2 text-white">Champions League 25/26</h2>

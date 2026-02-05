@@ -38,8 +38,7 @@ async function seedUCL() {
         await matchRepo.delete({ tournamentId: 'UCL2526' });
         
         // TEAM LOGOS (Using reliable CDN or placeholders)
-        const FLAGS: Record<string, string> = {
-            'Benfica': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/SL_Benfica_logo.svg/1200px-SL_Benfica_logo.svg.png', 
+            'Benfica': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/SL_Benfica_logo.svg/1200px-SL_Benfica_logo.svg.png', // This should be correct? Let's try commons if en fails. Commons: https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/SL_Benfica_logo.svg/1200px-SL_Benfica_logo.svg.png
             'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/1200px-Real_Madrid_CF.svg.png', 
             'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Logo_of_AC_Milan.svg/1200px-Logo_of_AC_Milan.svg.png',
             'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/1200px-Liverpool_FC.svg.png',
@@ -56,7 +55,7 @@ async function seedUCL() {
             'Feyenoord': 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/Feyenoord_logo.svg/1200px-Feyenoord_logo.svg.png',
             'PSG': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/1200px-Paris_Saint-Germain_F.C..svg.png',
             'Galatasaray': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galatasaray_Sports_Club_Logo.png/1200px-Galatasaray_Sports_Club_Logo.png',
-            'Monaco': 'https://upload.wikimedia.org/wikipedia/df/d5/AS_Monaco_FC_logo.png', // Trying simple PNG URL without thumb complexity if possible, or fallback to reliable source.
+            'Monaco': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/AS_Monaco_FC_logo.svg/1200px-AS_Monaco_FC_logo.svg.png', 
             'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Borussia_Dortmund_logo.svg/1200px-Borussia_Dortmund_logo.svg.png',
             'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/AtalantaBC.svg/1200px-AtalantaBC.svg.png',
             'Qarabağ': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Qaraba%C4%9F_FK_logo.png/1200px-Qaraba%C4%9F_FK_logo.png',

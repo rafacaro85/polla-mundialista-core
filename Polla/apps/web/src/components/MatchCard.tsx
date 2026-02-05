@@ -255,7 +255,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       textShadow: '0 2px 4px rgba(0,0,0,0.5)',
     },
     flag: {
-      height: '48px',
+      height: '24px',
       width: 'auto',
       borderRadius: '3px',
       boxShadow: '0 2px 5px rgba(0,0,0,0.5)',

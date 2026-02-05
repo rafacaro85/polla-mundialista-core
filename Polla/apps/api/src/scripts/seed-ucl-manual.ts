@@ -118,7 +118,16 @@ async function seedUCL() {
                     homeFlag: FLAGS[mData.home] || null,
                     awayFlag: FLAGS[mData.away] || null
                 } as any);
+
                 count++;
+            } else {
+                // UPDATE FLAGS FOR EXISTING MATCHES
+                exists.homeFlag = FLAGS[mData.home] || exists.homeFlag;
+                exists.awayFlag = FLAGS[mData.away] || exists.awayFlag;
+                // Also update group name if needed (e.g. Play-off Ida fix confirmation)
+                exists.group = mData.group; 
+                await matchRepo.save(exists);
+                console.log(`🔄 Updated flags/group for ${mData.home} vs ${mData.away}`);
             }
         }
         console.log(`✅ Seeded ${count} UCL matches.`);

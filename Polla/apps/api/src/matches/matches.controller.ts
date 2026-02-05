@@ -18,7 +18,8 @@ export class MatchesController {
     @Get()
     async findAll(@Request() req: any): Promise<Match[]> {
         const isAdmin = req.user.role === 'ADMIN';
-        return this.matchesService.findAll(req.user.id, isAdmin);
+        const tournamentId = req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+        return this.matchesService.findAll(req.user.id, isAdmin, tournamentId);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -26,7 +27,8 @@ export class MatchesController {
     @Header('Cache-Control', 'public, max-age=30')
     async findLive(@Request() req: any): Promise<Match[]> {
         const isAdmin = req.user?.role === 'ADMIN';
-        return this.matchesService.findLive(isAdmin);
+        const tournamentId = req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+        return this.matchesService.findLive(isAdmin, tournamentId);
     }
 
 

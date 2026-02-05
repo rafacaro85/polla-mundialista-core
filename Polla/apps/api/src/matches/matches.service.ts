@@ -31,38 +31,43 @@ export class MatchesService {
         private eventEmitter: EventEmitter2
     ) { }
 
-    async findAll(userId?: string, isAdmin: boolean = false): Promise<Match[]> {
+    async findAll(userId?: string, isAdmin: boolean = false, tournamentId: string = 'WC2026'): Promise<Match[]> {
         const query = this.matchesRepository.createQueryBuilder('match')
-            .leftJoinAndSelect('match.predictions', 'prediction', 'prediction.userId = :userId', { userId });
+            .leftJoinAndSelect('match.predictions', 'prediction', 'prediction.userId = :userId', { userId })
+            .where('match.tournamentId = :tournamentId', { tournamentId });
 
         if (!isAdmin) {
             const unlockedPhases = await this.phaseStatusRepository.find({
-                where: { isUnlocked: true }
+                where: { isUnlocked: true, tournamentId }
             });
             const phaseNames = unlockedPhases.map(p => p.phase);
+            
+            // Si no hay fases desbloqueadas para este torneo, devolver array vacío para evitar errores IN ()
+            if (phaseNames.length === 0) {
+                return [];
+            }
+            
             query.andWhere('match.phase IN (:...phases)', { phases: phaseNames });
         }
 
         return query.orderBy('match.date', 'ASC').getMany();
     }
 
-    async findLive(isAdmin: boolean = false): Promise<Match[]> {
-        // Enforce phase unlocking even for admins in the Live/Prediction view
-        // if (isAdmin) {
-        //     return this.matchesRepository.find({
-        //         order: { date: 'ASC' }
-        //     });
-        // }
-
+    async findLive(isAdmin: boolean = false, tournamentId: string = 'WC2026'): Promise<Match[]> {
         // Obtenemos solo las fases desbloqueadas para que no aparezcan en el fixture antes de tiempo
         const unlockedPhases = await this.phaseStatusRepository.find({
-            where: { isUnlocked: true }
+            where: { isUnlocked: true, tournamentId }
         });
         const phaseNames = unlockedPhases.map(p => p.phase);
 
+        if (phaseNames.length === 0) {
+            return [];
+        }
+
         return this.matchesRepository.find({
             where: {
-                phase: In(phaseNames)
+                phase: In(phaseNames),
+                tournamentId
             },
             order: { date: 'ASC' }
         });

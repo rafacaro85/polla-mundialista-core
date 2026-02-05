@@ -2,36 +2,32 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
+    @InjectRepository(KnockoutPhaseStatus)
+    private phaseStatusRepository: Repository<KnockoutPhaseStatus>,
     private dataSource: DataSource,
   ) {}
 
   async seedUCLMatches() {
     try {
       // Check if tables exist, if not, sync schema
-      let count = 0;
       try {
-        count = await this.matchRepository.count();
-      } catch (error: any) {
-        if (error.code === '42P01') {
-          // Tables don't exist, sync schema
-          await this.dataSource.synchronize();
-          console.log('✅ Schema synchronized');
-          count = 0;
-        } else {
-          throw error;
-        }
-      }
+        await this.dataSource.synchronize(); // Ensure schema is up to date (column tournamentId)
+      } catch (error) {}
+
+      // Check specifically for UCL2526 matches
+      const count = await this.matchRepository.count({ where: { tournamentId: 'UCL2526' } });
 
       if (count > 0) {
         return {
           success: false,
-          message: `Database not empty (${count} matches). Clear first if needed.`,
+          message: `UCL Database not empty (${count} matches). Clear first if needed.`,
         };
       }
 
@@ -92,7 +88,8 @@ export class AdminService {
           awayFlag: getLogo(matchData.away),
           date: new Date(matchData.date),
           group: matchData.group,
-          phase: 'PLAYOFFS', // Updated phase
+          phase: 'PLAYOFF', // Modified to Singular standard
+          tournamentId: 'UCL2526', // CRITICAL: Tag as Champions
           stadium: matchData.stadium,
           homeScore: null,
           awayScore: null,
@@ -103,9 +100,21 @@ export class AdminService {
         insertedCount++;
       }
 
+      // UNLOCK PLAYOFF PHASE FOR UCL2526
+      const existingStatus = await this.phaseStatusRepository.findOne({ where: { phase: 'PLAYOFF', tournamentId: 'UCL2526' } });
+      if (!existingStatus) {
+        await this.phaseStatusRepository.save({
+          phase: 'PLAYOFF',
+          tournamentId: 'UCL2526',
+          isUnlocked: true, // Auto-unlock for visibility
+          allMatchesCompleted: false
+        });
+        console.log('✅ Unlocked PLAYOFF phase for UCL2526');
+      }
+
       return {
         success: true,
-        message: `UCL Beta seeded successfully: ${insertedCount} matches`,
+        message: `UCL Beta seeded successfully: ${insertedCount} matches in 'PLAYOFF' phase.`,
         count: insertedCount,
       };
     } catch (error) {

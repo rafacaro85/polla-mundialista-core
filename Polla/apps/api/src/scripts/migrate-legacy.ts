@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { Match } from '../database/entities/match.entity';
@@ -24,21 +25,20 @@ async function runMigration() {
     const targetDS = new DataSource({
         type: 'postgres',
         url: NEW_DB_URL,
-        entities: [User, Match, Prediction, League, LeagueParticipant],
+        entities: [__dirname + '/../database/entities/*.entity.ts'],
         synchronize: false,
+        ssl: { rejectUnauthorized: false }, // REQUIRED FOR RAILWAY
     });
     await targetDS.initialize();
     console.log('✅ Conectado a Base Nueva (Railway)');
 
     // 2. Conexión a Base de Datos VIEJA (Origen)
-    // Usamos TypeORM también para leer facil las entidades si coinciden, 
-    // o raw query si el esquema era muy distinto. Asumiremos coincidencia parcial.
     const sourceDS = new DataSource({
         type: 'postgres',
         url: OLD_DB_URL,
-        // Usamos las mismas entidades pero cuidado con columnas faltantes
-        // Para lectura segura, usaremos query runner raw
-        synchronize: false, 
+        entities: [], // Empty for Raw Queries
+        synchronize: false,
+        ssl: { rejectUnauthorized: false }, // REQUIRED FOR RAILWAY
     });
     await sourceDS.initialize();
     console.log('✅ Conectado a Base Vieja (Vercel)');
@@ -48,55 +48,46 @@ async function runMigration() {
     try {
         // --- PASO 1: USUARIOS ---
         console.log('\n📦 Migrando Usuarios...');
-        const oldUsers = await queryRunner.query('SELECT * FROM "user"'); // Nombre tabla en minúscula o camel? revisar. Postgres suele usar "user" con comillas si es reservada o public.user
-        
-        // Ajuste: si la tabla se llama 'users' o 'user', intentar detectar
-        // En TypeORM por defecto es el nombre de la clase, pero a veces 'user' da problemas.
-        // Asumiremos que podemos leer. Si falla, el usuario nos dirá.
+        const oldUsers = await queryRunner.query('SELECT * FROM "users"'); // CORREGIDO: PLURAL
         
         let importedUsers = 0;
         for (const u of oldUsers) {
             const exists = await targetDS.getRepository(User).findOne({ where: { email: u.email } });
             if (!exists) {
-                // Mapear campos. Asumimos coincidencia.
-                // Importante: Mantener IDs viejos si es posible? 
-                // Si son UUID, sí. Si chocan, mejor generar nuevos y mapear referencias.
-                // Como son bases distintas, intentaremos preservar UUID para integridad de predicciones viejas.
                 const newUser = targetDS.getRepository(User).create({
                     ...u,
-                    id: u.id, // Intentar preservar ID
+                    id: u.id, 
+                    // PROTECCIÓN CONTRA DESBORDAMIENTO (Truncar str a 100 chars)
+                    fullName: u.fullName ? u.fullName.substring(0, 99) : 'Unknown',
+                    nickname: u.nickname ? u.nickname.substring(0, 99) : 'Unknown',
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
-                await targetDS.getRepository(User).save(newUser);
-                importedUsers++;
+                
+                try {
+                    await targetDS.getRepository(User).save(newUser);
+                    importedUsers++;
+                } catch (err) {
+                    console.error(`⚠️ Error importando usuario ${u.email}:`, err.message);
+                }
             }
         }
         console.log(`✅ ${importedUsers} usuarios nuevos importados (de ${oldUsers.length} encontrados).`);
 
         // --- PASO 2: PARTIDOS (Solo Mundial) ---
         console.log('\n📦 Migrando Partidos (Mundial Antiguo)...');
-        // Asumimos que la DB vieja SOLO tiene Mundial.
-        const oldMatches = await queryRunner.query('SELECT * FROM "match"'); 
+        const oldMatches = await queryRunner.query('SELECT * FROM "matches"'); // CORREGIDO: PLURAL
         
         let importedMatches = 0;
         for (const m of oldMatches) {
             const exists = await targetDS.getRepository(Match).findOne({ where: { id: m.id } });
             if (!exists) {
-                // Forzar tournamentId
-                // Limpiar campos que no existan en la entidad nueva si hay divergence
                 const { ...matchData } = m;
-                
                 await targetDS.getRepository(Match).save({
                     ...matchData,
                     tournamentId: 'WC2026', // ETIQUETA CRÍTICA
                 });
                 importedMatches++;
-            } else {
-                // Update tournamentId si existe pero es null
-                if (!exists.tournamentId || exists.tournamentId === 'WC2026') {
-                    // Ya está ok o asumimos ok
-                }
             }
         }
         console.log(`✅ ${importedMatches} partidos historicos importados con etiqueta WC2026.`);
@@ -104,13 +95,12 @@ async function runMigration() {
 
         // --- PASO 3: PREDICCIONES ---
         console.log('\n📦 Migrando Predicciones...');
-        const oldPreds = await queryRunner.query('SELECT * FROM "prediction"');
+        const oldPreds = await queryRunner.query('SELECT * FROM "predictions"'); // CORREGIDO: PLURAL
         
         let importedPreds = 0;
         for (const p of oldPreds) {
             const exists = await targetDS.getRepository(Prediction).findOne({ where: { id: p.id } });
             if (!exists) {
-                // Verificar Integridad: Usuario y Partido deben existir en DESTINO
                 const userExists = await targetDS.getRepository(User).findOne({ where: { id: p.userId } });
                 const matchExists = await targetDS.getRepository(Match).findOne({ where: { id: p.matchId } });
 
@@ -127,30 +117,23 @@ async function runMigration() {
 
         // --- PASO 4: PUNTOS (LEAGUES) ---
         console.log('\n📦 Migrando Pollas (Ranking)...');
-        // Aquí es tricky. Si hay una tabla LeagueParticipant vieja, traerla.
         try {
-            const oldParts = await queryRunner.query('SELECT * FROM "league_participant"');
+            const oldParts = await queryRunner.query('SELECT * FROM "league_participants"'); // CORREGIDO: PLURAL
             for (const lp of oldParts) {
                  const exists = await targetDS.getRepository(LeagueParticipant).findOne({ where: { id: lp.id } });
                  if (!exists) {
-                     // Verificar integridad
                      const userExists = await targetDS.getRepository(User).findOne({ where: { id: lp.userId } });
-                     // Si la liga global o especifica no existe, quizas fallamos. 
-                     // Intentaremos asumir Global o crear la liga si no existe.
-                     // Por simplicidad, si es la liga global antigua, mapear a la nueva (buscar por nombre o ID).
                      
                      if (userExists) {
-                         // Guardar puntos y snapshot
                          await targetDS.getRepository(LeagueParticipant).save({
                              ...lp,
-                             // Asegurar que referecia a una liga valida en nueva DB
                          });
                      }
                  }
             }
             console.log(`✅ Rankings/Puntos importados (Best Effort).`);
         } catch (e) {
-            console.warn('⚠️ No se pudo migrar la tabla de ranking (league_participant) o estaba vacía.');
+            console.warn('⚠️ No se pudo migrar la tabla de ranking (league_participants) o estaba vacía.');
         }
 
     } catch (error) {

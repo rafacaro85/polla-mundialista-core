@@ -335,13 +335,16 @@ export class MatchesService {
                 });
 
                 // Orden real de las fases (Merged order is OK, filtering handles isolation)
-                const phaseOrder = ['GROUP', 'PLAYOFF', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+                const phaseOrder = tournamentId === 'UCL2526' 
+                    ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+                    : ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+                    
                 const sortedUnlocked = unlockedPhases.sort((a, b) => phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase));
 
                 if (sortedUnlocked.length > 0) {
                     targetPhase = sortedUnlocked[0].phase;
                 } else {
-                    targetPhase = 'GROUP'; // Default
+                    targetPhase = tournamentId === 'UCL2526' ? 'PLAYOFF' : 'GROUP'; // Default
                 }
             }
 
@@ -358,8 +361,12 @@ export class MatchesService {
             }
 
             // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
-            if (targetPhase !== 'GROUP') {
-                 const phaseOrder = ['GROUP', 'PLAYOFF', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+            // Esto corrige situaciones donde la fase N está vacía a pesar de que N-1 terminó.
+            if (targetPhase !== 'GROUP' && targetPhase !== 'PLAYOFF') {
+                 const phaseOrder = tournamentId === 'UCL2526' 
+                    ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+                    : ['GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
+                    
                  const prevIndex = phaseOrder.indexOf(targetPhase) - 1;
                  if (prevIndex >= 0) {
                      const prevPhase = phaseOrder[prevIndex];

@@ -407,7 +407,8 @@ export function MatchesList() {
                                 if (confirm("¿Simular resultados aleatorios para todos los partidos pendientes?")) {
                                     try {
                                         setSyncing(true);
-                                        const res = await superAdminService.simulateMatches();
+                                        const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+                                        const res = await superAdminService.simulateMatches(tournamentId);
                                         toast.success(res.message);
                                         loadMatches();
                                     } catch (e) {
@@ -644,8 +645,12 @@ export function MatchesList() {
             <PhaseLocksManager />
 
             {/* FILTROS DE FASE */}
+            {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
-                {['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'].map(phase => (
+                {(process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' 
+                    ? ['ALL', 'PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+                    : ['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL']
+                ).map(phase => (
                     <button
                         key={phase}
                         onClick={() => setFilterPhase(phase)}
@@ -663,6 +668,7 @@ export function MatchesList() {
                     >
                         {phase === 'ALL' ? 'Todos' :
                             phase === 'GROUP' ? 'Grupos' :
+                            phase === 'PLAYOFF' ? 'Play-offs' :
                                 phase === 'ROUND_32' ? '1/16' :
                                     phase === 'ROUND_16' ? 'Octavos' :
                                         phase === 'QUARTER' ? 'Cuartos' :

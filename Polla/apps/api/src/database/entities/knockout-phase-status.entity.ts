@@ -1,11 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'knockout_phase_status' })
+@Unique(['phase', 'tournamentId'])
 export class KnockoutPhaseStatus {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ unique: true, length: 20 })
+    @Column({ default: 'WC2026' })
+    tournamentId: string;
+
+    @Column({ length: 20 })
     phase: string; // GROUP, ROUND_32, ROUND_16, QUARTER, SEMI, FINAL
 
     @Column({ name: 'is_unlocked', default: false })

@@ -6,6 +6,9 @@ export class Match {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'WC2026' })
+  tournamentId: string; // 'WC2026' | 'UCL2526'
+
   @Column()
   homeTeam: string;
 

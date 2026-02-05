@@ -18,6 +18,9 @@ export class League {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'WC2026' })
+  tournamentId: string;
+
   @Column()
   name: string;
 

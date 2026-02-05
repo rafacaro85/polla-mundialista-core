@@ -15,6 +15,9 @@ export class UserBracket {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ default: 'WC2026' })
+    tournamentId: string;
+
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
     user: User;

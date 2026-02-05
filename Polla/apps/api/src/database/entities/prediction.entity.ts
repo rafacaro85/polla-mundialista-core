@@ -10,6 +10,9 @@ export class Prediction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'WC2026' })
+  tournamentId: string;
+
   @ManyToOne(() => User, (user: User) => user.predictions)
   user: User;
 

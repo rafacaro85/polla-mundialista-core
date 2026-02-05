@@ -94,7 +94,7 @@ export class MatchListener {
             
             // Check and unlock next knockout phase
             if (freshMatch.phase) {
-                await this.knockoutPhasesService.checkAndUnlockNextPhase(freshMatch.phase);
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(freshMatch.phase, freshMatch.tournamentId);
             }
 
             // Handling Semifinal Losers -> 3rd Place

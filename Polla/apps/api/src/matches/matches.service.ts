@@ -143,7 +143,7 @@ export class MatchesService {
 
             // 5. Check and unlock next knockout phase if current phase is complete
             if (match.phase) {
-                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase);
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(match.phase, match.tournamentId);
                 console.log(`🔓 Checked phase unlock for ${match.phase}`);
             }
 
@@ -438,7 +438,8 @@ export class MatchesService {
             }
 
             // CRITICAL: After simulation loop, check if phase is complete and UNLOCK NEXT PHASE
-            const isPhaseComplete = await this.knockoutPhasesService.areAllMatchesCompleted(targetPhase);
+            const tournamentId = matches.length > 0 ? matches[0].tournamentId : 'WC2026'; // Default to WC2026 if no matches found
+            const isPhaseComplete = await this.knockoutPhasesService.areAllMatchesCompleted(targetPhase, tournamentId);
             if (isPhaseComplete) {
                 console.log(`✅ Phase ${targetPhase} simulation complete. Promoting and Unlocking next phase...`);
                 
@@ -451,7 +452,7 @@ export class MatchesService {
                 }
 
                 // 2. Unlock the next phase status so it becomes visible
-                await this.knockoutPhasesService.checkAndUnlockNextPhase(targetPhase);
+                await this.knockoutPhasesService.checkAndUnlockNextPhase(targetPhase, tournamentId);
             }
 
             return {

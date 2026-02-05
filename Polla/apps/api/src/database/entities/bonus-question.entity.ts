@@ -12,6 +12,9 @@ export class BonusQuestion {
     @Column()
     points: number; // Valor de la pregunta (ej: 10 puntos)
 
+    @Column({ default: 'WC2026' })
+    tournamentId: string;
+
     @Column({ nullable: true })
     correctAnswer: string; // Se llena cuando admin califica
 

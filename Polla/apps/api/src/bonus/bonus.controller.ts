@@ -25,19 +25,19 @@ export class BonusController {
 
     // Listar preguntas activas (usuario)
     @Get('questions')
-    async getActiveQuestions(@Query('leagueId') leagueId?: string) {
-        return this.bonusService.getActiveQuestions(leagueId);
+    async getActiveQuestions(@Query('leagueId') leagueId?: string, @Query('tournamentId') tournamentId?: string) {
+        return this.bonusService.getActiveQuestions(leagueId, tournamentId);
     }
 
     // Admin: Listar todas las preguntas (para gestión)
     @Get('questions/all')
     // Eliminado @Roles
-    async getAllQuestions(@Request() req: any, @Query('leagueId') leagueId?: string) {
+    async getAllQuestions(@Request() req: any, @Query('leagueId') leagueId?: string, @Query('tournamentId') tournamentId?: string) {
         // Validar permisos
         const hasPermission = await this.bonusService.checkLeagueAdminPermission(req.user.id, leagueId, req.user.role);
         if (!hasPermission) throw new ForbiddenException('No tienes permisos para ver preguntas de esta liga.');
 
-        return this.bonusService.getAllQuestions(leagueId);
+        return this.bonusService.getAllQuestions(leagueId, tournamentId);
     }
 
     // Usuario: Guardar respuesta

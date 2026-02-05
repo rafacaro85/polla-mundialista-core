@@ -319,7 +319,23 @@ export class LeaguesService {
     };
   }
 
-  async getGlobalRanking() {
+    // 2. Fetch Prediction Points (Global - Separated by Joker/Regular)
+    // We use DISTINCT ON to get the best scoring prediction for each match per user
+    // MOD: Filter by tournamentId to isolate rankings!
+    
+    // Determine tournament context. If not passed, we might be in trouble for "Global".
+    // Global Leagues generally don't have tournamentId in the old logic, maybe new ones do.
+    // If this method is called for "Global Ranking Screen", we need to know context.
+    // Let's assume prediction points are now tagged.
+    
+    // We need to join with matches to be sure or trust prediction.tournamentId if populated.
+    // Better safe: join match or filter if we have tournamentId.
+    // BUT getGlobalRanking signature is () -> []. It needs an update.
+    
+    // Wait, getGlobalRanking is used by Cron/Schedule? Or frontend?
+    // Let's update signature to accept tournamentId.
+
+  async getGlobalRanking(tournamentId?: string) {
     // 1. Obtener todos los usuarios
     const users = await this.userRepository.find({
       select: ['id', 'nickname', 'fullName', 'avatarUrl'],
@@ -329,16 +345,17 @@ export class LeaguesService {
 
     const userIds = users.map(u => u.id);
 
-    // 2. Fetch Prediction Points (Global - Separated by Joker/Regular)
-    // We use DISTINCT ON to get the best scoring prediction for each match per user
+    const tournamentFilter = tournamentId ? `AND p."tournamentId" = '${tournamentId}'` : '';
+    
+    // 2. Fetch Prediction Points
     const predictionPointsRows = (await this.predictionRepository.manager.query(`
       SELECT "userId", 
              SUM(CASE WHEN "isJoker" IS TRUE THEN match_points ELSE 0 END) as joker_points,
              SUM(CASE WHEN "isJoker" IS NOT TRUE THEN match_points ELSE 0 END) as regular_points
       FROM (
         SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
-        FROM predictions
-        WHERE "userId" = ANY($1)
+        FROM predictions p
+        WHERE "userId" = ANY($1) ${tournamentFilter}
         ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"

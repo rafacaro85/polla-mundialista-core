@@ -55,6 +55,11 @@ export class BonusService {
     // Admin: Crear pregunta
     async createQuestion(dto: CreateQuestionDto): Promise<BonusQuestion> {
         const question = this.bonusQuestionRepository.create(dto);
+        
+        // Asignar tournamentId del DTO o default
+        if (dto.tournamentId) {
+            question.tournamentId = dto.tournamentId;
+        }
 
         // Si no se especifica liga, asignar a la liga GLOBAL (General)
         if (!dto.leagueId) {
@@ -67,9 +72,14 @@ export class BonusService {
         return this.bonusQuestionRepository.save(question);
     }
 
-    // Listar preguntas activas filtradas por liga
-    async getActiveQuestions(leagueId?: string): Promise<BonusQuestion[]> {
+    // Listar preguntas activas filtradas por liga y torneo
+    async getActiveQuestions(leagueId?: string, tournamentId?: string): Promise<BonusQuestion[]> {
         const where: any = { isActive: true };
+        
+        if (tournamentId) {
+            where.tournamentId = tournamentId;
+        }
+
         if (leagueId) {
             where.leagueId = leagueId;
         } else {
@@ -89,14 +99,18 @@ export class BonusService {
     }
 
     // Listar todas las preguntas (admin) - Filtradas por liga
-    async getAllQuestions(leagueId?: string): Promise<BonusQuestion[]> {
+    async getAllQuestions(leagueId?: string, tournamentId?: string): Promise<BonusQuestion[]> {
         const where: any = {};
+        
+        if (tournamentId) {
+            where.tournamentId = tournamentId;
+        }
+
         if (leagueId) {
             where.leagueId = leagueId;
         } else {
             // Si es global admin pidiendo todo... o global questions
             where.leagueId = IsNull();
-            // Nota: Podríamos mejorar esto para SUPER_ADMIN, pero por seguridad por defecto filtramos.
         }
 
         return this.bonusQuestionRepository.find({

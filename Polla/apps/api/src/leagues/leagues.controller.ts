@@ -54,8 +54,8 @@ export class LeaguesController {
   }
 
   @Get('global/ranking')
-  async getGlobalRanking() {
-    return this.leaguesService.getGlobalRanking();
+  async getGlobalRanking(@Query('tournamentId') tournamentId?: string) {
+    return this.leaguesService.getGlobalRanking(tournamentId);
   }
 
   @Get('my')

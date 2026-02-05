@@ -114,6 +114,7 @@ export class PredictionsService {
                 user: { id: userId } as User,
                 match: { id: matchId } as Match,
                 leagueId: leagueId || undefined,
+                tournamentId: match.tournamentId, // Inherit tournament context!
                 homeScore,
                 awayScore,
                 isJoker: isJoker || false
@@ -123,7 +124,7 @@ export class PredictionsService {
         return this.predictionsRepository.save(prediction);
     }
 
-    async findAllByUser(userId: string, leagueId?: string): Promise<Prediction[]> {
+    async findAllByUser(userId: string, leagueId?: string, tournamentId?: string): Promise<Prediction[]> {
         // Strategy: Return Global Predictions + League Specific Predictions.
         // Frontend/Consumer should handle the override logic (using leagueId to distinguish).
         // Or we can do it here: If we find a specific one, we return it. If not, return global.
@@ -135,6 +136,12 @@ export class PredictionsService {
         const qb = this.predictionsRepository.createQueryBuilder('prediction')
             .leftJoinAndSelect('prediction.match', 'match')
             .where('prediction.userId = :userId', { userId });
+
+        if (tournamentId) {
+             // Basic isolation: Only show predictions for matches of this tournament
+             // Since prediction inherits tournamentId, we can filter directly or via match
+             qb.andWhere('prediction.tournamentId = :tournamentId', { tournamentId });
+        }
 
         if (leagueId && leagueId !== 'global') {
             // Get Specific League OR Global
@@ -211,7 +218,7 @@ export class PredictionsService {
             const matchIds = predictionsData.map(p => p.matchId);
             const matches = await this.matchesRepository.find({
                 where: { id: In(matchIds) },
-                select: ['id', 'date', 'phase'] 
+                select: ['id', 'date', 'phase', 'tournamentId'] 
             });
             const matchesMap = new Map(matches.map(m => [m.id, m]));
 
@@ -264,6 +271,7 @@ export class PredictionsService {
                         user: { id: userId } as User,
                         match: { id: dto.matchId } as Match,
                         leagueId: dto.leagueId || undefined, // TypeORM prefiere undefined a null para columnas opcionales a veces
+                        tournamentId: match.tournamentId, // Inherit tournamentId
                         homeScore: dto.homeScore,
                         awayScore: dto.awayScore,
                         isJoker: dto.isJoker || false

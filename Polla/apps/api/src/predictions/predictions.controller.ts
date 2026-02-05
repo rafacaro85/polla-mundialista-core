@@ -24,8 +24,8 @@ export class PredictionsController {
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
-    async getMyPredictions(@Request() req: any, @Query('leagueId') leagueId?: string) {
-        return this.predictionsService.findAllByUser(req.user.id, leagueId);
+    async getMyPredictions(@Request() req: any, @Query('leagueId') leagueId?: string, @Query('tournamentId') tournamentId?: string) {
+        return this.predictionsService.findAllByUser(req.user.id, leagueId, tournamentId);
     }
 
     @UseGuards(JwtAuthGuard)

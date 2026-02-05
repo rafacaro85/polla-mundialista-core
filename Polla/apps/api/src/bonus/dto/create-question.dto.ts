@@ -13,6 +13,10 @@ export class CreateQuestionDto {
     leagueId?: string;
 
     @IsOptional()
+    @IsString()
+    tournamentId?: string;
+
+    @IsOptional()
     isActive?: boolean;
 
     @IsOptional()

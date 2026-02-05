@@ -28,7 +28,7 @@ async function bootstrap() {
     origin: true, // Refleja el origen de la petición (Permite cualquier dominio)
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true, // Permitir cookies/headers de autorización
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Tournament-Id'],
     exposedHeaders: ['Authorization'],
     preflightContinue: false,
     optionsSuccessStatus: 204,

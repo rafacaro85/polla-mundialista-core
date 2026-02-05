@@ -295,9 +295,9 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
 
                     const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
                         rank: index + 1,
-                        name: item.nickname || item.user?.nickname || 'Anónimo',
+                        name: item.user?.fullName || item.fullName || item.nickname || item.user?.nickname || 'Anónimo',
                         points: item.totalPoints || 0,
-                        avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
+                        avatar: (item.user?.fullName || item.fullName || item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
                         isUser: (item.id === user?.id) || (item.user?.id === user?.id),
                         trend: 'same',
                         tieBreakerGuess: item.tieBreakerGuess,

@@ -23,9 +23,16 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
     // Custom Hook
     const { leagues, loading, fetchLeagues, socialLeagues, enterpriseLeagues } = useLeagues();
 
+    // Force Social tab if Champions Theme
+    const isChampionsTheme = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS';
+
     React.useEffect(() => {
-        if (initialTab) setActiveTab(initialTab);
-    }, [initialTab]);
+        if (isChampionsTheme) {
+            setActiveTab('social');
+        } else if (initialTab) {
+            setActiveTab(initialTab);
+        }
+    }, [initialTab, isChampionsTheme]);
 
     // Lista a mostrar según tab
     const displayLeagues = activeTab === 'social' ? socialLeagues : enterpriseLeagues;
@@ -42,21 +49,23 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                     </div>
                 </div>
 
-                {/* TOGGLE TABS */}
-                <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6 border border-[#334155]">
-                    <button
-                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'social' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
-                        onClick={() => setActiveTab('social')}
-                    >
-                        <Trophy size={14} /> Sociales
-                    </button>
-                    <button
-                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'enterprise' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
-                        onClick={() => setActiveTab('enterprise')}
-                    >
-                        <Briefcase size={14} /> Empresas
-                    </button>
-                </div>
+                {/* TOGGLE TABS (Solo si NO es Champions) */}
+                {!isChampionsTheme && (
+                    <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6 border border-[#334155]">
+                        <button
+                            className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'social' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
+                            onClick={() => setActiveTab('social')}
+                        >
+                            <Trophy size={14} /> Sociales
+                        </button>
+                        <button
+                            className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'enterprise' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
+                            onClick={() => setActiveTab('enterprise')}
+                        >
+                            <Briefcase size={14} /> Empresas
+                        </button>
+                    </div>
+                )}
 
                 {/* BOTONES DE ACCIÓN (DINÁMICOS) */}
                 <div className="flex gap-3 mb-6">

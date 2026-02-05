@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { UserNav } from '@/components/UserNav';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { Settings, ChevronLeft } from 'lucide-react';
+import { Settings, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 
 interface HeaderProps {
@@ -61,6 +61,18 @@ export function Header({ userName, leagueName }: HeaderProps) {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
+          <Link 
+            href="/hub" 
+            className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
+              isChampionsTheme 
+                ? 'bg-blue-800/50 hover:bg-blue-700 text-blue-200' 
+                : 'bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200'
+            }`}
+          >
+            <LayoutGrid size={16} />
+            <span className="text-xs font-bold uppercase tracking-wider">Torneos</span>
+          </Link>
+
           <NotificationBell />
           <UserNav />
         </div>

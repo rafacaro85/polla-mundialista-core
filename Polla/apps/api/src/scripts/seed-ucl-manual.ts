@@ -50,6 +50,18 @@ async function seedUCL() {
             { date: '2026-02-18T15:00:00Z', home: 'Olympiacos', away: 'Bayer Leverkusen', group: 'PO', stadium: 'Karaiskakis Stadium' },
             { date: '2026-02-18T15:00:00Z', home: 'Bodø/Glimt', away: 'Inter Milan', group: 'PO', stadium: 'Aspmyra Stadion' },
             { date: '2026-02-18T15:00:00Z', home: 'Club Brugge', away: 'Atletico Madrid', group: 'PO', stadium: 'Jan Breydel Stadium' },
+
+            // PLAY-OFFS VUELTA (Feb 24, 2026)
+            { date: '2026-02-24T12:45:00Z', home: 'Atletico Madrid', away: 'Club Brugge', group: 'PO', stadium: 'Metropolitano' },
+            { date: '2026-02-24T15:00:00Z', home: 'Newcastle', away: 'Qarabağ', group: 'PO', stadium: 'St James Park' },
+            { date: '2026-02-24T15:00:00Z', home: 'Bayer Leverkusen', away: 'Olympiacos', group: 'PO', stadium: 'BayArena' },
+            { date: '2026-02-24T15:00:00Z', home: 'Inter Milan', away: 'Bodø/Glimt', group: 'PO', stadium: 'San Siro' },
+
+            // PLAY-OFFS VUELTA (Feb 25, 2026)
+            { date: '2026-02-25T12:45:00Z', home: 'Atalanta', away: 'Borussia Dortmund', group: 'PO', stadium: 'Gewiss Stadium' },
+            { date: '2026-02-25T15:00:00Z', home: 'Real Madrid', away: 'Benfica', group: 'PO', stadium: 'Santiago Bernabéu' },
+            { date: '2026-02-25T15:00:00Z', home: 'PSG', away: 'Monaco', group: 'PO', stadium: 'Parc des Princes' },
+            { date: '2026-02-25T15:00:00Z', home: 'Juventus', away: 'Galatasaray', group: 'PO', stadium: 'Allianz Stadium' },
         ];
 
         let count = 0;

@@ -41,10 +41,10 @@ export default function TournamentHub() {
               <img 
                 src="/images/wc-logo.png" 
                 alt="FIFA World Cup 2026" 
-                className="h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                className="h-40 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
               />
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-white">Mundial 2026</h2>
+            <h2 className="text-2xl font-bold mb-2 text-white uppercase tracking-wider">FIFA World Cup 2026</h2>
             <p className="text-sm text-slate-400 mb-6">
               La competencia principal. Predice los resultados de la Copa del Mundo 2026.
             </p>
@@ -58,18 +58,15 @@ export default function TournamentHub() {
             href={championsUrl}
             className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 to-slate-900 border border-blue-800 hover:border-blue-400 transition-all duration-300 p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl hover:shadow-blue-900/20"
           >
-            <div className="absolute top-4 right-4 bg-blue-500 text-xs font-bold px-2 py-1 rounded text-white shadow-lg animate-pulse">
-              BETA
-            </div>
             <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
               <img 
                 src="/images/ucl-logo.png" 
                 alt="UEFA Champions League" 
-                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg" 
+                className="h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg" 
               />
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-white">Champions League 25/26</h2>
+            <h2 className="text-2xl font-bold mb-2 text-white uppercase tracking-wider">UEFA Champions League</h2>
             <p className="text-sm text-slate-400 mb-6">
               Versión de prueba. Participa en la fase final de la UEFA Champions League.
             </p>

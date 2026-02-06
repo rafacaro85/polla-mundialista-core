@@ -47,15 +47,34 @@ export function Header({ userName, leagueName }: HeaderProps) {
               </div>
             </Link>
           ) : (
-            <div className="flex flex-col">
-               <h1 className={`font-russo text-lg leading-none tracking-wide ${isChampionsTheme ? 'text-blue-400' : 'text-white'}`}>
-                {isChampionsTheme ? 'CHAMPIONS' : 'POLLA'} <br /> 
-                {isChampionsTheme ? 'LEAGUE' : 'MUNDIALISTA'}
-              </h1>
-              <span className="text-slate-400 text-[10px] font-bold tracking-widest mt-1">
-                {isChampionsTheme ? 'BETA 25/26' : 'FIFA WORLD CUP 2026'}
-              </span>
-            </div>
+            <>
+              {isChampionsTheme ? (
+                 <div className="flex items-center">
+                    <img 
+                      src="/images/ucl-logo.png" 
+                      alt="UEFA Champions League" 
+                      className="h-14 w-auto object-contain"
+                    />
+                 </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <img 
+                      src="/images/wc-logo.png" 
+                      alt="FIFA World Cup 2026" 
+                      className="h-12 w-auto object-contain"
+                  />
+                  <div className="flex flex-col">
+                    <h1 className="font-russo text-lg leading-none tracking-wide text-white">
+                      POLLA <br /> 
+                      MUNDIALISTA
+                    </h1>
+                    <span className="text-slate-400 text-[10px] font-bold tracking-widest mt-1">
+                      FIFA WORLD CUP 2026
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

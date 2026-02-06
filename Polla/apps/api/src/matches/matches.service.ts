@@ -639,6 +639,8 @@ export class MatchesService {
             };
         } catch (error) {
             console.error("❌ Error profundo en resetAllMatches:", error);
+            const fs = require('fs');
+            fs.writeFileSync('reset_debug_error.log', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
             await queryRunner.rollbackTransaction();
             throw error;
         } finally {

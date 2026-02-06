@@ -55,10 +55,15 @@ export const EnterpriseFixture = () => {
 
     const fetchLeagueMetadata = async () => {
         try {
+            console.log('🔍 Fetching league metadata for leagueId:', leagueId);
             const { data } = await api.get(`/leagues/${leagueId}/metadata`);
+            console.log('✅ League metadata received:', data);
             setLeagueMetadata(data.league);
-        } catch (error) {
-            console.error('Error fetching league metadata:', error);
+        } catch (error: any) {
+            console.error('❌ Error fetching league metadata:', error);
+            console.error('Error response:', error.response?.data);
+            // Set default to WC2026 if fetch fails
+            setLeagueMetadata({ tournamentId: 'WC2026' });
         }
     };
 

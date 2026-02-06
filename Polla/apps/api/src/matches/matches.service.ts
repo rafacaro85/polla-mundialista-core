@@ -586,36 +586,11 @@ export class MatchesService {
                 SET prediction_points = (
                     SELECT COALESCE(SUM(p.points), 0) 
                     FROM predictions p 
-                    WHERE p.league_id = lp.league_id AND p."userId" = lp.user_id
+                    WHERE p.league_id = lp.league_id AND p.user_id = lp.user_id
                 )
             `);
 
             // Recalcular bracketPoints
-            // Nota: UserBracket usa "userId" y "leagueId" (camelCase) segun entity, pero DB es snake_case o camelCase?
-            // UserBracket entity: @JoinColumn({ name: 'userId' }), @JoinColumn({ name: 'leagueId' })
-            // Wait, entity def says: @JoinColumn({ name: 'userId' }). Usually TypeORM defaults to camelCase if not specified, or checks naming strategy.
-            // Let's assume the columns in DB are "userId" and "leagueId" based on entity, OR TypeORM maps them.
-            // But since I am using RAW SQL, I must know the exact column names.
-            // Prediction entity uses @Column({ name: 'league_id' }).
-            // UserBracket uses @JoinColumn({ name: 'userId' }).
-            // Safest bet: UserBracket usually has snake_case in standard postgres if not forced.
-            // Let's check a standard query or assume "userId" because of the explicit JoinColumn name.
-            // However, to be 100% safe against column naming issues, let's use TypeORM QB for the summation? 
-            // TypeORM QB update with subquery is hard.
-            // I'll assume "userId" and "leagueId" because logic usually dictates consistency.
-            // BUT previous logs showed: "relation match does not exist".
-            // Let's try to update trivial columns first.
-            // Actually, if we just set totalPoints = 0 it's wrong for partial reset.
-            // Let's try: total_points = prediction_points + bracket_points + trivia_points + joker_points.
-            
-            // To be safe with `bracket_points`, let's just sum `predictions` (which we know works) and keep `bracket_points` as is? 
-            // No, we reset `UserBracket` points to 0 above. So `bracketPoints` in `LeagueParticipant` MUST be updated too.
-            
-            // RAW SQL names: 
-            // predictions -> league_id, user_id (based on Prediction entity)
-            // user_brackets -> "userId", "leagueId" (based on UserBracket entity explicit JoinColumn)
-            // league_participants -> league_id, user_id (based on explicit JoinColumn)
-            
             await queryRunner.query(`
                 UPDATE league_participants lp 
                 SET bracket_points = (
@@ -639,8 +614,6 @@ export class MatchesService {
             };
         } catch (error) {
             console.error("❌ Error profundo en resetAllMatches:", error);
-            const fs = require('fs');
-            fs.writeFileSync('reset_debug_error.log', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
             await queryRunner.rollbackTransaction();
             throw error;
         } finally {

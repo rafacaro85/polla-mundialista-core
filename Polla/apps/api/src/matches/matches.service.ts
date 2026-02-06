@@ -586,7 +586,7 @@ export class MatchesService {
                 SET prediction_points = (
                     SELECT COALESCE(SUM(p.points), 0) 
                     FROM predictions p 
-                    WHERE p.league_id = lp.league_id AND p.user_id = lp.user_id
+                    WHERE p.league_id = lp.league_id AND p."userId" = lp.user_id
                 )
             `);
 

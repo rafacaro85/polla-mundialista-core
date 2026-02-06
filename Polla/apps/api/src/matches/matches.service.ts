@@ -586,7 +586,7 @@ export class MatchesService {
                 SET prediction_points = (
                     SELECT COALESCE(SUM(p.points), 0) 
                     FROM predictions p 
-                    WHERE p.league_id = lp.league_id AND p.user_id = lp.user_id
+                    WHERE p.league_id = lp.league_id AND p."userId" = lp.user_id
                 )
             `);
 
@@ -614,9 +614,6 @@ export class MatchesService {
             };
         } catch (error) {
             console.error("❌ Error profundo en resetAllMatches:", error);
-            const fs = require('fs');
-            // Append to log file instead of overwrite to keep history if multiple tries
-            fs.appendFileSync('reset_debug_error.log', `\n[${new Date().toISOString()}] ERROR:\n` + JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
             await queryRunner.rollbackTransaction();
             throw error;
         } finally {

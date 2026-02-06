@@ -22,9 +22,15 @@ interface SocialFixtureProps {
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
 // Helper to ensure flag is a URL
+// Helper to ensure flag is a URL
 const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
+    // If it's a full URL (starts with http) or local path (starts with /), trust it.
     if (flag && (flag.startsWith('http') || flag.startsWith('/'))) return flag;
-    if (flag && flag.length <= 3) return `https://flagcdn.com/h80/${flag}.png`;
+    
+    // If it's a short code (ISO like 'br', 'es'), assume flagcdn
+    if (flag && flag.length <= 3 && !flag.includes('/')) return `https://flagcdn.com/h80/${flag}.png`;
+    
+    // Fallback
     return getTeamFlagUrl(teamName);
 };
 

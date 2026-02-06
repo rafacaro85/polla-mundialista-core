@@ -91,6 +91,21 @@ export class LeaguesService {
         }
       }
 
+      // --- LIMIT CHECK: 1 League Per User Per Tournament ---
+      const targetTournamentId = tournamentId || 'WC2026';
+      // Count existing leagues for this user in this tournament
+      const existingLeaguesCount = await this.leaguesRepository.count({
+        where: {
+          creator: { id: creator.id },
+          tournamentId: targetTournamentId
+        }
+      });
+
+      if (existingLeaguesCount >= 1) {
+        throw new BadRequestException('Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.');
+      }
+      // -----------------------------------------------------
+
       // Generar código automático si no se proporciona
       let code = accessCodePrefix;
 

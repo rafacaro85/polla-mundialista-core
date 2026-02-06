@@ -39,7 +39,7 @@ export default function TournamentHub() {
             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
               <img 
-                src="/images/wc-logo.jpg" 
+                src="/images/wc-logo.png" 
                 alt="FIFA World Cup 2026" 
                 className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] filter invert"
               />
@@ -64,7 +64,7 @@ export default function TournamentHub() {
             <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
               <img 
-                src="/images/ucl-logo.jpg" 
+                src="/images/ucl-logo.png" 
                 alt="UEFA Champions League" 
                 className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg" 
               />

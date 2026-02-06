@@ -2,8 +2,8 @@
  * Shared utility for football team flags
  */
 
-const FLAG_CDN = 'https://flagcdn.com/h80';
-const FALLBACK_FLAG = `${FLAG_CDN}/un.png`;
+const FLAG_CDN = '/assets/flags';
+const FALLBACK_FLAG = `${FLAG_CDN}/un.svg`;
 
 const TEAM_TO_ISO: Record<string, string> = {
     // Common names in Spanish/English to ISO
@@ -79,7 +79,7 @@ export const getTeamFlagUrl = (teamName: string) => {
     }
 
     const iso = TEAM_TO_ISO[normalized];
-    if (iso) return `${FLAG_CDN}/${iso}.png`;
+    if (iso) return `${FLAG_CDN}/${iso}.svg`;
 
     // Last resort attempt with first 2 chars (risky but sometimes works for ISO codes)
     // However, after the user reports, let's be more strict to avoid Qatar -> Canada (CA)

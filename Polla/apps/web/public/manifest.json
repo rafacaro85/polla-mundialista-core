@@ -1,7 +1,7 @@
 {
-  "name": "Polla Mundialista 2026",
-  "short_name": "Polla 2026",
-  "description": "Participa y gana en la Polla Mundialista 2026",
+  "name": "La Polla Virtual",
+  "short_name": "Polla Virtual",
+  "description": "Participa y gana en La Polla Virtual",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F172A",

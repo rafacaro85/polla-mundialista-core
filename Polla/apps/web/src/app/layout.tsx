@@ -11,13 +11,13 @@ const inter = Inter({ subsets: ["latin"] });
 const russo = Russo_One({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Polla Mundialista 2026",
+  title: "La Polla Virtual",
   description: "Participa y gana",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Polla 2026",
+    title: "Polla Virtual",
   },
   other: {
     "mobile-web-app-capable": "yes",

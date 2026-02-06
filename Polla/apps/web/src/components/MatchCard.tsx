@@ -367,6 +367,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               src={homeFlagUrl}
               alt={homeCode}
               style={STYLES.flag}
+              referrerPolicy="no-referrer"
               onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
             />
             {/* Nombre Completo / Placeholder */}
@@ -434,6 +435,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               src={awayFlagUrl}
               alt={awayCode}
               style={STYLES.flag}
+              referrerPolicy="no-referrer"
               onError={(e: any) => { e.target.onerror = null; e.target.src = "https://flagcdn.com/w40/un.png"; }}
             />
             {/* Nombre Completo / Placeholder */}

@@ -57,18 +57,18 @@ export function Header({ userName, leagueName }: HeaderProps) {
                     />
                  </div>
               ) : (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
                   <img 
                       src="/images/wc-logo.png" 
                       alt="FIFA World Cup 2026" 
-                      className="h-16 w-auto object-contain"
+                      className="h-20 w-auto object-contain"
                   />
                   <div className="flex flex-col">
-                    <h1 className="font-russo text-lg leading-none tracking-wide text-white">
+                    <h1 className="font-russo text-base leading-none tracking-wide text-white">
                       POLLA <br /> 
                       MUNDIALISTA
                     </h1>
-                    <span className="text-slate-400 text-[10px] font-bold tracking-widest mt-1">
+                    <span className="text-slate-400 text-[8px] font-bold tracking-widest mt-1">
                       FIFA WORLD CUP 2026
                     </span>
                   </div>

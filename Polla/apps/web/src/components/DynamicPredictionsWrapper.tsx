@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 interface DynamicPredictionsWrapperProps {
     children: React.ReactNode;
     currentPhase?: string;
+    tournamentId?: string;
 }
 
 const PHASE_NAMES: Record<string, string> = {
@@ -30,9 +31,10 @@ const PREVIOUS_PHASE: Record<string, string> = {
 
 export function DynamicPredictionsWrapper({
     children,
-    currentPhase = 'GROUP'
+    currentPhase = 'GROUP',
+    tournamentId
 }: DynamicPredictionsWrapperProps) {
-    const { phases, nextPhaseInfo, loading, isPhaseUnlocked } = useKnockoutPhases();
+    const { phases, nextPhaseInfo, loading, isPhaseUnlocked } = useKnockoutPhases(tournamentId);
 
     // Loading state
     if (loading) {

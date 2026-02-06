@@ -32,6 +32,7 @@ export const EnterpriseFixture = () => {
     const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions, loading: loadingPredictions } = useMyPredictions(leagueId);
 
     const [rawMatches, setRawMatches] = useState<any[]>([]);
+    const [leagueMetadata, setLeagueMetadata] = useState<any>(null);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -52,9 +53,19 @@ export const EnterpriseFixture = () => {
         }
     };
 
+    const fetchLeagueMetadata = async () => {
+        try {
+            const { data } = await api.get(`/leagues/${leagueId}/metadata`);
+            setLeagueMetadata(data.league);
+        } catch (error) {
+            console.error('Error fetching league metadata:', error);
+        }
+    };
+
     useEffect(() => {
         if (leagueId) {
             fetchMatches();
+            fetchLeagueMetadata();
         }
     }, [leagueId]);
 
@@ -204,7 +215,7 @@ export const EnterpriseFixture = () => {
     }
 
     return (
-        <DynamicPredictionsWrapper currentPhase={currentPhase}>
+        <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
             <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <Tabs defaultValue="matches" className="w-full">
                     <div className="w-full max-w-lg mx-auto px-4 pt-4 mb-6">

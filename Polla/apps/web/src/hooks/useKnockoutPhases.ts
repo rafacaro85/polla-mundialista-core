@@ -18,7 +18,7 @@ export interface NextPhaseInfo {
     remainingMatches: number;
 }
 
-export function useKnockoutPhases() {
+export function useKnockoutPhases(tournamentId?: string) {
     const [phases, setPhases] = useState<PhaseStatus[]>([]);
     const [nextPhaseInfo, setNextPhaseInfo] = useState<NextPhaseInfo | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,7 +27,8 @@ export function useKnockoutPhases() {
     const fetchPhases = async () => {
         try {
             setLoading(true);
-            const { data } = await api.get('/knockout-phases/status');
+            const params = tournamentId ? { tournamentId } : {};
+            const { data } = await api.get('/knockout-phases/status', { params });
             setPhases(data);
             setError(null);
         } catch (err: any) {
@@ -41,7 +42,8 @@ export function useKnockoutPhases() {
 
     const fetchNextPhaseInfo = async () => {
         try {
-            const { data } = await api.get('/knockout-phases/next/info');
+            const params = tournamentId ? { tournamentId } : {};
+            const { data } = await api.get('/knockout-phases/next/info', { params });
             setNextPhaseInfo(data);
         } catch (err) {
             console.error('❌ Error fetching next phase info:', err);
@@ -52,7 +54,7 @@ export function useKnockoutPhases() {
     useEffect(() => {
         fetchPhases();
         fetchNextPhaseInfo();
-    }, []);
+    }, [tournamentId]);
 
     const isPhaseUnlocked = (phase: string): boolean => {
         const phaseStatus = phases.find(p => p.phase === phase);

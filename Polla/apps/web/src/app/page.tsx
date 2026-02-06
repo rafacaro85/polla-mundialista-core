@@ -27,12 +27,10 @@ import { signInWithGoogle } from '@/lib/auth.utils';
 
 const LogoLight = () => (
   <div className="flex items-center gap-3 select-none">
-    <div className="flex flex-col leading-tight">
-      <span className="font-black text-xl text-slate-900">POLLA</span>
-      <span className="font-black text-2xl text-slate-900">
-        MUNDIALISTA
-      </span>
-      <span className="text-xs font-bold text-slate-500 uppercase">FIFA World Cup 2026</span>
+    <img src="/icon-192x192.png" alt="La Polla Virtual" className="w-12 h-12 object-contain" />
+    <div className="flex flex-col leading-none">
+      <span className="font-black text-2xl text-slate-900 tracking-tighter">LA POLLA</span>
+      <span className="font-black text-2xl text-[#00E676] tracking-tighter">VIRTUAL</span>
     </div>
   </div>
 );

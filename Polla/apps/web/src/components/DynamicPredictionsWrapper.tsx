@@ -34,6 +34,9 @@ export function DynamicPredictionsWrapper({
     currentPhase = 'GROUP',
     tournamentId
 }: DynamicPredictionsWrapperProps) {
+    console.log('🔍 DynamicPredictionsWrapper - Tournament ID:', tournamentId);
+    console.log('🔍 DynamicPredictionsWrapper - Current Phase:', currentPhase);
+    
     const { phases, nextPhaseInfo, loading, isPhaseUnlocked } = useKnockoutPhases(tournamentId);
 
     // Loading state

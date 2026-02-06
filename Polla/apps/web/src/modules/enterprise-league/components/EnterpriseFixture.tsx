@@ -214,6 +214,10 @@ export const EnterpriseFixture = () => {
         );
     }
 
+    // Debug: log tournamentId
+    console.log('🔍 EnterpriseFixture - League Metadata:', leagueMetadata);
+    console.log('🔍 EnterpriseFixture - Tournament ID:', leagueMetadata?.tournamentId);
+
     return (
         <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
             <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">

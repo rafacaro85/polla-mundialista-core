@@ -53,7 +53,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
                     <img 
                       src="/images/ucl-logo.png" 
                       alt="UEFA Champions League" 
-                      className="h-14 w-auto object-contain"
+                      className="h-16 w-auto object-contain filter brightness-0 invert"
                     />
                  </div>
               ) : (
@@ -61,7 +61,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
                   <img 
                       src="/images/wc-logo.png" 
                       alt="FIFA World Cup 2026" 
-                      className="h-12 w-auto object-contain"
+                      className="h-16 w-auto object-contain"
                   />
                   <div className="flex flex-col">
                     <h1 className="font-russo text-lg leading-none tracking-wide text-white">

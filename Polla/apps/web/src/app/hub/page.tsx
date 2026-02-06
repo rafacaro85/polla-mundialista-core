@@ -63,10 +63,9 @@ export default function TournamentHub() {
               <img 
                 src="/images/ucl-logo.png" 
                 alt="UEFA Champions League" 
-                className="h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg filter brightness-0 invert" 
+                className="h-52 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg filter brightness-0 invert" 
               />
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-white uppercase tracking-wider">UEFA Champions League</h2>
             <p className="text-sm text-slate-400 mb-6">
               Versión de prueba. Participa en la fase final de la UEFA Champions League.
             </p>

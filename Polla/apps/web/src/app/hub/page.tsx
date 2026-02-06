@@ -41,14 +41,14 @@ export default function TournamentHub() {
               <img 
                 src="/images/wc-logo.png" 
                 alt="FIFA World Cup 2026" 
-                className="h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] filter invert"
+                className="h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
               />
             </div>
             <h2 className="text-2xl font-bold mb-2 text-white">Mundial 2026</h2>
             <p className="text-sm text-slate-400 mb-6">
               La competencia principal. Predice los resultados de la Copa del Mundo 2026.
             </p>
-            <span className="inline-block px-6 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors">
+            <span className="inline-block px-6 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors transform group-hover:scale-105 duration-300 shadow-lg shadow-emerald-500/20">
               Ir al Torneo
             </span>
           </a>

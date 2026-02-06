@@ -13,39 +13,39 @@ const AppDataSource = new DataSource({
 // MAPA ROBUSTO DE ESCUDOS (Incluye variantes de nombres para asegurar coincidencia)
 const UCL_LOGOS_MAPPING: Record<string, string> = {
   // --- PORTUGAL ---
-  "Benfica": "https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg",
-  "S.L. Benfica": "https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg",
-  "SL Benfica": "https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg",
-  "Sporting CP": "https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Complex%29.svg",
-  "Sporting Lisbon": "https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Complex%29.svg",
+  "Benfica": "https://upload.wikimedia.org/wikipedia/commons/a/a2/SL_Benfica_logo.svg",
+  "S.L. Benfica": "https://upload.wikimedia.org/wikipedia/commons/a/a2/SL_Benfica_logo.svg",
+  "SL Benfica": "https://upload.wikimedia.org/wikipedia/commons/a/a2/SL_Benfica_logo.svg",
+  "Sporting CP": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Sporting_Clube_de_Portugal_(Complex).svg",
+  "Sporting Lisbon": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Sporting_Clube_de_Portugal_(Complex).svg",
 
   // --- FRANCIA ---
-  "Monaco": "https://upload.wikimedia.org/wikipedia/en/fd/AS_Monaco_FC_logo.svg",
-  "AS Monaco": "https://upload.wikimedia.org/wikipedia/en/fd/AS_Monaco_FC_logo.svg",
-  "A.S. Monaco": "https://upload.wikimedia.org/wikipedia/en/fd/AS_Monaco_FC_logo.svg",
-  "PSG": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
-  "Paris Saint-Germain": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
-  "Lille": "https://upload.wikimedia.org/wikipedia/en/3/3f/LOSC_Lille_Logo.svg",
-  "LOSC Lille": "https://upload.wikimedia.org/wikipedia/en/3/3f/LOSC_Lille_Logo.svg",
-  "Brest": "https://upload.wikimedia.org/wikipedia/en/0/06/Stade_Brestois_29_logo.svg",
-  "Stade Brestois": "https://upload.wikimedia.org/wikipedia/en/0/06/Stade_Brestois_29_logo.svg",
+  "Monaco": "https://upload.wikimedia.org/wikipedia/commons/fd/AS_Monaco_FC_logo.svg",
+  "AS Monaco": "https://upload.wikimedia.org/wikipedia/commons/fd/AS_Monaco_FC_logo.svg",
+  "A.S. Monaco": "https://upload.wikimedia.org/wikipedia/commons/fd/AS_Monaco_FC_logo.svg",
+  "PSG": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Paris_Saint-Germain_F.C..svg",
+  "Paris Saint-Germain": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Paris_Saint-Germain_F.C..svg",
+  "Lille": "https://upload.wikimedia.org/wikipedia/commons/6/6f/LOSC_Lille_Logo.svg",
+  "LOSC Lille": "https://upload.wikimedia.org/wikipedia/commons/6/6f/LOSC_Lille_Logo.svg",
+  "Brest": "https://upload.wikimedia.org/wikipedia/commons/0/06/Stade_Brestois_29_logo.svg",
+  "Stade Brestois": "https://upload.wikimedia.org/wikipedia/commons/0/06/Stade_Brestois_29_logo.svg",
 
   // --- ITALIA ---
-  "Juventus": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Juventus_FC_2017_logo.svg/1200px-Juventus_FC_2017_logo.svg.png",
-  "Juventus FC": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Juventus_FC_2017_logo.svg/1200px-Juventus_FC_2017_logo.svg.png",
+  "Juventus": "https://upload.wikimedia.org/wikipedia/commons/5/51/Juventus_FC_2017_logo.svg",
+  "Juventus FC": "https://upload.wikimedia.org/wikipedia/commons/5/51/Juventus_FC_2017_logo.svg",
   "Inter": "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg",
   "Inter Milan": "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg",
   "Internazionale": "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg",
   "AC Milan": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg",
   "Milan": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg",
-  "Atalanta": "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg",
-  "Bologna": "https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg",
-  "Bologna FC": "https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg",
+  "Atalanta": "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg", // Solo EN disponible reliable
+  "Bologna": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Bologna_F.C._1909_logo.svg",
+  "Bologna FC": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Bologna_F.C._1909_logo.svg",
 
   // --- ESPAÑA ---
-  "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
-  "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
-  "FC Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+  "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", // Este funcionaba
+  "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_(crest).svg",
+  "FC Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_(crest).svg",
   "Atletico Madrid": "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg",
   "Atlético de Madrid": "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg",
   "Girona": "https://upload.wikimedia.org/wikipedia/en/9/90/For_Girona_FC.svg",
@@ -58,10 +58,11 @@ const UCL_LOGOS_MAPPING: Record<string, string> = {
   "Liverpool": "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
   "Liverpool FC": "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
   "Aston Villa": "https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg",
+  "Newcastle": "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg",
 
   // --- ALEMANIA ---
-  "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg",
-  "Bayern München": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg",
+  "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_München_logo_(2017).svg",
+  "Bayern München": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_München_logo_(2017).svg",
   "Dortmund": "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg",
   "Borussia Dortmund": "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg",
   "Bayer Leverkusen": "https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg",
@@ -74,30 +75,30 @@ const UCL_LOGOS_MAPPING: Record<string, string> = {
   // --- OTROS ---
   "PSV": "https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg",
   "PSV Eindhoven": "https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg",
-  "Feyenoord": "https://upload.wikimedia.org/wikipedia/en/e/e3/Feyenoord_logo.svg",
+  "Feyenoord": "https://upload.wikimedia.org/wikipedia/commons/2/24/Logo_Feyenoord_Rotterdam.svg",
   "Celtic": "https://upload.wikimedia.org/wikipedia/en/3/35/Celtic_FC.svg",
   "Club Brugge": "https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg",
   "Club Brugge KV": "https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg",
-  "Galatasaray": "https://upload.wikimedia.org/wikipedia/en/3/31/Galatasaray_Star_Logo.svg",
+  "Galatasaray": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Galatasaray_Sports_Club_Logo.svg",
   "Sparta Prague": "https://upload.wikimedia.org/wikipedia/en/4/43/AC_Sparta_Praha_logo.svg",
   "AC Sparta Prague": "https://upload.wikimedia.org/wikipedia/en/4/43/AC_Sparta_Praha_logo.svg",
-  "Slovan Bratislava": "https://upload.wikimedia.org/wikipedia/en/7/74/SK_Slovan_Bratislava_logo.svg",
+  "Slovan Bratislava": "https://upload.wikimedia.org/wikipedia/commons/a/a2/ŠK_Slovan_Bratislava_logo.svg",
   "Shakhtar Donetsk": "https://upload.wikimedia.org/wikipedia/en/a/a1/FC_Shakhtar_Donetsk.svg",
-  "Young Boys": "https://upload.wikimedia.org/wikipedia/en/6/6b/BSC_Young_Boys_logo.svg",
-  "BSC Young Boys": "https://upload.wikimedia.org/wikipedia/en/6/6b/BSC_Young_Boys_logo.svg",
+  "Young Boys": "https://upload.wikimedia.org/wikipedia/commons/6/6b/BSC_Young_Boys_logo.svg",
+  "BSC Young Boys": "https://upload.wikimedia.org/wikipedia/commons/6/6b/BSC_Young_Boys_logo.svg",
   "Salzburg": "https://upload.wikimedia.org/wikipedia/en/e/e1/Red_Bull_Salzburg_logo.svg",
   "Red Bull Salzburg": "https://upload.wikimedia.org/wikipedia/en/e/e1/Red_Bull_Salzburg_logo.svg",
   "RB Salzburg": "https://upload.wikimedia.org/wikipedia/en/e/e1/Red_Bull_Salzburg_logo.svg",
   "Sturm Graz": "https://upload.wikimedia.org/wikipedia/commons/0/06/SK_Sturm_Graz_Logo.svg",
-  "Dinamo Zagreb": "https://upload.wikimedia.org/wikipedia/en/6/65/NK_Dinamo_Zagreb_2024.svg",
-  "GNK Dinamo Zagreb": "https://upload.wikimedia.org/wikipedia/en/6/65/NK_Dinamo_Zagreb_2024.svg",
-  "Red Star Belgrade": "https://upload.wikimedia.org/wikipedia/en/f/f3/NK_Crvena_zvezda.svg",
-
+  "Dinamo Zagreb": "https://upload.wikimedia.org/wikipedia/commons/2/23/NK_Dinamo_Zagreb.svg",
+  "GNK Dinamo Zagreb": "https://upload.wikimedia.org/wikipedia/commons/2/23/NK_Dinamo_Zagreb.svg",
+  "Crvena Zvezda": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Red_Star_Belgrade_logo.svg",
+  "Red Star Belgrade": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Red_Star_Belgrade_logo.svg",
+  
   // --- MISSING UPDATES ---
-  "Bodø/Glimt": "https://upload.wikimedia.org/wikipedia/en/f/f3/FK_Bod%C3%B8_Glimt.svg",
-  "Newcastle": "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg",
-  "Olympiacos": "https://upload.wikimedia.org/wikipedia/en/f/f1/Olympiacos_FC_logo.svg",
-  "Qarabağ": "https://upload.wikimedia.org/wikipedia/en/9/93/FK_Qarabag_Logo.svg"
+  "Bodø/Glimt": "https://upload.wikimedia.org/wikipedia/en/f/f3/FK_Bodø_Glimt.svg",
+  "Olympiacos": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Olympiacos_FC_logo.svg",
+  "Qarabağ": "https://upload.wikimedia.org/wikipedia/commons/9/93/FK_Qarabag_Logo.svg"
 };
 
 async function fixUclLogos() {

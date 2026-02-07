@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
 import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
+import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
+
 
 interface SocialFixtureProps {
     matchesData: any[]; // Raw SWR data from DashboardClient
@@ -167,8 +169,16 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         setAiSuggestions({});
     };
 
+    // Detect current phase from filtered matches
+    const currentPhase = useMemo(() => {
+        if (matches.length === 0) return 'GROUP';
+        const phases = filteredMatches.map(m => m.phase).filter(Boolean);
+        return phases[0] || 'GROUP';
+    }, [matches, filteredMatches]);
+
     return (
-        <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId="WC2026">
+            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
             {/* Phase Progress */}
             <div className="mb-6">
@@ -258,5 +268,6 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 )}
             </div>
         </div >
+        </DynamicPredictionsWrapper>
     );
 };

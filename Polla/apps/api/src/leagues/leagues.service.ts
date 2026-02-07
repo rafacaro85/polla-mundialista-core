@@ -1256,15 +1256,21 @@ export class LeaguesService {
   }
 
   async getLeagueMatches(leagueId: string, userId?: string) {
-    // Para ligas empresariales, retornar todos los partidos del torneo FIFA 2026
+    // Para ligas empresariales, retornar todos los partidos del torneo correspondiente
     // con las predicciones del usuario si está autenticado
 
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
-    const isGlobal = league?.type === LeagueType.GLOBAL;
+    if (!league) {
+      throw new NotFoundException('League not found');
+    }
+
+    const isGlobal = league.type === LeagueType.GLOBAL;
+    const tournamentId = league.tournamentId || 'WC2026'; // Default to World Cup
 
     const matchesQuery = this.leaguesRepository.manager
       .getRepository(Match)
       .createQueryBuilder('match')
+      .where('match.tournamentId = :tournamentId', { tournamentId })
       .orderBy('match.date', 'ASC');
 
 

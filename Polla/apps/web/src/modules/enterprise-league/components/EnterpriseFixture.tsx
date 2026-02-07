@@ -222,13 +222,11 @@ export const EnterpriseFixture = () => {
     // Debug: log tournamentId
     console.log('🔍 EnterpriseFixture - League Metadata:', leagueMetadata);
     console.log('🔍 EnterpriseFixture - Tournament ID:', leagueMetadata?.tournamentId);
+    console.log('🔍 EnterpriseFixture - Current Phase:', currentPhase);
 
-    // Only use phase locking for Champions League
-    const isChampionsLeague = leagueMetadata?.tournamentId === 'UCL2526';
-    
-    // Main content
-    const mainContent = (
-        <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    return (
+        <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
+            <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <Tabs defaultValue="matches" className="w-full">
                     <div className="w-full max-w-lg mx-auto px-4 pt-4 mb-6">
                          <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
@@ -357,17 +355,6 @@ export const EnterpriseFixture = () => {
                     </TabsContent>
                 </Tabs>
             </div>
+        </DynamicPredictionsWrapper>
     );
-
-    // Only wrap with phase locking for Champions League
-    if (isChampionsLeague) {
-        return (
-            <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
-                {mainContent}
-            </DynamicPredictionsWrapper>
-        );
-    }
-
-    // For World Cup and other tournaments, show without phase restrictions
-    return mainContent;
 };

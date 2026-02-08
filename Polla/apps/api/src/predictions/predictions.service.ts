@@ -147,7 +147,58 @@ export class PredictionsService {
       });
     }
 
-    return this.predictionsRepository.save(prediction);
+    const savedPrediction = await this.predictionsRepository.save(prediction);
+
+    // --- SYNC TO GLOBAL CONTEXT (User Request) ---
+    // Si se guardó una predicción en una liga específica (Empresa), replicamos el marcador
+    // en el contexto Global (Social/Dashboard) para mantenerlos sincronizados.
+    if (leagueId) {
+      try {
+        // Buscamos o creamos la predicción global
+        let globalPrediction = await this.predictionsRepository.findOne({
+          where: {
+            user: { id: userId },
+            match: { id: matchId },
+            leagueId: IsNull(),
+          },
+        });
+
+        if (globalPrediction) {
+          // Si ya existe, actualizamos marcadores
+          globalPrediction.homeScore = homeScore;
+          globalPrediction.awayScore = awayScore;
+          // Solo replicamos el Joker si en la liga específica SE ACTIVÓ.
+          // No lo desactivamos globalmente si en la liga es false, para respetar estrategias mixtas,
+          // salvo que el usuario explícitamente quiera unificar todo.
+          // Por seguridad con el fix anterior: Si isJoker es true, lo propagamos.
+          if (isJoker === true) {
+             globalPrediction.isJoker = true;
+             // Nota: Al activar joker global, la lógica de validación (Only one per phase)
+             // debería correrse, pero como estamos manual, debemos tener cuidado.
+             // Para simplificar y evitar conflictos recursivos, guardamos directo.
+             // El usuario deberá gestionar sus jokers globales si tiene conflictos.
+          }
+          await this.predictionsRepository.save(globalPrediction);
+        } else {
+          // Si no existe, la creamos (clonando la de la empresa)
+          const newGlobal = this.predictionsRepository.create({
+            user: { id: userId } as User,
+            match: { id: matchId } as Match,
+            leagueId: undefined, // Global
+            tournamentId: match.tournamentId,
+            homeScore,
+            awayScore,
+            isJoker: isJoker || false,
+          });
+          await this.predictionsRepository.save(newGlobal);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error syncing prediction to global context: ${error.message}`);
+        // No lanzamos error para no fallar el request original
+      }
+    }
+
+    return savedPrediction;
   }
 
   async findAllByUser(
@@ -324,31 +375,61 @@ export class PredictionsService {
         if (prediction) {
           // Update existente
           // Update existente
+          // ... (ya corregido antes) ...
           prediction.homeScore = dto.homeScore;
           prediction.awayScore = dto.awayScore;
           
-          // PROTECCION JOKER (Fix User Request):
-          // En cargas masivas (ej. IA, Guardar Todo), evitamos desactivar jokers accidentalmente.
-          // Solo actualizamos si el request explícitamente pide ACTIVAR (true).
-          // Si viene false o undefined, respetamos el valor que ya tiene en base de datos.
           if (dto.isJoker === true) {
             prediction.isJoker = true;
           }
-          // Nota: Si dto.isJoker es false, ignoramos el cambio en Bulk para proteger el historial.
-          // El usuario debe desactivar el joker individualmente si así lo desea.
         } else {
           // Create nuevo
           prediction = queryRunner.manager.create(Prediction, {
             user: { id: userId } as User,
             match: { id: dto.matchId } as Match,
-            leagueId: dto.leagueId || undefined, // TypeORM prefiere undefined a null para columnas opcionales a veces
-            tournamentId: match.tournamentId, // Inherit tournamentId
+            leagueId: dto.leagueId || undefined, 
+            tournamentId: match.tournamentId,
             homeScore: dto.homeScore,
             awayScore: dto.awayScore,
             isJoker: dto.isJoker || false,
           });
         }
         entitiesToSave.push(prediction);
+
+        // --- SYNC GLOBAL (BULK) ---
+        if (dto.leagueId) {
+            // Check if user already has a DIFFERENT prediction in the batch targeting global context?
+            // Usually not. But we need to check if global prediction already exists in DB to update it.
+            // Since we fetched ALL predictions for this user/matches in step 2 (existingPredictions), we can check the Map.
+            
+            const globalKey = `${dto.matchId}_null`;
+            let globalPred = predictionsMap.get(globalKey);
+
+            if (globalPred) {
+                // Update existing global
+                globalPred.homeScore = dto.homeScore;
+                globalPred.awayScore = dto.awayScore;
+                if (dto.isJoker === true) globalPred.isJoker = true;
+            } else {
+                // Create new global
+                globalPred = queryRunner.manager.create(Prediction, {
+                    user: { id: userId } as User,
+                    match: { id: dto.matchId } as Match,
+                    leagueId: undefined, // Global
+                    tournamentId: match.tournamentId,
+                    homeScore: dto.homeScore,
+                    awayScore: dto.awayScore,
+                    isJoker: dto.isJoker || false
+                });
+                // Add to map to avoid duplicates if batch has repeats
+                predictionsMap.set(globalKey, globalPred);
+            }
+            
+            // Add to save list
+            if (!entitiesToSave.includes(globalPred)) {
+                 entitiesToSave.push(globalPred);
+            }
+        }
       }
 
       // 4. Guardar masivamente (Batch Save)

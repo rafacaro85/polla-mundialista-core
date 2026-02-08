@@ -266,7 +266,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                             HOLA, <span className="text-[var(--brand-primary,#00E676)]">{user?.nickname?.toUpperCase() || 'CRACK'}</span>
                         </h1>
                          <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                            Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!
+                            {typeof window !== 'undefined' && window.location.hostname.includes('champions') 
+                               ? 'Bienvenido a la Polla Champions 2025-26. ¡Predice, compite y diviértete!'
+                               : 'Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!'}
                         </p>
                     </div>
                 ) : (
@@ -327,10 +329,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                {/* E. PRIZE CARD & PROMO */}
                <div className="mt-4">
                    {selectedLeagueId === 'global' ? (
-                       <PrizeCard 
-                           description="Participa en la polla global y gana increíbles recompensas." 
-                           imageUrl="/images/wc2026_hero.png"
-                       />
+                       // Hide prize card on Champions tournament (beta)
+                       typeof window !== 'undefined' && !window.location.hostname.includes('champions') && (
+                           <PrizeCard 
+                               description="Participa en la polla global y gana increíbles recompensas." 
+                               imageUrl="/images/wc2026_hero.png"
+                           />
+                       )
                    ) : (
                        (currentLeague?.prizeImageUrl || currentLeague?.prizeDetails) && (
                            <div className="flex flex-col gap-2">

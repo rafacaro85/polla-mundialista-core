@@ -369,7 +369,7 @@ export class LeaguesService {
     ];
 
     const tournamentFilter = tournamentId ? `AND p."tournamentId" = '${tournamentId}'` : '';
-    const leagueExclusionFilter = `AND p."leagueId" NOT IN ('${demoLeagueIds.join("','")}')`;
+    const leagueExclusionFilter = `AND p.league_id NOT IN ('${demoLeagueIds.join("','")}')`;
     
     // 2. Fetch Prediction Points (Excluyendo ligas demo)
     const predictionPointsRows = (await this.predictionRepository.manager.query(`

@@ -26,9 +26,10 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
     const [isDemo, setIsDemo] = useState(false);
 
     useEffect(() => {
-        // Updated check for the static Demo UUID
-        const DEMO_UUID = '00000000-0000-0000-0000-000000001337';
-        if (leagueId.includes('demo') || leagueId === DEMO_UUID) {
+        // Check for both Demo UUIDs
+        const DEMO_ENTERPRISE_UUID = '00000000-0000-0000-0000-000000001337';
+        const DEMO_SOCIAL_UUID = '00000000-0000-0000-0000-000000001338';
+        if (leagueId.includes('demo') || leagueId === DEMO_ENTERPRISE_UUID || leagueId === DEMO_SOCIAL_UUID) {
             setIsDemo(true);
         }
     }, [leagueId]);

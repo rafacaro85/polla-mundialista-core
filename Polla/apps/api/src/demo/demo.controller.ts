@@ -12,11 +12,27 @@ export class DemoController {
   ) {}
 
   @Public() // Enable public access to start the demo
-  @Post('start')
-  async startDemo() {
-    const result = await this.demoService.provisionDemo();
+  @Post('start/enterprise')
+  async startEnterpriseDemo() {
+    const result = await this.demoService.provisionEnterpriseDemo();
     
     // Auto-login as the Demo Admin returned by the service
+    const { access_token, user } = await this.authService.login(result.admin);
+
+    return {
+      success: result.success,
+      leagueId: result.leagueId,
+      adminEmail: result.adminEmail,
+      token: access_token,
+      user
+    };
+  }
+
+  @Public()
+  @Post('start/social')
+  async startSocialDemo() {
+    const result = await this.demoService.provisionSocialDemo();
+    
     const { access_token, user } = await this.authService.login(result.admin);
 
     return {

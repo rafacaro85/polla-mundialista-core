@@ -17,8 +17,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class DemoService {
-  private readonly DEMO_LEAGUE_ID = '00000000-0000-0000-0000-000000001337'; // Valid UUID for demo
+  private readonly DEMO_ENTERPRISE_LEAGUE_ID = '00000000-0000-0000-0000-000000001337'; // Enterprise Demo
+  private readonly DEMO_SOCIAL_LEAGUE_ID = '00000000-0000-0000-0000-000000001338'; // Social Demo
   private readonly DEMO_ADMIN_EMAIL = 'demo@lapollavirtual.com';
+  private readonly DEMO_SOCIAL_ADMIN_EMAIL = 'demo-social@lapollavirtual.com';
   private readonly TOURNAMENT_ID = 'WC2026';
 
   constructor(
@@ -34,18 +36,26 @@ export class DemoService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async provisionDemo() {
+  async provisionEnterpriseDemo() {
+    return this.provisionDemo(this.DEMO_ENTERPRISE_LEAGUE_ID, this.DEMO_ADMIN_EMAIL, true);
+  }
+
+  async provisionSocialDemo() {
+    return this.provisionDemo(this.DEMO_SOCIAL_LEAGUE_ID, this.DEMO_SOCIAL_ADMIN_EMAIL, false);
+  }
+
+  private async provisionDemo(leagueId: string, adminEmail: string, isEnterprise: boolean) {
     try {
         console.log('🚀 Provisioning Demo Environment...');
 
         // 1. Create or Update Demo Admin
-        let admin = await this.userRepo.findOne({ where: { email: this.DEMO_ADMIN_EMAIL } });
+        let admin = await this.userRepo.findOne({ where: { email: adminEmail } });
         if (!admin) {
           const hashedPassword = await bcrypt.hash('demo123', 10);
           admin = this.userRepo.create({
-            email: this.DEMO_ADMIN_EMAIL,
-            fullName: 'Administrador Demo',
-            nickname: 'AdminDemo',
+            email: adminEmail,
+            fullName: isEnterprise ? 'Admin Demo Empresa' : 'Admin Demo Social',
+            nickname: isEnterprise ? 'AdminEmpresa' : 'AdminSocial',
             password: hashedPassword,
             role: UserRole.PLAYER,
             isVerified: true,
@@ -54,34 +64,49 @@ export class DemoService {
         }
 
         // 2. Create Demo League
-        let league = await this.leagueRepo.findOne({ where: { id: this.DEMO_LEAGUE_ID } });
+        let league = await this.leagueRepo.findOne({ where: { id: leagueId } });
         if (league) {
             // Clear existing demo data before re-provisioning
-            await this.clearDemoData();
+            await this.clearDemoData(leagueId);
         } else {
             league = new League();
-            league.id = this.DEMO_LEAGUE_ID;
+            league.id = leagueId;
         }
 
-        // Set properties explicitly to avoid industrial-scale create() confusion
-        league.name = 'Demo Corporativa Mundial 2026';
-        league.type = LeagueType.COMPANY;
-        league.packageType = 'diamond';
-        league.isEnterprise = true;
-        league.isEnterpriseActive = true;
-        league.maxParticipants = 100;
+        // Set properties based on demo type
+        if (isEnterprise) {
+            league.name = 'Demo Corporativa Mundial 2026';
+            league.type = LeagueType.COMPANY;
+            league.packageType = 'diamond';
+            league.isEnterprise = true;
+            league.isEnterpriseActive = true;
+            league.maxParticipants = 100;
+            league.companyName = 'Empresa Demo S.A.';
+            league.brandColorPrimary = '#4F46E5';
+            league.brandColorBg = '#0F172A';
+            league.brandColorSecondary = '#1E293B';
+            league.brandColorText = '#F8FAFC';
+            league.welcomeMessage = '¡Bienvenido al Demo Empresarial! Aquí puedes ver cómo tus empleados vivirán el mundial.';
+        } else {
+            league.name = 'Demo Social - Mundial 2026';
+            league.type = LeagueType.LIBRE;
+            league.packageType = 'free';
+            league.isEnterprise = false;
+            league.isEnterpriseActive = false;
+            league.maxParticipants = 20;
+            league.brandColorPrimary = '#10B981'; // Green
+            league.brandColorBg = '#0F172A';
+            league.brandColorSecondary = '#1E293B';
+            league.brandColorText = '#F8FAFC';
+            league.welcomeMessage = '¡Bienvenido al Demo Social! Compite con tus amigos y familia en este mundial.';
+        }
+        
         league.creator = admin;
-        league.accessCodePrefix = 'DEMO-2026';
+        league.accessCodePrefix = isEnterprise ? 'DEMO-EMP' : 'DEMO-SOC';
         league.tournamentId = this.TOURNAMENT_ID;
-        league.companyName = 'Empresa Demo S.A.';
-        league.brandColorPrimary = '#4F46E5';
-        league.brandColorBg = '#0F172A';
-        league.brandColorSecondary = '#1E293B';
-        league.brandColorText = '#F8FAFC';
         league.brandingLogoUrl = undefined;
         league.prizeImageUrl = undefined;
         league.isPaid = true;
-        league.welcomeMessage = '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.';
 
         league = await this.leagueRepo.save(league);
 
@@ -115,7 +140,7 @@ export class DemoService {
             const user = mockUsers[i];
             // Check if already in league
             const exists = await this.participantRepo.findOne({ 
-                where: { league: { id: this.DEMO_LEAGUE_ID }, user: { id: user.id } } 
+                where: { league: { id: leagueId }, user: { id: user.id } } 
             });
             if (!exists) {
                 await this.participantRepo.save(this.participantRepo.create({
@@ -175,12 +200,13 @@ export class DemoService {
     }
   }
 
-  async clearDemoData() {
+  async clearDemoData(leagueId?: string) {
+    const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     try {
-        console.log('🧹 Clearing Demo Data...');
-        await this.predictionRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
+        console.log(`🧹 Clearing Demo Data for league ${targetLeagueId}...`);
+        await this.predictionRepo.delete({ leagueId: targetLeagueId });
         
-        const questions = await this.bonusRepo.find({ where: { leagueId: this.DEMO_LEAGUE_ID } });
+        const questions = await this.bonusRepo.find({ where: { leagueId: targetLeagueId } });
         if (questions.length > 0) {
             const qIds = questions.map(q => q.id);
             await this.bonusAnswerRepo.createQueryBuilder()
@@ -189,16 +215,18 @@ export class DemoService {
                 .execute();
         }
         
-        await this.bonusRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
+        await this.bonusRepo.delete({ leagueId: targetLeagueId });
         
         // Use query builder for league_id delete to be safer with uuid
         await this.participantRepo.createQueryBuilder()
             .delete()
-            .where('league_id = :leagueId', { leagueId: this.DEMO_LEAGUE_ID })
+            .where('league_id = :leagueId', { leagueId: targetLeagueId })
             .execute();
             
-        // ALSO RESET MATCH RESULTS for the Demo Tournament
-        await this.resetTournamentResults();
+        // ALSO RESET MATCH RESULTS for the Demo Tournament (only once, not per league)
+        if (leagueId === this.DEMO_ENTERPRISE_LEAGUE_ID || !leagueId) {
+            await this.resetTournamentResults();
+        }
 
         console.log('✅ Demo Data Cleared.');
     } catch (error) {
@@ -260,11 +288,12 @@ export class DemoService {
       return { success: true, count: results.length, lastMatch: results[results.length - 1] };
   }
 
-  async createBonus(text: string, points: number) {
+  async createBonus(text: string, points: number, leagueId?: string) {
+      const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
       const bonus = this.bonusRepo.create({
           text,
           points,
-          leagueId: this.DEMO_LEAGUE_ID,
+          leagueId: targetLeagueId,
           tournamentId: this.TOURNAMENT_ID,
           isActive: true,
       });

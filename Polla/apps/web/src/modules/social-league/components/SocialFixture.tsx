@@ -184,8 +184,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     }, [finalMatches, matchesByDate]);
 
     return (
-        <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId="WC2026">
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+        <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
             {/* Phase Progress */}
             <div className="mb-6">
@@ -275,6 +274,5 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 )}
             </div>
         </div >
-        </DynamicPredictionsWrapper>
     );
 };

@@ -1,18 +1,18 @@
 {
   "run": {
-    "command": "nx run web:build --skip-nx-cache",
-    "startTime": "2026-01-28T02:22:47.446Z",
-    "endTime": "2026-01-28T02:23:04.197Z",
+    "command": "nx build api",
+    "startTime": "2026-02-04T03:54:02.273Z",
+    "endTime": "2026-02-04T03:54:15.298Z",
     "inner": false
   },
   "tasks": [
     {
-      "taskId": "web:build",
+      "taskId": "api:build",
       "target": "build",
-      "projectName": "web",
-      "hash": "7458716808710453714",
-      "startTime": "2026-01-28T02:22:47.470Z",
-      "endTime": "2026-01-28T02:23:04.195Z",
+      "projectName": "api",
+      "hash": "6185358770452421849",
+      "startTime": "2026-02-04T03:54:02.303Z",
+      "endTime": "2026-02-04T03:54:15.296Z",
       "params": "",
       "cacheStatus": "cache-miss",
       "status": 0

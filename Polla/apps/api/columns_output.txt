@@ -1,0 +1,15 @@
+﻿
+--- matches ---
+id, homeTeam, awayTeam, homeScore, awayScore, date, homeFlag, awayFlag, phase, group, homeTeamPlaceholder, awayTeamPlaceholder, bracketId, nextMatchId, status, externalId, isManuallyLocked, stadium, aiPrediction, aiPredictionScore, aiPredictionGeneratedAt, tournamentId
+
+--- predictions ---
+id, league_id, homeScore, awayScore, points, isJoker, userId, matchId, tournamentId
+
+--- user_brackets ---
+id, userId, leagueId, picks, points, createdAt, updatedAt, tournamentId
+
+--- league_participants ---
+id, total_points, current_rank, isAdmin, is_blocked, trivia_points, prediction_points, bracket_points, joker_points, joined_at, tie_breaker_guess, department, league_id, user_id
+
+--- knockout_phase_status ---
+id, phase, is_unlocked, unlocked_at, all_matches_completed, is_manually_locked, created_at, updated_at, tournamentId

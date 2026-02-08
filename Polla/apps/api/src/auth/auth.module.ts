@@ -27,5 +27,6 @@ import { TelegramModule } from '../telegram/telegram.module';
   ],
   providers: [AuthService, JwtStrategy, GoogleStrategy, LocalStrategy],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}

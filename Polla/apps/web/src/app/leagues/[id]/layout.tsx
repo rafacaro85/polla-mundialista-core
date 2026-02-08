@@ -9,6 +9,7 @@ import { LeagueHeader } from '@/components/leagues/LeagueHeader';
 import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { DemoControlPanel } from '@/components/DemoControlPanel';
 
 // Helper for Plan Levels
 const getPlanLevel = (type?: string) => {
@@ -148,6 +149,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     }`}>
                     {children}
                 </main>
+                
+                {/* Panel de Control para el Demo */}
+                <DemoControlPanel leagueId={league.id} />
             </div>
         </BrandThemeProvider>
     );

@@ -26,6 +26,7 @@ import { TelegramModule } from './telegram/telegram.module';
 import { AiPredictionModule } from './ai-prediction/ai-prediction.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
+import { DemoModule } from './demo/demo.module';
 
 
 // Import all entities
@@ -156,6 +157,7 @@ import { APP_GUARD } from '@nestjs/core';
     AiPredictionModule,
     PaymentsModule,
     AdminModule,
+    DemoModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

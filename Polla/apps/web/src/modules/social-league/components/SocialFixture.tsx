@@ -150,20 +150,32 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
 
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {
         const suggestionsMap: Record<string, { h: number, a: number }> = {};
-        Object.entries(newPredictions).forEach(([mId, [h, a]]) => {
-            const existing = predictions[mId];
-            // Sugerir si NO tiene predicción O si la que tiene es GLOBAL (queremos una específica para esta liga)
-            if (!existing || existing.leagueId === null) {
-                suggestionsMap[mId] = { h, a };
+        
+        console.log("🤖 Recibiendo predicciones IA:", Object.keys(newPredictions).length);
+        
+        Object.entries(newPredictions).forEach(([mId, scores]) => {
+            // Limpieza básica de ID por si la IA añade espacios o comillas extra
+            const cleanId = mId.trim();
+            const [h, a] = scores;
+
+            // Sugerir siempre que el mId sea válido. 
+            // La UI ya se encarga de dar prioridad a la sugerencia sobre lo guardado.
+            if (cleanId) {
+                suggestionsMap[cleanId] = { h, a };
             }
         });
         
+        if (Object.keys(suggestionsMap).length === 0) {
+            toast.error('La IA no devolvió predicciones válidas para estos partidos');
+            return;
+        }
+
         // Use startTransition to prevent React rendering errors
         React.startTransition(() => {
             setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
         });
         
-        toast.info('Sugerencias aplicadas (Borrador)');
+        toast.info(`¡${Object.keys(suggestionsMap).length} sugerencias aplicadas! (Borrador)`);
     };
 
     const handleClearPredictions = () => {

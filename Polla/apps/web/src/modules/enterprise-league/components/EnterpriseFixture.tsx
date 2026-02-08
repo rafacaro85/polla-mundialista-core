@@ -193,19 +193,29 @@ export const EnterpriseFixture = () => {
 
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {
         const suggestionsMap: Record<string, { h: number, a: number }> = {};
-        Object.entries(newPredictions).forEach(([mId, [h, a]]) => {
-            const existing = predictions[mId];
-            if (!existing || existing.leagueId === null) {
-                suggestionsMap[mId] = { h, a };
+        
+        console.log("🤖 Recibiendo predicciones IA (Enterprise):", Object.keys(newPredictions).length);
+
+        Object.entries(newPredictions).forEach(([mId, scores]) => {
+            const cleanId = mId.trim();
+            const [h, a] = scores;
+
+            if (cleanId) {
+                suggestionsMap[cleanId] = { h, a };
             }
         });
         
+        if (Object.keys(suggestionsMap).length === 0) {
+            toast.error('La IA no devolvió predicciones válidas');
+            return;
+        }
+
         // Use startTransition to prevent React rendering errors
         React.startTransition(() => {
             setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
         });
         
-        toast.info('Sugerencias aplicadas (Borrador)');
+        toast.info(`¡${Object.keys(suggestionsMap).length} sugerencias aplicadas! (Borrador)`);
     };
 
     const handleClearPredictions = () => {

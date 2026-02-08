@@ -27,9 +27,19 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
             // Helper function to check if a team is a real team (not placeholder)
             const isRealTeam = (team: string) => {
                 if (!team || team === '' || team === 'TBD') return false;
-                // Check if it's a placeholder (starts with number or contains 'RD', 'W', 'L')
-                if (/^[0-9]/.test(team)) return false; // Starts with number (1A, 2B, 3RD-1, etc.)
-                if (team.includes('RD-') || team.includes('W') || team.includes('L')) return false;
+                
+                // Check for explicit placeholder patterns
+                // Placeholders start with: digit + letter (1A, 2B, 3RD-1, etc.)
+                if (/^[0-9][A-Z]/.test(team)) return false; // 1A, 2B, 3C, etc.
+                if (/^[0-9]RD-/.test(team)) return false; // 3RD-1, 3RD-2, etc.
+                
+                // Check for winner/loser placeholders
+                if (/^W[0-9]/.test(team)) return false; // W32-1, W16-2, WQ-1, etc.
+                if (/^L-/.test(team)) return false; // L-Semi-1, L-Semi-2, etc.
+                
+                // Check for PLA_ placeholders (playoff teams)
+                if (team.startsWith('PLA_')) return false;
+                
                 return true;
             };
 
@@ -48,6 +58,8 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
                 setLoading(false);
                 return;
             }
+
+            console.log(`🤖 IA va a predecir ${playableMatches.length} partidos de ${matches.length} totales`);
 
             // Preparar los datos para la IA solo con lo necesario
             const matchesForAi = playableMatches.map(m => {

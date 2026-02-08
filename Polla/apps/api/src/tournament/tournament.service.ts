@@ -319,68 +319,69 @@ export class TournamentService {
       }
     }
 
-    // 3. Buscar partidos de ROUND_32 con placeholders de terceros (3RD-1 a 3RD-8)
+    // 3. Buscar partidos de ROUND_32 con placeholders de terceros
+    // Admitimos formatos como "3RD-1" o descriptivos "3A/B/C..." (usados en calendario oficial)
     const knockoutMatches = await this.matchesRepository.find({
       where: { phase: 'ROUND_32', tournamentId },
       order: { bracketId: 'ASC' },
     });
 
-    let updatedCount = 0;
-
-    // Asignar cada tercer lugar a su placeholder correspondiente
-    for (let i = 0; i < qualifiers.length && i < 8; i++) {
-      const qualifier = qualifiers[i];
-      const placeholderToFind = `3RD-${i + 1}`;
-
-      // Buscar el partido que tiene este placeholder
-      for (const match of knockoutMatches) {
-        let updated = false;
-
-        // Verificar si el placeholder está en homeTeam
-        if (
-          match.homeTeamPlaceholder === placeholderToFind &&
-          !match.homeTeam
-        ) {
-          match.homeTeam = qualifier.team;
-          match.homeFlag = teamFlags[qualifier.team] || '';
-          updated = true;
-          this.logger.log(
-            `   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Home) - Placeholder: ${placeholderToFind}`,
-          );
-        }
-
-        // Verificar si el placeholder está en awayTeam
-        if (
-          match.awayTeamPlaceholder === placeholderToFind &&
-          !match.awayTeam
-        ) {
-          match.awayTeam = qualifier.team;
-          match.awayFlag = teamFlags[qualifier.team] || '';
-          updated = true;
-          this.logger.log(
-            `   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Away) - Placeholder: ${placeholderToFind}`,
-          );
-        }
-
-        if (updated) {
-          await this.matchesRepository.save(match);
-
-          // Emit event if both teams are now assigned
-          if (match.homeTeam && match.awayTeam) {
-            this.eventEmitter.emit('match.teams.assigned', {
-              matchId: match.id,
-              homeTeam: match.homeTeam,
-              awayTeam: match.awayTeam,
-            });
-          }
-
-          updatedCount++;
-          break; // Pasar al siguiente qualifier
-        }
+    // Identificar slots de terceros (que empiecen por 3 o contengan 3RD)
+    const slots: { match: Match; side: 'home' | 'away'; placeholder: string }[] = [];
+    for (const m of knockoutMatches) {
+      if (!m.homeTeam && (m.homeTeamPlaceholder?.startsWith('3') || m.homeTeamPlaceholder?.includes('3RD'))) {
+        slots.push({ match: m, side: 'home', placeholder: m.homeTeamPlaceholder });
+      }
+      if (!m.awayTeam && (m.awayTeamPlaceholder?.startsWith('3') || m.awayTeamPlaceholder?.includes('3RD'))) {
+        slots.push({ match: m, side: 'away', placeholder: m.awayTeamPlaceholder });
       }
     }
 
-    if (updatedCount > 0) {
+    this.logger.log(`🔍 Found ${slots.length} third-place slots in R32 for ${tournamentId}.`);
+
+    let updatedCount = 0;
+
+    // Asignar los mejores terceros a los slots encontrados en orden
+    for (let i = 0; i < qualifiers.length && i < slots.length; i++) {
+      const qualifier = qualifiers[i];
+      const slot = slots[i];
+      const match = slot.match;
+      
+      let updated = false;
+
+      if (slot.side === 'home') {
+        if (match.homeTeam !== qualifier.team) {
+          match.homeTeam = qualifier.team;
+          match.homeFlag = teamFlags[qualifier.team] || '';
+          updated = true;
+          this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Home) - Placeholder: ${slot.placeholder}`);
+        }
+      } else {
+        if (match.awayTeam !== qualifier.team) {
+          match.awayTeam = qualifier.team;
+          match.awayFlag = teamFlags[qualifier.team] || '';
+          updated = true;
+          this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Away) - Placeholder: ${slot.placeholder}`);
+        }
+      }
+
+      if (updated) {
+        await this.matchesRepository.save(match);
+
+        // Emit event if both teams are now assigned
+        if (match.homeTeam && match.awayTeam) {
+          this.eventEmitter.emit('match.teams.assigned', {
+            matchId: match.id,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+          });
+        }
+
+        updatedCount++;
+      }
+    }
+
+      if (updatedCount > 0) {
       this.logger.log(
         `🎉 Best Thirds promotion complete. Updated ${updatedCount} Round 32 matches.`,
       );
@@ -537,40 +538,85 @@ export class TournamentService {
     const nextPhase = nextPhaseMap[match.phase];
     if (!nextPhase || !match.bracketId) return;
 
-    const nextBracketId = Math.ceil(match.bracketId / 2);
+    // Intentar encontrar el próximo partido por nextMatchId o por placeholder "Ganador X"
+    let nextMatch: Match | null = null;
+    
+    if (match.nextMatchId) {
+      nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
+    }
 
-    const nextMatch = await this.matchesRepository.findOne({
-      where: {
-        phase: nextPhase,
-        bracketId: nextBracketId,
-        tournamentId: match.tournamentId,
-      },
-    });
+    if (!nextMatch) {
+      // Buscar por placeholder "Ganador [bracketId]" o "Winner [bracketId]"
+      // También buscamos por el número del bracket solo, por si acaso (ej. "Ganador 73")
+      const searchPlaceholder = `Ganador ${match.bracketId}`;
+      const searchPlaceholderAlt = `Winner ${match.bracketId}`;
+      const searchNumber = `${match.bracketId}`;
+      
+      nextMatch = await this.matchesRepository.findOne({
+        where: [
+          { homeTeamPlaceholder: searchPlaceholder, phase: nextPhase, tournamentId: match.tournamentId },
+          { awayTeamPlaceholder: searchPlaceholder, phase: nextPhase, tournamentId: match.tournamentId },
+          { homeTeamPlaceholder: searchPlaceholderAlt, phase: nextPhase, tournamentId: match.tournamentId },
+          { awayTeamPlaceholder: searchPlaceholderAlt, phase: nextPhase, tournamentId: match.tournamentId },
+        ]
+      });
+
+      // Si aún no se encuentra, buscar por el número del partido (algunos calendarios usan "Ganador Match X")
+      if (!nextMatch) {
+         const matches = await this.matchesRepository.find({
+            where: { phase: nextPhase, tournamentId: match.tournamentId }
+         });
+         nextMatch = matches.find(m => 
+            m.homeTeamPlaceholder?.includes(searchNumber) || 
+            m.awayTeamPlaceholder?.includes(searchNumber)
+         ) || null;
+      }
+    }
+
+    // Fallback al cálculo matemático si no se encontró (solo si bracketId es pequeño, para evitar falsos positivos con IDs reales grandes)
+    if (!nextMatch && match.bracketId < 50) {
+      const nextBracketId = Math.ceil(match.bracketId / 2);
+      nextMatch = await this.matchesRepository.findOne({
+        where: {
+          phase: nextPhase,
+          bracketId: nextBracketId,
+          tournamentId: match.tournamentId,
+        },
+      });
+    }
 
     if (!nextMatch) {
       this.logger.warn(
-        `Next match not found for ${match.phase} Bracket ${match.bracketId} -> ${nextPhase} Bracket ${nextBracketId}`,
+        `Next match not found for ${match.phase} Bracket ${match.bracketId} in ${match.tournamentId}`,
       );
       return;
     }
 
     // Determine Slot (Home or Away)
-    // Odd -> Home, Even -> Away
-    const isHomeSlot = match.bracketId % 2 !== 0;
+    // Intentamos determinar por placeholder primero
+    let isHomeSlot = true;
+    if (nextMatch.homeTeamPlaceholder?.includes(`${match.bracketId}`)) {
+      isHomeSlot = true;
+    } else if (nextMatch.awayTeamPlaceholder?.includes(`${match.bracketId}`)) {
+      isHomeSlot = false;
+    } else {
+      // Fallback a par/impar si no hay pista en el placeholder
+      isHomeSlot = match.bracketId % 2 !== 0;
+    }
 
     let updated = false;
     if (isHomeSlot) {
       if (nextMatch.homeTeam !== winnerTeam) {
         nextMatch.homeTeam = winnerTeam;
         nextMatch.homeFlag = winnerFlag;
-        nextMatch.homeTeamPlaceholder = `W${match.bracketId}-Prev`;
+        // nextMatch.homeTeamPlaceholder = `W${match.bracketId}-Prev`; // Evitamos sobreescribir el placeholder descriptivo
         updated = true;
       }
     } else {
       if (nextMatch.awayTeam !== winnerTeam) {
         nextMatch.awayTeam = winnerTeam;
         nextMatch.awayFlag = winnerFlag;
-        nextMatch.awayTeamPlaceholder = `W${match.bracketId}-Prev`;
+        // nextMatch.awayTeamPlaceholder = `W${match.bracketId}-Prev`;
         updated = true;
       }
     }

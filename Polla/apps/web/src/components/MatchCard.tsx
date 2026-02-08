@@ -93,17 +93,18 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     const newAway = match.userA || (match.prediction?.awayScore !== undefined ? match.prediction.awayScore.toString() : '');
     const newJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker);
 
-    // Solo actualizar si los valores de las props CAMBIAN comparados con lo que teníamos originalmente
-    // y no si estamos actualmente en un estado vacío (evita que reaparezcan al borrar)
-    if (newHome !== homeScore || newAway !== awayScore || newJoker !== isJoker) {
-      // Si la prop está vacía y mi estado local tiene algo, el usuario probablemente está borrando o el server ya borró
-      // Solo forzamos si el valor de la prop es un número (actualización real de DB o IA) 
-      // o si la IA está mandando una sugerencia nueva.
-      setHomeScore(newHome);
-      setAwayScore(newAway);
-      setIsJoker(newJoker);
+    // CRITICAL: ONLY update local state if the incoming data is DIFFERENT and NOT EMPTY
+    // If the data is empty (user just deleted it), we don't want to re-fill it from a pending DB state
+    const isIncomingEmpty = newHome === '' && newAway === '';
+    const isCurrentEmpty = homeScore === '' && awayScore === '';
+
+    if (!isIncomingEmpty || (isIncomingEmpty && isCurrentEmpty)) {
+       if (newHome !== homeScore) setHomeScore(newHome);
+       if (newAway !== awayScore) setAwayScore(newAway);
     }
-  }, [match.prediction, match.userH, match.userA, match.isJoker]); // eslint-disable-line react-hooks/exhaustive-deps
+    
+    if (newJoker !== isJoker) setIsJoker(newJoker);
+  }, [match.prediction?.homeScore, match.prediction?.awayScore, match.prediction?.isJoker, match.userH, match.userA, match.isJoker]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Estado local Joker
   const [isJoker, setIsJoker] = useState(!!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker));
@@ -114,20 +115,23 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   };
 
   const handleBlur = () => {
-    // Si ambos están vacíos -> Borrar
-    if (homeScore === '' && awayScore === '') {
+    // Solo actuamos si AMBOS campos están vacíos (Borrar)
+    // O si AMBOS campos tienen valor (Guardar)
+    const h = homeScore.trim();
+    const a = awayScore.trim();
+
+    if (h === '' && a === '') {
+      // Intención de borrar: Mandamos nulls al padre
       if (onSavePrediction) onSavePrediction(match.id, null, null);
       return;
     }
 
-    // Si ambos tienen valores -> Guardar
-    if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
-      onSavePrediction(match.id, homeScore, awayScore, isJoker);
+    if (h !== '' && a !== '' && onSavePrediction) {
+      // Guardar marcador completo
+      onSavePrediction(match.id, h, a, isJoker);
     }
     
-    // Si uno está vacío y el otro no -> En este sistema suele ser inválido, 
-    // pero para permitir "borrado manual" flúido, si el usuario deja uno vacío
-    // podríamos optar por no guardar nada hasta que complete ambos.
+    // Si uno está lleno y otro vacío, no hacemos nada (marcadores incompletos no se guardan)
   };
 
   const toggleJoker = (e: React.MouseEvent) => {

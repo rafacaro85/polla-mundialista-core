@@ -18,5 +18,6 @@ import { MatchesModule } from '../matches/matches.module';
     ],
     controllers: [PredictionsController],
     providers: [PredictionsService],
+    exports: [PredictionsService],
 })
 export class PredictionsModule { }

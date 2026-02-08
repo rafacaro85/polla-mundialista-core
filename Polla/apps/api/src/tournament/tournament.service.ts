@@ -55,8 +55,8 @@ export class TournamentService {
      * Promociona automáticamente los equipos clasificados de un grupo a Dieciseisavos (Round of 32)
      * IDEMPOTENTE: Puede ejecutarse múltiples veces sin duplicar datos
      */
-    async promoteFromGroup(group: string): Promise<void> {
-        this.logger.log(`🔄 Checking promotion for Group ${group}...`);
+    async promoteFromGroup(group: string, tournamentId: string = 'WC2026'): Promise<void> {
+        this.logger.log(`🔄 Checking promotion for Group ${group} in ${tournamentId}...`);
 
         // 1. Verificar si el grupo está completo
         const isComplete = await this.isGroupComplete(group);
@@ -89,6 +89,7 @@ export class TournamentService {
         // a alguno de los miembros de este grupo, y lo reseteamos si no coincide con la nueva realidad.
         const dirtyMatches = await this.matchesRepository.createQueryBuilder('m')
             .where("m.phase = 'ROUND_32'")
+            .andWhere("m.tournamentId = :tid", { tid: tournamentId })
             .andWhere(
                 "(m.homeTeam IN (:...teams) OR m.awayTeam IN (:...teams))", 
                 { teams: groupTeams }
@@ -154,7 +155,7 @@ export class TournamentService {
 
         // 2.5. Buscar banderas de los equipos clasificados
         const groupMatches = await this.matchesRepository.find({
-            where: { phase: 'GROUP', group },
+            where: { phase: 'GROUP', group, tournamentId },
         });
 
         let firstPlaceFlag = '';
@@ -181,7 +182,7 @@ export class TournamentService {
         // O que cambiemos la lógica para NO borrar el placeholder al asignar equipo.
         
         const knockoutMatches = await this.matchesRepository.find({
-            where: { phase: 'ROUND_32' },
+            where: { phase: 'ROUND_32', tournamentId },
         });
 
         let updatedCount = 0;
@@ -237,8 +238,8 @@ export class TournamentService {
      * Promociona los 8 mejores terceros a los partidos correspondientes
      * basados en el ranking global de terceros.
      */
-    async promoteBestThirds(): Promise<void> {
-        this.logger.log(`🔄 Checking promotion for Best Thirds...`);
+    async promoteBestThirds(tournamentId: string = 'WC2026'): Promise<void> {
+        this.logger.log(`🔄 Checking promotion for Best Thirds in ${tournamentId}...`);
 
         // Obtener ranking de mejores terceros
         const bestThirds = await this.standingsService.calculateBestThirdsRanking();
@@ -258,8 +259,8 @@ export class TournamentService {
         for (const q of qualifiers) {
             const match = await this.matchesRepository.findOne({
                 where: [
-                    { homeTeam: q.team, phase: 'GROUP' },
-                    { awayTeam: q.team, phase: 'GROUP' }
+                    { homeTeam: q.team, phase: 'GROUP', tournamentId },
+                    { awayTeam: q.team, phase: 'GROUP', tournamentId }
                 ]
             });
             if (match) {
@@ -269,7 +270,7 @@ export class TournamentService {
 
         // 3. Buscar partidos de ROUND_32 con placeholders de terceros (3RD-1 a 3RD-8)
         const knockoutMatches = await this.matchesRepository.find({
-            where: { phase: 'ROUND_32' },
+            where: { phase: 'ROUND_32', tournamentId },
             order: { bracketId: 'ASC' }
         });
 
@@ -368,7 +369,7 @@ export class TournamentService {
         const nextBracketId = Math.ceil(match.bracketId / 2);
         
         const nextMatch = await this.matchesRepository.findOne({
-            where: { phase: nextPhase, bracketId: nextBracketId }
+            where: { phase: nextPhase, bracketId: nextBracketId, tournamentId: match.tournamentId }
         });
 
         if (!nextMatch) {
@@ -417,7 +418,7 @@ export class TournamentService {
             const loserFlag = (hScore > aScore) ? match.awayFlag : match.homeFlag;
 
             const thirdPlaceMatch = await this.matchesRepository.findOne({
-                where: { phase: '3RD_PLACE' }
+                where: { phase: '3RD_PLACE', tournamentId: match.tournamentId }
             });
 
             if (thirdPlaceMatch) {
@@ -448,9 +449,9 @@ export class TournamentService {
         }
     }
 
-    async promotePhaseWinners(phase: string): Promise<void> {
-        this.logger.log(`🏁 Batch promoting winners for phase: ${phase}`);
-        const matches = await this.matchesRepository.find({ where: { phase } });
+    async promotePhaseWinners(phase: string, tournamentId: string = 'WC2026'): Promise<void> {
+        this.logger.log(`🏁 Batch promoting winners for phase: ${phase} in ${tournamentId}`);
+        const matches = await this.matchesRepository.find({ where: { phase, tournamentId } });
 
         for (const match of matches) {
             // Check status leniently
@@ -467,7 +468,7 @@ export class TournamentService {
     /**
      * Promociona todos los grupos completos
      */
-    async promoteAllCompletedGroups(): Promise<void> {
+    async promoteAllCompletedGroups(tournamentId: string = 'WC2026'): Promise<void> {
         const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
         for (const group of groups) {
@@ -480,7 +481,7 @@ export class TournamentService {
 
         // Promover mejores terceros después de actualizar todos los grupos
         try {
-            await this.promoteBestThirds();
+            await this.promoteBestThirds(tournamentId);
         } catch (error) {
             this.logger.error(`❌ Error promoting Best Thirds:`, error);
         }

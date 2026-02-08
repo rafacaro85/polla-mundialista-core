@@ -95,7 +95,7 @@ export const EnterpriseFixture = () => {
             const displayDate = dateStr;
 
             const pred = predictions[m.id];
-            const suggestion = aiSuggestions[m.id];
+            const suggestion = aiSuggestions[m.id.trim()];
 
             let userH = '';
             let userA = '';
@@ -175,14 +175,16 @@ export const EnterpriseFixture = () => {
     };
 
     const handlePredictionChange = async (matchId: string, homeScore: any, awayScore: any, isJoker?: boolean) => {
+        const cleanId = matchId.trim();
+
         // Clear suggestion if manually acted upon
-        if (aiSuggestions[matchId]) {
+        if (aiSuggestions[cleanId]) {
             const next = { ...aiSuggestions };
-            delete next[matchId];
+            delete next[cleanId];
             setAiSuggestions(next);
         }
 
-        if (homeScore === null && awayScore === null) {
+        if ((homeScore === null || homeScore === '') && (awayScore === null || awayScore === '')) {
             await deletePrediction(matchId);
             return;
         }

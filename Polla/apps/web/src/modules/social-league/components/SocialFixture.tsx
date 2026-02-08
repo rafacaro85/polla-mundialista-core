@@ -130,13 +130,15 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     };
 
     const handlePredictionChange = async (matchId: string, homeScore: any, awayScore: any, isJoker?: boolean) => {
-        if (aiSuggestions[matchId]) {
+        const cleanId = matchId.trim();
+        
+        if (aiSuggestions[cleanId]) {
             const next = { ...aiSuggestions };
-            delete next[matchId];
+            delete next[cleanId];
             setAiSuggestions(next);
         }
 
-        if (homeScore === null && awayScore === null) {
+        if ((homeScore === null || homeScore === '') && (awayScore === null || awayScore === '')) {
             await deletePrediction(matchId);
             return;
         }

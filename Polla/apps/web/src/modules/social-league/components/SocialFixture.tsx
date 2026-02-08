@@ -43,58 +43,53 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     const [dates, setDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
 
-    // Merge Logic
-    const matches = useMemo(() => {
-        if (!matchesData) return [];
-        // Filtro eliminado para permitir ver fases siguientes cuando se desbloquean desde el backend
-        return matchesData
-            // .filter((m: any) => new Date(m.date) <= new Date('2026-06-28T12:00:00Z'))
-            .map((m: any) => {
-                const date = new Date(m.date);
-                const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-                    'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-                const month = monthNames[date.getMonth()];
-                const day = date.getDate();
-                const dateStr = `${month} ${day}`;
-                const displayDate = dateStr;
+    // Simplified mapping logic to ensure reactivity
+    const matches = matchesData ? matchesData.map((m: any) => {
+        const date = new Date(m.date);
+        const monthNames = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const dateStr = `${month} ${day}`;
+        const displayDate = dateStr;
 
-                const pred = predictions[m.id];
-                const suggestion = aiSuggestions[m.id];
+        const pred = predictions[m.id];
+        // Buscar sugerencia con limpieza de ID
+        const suggestion = aiSuggestions[m.id.trim()];
 
-                let userH = '';
-                let userA = '';
+        let userH = '';
+        let userA = '';
 
-                if (suggestion) {
-                    userH = suggestion.h.toString();
-                    userA = suggestion.a.toString();
-                } else if (pred) {
-                    userH = pred.homeScore?.toString() ?? '';
-                    userA = pred.awayScore?.toString() ?? '';
-                }
+        if (suggestion) {
+            userH = suggestion.h.toString();
+            userA = suggestion.a.toString();
+        } else if (pred) {
+            userH = pred.homeScore?.toString() ?? '';
+            userA = pred.awayScore?.toString() ?? '';
+        }
 
-                return {
-                    ...m,
-                    dateStr,
-                    displayDate,
-                    homeTeam: m.homeTeam,
-                    awayTeam: m.awayTeam,
-                    homeFlag: ensureFlagUrl(m.homeFlag, m.homeTeam || m.homeTeamPlaceholder),
-                    awayFlag: ensureFlagUrl(m.awayFlag, m.awayTeam || m.awayTeamPlaceholder),
-                    status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
-                    scoreH: m.homeScore,
-                    scoreA: m.awayScore,
-                    prediction: pred ? {
-                        homeScore: pred.homeScore,
-                        awayScore: pred.awayScore,
-                        isJoker: pred.isJoker,
-                        points: pred.points || 0
-                    } : undefined,
-                    userH,
-                    userA,
-                    points: pred?.points || 0
-                };
-            });
-    }, [matchesData, predictions, aiSuggestions]);
+        return {
+            ...m,
+            dateStr,
+            displayDate,
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            homeFlag: ensureFlagUrl(m.homeFlag, m.homeTeam || m.homeTeamPlaceholder),
+            awayFlag: ensureFlagUrl(m.awayFlag, m.awayTeam || m.awayTeamPlaceholder),
+            status: m.status === 'COMPLETED' ? 'FINISHED' : m.status,
+            scoreH: m.homeScore,
+            scoreA: m.awayScore,
+            prediction: pred ? {
+                homeScore: pred.homeScore,
+                awayScore: pred.awayScore,
+                isJoker: pred.isJoker,
+                points: pred.points || 0
+            } : undefined,
+            userH,
+            userA,
+            points: pred?.points || 0
+        };
+    }) : [];
 
     // Filter matches by unlocked phases (Mundial only)
     const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, 'WC2026');
@@ -170,10 +165,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             return;
         }
 
-        // Use startTransition to prevent React rendering errors
-        React.startTransition(() => {
-            setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
-        });
+        // Actualizar estado de forma inmediata
+        setAiSuggestions(prev => ({ ...prev, ...suggestionsMap }));
+        
+        console.log("✅ Sugerencias integradas en el estado.");
         
         toast.info(`¡${Object.keys(suggestionsMap).length} sugerencias aplicadas! (Borrador)`);
     };

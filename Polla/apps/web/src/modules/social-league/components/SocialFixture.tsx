@@ -11,6 +11,7 @@ import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
 import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
+import { useFilteredMatches } from '@/hooks/useFilteredMatches';
 
 
 interface SocialFixtureProps {
@@ -95,26 +96,32 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             });
     }, [matchesData, predictions, aiSuggestions]);
 
+    // Filter matches by unlocked phases (Mundial only)
+    const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, 'WC2026');
+    
+    // Use filtered matches for all operations
+    const finalMatches = phaseFilteredMatches;
+
     // Dates Logic
     useEffect(() => {
-        if (matches.length > 0) {
-            const uniqueDates = Array.from(new Set(matches.map((m: any) => m.displayDate))) as string[];
+        if (finalMatches.length > 0) {
+            const uniqueDates = Array.from(new Set(finalMatches.map((m: any) => m.displayDate))) as string[];
             setDates(uniqueDates);
             // Si no hay selección o la selección actual ya no es válida (ej: fecha desapareció)
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }
         }
-    }, [matches]); // Removed selectedDate from dependencies to avoid infinite loop
+    }, [finalMatches]); // Removed selectedDate from dependencies to avoid infinite loop
 
-    const filteredMatches = useMemo(() =>
-        matches.filter(m => m.displayDate === selectedDate),
-        [matches, selectedDate]
+    const matchesByDate = useMemo(() =>
+        finalMatches.filter(m => m.displayDate === selectedDate),
+        [finalMatches, selectedDate]
     );
 
     const handlePhaseClick = (phase: string) => {
         // Find the first match of this phase
-        const phaseMatches = matches.filter(m => m.phase === phase);
+        const phaseMatches = finalMatches.filter(m => m.phase === phase);
         if (phaseMatches.length > 0) {
             // Sort by actual date to pick the earliest
             const firstMatch = phaseMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
@@ -137,7 +144,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             return;
         }
 
-        const match = matches.find(m => m.id === matchId);
+        const match = finalMatches.find(m => m.id === matchId);
         await savePrediction(matchId, parseInt(homeScore), parseInt(awayScore), isJoker, match?.phase);
     };
 
@@ -171,10 +178,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
 
     // Detect current phase from filtered matches
     const currentPhase = useMemo(() => {
-        if (matches.length === 0) return 'GROUP';
-        const phases = filteredMatches.map(m => m.phase).filter(Boolean);
+        if (finalMatches.length === 0) return 'GROUP';
+        const phases = matchesByDate.map((m: any) => m.phase).filter(Boolean);
         return phases[0] || 'GROUP';
-    }, [matches, filteredMatches]);
+    }, [finalMatches, matchesByDate]);
 
     return (
         <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId="WC2026">
@@ -186,9 +193,9 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
 
                 <div className="mt-4 flex flex-col gap-3">
                     <AiAssistButton
-                        matches={matches}
-                        onPredictionsGenerated={handleAiPredictions}
-                    />
+                    matches={finalMatches}
+                    onPredictionsGenerated={handleAiPredictions}
+                />
 
                     <div className="flex gap-3">
                         <Button
@@ -253,10 +260,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             <div className="flex flex-col gap-4 pb-4">
                 {loading ? (
                     <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
-                ) : filteredMatches.length === 0 ? (
+                ) : matchesByDate.length === 0 ? (
                     <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
                 ) : (
-                    filteredMatches.map((match) => (
+                    matchesByDate.map((match: any) => (
                         <MatchCard
                             key={match.id}
                             match={match}

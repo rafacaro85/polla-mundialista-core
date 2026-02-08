@@ -12,6 +12,7 @@ import { PhaseProgressDashboard } from '@/components/PhaseProgressDashboard';
 import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
+import { useFilteredMatches } from '@/hooks/useFilteredMatches';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BracketView } from '@/components/BracketView';
 import { Calendar, Activity } from 'lucide-react';
@@ -131,33 +132,39 @@ export const EnterpriseFixture = () => {
         });
     }, [rawMatches, predictions, aiSuggestions]);
 
+    // Filter matches by unlocked phases
+    const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, leagueMetadata?.tournamentId);
+    
+    // Use filtered matches for all operations
+    const finalMatches = phaseFilteredMatches;
+
     // Update dates logic
     useEffect(() => {
-        if (matches.length > 0) {
-            const uniqueDates = Array.from(new Set(matches.map((m: any) => m.displayDate))) as string[];
+        if (finalMatches.length > 0) {
+            const uniqueDates = Array.from(new Set(finalMatches.map((m: any) => m.displayDate))) as string[];
             setDates(uniqueDates);
             // If no selection or current selection invalid
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }
         }
-    }, [matches]); // Removed selectedDate from dependencies to avoid infinite loop
+    }, [finalMatches]); // Removed selectedDate from dependencies to avoid infinite loop
 
     // Filter matches by selected date
-    const filteredMatches = useMemo(() =>
-        matches.filter(m => m.displayDate === selectedDate),
-        [matches, selectedDate]
+    const matchesByDate = useMemo(() =>
+        finalMatches.filter(m => m.displayDate === selectedDate),
+        [finalMatches, selectedDate]
     );
 
     const currentPhase = useMemo(() => {
-        if (matches.length === 0) return 'GROUP';
-        const phases = filteredMatches.map(m => m.phase).filter(Boolean);
+        if (finalMatches.length === 0) return 'GROUP';
+        const phases = matchesByDate.map((m: any) => m.phase).filter(Boolean);
         // Simple logic: return the phase of the first match in the view, or GROUP
         return phases[0] || 'GROUP';
-    }, [matches, filteredMatches]);
+    }, [finalMatches, matchesByDate]);
 
     const handlePhaseClick = (phase: string) => {
-        const phaseMatches = matches.filter(m => m.phase === phase);
+        const phaseMatches = finalMatches.filter(m => m.phase === phase);
         if (phaseMatches.length > 0) {
             const firstMatch = phaseMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
             setSelectedDate(firstMatch.displayDate);
@@ -180,7 +187,7 @@ export const EnterpriseFixture = () => {
             return;
         }
 
-        const match = matches.find(m => m.id === matchId);
+        const match = finalMatches.find(m => m.id === matchId);
         await savePrediction(matchId, parseInt(homeScore), parseInt(awayScore), isJoker, match?.phase);
     };
 
@@ -318,8 +325,8 @@ export const EnterpriseFixture = () => {
                         </div>
 
                         <div className="flex flex-col gap-4 pb-4">
-                            {filteredMatches.length > 0 ? (
-                                filteredMatches.map((match: any) => (
+                            {matchesByDate.length > 0 ? (
+                                matchesByDate.map((match: any) => (
                                     <MatchCard
                                         key={match.id}
                                         match={match}

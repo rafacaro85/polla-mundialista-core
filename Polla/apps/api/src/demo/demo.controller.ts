@@ -58,8 +58,9 @@ export class DemoController {
   }
 
   @Post('reset')
-  async reset() {
-    await this.demoService.clearDemoData();
-    return { success: true };
+  async reset(@Body('leagueId') leagueId?: string) {
+    await this.demoService.clearDemoData(leagueId);
+    await this.demoService.resetTournamentResults();
+    return { success: true, message: 'Demo reseteado correctamente' };
   }
 }

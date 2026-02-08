@@ -93,11 +93,18 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
         if (!confirm('¿Seguro? Esto borrará tus predicciones Y los resultados del mundial para volver a empezar.')) return;
         setLoading(true);
         try {
-            await api.post('/demo/reset');
-            await api.post('/demo/start'); // Re-provision fresh
+            // Send leagueId to reset the correct demo
+            await api.post('/demo/reset', { leagueId });
+            
+            // Re-provision the correct demo type
+            const isEnterprise = leagueId === '00000000-0000-0000-0000-000000001337';
+            const endpoint = isEnterprise ? '/demo/start/enterprise' : '/demo/start/social';
+            await api.post(endpoint);
+            
             toast.success('¡Demo Reiniciado! El mundial vuelve a empezar.');
             window.location.reload();
         } catch (error) {
+            console.error('Reset error:', error);
             toast.error('Error al reiniciar');
         } finally {
             setLoading(false);

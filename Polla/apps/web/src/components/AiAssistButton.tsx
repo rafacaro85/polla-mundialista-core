@@ -24,8 +24,24 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
     const handleGenerate = async () => {
         setLoading(true);
         try {
+            // Filter matches to only include those with defined teams (not TBD)
+            // This ensures we only predict the current playable phase
+            const playableMatches = matches.filter(m => {
+                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || m.homeTeamPlaceholder || 'TBD';
+                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || m.awayTeamPlaceholder || 'TBD';
+                
+                // Only include matches where both teams are defined (not TBD, not empty)
+                return home !== 'TBD' && home !== '' && away !== 'TBD' && away !== '';
+            });
+
+            if (playableMatches.length === 0) {
+                toast.error('No hay partidos disponibles para predecir en esta fase.');
+                setLoading(false);
+                return;
+            }
+
             // Preparar los datos para la IA solo con lo necesario
-            const matchesForAi = matches.map(m => {
+            const matchesForAi = playableMatches.map(m => {
                 const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || m.homeTeamPlaceholder || 'TBD';
                 const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || m.awayTeamPlaceholder || 'TBD';
                 
@@ -41,7 +57,7 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
 
             if (response.success && response.data) {
                 onPredictionsGenerated(response.data);
-                toast.success('¡La IA ha completado tu polla! Revisa y guarda.');
+                toast.success(`¡La IA ha completado ${playableMatches.length} predicciones! Revisa y guarda.`);
             } else {
                 console.error('AI Error:', response.error);
                 toast.error(`Error: ${response.error || 'No se pudieron generar predicciones'}`);

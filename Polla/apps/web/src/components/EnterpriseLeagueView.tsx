@@ -71,7 +71,7 @@ export function EnterpriseLeagueView({ league, participants }: EnterpriseLeagueV
 
             {/* 2.5 PHASE PROGRESS */}
             <div className="w-full max-w-4xl mx-auto px-4 mt-8">
-                <PhaseProgressDashboard />
+                <PhaseProgressDashboard tournamentId={league?.tournamentId || league?.metadata?.tournamentId} />
             </div>
 
             {/* 3. PARTICIPANTS LIST (Read Only) */}

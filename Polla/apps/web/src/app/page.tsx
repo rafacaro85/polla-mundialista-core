@@ -9,6 +9,7 @@ import {
   Globe, Gift, Target, MousePointerClick, Shield, Crown, Gem, Settings
 } from 'lucide-react';
 import { signInWithGoogle } from '@/lib/auth.utils';
+import { FloatingDemoWidget } from '@/components/FloatingDemoWidget';
 
 /* =============================================================================
    PALETA DE COLORES (USADA EN EL CÓDIGO)
@@ -323,6 +324,9 @@ export default function LandingPage() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Russo+One&display=swap');
         .font-russo { font-family: 'Russo One', sans-serif; }
       `}</style>
+
+      {/* Floating Demo Widget */}
+      <FloatingDemoWidget />
 
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20">
@@ -655,76 +659,6 @@ export default function LandingPage() {
               <p className="text-[#94A3B8] text-lg leading-relaxed">
                 Incrementa la motivación con premios que importan: desde un <strong>día libre</strong> hasta un viaje soñado. Un equipo que se divierte unido, trabaja mejor unido.
               </p>
-            </div>
-          </div>
-          <div className="order-1 md:order-2 bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-3xl p-8 border-2 border-[#00E676]/30 relative overflow-hidden group hover:border-[#00E676] transition-all duration-300 shadow-2xl">
-            {/* Animated background */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#00E676]/10 via-transparent to-transparent opacity-50 animate-pulse"></div>
-            
-            {/* Badge */}
-            <div className="absolute -top-3 -right-3 bg-gradient-to-r from-[#00E676] to-emerald-400 text-[#0F172A] font-black text-xs px-4 py-2 rounded-lg shadow-lg animate-bounce">
-              ¡PRUÉBALO GRATIS!
-            </div>
-
-            <div className="relative z-10">
-              {/* Header */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-14 h-14 bg-[#00E676]/10 rounded-2xl flex items-center justify-center">
-                  <PlayCircle className="text-[#00E676]" size={32} />
-                </div>
-                <div>
-                  <h3 className="font-russo text-2xl text-white">DEMOS INTERACTIVOS</h3>
-                  <p className="text-slate-400 text-sm">Explora sin compromiso</p>
-                </div>
-              </div>
-
-              {/* Description */}
-              <p className="text-slate-300 mb-6 leading-relaxed">
-                Experimenta <strong className="text-[#00E676]">La Polla Virtual</strong> en acción. Elige entre nuestro demo empresarial con todas las herramientas pro, o el demo social perfecto para grupos pequeños.
-              </p>
-
-              {/* Demo Buttons */}
-              <div className="space-y-3">
-                <Link href="/demo" className="block">
-                  <button className="w-full bg-[#00E676] hover:bg-emerald-400 text-[#0F172A] font-black py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg shadow-emerald-500/20 flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <Building2 size={20} />
-                      <span>Demo Empresarial</span>
-                    </div>
-                    <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-                  </button>
-                </Link>
-
-                <Link href="/demo" className="block">
-                  <button className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/20 hover:border-white/40 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <Users size={20} />
-                      <span>Demo Social</span>
-                    </div>
-                    <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-                  </button>
-                </Link>
-              </div>
-
-              {/* Features */}
-              <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-2 gap-4 text-xs">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Zap size={14} className="text-[#00E676]" />
-                  <span>Simulación IA</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Trophy size={14} className="text-[#00E676]" />
-                  <span>Ranking Live</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Settings size={14} className="text-[#00E676]" />
-                  <span>Panel Admin</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <ShieldCheck size={14} className="text-[#00E676]" />
-                  <span>100% Seguro</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

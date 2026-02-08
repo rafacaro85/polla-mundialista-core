@@ -16,6 +16,8 @@ import { TournamentService } from '../tournament/tournament.service';
 import * as bcrypt from 'bcrypt';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
+
 @Injectable()
 export class DemoService {
   private readonly DEMO_ENTERPRISE_LEAGUE_ID = '00000000-0000-0000-0000-000000001337'; // Enterprise Demo
@@ -32,6 +34,7 @@ export class DemoService {
     @InjectRepository(Prediction) private predictionRepo: Repository<Prediction>,
     @InjectRepository(BonusQuestion) private bonusRepo: Repository<BonusQuestion>,
     @InjectRepository(UserBonusAnswer) private bonusAnswerRepo: Repository<UserBonusAnswer>,
+    @InjectRepository(KnockoutPhaseStatus) private phaseStatusRepo: Repository<KnockoutPhaseStatus>,
     private matchesService: MatchesService,
     private predictionsService: PredictionsService,
     private tournamentService: TournamentService,
@@ -228,8 +231,8 @@ export class DemoService {
             .where('league_id = :leagueId', { leagueId: targetLeagueId })
             .execute();
             
-        // ALSO RESET MATCH RESULTS for the Demo Tournament (only once, not per league)
-        if (leagueId === this.DEMO_ENTERPRISE_LEAGUE_ID || !leagueId) {
+        // ALSO RESET MATCH RESULTS for the Demo Tournament (shared by both demos)
+        if (leagueId === this.DEMO_ENTERPRISE_LEAGUE_ID || leagueId === this.DEMO_SOCIAL_LEAGUE_ID || !leagueId) {
             await this.resetTournamentResults();
         }
 
@@ -242,15 +245,39 @@ export class DemoService {
 
   async resetTournamentResults() {
       console.log('🔄 Resetting Tournament Match Results...');
+      
+      // Reset Matches
       await this.matchRepo.createQueryBuilder()
           .update(Match)
           .set({ 
               homeScore: null, 
               awayScore: null, 
-              status: 'PENDING' 
+              status: 'PENDING',
+              homeTeam: () => "CASE WHEN phase = 'GROUP' THEN homeTeam ELSE '' END", // Reset knockout teams
+              awayTeam: () => "CASE WHEN phase = 'GROUP' THEN awayTeam ELSE '' END",
+              homeFlag: () => "CASE WHEN phase = 'GROUP' THEN homeFlag ELSE '' END",
+              awayFlag: () => "CASE WHEN phase = 'GROUP' THEN awayFlag ELSE '' END"
           })
           .where('tournamentId = :tournamentId', { tournamentId: this.TOURNAMENT_ID })
           .execute();
+
+      console.log('🔄 Resetting Knockout Phases...');
+      
+      // Reset Phases (Lock all except GROUP)
+      await this.phaseStatusRepo.createQueryBuilder()
+          .update(KnockoutPhaseStatus)
+          .set({ isUnlocked: false, allMatchesCompleted: false, unlockedAt: () => 'NULL' })
+          .where("phase != 'GROUP' AND tournamentId = :tid", { tid: this.TOURNAMENT_ID })
+          .execute();
+          
+      // Reset GROUP Phase (Unlocked but not completed)
+      await this.phaseStatusRepo.createQueryBuilder()
+          .update(KnockoutPhaseStatus)
+          .set({ isUnlocked: true, allMatchesCompleted: false, unlockedAt: new Date() })
+          .where("phase = 'GROUP' AND tournamentId = :tid", { tid: this.TOURNAMENT_ID })
+          .execute();
+          
+      console.log('✅ Tournament Reset Complete.');
   }
 
   async simulateNextMatch() {

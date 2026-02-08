@@ -9,6 +9,7 @@ import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 import { MatchesModule } from '../matches/matches.module';
 import { PredictionsModule } from '../predictions/predictions.module';
 import { TournamentModule } from '../tournament/tournament.module';
@@ -23,7 +24,8 @@ import { AuthModule } from '../auth/auth.module';
       Match, 
       Prediction, 
       BonusQuestion, 
-      UserBonusAnswer
+      UserBonusAnswer,
+      KnockoutPhaseStatus
     ]),
     MatchesModule,
     PredictionsModule,

@@ -80,16 +80,18 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
 
   // 2. ESTADO LOCAL PARA INPUTS
-  const initialHome = match.userH || match.prediction?.homeScore?.toString() || '';
-  const initialAway = match.userA || match.prediction?.awayScore?.toString() || '';
+  // PRIORIDAD: 1. Sugerencia de IA (match.userH) | 2. Predicción Guardada | 3. Vacío
+  const initialHome = (match.userH || match.prediction?.homeScore?.toString() || '');
+  const initialAway = (match.userA || match.prediction?.awayScore?.toString() || '');
+  
   const [homeScore, setHomeScore] = useState(initialHome);
   const [awayScore, setAwayScore] = useState(initialAway);
 
-  // Sincronizar estado local si cambian las props (ej: predicción IA, o unsets de joker en otros partidos)
+  // Sincronizar estado local si cambian las props
   React.useEffect(() => {
-    // PRIORIDAD: 1. Sugerencia de IA (Borrador) | 2. Predicción Guardada | 3. Vacío
-    const newHome = match.userH ?? match.prediction?.homeScore?.toString() ?? '';
-    const newAway = match.userA ?? match.prediction?.awayScore?.toString() ?? '';
+    // Usamos || para que si userH es "" (vacío), intente usar la predicción guardada
+    const newHome = match.userH || match.prediction?.homeScore?.toString() || '';
+    const newAway = match.userA || match.prediction?.awayScore?.toString() || '';
     const newJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker);
 
     if (newHome !== homeScore) setHomeScore(newHome);

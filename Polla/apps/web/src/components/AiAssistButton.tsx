@@ -25,12 +25,17 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
         setLoading(true);
         try {
             // Preparar los datos para la IA solo con lo necesario
-            const matchesForAi = matches.map(m => ({
-                id: m.id,
-                homeTeam: typeof m.homeTeam === 'object' ? m.homeTeam.code || 'Unknown' : m.homeTeam,
-                awayTeam: typeof m.awayTeam === 'object' ? m.awayTeam.code || 'Unknown' : m.awayTeam,
-                date: m.date
-            }));
+            const matchesForAi = matches.map(m => {
+                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || m.homeTeamPlaceholder || 'TBD';
+                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || m.awayTeamPlaceholder || 'TBD';
+                
+                return {
+                    id: m.id,
+                    homeTeam: home,
+                    awayTeam: away,
+                    date: m.date
+                };
+            });
 
             const response = await generateAiPredictions(matchesForAi);
 

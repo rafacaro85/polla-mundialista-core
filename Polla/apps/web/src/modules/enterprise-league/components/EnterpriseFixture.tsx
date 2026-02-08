@@ -256,7 +256,7 @@ export const EnterpriseFixture = () => {
                         </TabsList>
 
                         <TabsContent value="matches" className="mt-0">
-                            <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
+                            <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={leagueMetadata?.tournamentId} />
 
                             <div className="mt-4 flex flex-col gap-3">
                                 <AiAssistButton

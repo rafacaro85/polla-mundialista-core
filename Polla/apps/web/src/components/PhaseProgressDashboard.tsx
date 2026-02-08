@@ -7,10 +7,11 @@ import { Loader2, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PhaseProgressDashboardProps {
     onPhaseClick?: (phase: string) => void;
+    tournamentId?: string;
 }
 
-export function PhaseProgressDashboard({ onPhaseClick }: PhaseProgressDashboardProps) {
-    const { phases, nextPhaseInfo, loading, error } = useKnockoutPhases();
+export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProgressDashboardProps) {
+    const { phases, nextPhaseInfo, loading, error } = useKnockoutPhases(tournamentId);
     const [isExpanded, setIsExpanded] = useState(false);
 
     if (loading) {

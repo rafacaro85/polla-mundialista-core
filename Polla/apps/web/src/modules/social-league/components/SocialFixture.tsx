@@ -188,7 +188,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             {/* Phase Progress */}
             {/* Phase Progress */}
             <div className="mb-6">
-                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} />
+                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId="WC2026" />
 
                 <div className="mt-4 flex flex-col gap-3">
                     <AiAssistButton

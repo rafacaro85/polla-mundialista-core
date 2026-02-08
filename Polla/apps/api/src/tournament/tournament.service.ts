@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { StandingsService } from '../standings/standings.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TournamentService {
@@ -12,6 +13,7 @@ export class TournamentService {
         @InjectRepository(Match)
         private matchesRepository: Repository<Match>,
         private standingsService: StandingsService,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     /**
@@ -214,6 +216,14 @@ export class TournamentService {
 
             if (updated) {
                 await this.matchesRepository.save(match);
+                // Emit event for AI prediction generation
+                if (match.homeTeam && match.awayTeam) {
+                    this.eventEmitter.emit('match.teams.assigned', {
+                        matchId: match.id,
+                        homeTeam: match.homeTeam,
+                        awayTeam: match.awayTeam
+                    });
+                }
                 updatedCount++;
             }
         }
@@ -378,6 +388,15 @@ export class TournamentService {
         if (updated) {
             await this.matchesRepository.save(nextMatch);
             this.logger.log(`🚀 Promoted ${winnerTeam} to ${nextPhase} Match ${nextMatch.id} (${isHomeSlot ? 'Home' : 'Away'})`);
+            
+            // Emit event for AI prediction generation if both teams are now present
+            if (nextMatch.homeTeam && nextMatch.awayTeam) {
+                this.eventEmitter.emit('match.teams.assigned', {
+                    matchId: nextMatch.id,
+                    homeTeam: nextMatch.homeTeam,
+                    awayTeam: nextMatch.awayTeam
+                });
+            }
         }
 
         // SPECIAL CASE: If this is a SEMI-FINAL, also promote the LOSER to 3RD_PLACE

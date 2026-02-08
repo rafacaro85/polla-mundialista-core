@@ -67,6 +67,49 @@ export class AiPredictionService {
   }
 
   /**
+   * Bulk retrieval of predictions for multiple matches
+   * Used by the "Suggest with IA" feature in the frontend
+   */
+  async getBulkPredictions(matchIds: string[]) {
+    const predictions: Record<string, [number, number]> = {};
+    const matches = await this.matchRepository.findByIds(matchIds);
+
+    for (const matchId of matchIds) {
+      const match = matches.find(m => m.id === matchId);
+      
+      if (match && match.aiPredictionScore) {
+        // ✅ CACHE HIT
+        const score = match.aiPredictionScore.split('-').map(Number);
+        if (score.length === 2 && !isNaN(score[0]) && !isNaN(score[1])) {
+          predictions[matchId] = [score[0], score[1]] as [number, number];
+          continue;
+        }
+      }
+
+      // ❌ CACHE MISS or INVALID - Try to generate or fallback
+      if (match && match.homeTeam && match.awayTeam) {
+          try {
+              // Try to generate live if possible (will be throttled/limited by API key anyway)
+              const gen = await this.generatePrediction(match);
+              await this.savePredictionToCache(match, gen);
+              const score = gen.predictedScore.split('-').map(Number);
+              predictions[matchId] = [score[0], score[1]] as [number, number];
+          } catch (e) {
+              // Fail-safe: Random prediction to not break user flow
+              const fallback = this.handleFallback(e, match);
+              const score = fallback.score.split('-').map(Number);
+              predictions[matchId] = [score[0], score[1]] as [number, number];
+          }
+      } else {
+          // If teams are not assigned yet, return [0,0] or similar default
+          predictions[matchId] = [0, 0];
+      }
+    }
+
+    return predictions;
+  }
+
+  /**
    * Generates prediction using Gemini API
    * Includes JSON cleaning and improved prompt
    */

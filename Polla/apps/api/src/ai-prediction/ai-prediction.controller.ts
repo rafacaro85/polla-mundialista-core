@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Get, Param, Delete, HttpCode, Post, Body } from '@nestjs/common';
 import { AiPredictionService } from './ai-prediction.service';
 
 @Controller('ai-predictions')
@@ -14,6 +14,18 @@ export class AiPredictionController {
   @Get(':matchId')
   async getPrediction(@Param('matchId') matchId: string) {
     return this.aiPredictionService.getPrediction(matchId);
+  }
+
+  /**
+   * Get bulk predictions for multiple matches
+   */
+  @Post('bulk')
+  @HttpCode(200)
+  async getBulkPredictions(@Body('matchIds') matchIds: string[]) {
+      if (!matchIds || !Array.isArray(matchIds)) {
+          return {};
+      }
+      return this.aiPredictionService.getBulkPredictions(matchIds);
   }
 
   /**

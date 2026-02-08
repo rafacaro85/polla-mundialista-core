@@ -137,8 +137,8 @@ export class DemoService {
         isActive: true,
     });
     await this.bonusRepo.save(bonus);
-
-    return { success: true, leagueId: league.id, adminEmail: admin.email };
+    
+    return { success: true, leagueId: league.id, adminEmail: admin.email, admin };
   }
 
   async clearDemoData() {

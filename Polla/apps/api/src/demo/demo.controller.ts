@@ -16,26 +16,13 @@ export class DemoController {
   async startDemo() {
     const result = await this.demoService.provisionDemo();
     
-    // Auto-login as the Demo Admin
-    const demoAdmin = {
-        id: 'demo-admin-id', // Placeholder, we need the actual user object
-        email: 'demo@lapollavirtual.com',
-        fullName: 'Administrador Demo',
-        role: UserRole.PLAYER,
-        isVerified: true
-    } as any;
-    
-    // Actually we should fetch the user from DB to be sure
-    // For simplicity, let's assume provisionDemo returns enough or we fetch it
-    const { access_token, user } = await this.demoService.provisionDemo().then(async (res) => {
-        // Find the user created/fetched in provisionDemo
-        // This is a bit circular but easier than passing the whole object
-        const adminFromDb = await (this.demoService as any).userRepo.findOne({ where: { email: 'demo@lapollavirtual.com' } });
-        return this.authService.login(adminFromDb);
-    });
+    // Auto-login as the Demo Admin returned by the service
+    const { access_token, user } = await this.authService.login(result.admin);
 
     return {
-      ...result,
+      success: result.success,
+      leagueId: result.leagueId,
+      adminEmail: result.adminEmail,
       token: access_token,
       user
     };

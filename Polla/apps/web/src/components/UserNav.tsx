@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid, HelpCircle } from 'lucide-react';
+import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid, HelpCircle, ChevronDown } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -69,6 +69,16 @@ export function UserNav() {
       position: 'relative' as const,
       zIndex: 50
     },
+    // Contenedor que agrupa Avatar + Flecha
+    triggerContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      cursor: 'pointer',
+      padding: '4px',
+      borderRadius: '20px',
+      transition: 'all 0.2s ease',
+    },
     // Botón Trigger (Avatar en el Header)
     avatarTrigger: {
       width: '36px',
@@ -79,7 +89,6 @@ export function UserNav() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      cursor: 'pointer',
       overflow: 'hidden',
       transition: 'all 0.2s ease',
       boxShadow: isOpen ? '0 0 10px rgba(0, 230, 118, 0.3)' : 'none'
@@ -93,6 +102,11 @@ export function UserNav() {
       color: '#94A3B8',
       fontWeight: 'bold',
       fontSize: '14px'
+    },
+    chevronDown: {
+      color: isOpen ? '#00E676' : '#94A3B8',
+      transition: 'all 0.2s ease',
+      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
     },
 
     // MENÚ DESPLEGABLE
@@ -222,16 +236,19 @@ export function UserNav() {
   return (
     <div style={STYLES.wrapper} ref={menuRef}>
 
-      {/* TRIGGER (AVATAR HEADER) */}
-      <div
-        style={STYLES.avatarTrigger}
+      {/* TRIGGER (AVATAR HEADER + FLECHA) */}
+      <div 
+        style={STYLES.triggerContainer}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {userData.avatar ? (
-          <img src={userData.avatar} alt="User" style={STYLES.avatarImage} />
-        ) : (
-          <span style={STYLES.fallbackInitial}>{userData.name?.charAt(0).toUpperCase()}</span>
-        )}
+        <div style={STYLES.avatarTrigger}>
+          {userData.avatar ? (
+            <img src={userData.avatar} alt="User" style={STYLES.avatarImage} />
+          ) : (
+            <span style={STYLES.fallbackInitial}>{userData.name?.charAt(0).toUpperCase()}</span>
+          )}
+        </div>
+        <ChevronDown size={14} style={STYLES.chevronDown} />
       </div>
 
       {/* DROPDOWN MENU */}

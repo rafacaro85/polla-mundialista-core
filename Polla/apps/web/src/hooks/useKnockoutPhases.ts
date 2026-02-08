@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 
 export interface PhaseStatus {
@@ -56,7 +56,7 @@ export function useKnockoutPhases(tournamentId?: string) {
         fetchNextPhaseInfo();
     }, [tournamentId]);
 
-    const isPhaseUnlocked = (phase: string): boolean => {
+    const isPhaseUnlocked = useCallback((phase: string): boolean => {
         // Always unlock GROUP phase
         if (phase === 'GROUP' || !phase) return true;
         
@@ -73,7 +73,7 @@ export function useKnockoutPhases(tournamentId?: string) {
         }
 
         return false;
-    };
+    }, [phases, tournamentId]);
 
     const getPhaseStatus = (phase: string): PhaseStatus | undefined => {
         return phases.find(p => p.phase === phase);

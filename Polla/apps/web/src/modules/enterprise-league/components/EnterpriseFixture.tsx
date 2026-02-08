@@ -94,8 +94,9 @@ export const EnterpriseFixture = () => {
             const dateStr = `${month} ${day}`;
             const displayDate = dateStr;
 
-            const pred = predictions[m.id];
-            const suggestion = aiSuggestions[m.id.trim()];
+            const cleanId = (m.id || '').trim();
+            const pred = predictions[cleanId] || predictions[m.id];
+            const suggestion = aiSuggestions[cleanId];
 
             let userH = '';
             let userA = '';
@@ -138,17 +139,23 @@ export const EnterpriseFixture = () => {
     // Use filtered matches for all operations
     const finalMatches = phaseFilteredMatches;
 
-    // Update dates logic
+    // Correctly update dates only when finalMatches actually changes content
     useEffect(() => {
         if (finalMatches.length > 0) {
             const uniqueDates = Array.from(new Set(finalMatches.map((m: any) => m.displayDate))) as string[];
-            setDates(uniqueDates);
-            // If no selection or current selection invalid
+            
+            // Check if dates have actually changed before updating state
+            setDates(prev => {
+                const isSame = prev.length === uniqueDates.length && prev.every((d, i) => d === uniqueDates[i]);
+                return isSame ? prev : uniqueDates;
+            });
+
+            // Update selected date if currently invalid
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }
         }
-    }, [finalMatches]); // Removed selectedDate from dependencies to avoid infinite loop
+    }, [finalMatches.length, finalMatches[0]?.id]); // Use primitive triggers instead of array reference
 
     // Filter matches by selected date
     const matchesByDate = useMemo(() =>
@@ -267,7 +274,7 @@ export const EnterpriseFixture = () => {
 
                             <div className="mt-4 flex flex-col gap-3">
                                 <AiAssistButton
-                                    matches={matches}
+                                    matches={finalMatches}
                                     onPredictionsGenerated={handleAiPredictions}
                                 />
 

@@ -55,9 +55,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         const dateStr = `${month} ${day}`;
         const displayDate = dateStr;
 
-        const pred = predictions[m.id];
+        const cleanId = (m.id || '').trim();
+        const pred = predictions[cleanId] || predictions[m.id];
         // Buscar sugerencia con limpieza de ID
-        const suggestion = aiSuggestions[m.id.trim()];
+        const suggestion = aiSuggestions[cleanId];
 
         let userH = '';
         let userA = '';
@@ -99,17 +100,21 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     // Use filtered matches for all operations
     const finalMatches = phaseFilteredMatches;
 
-    // Dates Logic
+    // Dates Logic - Improved stability
     useEffect(() => {
         if (finalMatches.length > 0) {
             const uniqueDates = Array.from(new Set(finalMatches.map((m: any) => m.displayDate))) as string[];
-            setDates(uniqueDates);
-            // Si no hay selección o la selección actual ya no es válida (ej: fecha desapareció)
+            
+            setDates(prev => {
+                const isSame = prev.length === uniqueDates.length && prev.every((d, i) => d === uniqueDates[i]);
+                return isSame ? prev : uniqueDates;
+            });
+
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }
         }
-    }, [finalMatches]); // Removed selectedDate from dependencies to avoid infinite loop
+    }, [finalMatches.length, finalMatches[0]?.id]); 
 
     const matchesByDate = useMemo(() =>
         finalMatches.filter(m => m.displayDate === selectedDate),

@@ -211,24 +211,23 @@ export const useMyPredictions = (leagueId?: string) => {
     };
 
     const saveBulkPredictions = async (aiPredictions: Record<string, { h: number, a: number }>) => {
-        // STRATEGY CHANGE: Bulk predictions (AI) save to GLOBAL scope by default.
-        const targetLeagueId = null;
+        // Updated: Use the context's leagueId instead of hardcoding null
+        const targetLeagueId = leagueId && leagueId !== 'global' ? leagueId : null;
         const entries = Object.entries(aiPredictions);
 
         // Construir Array para el endpoint Bulk
         const predictionsList = entries.map(([mId, { h, a }]) => ({
-            matchId: mId,
+            matchId: mId.trim(),
             homeScore: h,
             awayScore: a,
             leagueId: targetLeagueId,
-            isJoker: false // AI no asigna Jokers masivamente por defecto
+            isJoker: false 
         }));
 
         try {
-            // NEW: Single Request for all predictions
             await api.post('/predictions/bulk', { predictions: predictionsList });
             await mutate();
-            toast.success(`${entries.length} predicciones guardadas (Global)`);
+            toast.success(`${entries.length} predicciones guardadas ${targetLeagueId ? '(Empresa)' : '(Global)'}`);
         } catch (err) {
             console.error(err);
             toast.error('Error al guardar predicciones masivas');

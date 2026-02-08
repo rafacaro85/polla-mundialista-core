@@ -37,21 +37,40 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
                 if (/^W[0-9]/.test(team)) return false; // W32-1, W16-2, WQ-1, etc.
                 if (/^L-/.test(team)) return false; // L-Semi-1, L-Semi-2, etc.
                 
-                // Check for PLA_ placeholders (playoff teams)
-                if (team.startsWith('PLA_')) return false;
+                // Check for PLA_ placeholders (playoff teams) - ALLOW THESE FOR DEMO
+                // if (team.startsWith('PLA_')) return false;
                 
                 return true;
             };
 
             // Filter matches to only include those with defined teams (not TBD, not placeholders)
             // This ensures we only predict the current playable phase
+            const rejectedMatches: any[] = [];
+            
             const playableMatches = matches.filter(m => {
                 const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || '';
                 const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || '';
                 
-                // Only include matches where both teams are real teams
-                return isRealTeam(home) && isRealTeam(away);
+                const homeValid = isRealTeam(home);
+                const awayValid = isRealTeam(away);
+
+                if (!homeValid || !awayValid) {
+                    rejectedMatches.push({
+                        id: m.id,
+                        home: home,
+                        away: away,
+                        reason: !homeValid ? `Home invalid: ${home}` : `Away invalid: ${away}`
+                    });
+                    return false;
+                }
+                
+                return true;
             });
+
+            if (rejectedMatches.length > 0) {
+                console.warn('⚠️ Partidos excluidos de IA:', rejectedMatches);
+                console.table(rejectedMatches.slice(0, 10)); // Show first 10
+            }
 
             if (playableMatches.length === 0) {
                 toast.error('No hay partidos disponibles para predecir en esta fase.');

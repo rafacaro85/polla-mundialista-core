@@ -35,31 +35,43 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
 
     if (!isDemo) return null;
 
-    const handleSimulate = async () => {
+    const handleSimulate = async (count: number = 1) => {
         setLoading(true);
+        const promise = count > 1 
+            ? api.post('/demo/simulate', { count })
+            : api.post('/demo/simulate');
+
+        toast.promise(promise, {
+            loading: count > 1 ? `Simulando ${count} partidos...` : 'Simulando partido...',
+            success: (res: any) => {
+                const data = res.data;
+                // Auto-refresh after 1.5s to see changes
+                setTimeout(() => window.location.reload(), 1500);
+
+                if (count > 1) {
+                    return `¡Simulación Completa! Se avanzaron ${data.count} partidos.`;
+                }
+                return `¡Partido Simulado! ${data.match}`;
+            },
+            error: (err) => err.response?.data?.message || 'No hay más partidos para simular'
+        });
+        
         try {
-            const { data } = await api.post('/demo/simulate');
-            toast.success(`¡Partido Simulado! ${data.match}`, {
-                description: `Fase: ${data.phase}. Los rankings se están actualizando.`,
-                duration: 5000,
-            });
-            // Refrescar la página para ver cambios si es necesario, 
-            // aunque el sistema de predicciones ya tiene SWR.
-            // Opcional: window.location.reload();
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'No hay más partidos para simular');
+            await promise;
+        } catch (e) {
+            // Error handled by toast.promise
         } finally {
             setLoading(false);
         }
     };
 
     const handleReset = async () => {
-        if (!confirm('¿Seguro que quieres reiniciar el demo? Se borrarán tus predicciones de prueba.')) return;
+        if (!confirm('¿Seguro? Esto borrará tus predicciones Y los resultados del mundial para volver a empezar.')) return;
         setLoading(true);
         try {
             await api.post('/demo/reset');
-            await api.post('/demo/start'); // Re-provision
-            toast.success('Entorno demo reiniciado');
+            await api.post('/demo/start'); // Re-provision fresh
+            toast.success('¡Demo Reiniciado! El mundial vuelve a empezar.');
             window.location.reload();
         } catch (error) {
             toast.error('Error al reiniciar');
@@ -68,8 +80,26 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
         }
     };
 
+    const handleCreateBonus = async () => {
+        const text = prompt('Pregunta Bonus (ej: ¿Quién será el campeón?):', '¿Quién será el goleador del torneo?');
+        if (!text) return;
+        
+        setLoading(true);
+        try {
+            await api.post('/demo/bonus', { text, points: 50 });
+            toast.success('¡Pregunta Bonus Creada!', {
+                description: 'Los participantes ya pueden responderla.'
+            });
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error) {
+            toast.error('Error al crear bonus');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className={`fixed bottom-24 right-6 z-[100] transition-all duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-2.5rem)]'}`}>
+        <div className={`fixed bottom-24 right-6 z-[100] transition-all duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-[calc(100%-2rem)]'}`}>
             <div className="flex items-start">
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
@@ -78,7 +108,7 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
                     {isOpen ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                 </button>
 
-                <div className="bg-[#1E293B] border-2 border-[#00E676]/30 rounded-xl rounded-tl-none shadow-2xl p-5 w-72 backdrop-blur-md">
+                <div className="bg-[#1E293B] border-2 border-[#00E676]/30 rounded-xl rounded-tl-none shadow-2xl p-5 w-80 backdrop-blur-md">
                     <div className="flex items-center gap-2 mb-4 border-b border-slate-700 pb-3">
                         <div className="bg-[#00E676]/10 p-2 rounded-lg">
                             <Command size={18} className="text-[#00E676]" />
@@ -90,54 +120,64 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
                     </div>
 
                     <div className="space-y-3">
-                        <button 
-                            onClick={handleSimulate}
-                            disabled={loading}
-                            className="w-full bg-[#00E676] hover:bg-emerald-400 disabled:opacity-50 text-[#0F172A] font-black py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
-                        >
-                            <Play size={16} fill="currentColor" />
-                            SIMULAR PARTIDO
-                        </button>
+                        <div className="flex flex-col gap-2">
+                             <button 
+                                onClick={() => handleSimulate(1)}
+                                disabled={loading}
+                                className="w-full bg-[#00E676] hover:bg-emerald-400 disabled:opacity-50 text-[#0F172A] font-black py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
+                            >
+                                <Play size={16} fill="currentColor" />
+                                SIMULAR 1 PARTIDO
+                            </button>
+                            <button 
+                                onClick={() => handleSimulate(5)}
+                                disabled={loading}
+                                className="w-full bg-[#00E676]/20 border border-[#00E676]/30 hover:bg-[#00E676]/30 text-[#00E676] font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 text-xs"
+                            >
+                                <Sparkles size={14} />
+                                SIMULAR FASE (5 PARTIDOS)
+                            </button>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-2">
                             <button 
                                 onClick={handleReset}
                                 disabled={loading}
-                                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 px-1 rounded-lg flex items-center justify-center gap-1 text-[10px] transition-all"
+                                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-1 rounded-lg flex items-center justify-center gap-1 text-[10px] transition-all uppercase tracking-tighter"
                             >
                                 <RotateCcw size={12} />
-                                REINICIAR
+                                REINICIAR TODO
                             </button>
                             <button 
-                                onClick={() => toast.info('Modo simulación activado')}
-                                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 px-1 rounded-lg flex items-center justify-center gap-1 text-[10px] transition-all"
+                                onClick={handleCreateBonus}
+                                disabled={loading}
+                                className="bg-purple-600/20 border border-purple-500/30 hover:bg-purple-500/30 text-purple-300 font-bold py-3 px-1 rounded-lg flex items-center justify-center gap-1 text-[10px] transition-all uppercase tracking-tighter"
                             >
-                                <Settings size={12} />
-                                AJUSTES
+                                <Sparkles size={12} />
+                                CREAR BONUS
                             </button>
                         </div>
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-slate-700">
                         <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <Sparkles size={12} className="text-[#00E676]" /> Puntos del Demo
+                            <Info size={12} className="text-[#00E676]" /> Estado del Sandbox
                         </div>
                         <ul className="space-y-2">
                             <li className="flex items-center justify-between text-[11px]">
-                                <span className="text-slate-500">Participantes Mock:</span>
-                                <span className="text-white font-bold">10</span>
+                                <span className="text-slate-500">Participantes:</span>
+                                <span className="text-white font-bold">10 Mock + Admin</span>
                             </li>
                             <li className="flex items-center justify-between text-[11px]">
-                                <span className="text-slate-500">Módulos Activos:</span>
-                                <span className="text-[#00E676] font-bold">TODOS</span>
+                                <span className="text-slate-500">Modo:</span>
+                                <span className="text-[#00E676] font-bold">MÁXIMA VELOCIDAD</span>
                             </li>
                         </ul>
                     </div>
 
-                    <div className="mt-4 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg flex gap-2 items-start">
-                        <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
+                    <div className="mt-4 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                         <p className="text-[9px] text-blue-300 leading-tight">
-                            Este panel solo es visible en el Demo Empresarial para simular el comportamiento real del torneo.
+                            Este panel simula el paso del tiempo. Al simular partidos, verás como el ranking y las llaves se actualizan instantáneamente.
                         </p>
                     </div>
                 </div>

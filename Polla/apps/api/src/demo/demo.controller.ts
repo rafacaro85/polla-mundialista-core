@@ -29,8 +29,16 @@ export class DemoController {
   }
 
   @Post('simulate')
-  async simulate() {
+  async simulate(@Body('count') count?: number) {
+    if (count && count > 1) {
+        return this.demoService.simulateBatch(count);
+    }
     return this.demoService.simulateNextMatch();
+  }
+
+  @Post('bonus')
+  async createBonus(@Body() data: { text: string; points: number }) {
+      return this.demoService.createBonus(data.text, data.points);
   }
 
   @Post('reset')

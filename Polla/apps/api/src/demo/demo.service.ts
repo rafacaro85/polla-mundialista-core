@@ -197,11 +197,27 @@ export class DemoService {
             .where('league_id = :leagueId', { leagueId: this.DEMO_LEAGUE_ID })
             .execute();
             
+        // ALSO RESET MATCH RESULTS for the Demo Tournament
+        await this.resetTournamentResults();
+
         console.log('✅ Demo Data Cleared.');
     } catch (error) {
         console.error('❌ Error clearing demo data:', error);
         // We don't throw here to allow provisioning to try anyway
     }
+  }
+
+  async resetTournamentResults() {
+      console.log('🔄 Resetting Tournament Match Results...');
+      await this.matchRepo.createQueryBuilder()
+          .update(Match)
+          .set({ 
+              homeScore: null, 
+              awayScore: null, 
+              status: 'PENDING' 
+          })
+          .where('tournamentId = :tournamentId', { tournamentId: this.TOURNAMENT_ID })
+          .execute();
   }
 
   async simulateNextMatch() {
@@ -229,5 +245,29 @@ export class DemoService {
         match: `${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`,
         phase: pendingMatch.phase 
     };
+  }
+
+  async simulateBatch(count: number = 5) {
+      const results = [];
+      for (let i = 0; i < count; i++) {
+          try {
+              const res = await this.simulateNextMatch();
+              results.push(res);
+          } catch (e) {
+              break; // No more matches
+          }
+      }
+      return { success: true, count: results.length, lastMatch: results[results.length - 1] };
+  }
+
+  async createBonus(text: string, points: number) {
+      const bonus = this.bonusRepo.create({
+          text,
+          points,
+          leagueId: this.DEMO_LEAGUE_ID,
+          tournamentId: this.TOURNAMENT_ID,
+          isActive: true,
+      });
+      return this.bonusRepo.save(bonus);
   }
 }

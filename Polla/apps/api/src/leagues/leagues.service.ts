@@ -351,18 +351,27 @@ export class LeaguesService {
     // Let's update signature to accept tournamentId.
 
   async getGlobalRanking(tournamentId?: string) {
-    // 1. Obtener todos los usuarios
-    const users = await this.userRepository.find({
-      select: ['id', 'nickname', 'fullName', 'avatarUrl'],
-    });
+    // 1. Obtener todos los usuarios reales (excluyendo cuentas de demo)
+    const users = await this.userRepository.createQueryBuilder('u')
+      .select(['u.id', 'u.nickname', 'u.fullName', 'u.avatarUrl'])
+      .where("u.email NOT LIKE '%@demo.com'")
+      .andWhere("u.email NOT IN ('demo@lapollavirtual.com', 'demo-social@lapollavirtual.com')")
+      .getMany();
 
     if (!users || users.length === 0) return [];
 
     const userIds = users.map(u => u.id);
 
+    // Definir IDs de ligas demo para excluir
+    const demoLeagueIds = [
+      '00000000-0000-0000-0000-000000001337',
+      '00000000-0000-0000-0000-000000001338'
+    ];
+
     const tournamentFilter = tournamentId ? `AND p."tournamentId" = '${tournamentId}'` : '';
+    const leagueExclusionFilter = `AND p."leagueId" NOT IN ('${demoLeagueIds.join("','")}')`;
     
-    // 2. Fetch Prediction Points
+    // 2. Fetch Prediction Points (Excluyendo ligas demo)
     const predictionPointsRows = (await this.predictionRepository.manager.query(`
       SELECT "userId", 
              SUM(CASE WHEN "isJoker" IS TRUE THEN match_points ELSE 0 END) as joker_points,
@@ -370,7 +379,7 @@ export class LeaguesService {
       FROM (
         SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
         FROM predictions p
-        WHERE "userId" = ANY($1) ${tournamentFilter}
+        WHERE "userId" = ANY($1) ${tournamentFilter} ${leagueExclusionFilter}
         ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"
@@ -379,13 +388,14 @@ export class LeaguesService {
     const predRegularMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.regular_points || 0)]));
     const predJokerMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.joker_points || 0)]));
 
-    // 3. Fetch Bracket Points (Global - Máximo por bracket entre todas las ligas)
+    // 3. Fetch Bracket Points (Excluyendo ligas demo)
     const bracketPointsRows = (await this.userRepository.manager.query(`
       SELECT "userId", SUM(bracket_points) as points
       FROM (
         SELECT "userId", "leagueId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
+        AND "leagueId" NOT IN ('${demoLeagueIds.join("','")}')
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
@@ -399,7 +409,7 @@ export class LeaguesService {
       .select('uba.userId', 'userId')
       .addSelect('SUM(uba.pointsEarned)', 'points')
       .where('uba.userId IN (:...userIds)', { userIds })
-      // Eliminado el filtro bq.leagueId IS NULL
+      .andWhere("bq.leagueId NOT IN (:...demoLeagueIds)", { demoLeagueIds })
       .groupBy('uba.userId')
       .getRawMany();
 

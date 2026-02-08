@@ -64,7 +64,7 @@ export class DemoService {
           id: this.DEMO_LEAGUE_ID,
           name: 'Demo Corporativa Mundial 2026',
           type: LeagueType.COMPANY,
-          packageType: 'diamond', // Ensure it has all features
+          packageType: 'diamond', 
           isEnterprise: true,
           isEnterpriseActive: true,
           maxParticipants: 100,
@@ -74,6 +74,10 @@ export class DemoService {
           companyName: 'Empresa Demo S.A.',
           brandColorPrimary: '#4F46E5', // Indigo
           brandColorBg: '#0F172A',
+          brandColorSecondary: '#1E293B',
+          brandColorText: '#F8FAFC',
+          brandingLogoUrl: null, // Reset logo
+          prizeImageUrl: null, // Reset prize image
           isPaid: true,
           welcomeMessage: '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.',
         });

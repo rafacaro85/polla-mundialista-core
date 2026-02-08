@@ -26,9 +26,9 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
     const [isDemo, setIsDemo] = useState(false);
 
     useEffect(() => {
-        // En un caso real, esto vendría del metadata de la liga
-        // Aquí lo activamos si el ID contiene 'demo'
-        if (leagueId.includes('demo')) {
+        // Updated check for the static Demo UUID
+        const DEMO_UUID = '00000000-0000-0000-0000-000000001337';
+        if (leagueId.includes('demo') || leagueId === DEMO_UUID) {
             setIsDemo(true);
         }
     }, [leagueId]);

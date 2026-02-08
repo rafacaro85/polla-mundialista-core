@@ -34,8 +34,8 @@ export default function DemoLandingPage() {
       
       toast.success('¡Entorno Demo inicializado con éxito!');
       
-      // Redirigir a la liga demo
-      router.push(`/leagues/${data.leagueId}/predictions`);
+      // Redirigir al Hub/Dashboard de la liga demo
+      router.push(`/leagues/${data.leagueId}`);
     } catch (error) {
       console.error(error);
       toast.error('Error al iniciar el demo. Inténtalo de nuevo.');

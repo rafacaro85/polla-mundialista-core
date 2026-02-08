@@ -60,6 +60,12 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
     const completedCount = phases.filter(p => p.allMatchesCompleted).length;
 
     const handleIndicatorClick = (phase: string) => {
+        // Safety check: Don't navigate if phase is locked according to our local data
+        const phaseStatus = phases.find(p => p.phase === phase);
+        if (phase !== 'GROUP' && phaseStatus && !phaseStatus.isUnlocked) {
+            return;
+        }
+
         setIsExpanded(false);
         if (onPhaseClick) {
             onPhaseClick(phase);

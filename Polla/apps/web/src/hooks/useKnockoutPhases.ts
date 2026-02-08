@@ -57,8 +57,22 @@ export function useKnockoutPhases(tournamentId?: string) {
     }, [tournamentId]);
 
     const isPhaseUnlocked = (phase: string): boolean => {
+        // Always unlock GROUP phase
+        if (phase === 'GROUP' || !phase) return true;
+        
         const phaseStatus = phases.find(p => p.phase === phase);
-        return phaseStatus?.isUnlocked || false;
+        
+        // If we have explicit data from backend, use it
+        if (phaseStatus) {
+            return phaseStatus.isUnlocked;
+        }
+
+        // Default: If no data yet and it's WC2026, lock everything except GROUP
+        if (tournamentId === 'WC2026') {
+            return false;
+        }
+
+        return false;
     };
 
     const getPhaseStatus = (phase: string): PhaseStatus | undefined => {

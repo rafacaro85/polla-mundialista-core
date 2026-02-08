@@ -49,6 +49,7 @@ export function PhaseStatusIndicator({
     }
 
     if (isUnlocked) {
+        const hasRemaining = remainingMatches > 0;
         return (
             <button
                 onClick={() => onClick?.(phase)}
@@ -58,7 +59,7 @@ export function PhaseStatusIndicator({
                 <div>
                     <div className="font-semibold text-signal leading-tight">{phaseName}</div>
                     <div className="text-[10px] text-gray-400">
-                        {remainingMatches > 0
+                        {hasRemaining
                             ? `${remainingMatches} pendiente${remainingMatches !== 1 ? 's' : ''}`
                             : 'Disponible'
                         }

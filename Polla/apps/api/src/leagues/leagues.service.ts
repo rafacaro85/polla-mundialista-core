@@ -429,7 +429,7 @@ export class LeaguesService {
       return {
         id: u.id,
         fullName: u.fullName, // ADDED for frontend display
-        nickname: u.nickname || u.fullName?.split(' ')[0] || 'Usuario',
+        nickname: u.fullName || u.nickname || 'Usuario',
         avatarUrl: u.avatarUrl,
         regularPoints,
         jokerPoints,
@@ -791,7 +791,7 @@ export class LeaguesService {
       return {
         id: uId,
         fullName: lp.user.fullName, // ADDED for frontend display
-        nickname: lp.user.nickname || lp.user.fullName?.split(' ')[0] || 'Usuario',
+        nickname: lp.user.fullName || lp.user.nickname || 'Usuario',
         avatarUrl: lp.user.avatarUrl,
         regularPoints,
         jokerPoints,

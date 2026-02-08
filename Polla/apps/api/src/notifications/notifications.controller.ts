@@ -22,12 +22,12 @@ export class NotificationsController {
 
     @UseGuards(JwtAuthGuard)
     @Post('admin/broadcast')
-    async broadcast(@Request() req: any, @Body() body: { title: string; message: string; type: NotificationType; targetAudience: 'ALL' | 'FREE' | 'PAID' }) {
+    async broadcast(@Request() req: any, @Body() body: { title: string; message: string; type: NotificationType; targetAudience: 'ALL' | 'FREE' | 'PAID'; tournamentId?: string }) {
         if (req.user.role !== UserRole.ADMIN && req.user.email !== 'racv85@gmail.com') { // Hardcoded super admin fallback
              throw new ForbiddenException('Only admins can broadcast');
         }
 
-        const count = await this.notificationsService.broadcast(body.title, body.message, body.type, body.targetAudience);
+        const count = await this.notificationsService.broadcast(body.title, body.message, body.type, body.targetAudience, body.tournamentId);
         return { success: true, count };
     }
 }

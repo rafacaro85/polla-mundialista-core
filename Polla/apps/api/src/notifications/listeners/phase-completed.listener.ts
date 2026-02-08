@@ -7,7 +7,7 @@ import { Prediction } from '../../database/entities/prediction.entity';
 import { NotificationType } from '../../database/entities/notification.entity';
 
 export class PhaseCompletedEvent {
-    constructor(public readonly phase: string) {}
+    constructor(public readonly phase: string, public readonly tournamentId: string) {}
 }
 
 @Injectable()
@@ -22,18 +22,19 @@ export class PhaseCompletedListener {
 
     @OnEvent('phase.completed', { async: true })
     async handlePhaseCompleted(event: PhaseCompletedEvent) {
-        const { phase } = event;
-        this.logger.log(`🏁 Processing Phase Completion for: ${phase}`);
+        const { phase, tournamentId } = event;
+        this.logger.log(`🏁 Processing Phase Completion for: ${phase} (${tournamentId})`);
 
         try {
             // Aggregate query to get performance stats per user for this phase
-            // Using QueryBuilder for efficient grouping
+            // Isolated by tournamentId
             const stats = await this.predictionsRepository.createQueryBuilder('p')
                 .select('p.userId', 'userId')
                 .addSelect('SUM(p.points)', 'totalPoints')
                 .addSelect('COUNT(CASE WHEN p.points > 0 THEN 1 END)', 'hits')
                 .leftJoin('p.match', 'm')
                 .where('m.phase = :phase', { phase })
+                .andWhere('m.tournamentId = :tournamentId', { tournamentId })
                 .andWhere('p.leagueId IS NULL') // GLOBAL PREDICTIONS ONLY (Prevent duplicates per league)
                 .groupBy('p.userId')
                 .getRawMany();

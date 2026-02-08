@@ -152,7 +152,7 @@ export class KnockoutPhasesService {
         if (updateResult.affected && updateResult.affected > 0) {
             console.log(`✅ ${currentPhase} marked as completed (Atomic Update)`);
 
-            this.eventEmitter.emit('phase.completed', new PhaseCompletedEvent(currentPhase));
+            this.eventEmitter.emit('phase.completed', new PhaseCompletedEvent(currentPhase, tournamentId));
 
             // Unlock next phase
             const nextPhase = this.getNextPhase(currentPhase, tournamentId);

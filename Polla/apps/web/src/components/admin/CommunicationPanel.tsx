@@ -13,7 +13,8 @@ import { Megaphone, Send, Users, AlertTriangle, CheckCircle, Info, Gift } from '
 export function CommunicationPanel() {
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
-    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID'>('ALL');
+    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID' | 'TOURNAMENT'>('ALL');
+    const [selectedTournament, setSelectedTournament] = useState<'WC2026' | 'UCL2526' | ''>('');
     const [type, setType] = useState<'INFO' | 'SUCCESS' | 'WARNING' | 'PROMO'>('INFO');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +31,8 @@ export function CommunicationPanel() {
                 title,
                 message,
                 type,
-                targetAudience: audience
+                targetAudience: audience === 'TOURNAMENT' ? 'ALL' : audience,
+                tournamentId: (audience === 'TOURNAMENT' || selectedTournament) ? selectedTournament : undefined
             };
 
             const response = await api.post(endpoint, payload);
@@ -108,9 +110,25 @@ export function CommunicationPanel() {
                                         <SelectItem value="ALL">Todos los Usuarios</SelectItem>
                                         <SelectItem value="FREE">Solo Gratuitos</SelectItem>
                                         <SelectItem value="PAID">Solo Pagos (Premium)</SelectItem>
+                                        <SelectItem value="TOURNAMENT">Por Torneo Específico</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            {audience === 'TOURNAMENT' && (
+                                <div className="space-y-2 animate-in fade-in zoom-in duration-300">
+                                    <Label className="text-slate-300">Seleccionar Torneo</Label>
+                                    <Select value={selectedTournament} onValueChange={(val: any) => setSelectedTournament(val)}>
+                                        <SelectTrigger className="bg-slate-950 border-blue-500 text-white">
+                                            <SelectValue placeholder="Elegir Torneo" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                                            <SelectItem value="WC2026">🏆 Mundial 2026</SelectItem>
+                                            <SelectItem value="UCL2526">⚽ Champions League 25/26</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label className="text-slate-300">Tipo de Alerta</Label>
@@ -174,7 +192,17 @@ export function CommunicationPanel() {
                         <div className="mt-6 p-4 rounded-lg bg-slate-800/50 border border-dashed border-slate-700">
                             <h4 className="text-slate-400 text-xs uppercase font-bold mb-2">Resumen del Envío</h4>
                             <ul className="text-sm text-slate-300 space-y-1">
-                                <li>🎯 Audiencia: <strong className="text-white">{audience === 'ALL' ? 'Todos' : audience}</strong></li>
+                                <li>🎯 Audiencia: <strong className="text-white">
+                                    {audience === 'ALL' ? 'Todos' : 
+                                     audience === 'FREE' ? 'Gratuitos' : 
+                                     audience === 'PAID' ? 'Pagos' : 
+                                     'Por Torneo'}
+                                </strong></li>
+                                {audience === 'TOURNAMENT' && (
+                                    <li>🏆 Torneo: <strong className="text-[var(--brand-primary,#00E676)]">
+                                        {selectedTournament === 'WC2026' ? 'Mundial 2026' : 'Champions League'}
+                                    </strong></li>
+                                )}
                                 <li>🎨 Tipo: <strong className="text-white">{type}</strong></li>
                             </ul>
                         </div>

@@ -38,21 +38,41 @@ export class NotificationsService {
         await this.notificationsRepository.update({ userId, isRead: false }, { isRead: true });
     }
 
-    async broadcast(title: string, message: string, type: NotificationType, targetAudience: 'ALL' | 'FREE' | 'PAID'): Promise<number> {
-        this.logger.log(`📢 Starting broadcast: "${title}" to ${targetAudience}`);
+    async broadcast(title: string, message: string, type: NotificationType, targetAudience: 'ALL' | 'FREE' | 'PAID', tournamentId?: string): Promise<number> {
+        this.logger.log(`📢 Starting broadcast: "${title}" to ${targetAudience} (Tournament: ${tournamentId || 'ALL'})`);
 
-        let whereCondition = {};
-        if (targetAudience === 'PAID') {
-            whereCondition = { hasPaid: true };
-        } else if (targetAudience === 'FREE') {
-            whereCondition = { hasPaid: false };
+        let users: { id: string }[] = [];
+
+        if (tournamentId) {
+            // Filter users participating in leagues of this tournament
+            const query = this.usersRepository.createQueryBuilder('u')
+                .select('DISTINCT u.id', 'id')
+                .innerJoin('u.leagueParticipants', 'lp')
+                .innerJoin('lp.league', 'l')
+                .where('l.tournamentId = :tournamentId', { tournamentId });
+
+            if (targetAudience === 'PAID') {
+                query.andWhere('u.hasPaid = :paid', { paid: true });
+            } else if (targetAudience === 'FREE') {
+                query.andWhere('u.hasPaid = :paid', { paid: false });
+            }
+
+            const rawUsers = await query.getRawMany();
+            users = rawUsers.map(ru => ({ id: ru.id }));
+        } else {
+            // Global case
+            let whereCondition = {};
+            if (targetAudience === 'PAID') {
+                whereCondition = { hasPaid: true };
+            } else if (targetAudience === 'FREE') {
+                whereCondition = { hasPaid: false };
+            }
+
+            users = await this.usersRepository.find({
+                select: ['id'],
+                where: whereCondition,
+            });
         }
-
-        // Fetch users (consider pagination for massive user base, but for now findAll is okay if < 10k users)
-        const users = await this.usersRepository.find({
-            select: ['id'], // Select only ID for performance
-            where: whereCondition,
-        });
 
         if (users.length === 0) return 0;
 
@@ -63,8 +83,7 @@ export class NotificationsService {
             type,
         }));
 
-        // Batch save (TypeORM save can handle array)
-        // Chunking by 500 to be safe
+        // Batch save
         const chunkSize = 500;
         for (let i = 0; i < notifications.length; i += chunkSize) {
             await this.notificationsRepository.save(notifications.slice(i, i + chunkSize));

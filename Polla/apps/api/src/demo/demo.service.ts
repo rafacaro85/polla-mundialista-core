@@ -58,30 +58,32 @@ export class DemoService {
         if (league) {
             // Clear existing demo data before re-provisioning
             await this.clearDemoData();
+        } else {
+            league = new League();
+            league.id = this.DEMO_LEAGUE_ID;
         }
 
-        league = this.leagueRepo.create({
-          id: this.DEMO_LEAGUE_ID,
-          name: 'Demo Corporativa Mundial 2026',
-          type: LeagueType.COMPANY,
-          packageType: 'diamond', 
-          isEnterprise: true,
-          isEnterpriseActive: true,
-          maxParticipants: 100,
-          creator: admin,
-          accessCodePrefix: 'DEMO-2026',
-          tournamentId: this.TOURNAMENT_ID,
-          companyName: 'Empresa Demo S.A.',
-          brandColorPrimary: '#4F46E5', // Indigo
-          brandColorBg: '#0F172A',
-          brandColorSecondary: '#1E293B',
-          brandColorText: '#F8FAFC',
-          brandingLogoUrl: null, // Reset logo
-          prizeImageUrl: null, // Reset prize image
-          isPaid: true,
-          welcomeMessage: '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.',
-        });
-        await this.leagueRepo.save(league);
+        // Set properties explicitly to avoid industrial-scale create() confusion
+        league.name = 'Demo Corporativa Mundial 2026';
+        league.type = LeagueType.COMPANY;
+        league.packageType = 'diamond';
+        league.isEnterprise = true;
+        league.isEnterpriseActive = true;
+        league.maxParticipants = 100;
+        league.creator = admin;
+        league.accessCodePrefix = 'DEMO-2026';
+        league.tournamentId = this.TOURNAMENT_ID;
+        league.companyName = 'Empresa Demo S.A.';
+        league.brandColorPrimary = '#4F46E5';
+        league.brandColorBg = '#0F172A';
+        league.brandColorSecondary = '#1E293B';
+        league.brandColorText = '#F8FAFC';
+        league.brandingLogoUrl = undefined;
+        league.prizeImageUrl = undefined;
+        league.isPaid = true;
+        league.welcomeMessage = '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.';
+
+        league = await this.leagueRepo.save(league);
 
         // 3. Add Admin as Participant
         const adminParticipant = this.participantRepo.create({

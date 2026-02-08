@@ -7,73 +7,87 @@ import { League } from '../../database/entities/league.entity';
 
 @Injectable()
 export class PdfService {
-    private readonly logger = new Logger(PdfService.name);
+  private readonly logger = new Logger(PdfService.name);
 
-    async generateVoucher(transaction: Transaction, user: User, league: League): Promise<Buffer> {
-        try {
-            const templateHtml = this.getVoucherTemplate();
-            const template = handlebars.compile(templateHtml);
+  async generateVoucher(
+    transaction: Transaction,
+    user: User,
+    league: League,
+  ): Promise<Buffer> {
+    try {
+      const templateHtml = this.getVoucherTemplate();
+      const template = handlebars.compile(templateHtml);
 
-            const data = {
-                transactionId: transaction.referenceCode,
-                date: transaction.createdAt.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                userName: user.fullName || user.nickname,
-                userEmail: user.email,
-                leagueName: league.name,
-                packageName: this.getPackageName(league.packageType), // Helper method needed or pass string
-                amount: this.formatCurrency(transaction.amount),
-                status: transaction.status,
-                year: new Date().getFullYear(),
-            };
+      const data = {
+        transactionId: transaction.referenceCode,
+        date: transaction.createdAt.toLocaleDateString('es-CO', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        userName: user.fullName || user.nickname,
+        userEmail: user.email,
+        leagueName: league.name,
+        packageName: this.getPackageName(league.packageType), // Helper method needed or pass string
+        amount: this.formatCurrency(transaction.amount),
+        status: transaction.status,
+        year: new Date().getFullYear(),
+      };
 
-            const html = template(data);
+      const html = template(data);
 
-            const browser = await puppeteer.launch({
-                headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            });
-            const page = await browser.newPage();
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+      const page = await browser.newPage();
 
-            await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
-            const pdfBuffer = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                margin: {
-                    top: '20px',
-                    bottom: '20px',
-                    left: '20px',
-                    right: '20px',
-                },
-            });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20px',
+          bottom: '20px',
+          left: '20px',
+          right: '20px',
+        },
+      });
 
-            await browser.close();
+      await browser.close();
 
-            return Buffer.from(pdfBuffer);
-        } catch (error) {
-            this.logger.error('Error generating PDF voucher', error);
-            throw error;
-        }
+      return Buffer.from(pdfBuffer);
+    } catch (error) {
+      this.logger.error('Error generating PDF voucher', error);
+      throw error;
     }
+  }
 
-    private getPackageName(packageType: string): string {
-        const packages: Record<string, string> = {
-            'starter': 'Plan Bronce',
-            'amateur': 'Plan Plata',
-            'semi-pro': 'Plan Oro',
-            'pro': 'Plan Platino',
-            'elite': 'Plan Diamante',
-            'legend': 'Plan Esmeralda',
-        };
-        return packages[packageType] || packageType || 'Plan Personalizado';
-    }
+  private getPackageName(packageType: string): string {
+    const packages: Record<string, string> = {
+      starter: 'Plan Bronce',
+      amateur: 'Plan Plata',
+      'semi-pro': 'Plan Oro',
+      pro: 'Plan Platino',
+      elite: 'Plan Diamante',
+      legend: 'Plan Esmeralda',
+    };
+    return packages[packageType] || packageType || 'Plan Personalizado';
+  }
 
-    private formatCurrency(amount: number): string {
-        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(amount);
-    }
+  private formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  }
 
-    private getVoucherTemplate(): string {
-        return `
+  private getVoucherTemplate(): string {
+    return `
       <!DOCTYPE html>
       <html>
       <head>
@@ -227,5 +241,5 @@ export class PdfService {
       </body>
       </html>
     `;
-    }
+  }
 }

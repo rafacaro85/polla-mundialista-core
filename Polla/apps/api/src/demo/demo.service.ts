@@ -20,8 +20,10 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
 
 @Injectable()
 export class DemoService {
-  private readonly DEMO_ENTERPRISE_LEAGUE_ID = '00000000-0000-0000-0000-000000001337'; // Enterprise Demo
-  private readonly DEMO_SOCIAL_LEAGUE_ID = '00000000-0000-0000-0000-000000001338'; // Social Demo
+  private readonly DEMO_ENTERPRISE_LEAGUE_ID =
+    '00000000-0000-0000-0000-000000001337'; // Enterprise Demo
+  private readonly DEMO_SOCIAL_LEAGUE_ID =
+    '00000000-0000-0000-0000-000000001338'; // Social Demo
   private readonly DEMO_ADMIN_EMAIL = 'demo@lapollavirtual.com';
   private readonly DEMO_SOCIAL_ADMIN_EMAIL = 'demo-social@lapollavirtual.com';
   private readonly TOURNAMENT_ID = 'WC2026';
@@ -29,12 +31,17 @@ export class DemoService {
   constructor(
     @InjectRepository(League) private leagueRepo: Repository<League>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(LeagueParticipant) private participantRepo: Repository<LeagueParticipant>,
+    @InjectRepository(LeagueParticipant)
+    private participantRepo: Repository<LeagueParticipant>,
     @InjectRepository(Match) private matchRepo: Repository<Match>,
-    @InjectRepository(Prediction) private predictionRepo: Repository<Prediction>,
-    @InjectRepository(BonusQuestion) private bonusRepo: Repository<BonusQuestion>,
-    @InjectRepository(UserBonusAnswer) private bonusAnswerRepo: Repository<UserBonusAnswer>,
-    @InjectRepository(KnockoutPhaseStatus) private phaseStatusRepo: Repository<KnockoutPhaseStatus>,
+    @InjectRepository(Prediction)
+    private predictionRepo: Repository<Prediction>,
+    @InjectRepository(BonusQuestion)
+    private bonusRepo: Repository<BonusQuestion>,
+    @InjectRepository(UserBonusAnswer)
+    private bonusAnswerRepo: Repository<UserBonusAnswer>,
+    @InjectRepository(KnockoutPhaseStatus)
+    private phaseStatusRepo: Repository<KnockoutPhaseStatus>,
     private matchesService: MatchesService,
     private predictionsService: PredictionsService,
     private tournamentService: TournamentService,
@@ -42,252 +49,309 @@ export class DemoService {
   ) {}
 
   async provisionEnterpriseDemo() {
-    return this.provisionDemo(this.DEMO_ENTERPRISE_LEAGUE_ID, this.DEMO_ADMIN_EMAIL, true);
+    return this.provisionDemo(
+      this.DEMO_ENTERPRISE_LEAGUE_ID,
+      this.DEMO_ADMIN_EMAIL,
+      true,
+    );
   }
 
   async provisionSocialDemo() {
-    return this.provisionDemo(this.DEMO_SOCIAL_LEAGUE_ID, this.DEMO_SOCIAL_ADMIN_EMAIL, false);
+    return this.provisionDemo(
+      this.DEMO_SOCIAL_LEAGUE_ID,
+      this.DEMO_SOCIAL_ADMIN_EMAIL,
+      false,
+    );
   }
 
-  private async provisionDemo(leagueId: string, adminEmail: string, isEnterprise: boolean) {
+  private async provisionDemo(
+    leagueId: string,
+    adminEmail: string,
+    isEnterprise: boolean,
+  ) {
     try {
-        console.log('🚀 Provisioning Demo Environment...');
+      console.log('🚀 Provisioning Demo Environment...');
 
-        // 1. Create or Update Demo Admin
-        let admin = await this.userRepo.findOne({ where: { email: adminEmail } });
-        if (!admin) {
-          const hashedPassword = await bcrypt.hash('demo123', 10);
-          admin = this.userRepo.create({
-            email: adminEmail,
-            fullName: isEnterprise ? 'Admin Demo Empresa' : 'Admin Demo Social',
-            nickname: isEnterprise ? 'AdminEmpresa' : 'AdminSocial',
-            password: hashedPassword,
-            role: UserRole.PLAYER,
+      // 1. Create or Update Demo Admin
+      let admin = await this.userRepo.findOne({ where: { email: adminEmail } });
+      if (!admin) {
+        const hashedPassword = await bcrypt.hash('demo123', 10);
+        admin = this.userRepo.create({
+          email: adminEmail,
+          fullName: isEnterprise ? 'Admin Demo Empresa' : 'Admin Demo Social',
+          nickname: isEnterprise ? 'AdminEmpresa' : 'AdminSocial',
+          password: hashedPassword,
+          role: UserRole.PLAYER,
+          isVerified: true,
+        });
+        admin = await this.userRepo.save(admin);
+      }
+
+      // 2. Create Demo League
+      let league = await this.leagueRepo.findOne({ where: { id: leagueId } });
+      if (league) {
+        // Clear existing demo data before re-provisioning
+        await this.clearDemoData(leagueId);
+      } else {
+        league = new League();
+        league.id = leagueId;
+      }
+
+      // Set properties based on demo type
+      if (isEnterprise) {
+        league.name = 'Demo Corporativa Mundial 2026';
+        league.type = LeagueType.COMPANY;
+        league.packageType = 'diamond';
+        league.isEnterprise = true;
+        league.isEnterpriseActive = true;
+        league.maxParticipants = 100;
+        league.companyName = 'Empresa Demo S.A.';
+        league.brandColorPrimary = '#4F46E5';
+        league.brandColorBg = '#0F172A';
+        league.brandColorSecondary = '#1E293B';
+        league.brandColorText = '#F8FAFC';
+        league.welcomeMessage =
+          '¡Bienvenido al Demo Empresarial! Aquí puedes ver cómo tus empleados vivirán el mundial.';
+      } else {
+        league.name = 'Demo Social - Mundial 2026';
+        league.type = LeagueType.LIBRE;
+        league.packageType = 'free';
+        league.isEnterprise = false;
+        league.isEnterpriseActive = false;
+        league.maxParticipants = 20;
+        league.brandColorPrimary = '#10B981'; // Green
+        league.brandColorBg = '#0F172A';
+        league.brandColorSecondary = '#1E293B';
+        league.brandColorText = '#F8FAFC';
+        league.welcomeMessage =
+          '¡Bienvenido al Demo Social! Compite con tus amigos y familia en este mundial.';
+      }
+
+      league.creator = admin;
+      league.accessCodePrefix = isEnterprise ? 'DEMO-EMP' : 'DEMO-SOC';
+      league.tournamentId = this.TOURNAMENT_ID;
+      league.brandingLogoUrl = undefined;
+      league.prizeImageUrl = undefined;
+      league.isPaid = true;
+
+      league = await this.leagueRepo.save(league);
+
+      // 3. Add Admin as Participant
+      const adminParticipant = this.participantRepo.create({
+        user: admin,
+        league: league,
+        isAdmin: true,
+      });
+      await this.participantRepo.save(adminParticipant);
+
+      // 4. Create Mock Participants
+      const mockUsers = [];
+      for (let i = 1; i <= 10; i++) {
+        const email = `player${i}@demo.com`;
+        let user = await this.userRepo.findOne({ where: { email } });
+        if (!user) {
+          user = this.userRepo.create({
+            email,
+            fullName: `Jugador Demo ${i}`,
+            nickname: `ProPlayer${i}`,
+            password: 'mock',
             isVerified: true,
           });
-          admin = await this.userRepo.save(admin);
+          user = await this.userRepo.save(user);
         }
+        mockUsers.push(user);
+      }
 
-        // 2. Create Demo League
-        let league = await this.leagueRepo.findOne({ where: { id: leagueId } });
-        if (league) {
-            // Clear existing demo data before re-provisioning
-            await this.clearDemoData(leagueId);
-        } else {
-            league = new League();
-            league.id = leagueId;
-        }
-
-        // Set properties based on demo type
-        if (isEnterprise) {
-            league.name = 'Demo Corporativa Mundial 2026';
-            league.type = LeagueType.COMPANY;
-            league.packageType = 'diamond';
-            league.isEnterprise = true;
-            league.isEnterpriseActive = true;
-            league.maxParticipants = 100;
-            league.companyName = 'Empresa Demo S.A.';
-            league.brandColorPrimary = '#4F46E5';
-            league.brandColorBg = '#0F172A';
-            league.brandColorSecondary = '#1E293B';
-            league.brandColorText = '#F8FAFC';
-            league.welcomeMessage = '¡Bienvenido al Demo Empresarial! Aquí puedes ver cómo tus empleados vivirán el mundial.';
-        } else {
-            league.name = 'Demo Social - Mundial 2026';
-            league.type = LeagueType.LIBRE;
-            league.packageType = 'free';
-            league.isEnterprise = false;
-            league.isEnterpriseActive = false;
-            league.maxParticipants = 20;
-            league.brandColorPrimary = '#10B981'; // Green
-            league.brandColorBg = '#0F172A';
-            league.brandColorSecondary = '#1E293B';
-            league.brandColorText = '#F8FAFC';
-            league.welcomeMessage = '¡Bienvenido al Demo Social! Compite con tus amigos y familia en este mundial.';
-        }
-        
-        league.creator = admin;
-        league.accessCodePrefix = isEnterprise ? 'DEMO-EMP' : 'DEMO-SOC';
-        league.tournamentId = this.TOURNAMENT_ID;
-        league.brandingLogoUrl = undefined;
-        league.prizeImageUrl = undefined;
-        league.isPaid = true;
-
-        league = await this.leagueRepo.save(league);
-
-        // 3. Add Admin as Participant
-        const adminParticipant = this.participantRepo.create({
-          user: admin,
-          league: league,
-          isAdmin: true,
+      for (let i = 0; i < mockUsers.length; i++) {
+        const user = mockUsers[i];
+        // Check if already in league
+        const exists = await this.participantRepo.findOne({
+          where: { league: { id: leagueId }, user: { id: user.id } },
         });
-        await this.participantRepo.save(adminParticipant);
-
-        // 4. Create Mock Participants
-        const mockUsers = [];
-        for (let i = 1; i <= 10; i++) {
-            const email = `player${i}@demo.com`;
-            let user = await this.userRepo.findOne({ where: { email } });
-            if (!user) {
-                user = this.userRepo.create({
-                    email,
-                    fullName: `Jugador Demo ${i}`,
-                    nickname: `ProPlayer${i}`,
-                    password: 'mock',
-                    isVerified: true,
-                });
-                user = await this.userRepo.save(user);
-            }
-            mockUsers.push(user);
+        if (!exists) {
+          await this.participantRepo.save(
+            this.participantRepo.create({
+              user,
+              league,
+              isAdmin: false,
+              department: (i + 1) % 2 === 0 ? 'Ventas' : 'Tecnología',
+            }),
+          );
         }
+      }
 
-        for (let i = 0; i < mockUsers.length; i++) {
-            const user = mockUsers[i];
-            // Check if already in league
-            const exists = await this.participantRepo.findOne({ 
-                where: { league: { id: leagueId }, user: { id: user.id } } 
-            });
-            if (!exists) {
-                await this.participantRepo.save(this.participantRepo.create({
-                    user,
-                    league,
-                    isAdmin: false,
-                    department: (i + 1) % 2 === 0 ? 'Ventas' : 'Tecnología',
-                }));
-            }
+      // 5. Create Mock Predictions for ALL Group Stage Matches
+      const groupMatches = await this.matchRepo.find({
+        where: { tournamentId: this.TOURNAMENT_ID, phase: 'GROUP' },
+      });
+
+      console.log(
+        `📝 Creating predictions for ${groupMatches.length} group matches for ${mockUsers.length} users...`,
+      );
+
+      for (const user of mockUsers) {
+        for (const match of groupMatches) {
+          // Ensure unique predictions
+          const existingPred = await this.predictionRepo.findOne({
+            where: {
+              user: { id: user.id },
+              match: { id: match.id },
+              leagueId: leagueId,
+            },
+          });
+
+          if (!existingPred) {
+            await this.predictionRepo.save(
+              this.predictionRepo.create({
+                user,
+                match,
+                leagueId: leagueId,
+                homeScore: Math.floor(Math.random() * 4),
+                awayScore: Math.floor(Math.random() * 4),
+                points: 0, // Points will be calculated when match finishes
+                isJoker: Math.random() > 0.9, // 10% chance of joker
+              }),
+            );
+          }
         }
+      }
 
-        // 5. Create Mock Predictions for ALL Group Stage Matches
-        const groupMatches = await this.matchRepo.find({
-            where: { tournamentId: this.TOURNAMENT_ID, phase: 'GROUP' },
+      console.log(`✅ Predictions created for demo league ${leagueId}`);
+
+      // 6. Create Demo Bonus Questions
+      const bonusText = '¿Quién llegará a la final? (Demo)';
+      let bonus = await this.bonusRepo.findOne({
+        where: { text: bonusText, leagueId: league.id },
+      });
+      if (!bonus) {
+        bonus = this.bonusRepo.create({
+          text: bonusText,
+          points: 50,
+          leagueId: league.id,
+          tournamentId: this.TOURNAMENT_ID,
+          isActive: true,
         });
+        await this.bonusRepo.save(bonus);
+      }
 
-        console.log(`📝 Creating predictions for ${groupMatches.length} group matches for ${mockUsers.length} users...`);
-
-        for (const user of mockUsers) {
-            for (const match of groupMatches) {
-                // Ensure unique predictions
-                const existingPred = await this.predictionRepo.findOne({
-                    where: { user: { id: user.id }, match: { id: match.id }, leagueId: leagueId }
-                });
-                
-                if (!existingPred) {
-                    await this.predictionRepo.save(this.predictionRepo.create({
-                        user,
-                        match,
-                        leagueId: leagueId,
-                        homeScore: Math.floor(Math.random() * 4),
-                        awayScore: Math.floor(Math.random() * 4),
-                        points: 0, // Points will be calculated when match finishes
-                        isJoker: Math.random() > 0.9, // 10% chance of joker
-                    }));
-                }
-            }
-        }
-
-        console.log(`✅ Predictions created for demo league ${leagueId}`);
-
-        // 6. Create Demo Bonus Questions
-        const bonusText = '¿Quién llegará a la final? (Demo)';
-        let bonus = await this.bonusRepo.findOne({ where: { text: bonusText, leagueId: league.id } });
-        if (!bonus) {
-            bonus = this.bonusRepo.create({
-                text: bonusText,
-                points: 50,
-                leagueId: league.id,
-                tournamentId: this.TOURNAMENT_ID,
-                isActive: true,
-            });
-            await this.bonusRepo.save(bonus);
-        }
-
-        return { success: true, leagueId: league.id, adminEmail: admin.email, admin };
+      return {
+        success: true,
+        leagueId: league.id,
+        adminEmail: admin.email,
+        admin,
+      };
     } catch (error) {
-        console.error('❌ ERROR IN PROVISION_DEMO:', error);
-        throw error;
+      console.error('❌ ERROR IN PROVISION_DEMO:', error);
+      throw error;
     }
   }
 
   async clearDemoData(leagueId?: string) {
     const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     try {
-        console.log(`🧹 Clearing Demo Data for league ${targetLeagueId}...`);
-        await this.predictionRepo.delete({ leagueId: targetLeagueId });
-        
-        const questions = await this.bonusRepo.find({ where: { leagueId: targetLeagueId } });
-        if (questions.length > 0) {
-            const qIds = questions.map(q => q.id);
-            await this.bonusAnswerRepo.createQueryBuilder()
-                .delete()
-                .where('questionId IN (:...qIds)', { qIds })
-                .execute();
-        }
-        
-        await this.bonusRepo.delete({ leagueId: targetLeagueId });
-        
-        // Use query builder for league_id delete to be safer with uuid
-        await this.participantRepo.createQueryBuilder()
-            .delete()
-            .where('league_id = :leagueId', { leagueId: targetLeagueId })
-            .execute();
-            
-        // ALSO RESET MATCH RESULTS for the Demo Tournament (shared by both demos)
-        if (leagueId === this.DEMO_ENTERPRISE_LEAGUE_ID || leagueId === this.DEMO_SOCIAL_LEAGUE_ID || !leagueId) {
-            await this.resetTournamentResults();
-        }
+      console.log(`🧹 Clearing Demo Data for league ${targetLeagueId}...`);
+      await this.predictionRepo.delete({ leagueId: targetLeagueId });
 
-        console.log('✅ Demo Data Cleared.');
+      const questions = await this.bonusRepo.find({
+        where: { leagueId: targetLeagueId },
+      });
+      if (questions.length > 0) {
+        const qIds = questions.map((q) => q.id);
+        await this.bonusAnswerRepo
+          .createQueryBuilder()
+          .delete()
+          .where('questionId IN (:...qIds)', { qIds })
+          .execute();
+      }
+
+      await this.bonusRepo.delete({ leagueId: targetLeagueId });
+
+      // Use query builder for league_id delete to be safer with uuid
+      await this.participantRepo
+        .createQueryBuilder()
+        .delete()
+        .where('league_id = :leagueId', { leagueId: targetLeagueId })
+        .execute();
+
+      // ALSO RESET MATCH RESULTS for the Demo Tournament (shared by both demos)
+      if (
+        leagueId === this.DEMO_ENTERPRISE_LEAGUE_ID ||
+        leagueId === this.DEMO_SOCIAL_LEAGUE_ID ||
+        !leagueId
+      ) {
+        await this.resetTournamentResults();
+      }
+
+      console.log('✅ Demo Data Cleared.');
     } catch (error) {
-        console.error('❌ Error clearing demo data:', error);
-        // We don't throw here to allow provisioning to try anyway
+      console.error('❌ Error clearing demo data:', error);
+      // We don't throw here to allow provisioning to try anyway
     }
   }
 
   async resetTournamentResults() {
-      console.log('🔄 Resetting Tournament Match Results...');
-      
-      // Reset Matches
-      await this.matchRepo.createQueryBuilder()
-          .update(Match)
-          .set({ 
-              homeScore: null, 
-              awayScore: null, 
-              status: 'PENDING',
-              homeTeam: () => "CASE WHEN phase = 'GROUP' THEN homeTeam ELSE '' END", // Reset knockout teams
-              awayTeam: () => "CASE WHEN phase = 'GROUP' THEN awayTeam ELSE '' END",
-              homeFlag: () => "CASE WHEN phase = 'GROUP' THEN homeFlag ELSE '' END",
-              awayFlag: () => "CASE WHEN phase = 'GROUP' THEN awayFlag ELSE '' END"
-          })
-          .where('tournamentId = :tournamentId', { tournamentId: this.TOURNAMENT_ID })
-          .execute();
+    console.log('🔄 Resetting Tournament Match Results...');
 
-      console.log('🔄 Resetting Knockout Phases...');
-      
-      // Reset Phases (Lock all except GROUP)
-      await this.phaseStatusRepo.createQueryBuilder()
-          .update(KnockoutPhaseStatus)
-          .set({ isUnlocked: false, allMatchesCompleted: false, unlockedAt: () => 'NULL' })
-          .where("phase != 'GROUP' AND tournamentId = :tid", { tid: this.TOURNAMENT_ID })
-          .execute();
-          
-      // Reset GROUP Phase (Unlocked but not completed)
-      await this.phaseStatusRepo.createQueryBuilder()
-          .update(KnockoutPhaseStatus)
-          .set({ isUnlocked: true, allMatchesCompleted: false, unlockedAt: new Date() })
-          .where("phase = 'GROUP' AND tournamentId = :tid", { tid: this.TOURNAMENT_ID })
-          .execute();
-          
-      console.log('✅ Tournament Reset Complete.');
+    // Reset Matches
+    await this.matchRepo
+      .createQueryBuilder()
+      .update(Match)
+      .set({
+        homeScore: null,
+        awayScore: null,
+        status: 'PENDING',
+        homeTeam: () => "CASE WHEN phase = 'GROUP' THEN homeTeam ELSE '' END", // Reset knockout teams
+        awayTeam: () => "CASE WHEN phase = 'GROUP' THEN awayTeam ELSE '' END",
+        homeFlag: () => "CASE WHEN phase = 'GROUP' THEN homeFlag ELSE '' END",
+        awayFlag: () => "CASE WHEN phase = 'GROUP' THEN awayFlag ELSE '' END",
+      })
+      .where('tournamentId = :tournamentId', {
+        tournamentId: this.TOURNAMENT_ID,
+      })
+      .execute();
+
+    console.log('🔄 Resetting Knockout Phases...');
+
+    // Reset Phases (Lock all except GROUP)
+    await this.phaseStatusRepo
+      .createQueryBuilder()
+      .update(KnockoutPhaseStatus)
+      .set({
+        isUnlocked: false,
+        allMatchesCompleted: false,
+        unlockedAt: () => 'NULL',
+      })
+      .where("phase != 'GROUP' AND tournamentId = :tid", {
+        tid: this.TOURNAMENT_ID,
+      })
+      .execute();
+
+    // Reset GROUP Phase (Unlocked but not completed)
+    await this.phaseStatusRepo
+      .createQueryBuilder()
+      .update(KnockoutPhaseStatus)
+      .set({
+        isUnlocked: true,
+        allMatchesCompleted: false,
+        unlockedAt: new Date(),
+      })
+      .where("phase = 'GROUP' AND tournamentId = :tid", {
+        tid: this.TOURNAMENT_ID,
+      })
+      .execute();
+
+    console.log('✅ Tournament Reset Complete.');
   }
 
   async simulateNextMatch() {
     // Find first PENDING match for WC2026
     const pendingMatch = await this.matchRepo.findOne({
-        where: { tournamentId: this.TOURNAMENT_ID, status: 'PENDING' },
-        order: { date: 'ASC' },
+      where: { tournamentId: this.TOURNAMENT_ID, status: 'PENDING' },
+      order: { date: 'ASC' },
     });
 
-    if (!pendingMatch) throw new NotFoundException('No hay partidos pendientes para simular.');
+    if (!pendingMatch)
+      throw new NotFoundException('No hay partidos pendientes para simular.');
 
     const h = Math.floor(Math.random() * 3);
     const a = Math.floor(Math.random() * 3);
@@ -295,52 +359,58 @@ export class DemoService {
     // Use MatchesService.finishMatch to properly calculate points
     await this.matchesService.finishMatch(pendingMatch.id, h, a);
 
-    console.log(`⚽ Simulated: ${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`);
+    console.log(
+      `⚽ Simulated: ${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`,
+    );
 
-    return { 
-        success: true, 
-        match: `${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`,
-        phase: pendingMatch.phase 
+    return {
+      success: true,
+      match: `${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`,
+      phase: pendingMatch.phase,
     };
   }
 
   async simulateBatch(count: number = 5) {
-      const results = [];
-      let lastPhase = null;
-      
-      for (let i = 0; i < count; i++) {
-          try {
-              const res = await this.simulateNextMatch();
-              results.push(res);
-              lastPhase = res.phase;
-          } catch (e) {
-              break; // No more matches
-          }
-      }
+    const results = [];
+    let lastPhase = null;
 
-      // Check if we just finished the group stage
-      if (lastPhase === 'GROUP') {
-          try {
-              console.log('🔄 Checking for completed groups to promote...');
-              await this.tournamentService.promoteAllCompletedGroups();
-              console.log('✅ Group promotions completed');
-          } catch (err) {
-              console.error('❌ Error promoting groups:', err);
-          }
+    for (let i = 0; i < count; i++) {
+      try {
+        const res = await this.simulateNextMatch();
+        results.push(res);
+        lastPhase = res.phase;
+      } catch (e) {
+        break; // No more matches
       }
+    }
 
-      return { success: true, count: results.length, lastMatch: results[results.length - 1] };
+    // Check if we just finished the group stage
+    if (lastPhase === 'GROUP') {
+      try {
+        console.log('🔄 Checking for completed groups to promote...');
+        await this.tournamentService.promoteAllCompletedGroups();
+        console.log('✅ Group promotions completed');
+      } catch (err) {
+        console.error('❌ Error promoting groups:', err);
+      }
+    }
+
+    return {
+      success: true,
+      count: results.length,
+      lastMatch: results[results.length - 1],
+    };
   }
 
   async createBonus(text: string, points: number, leagueId?: string) {
-      const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
-      const bonus = this.bonusRepo.create({
-          text,
-          points,
-          leagueId: targetLeagueId,
-          tournamentId: this.TOURNAMENT_ID,
-          isActive: true,
-      });
-      return this.bonusRepo.save(bonus);
+    const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
+    const bonus = this.bonusRepo.create({
+      text,
+      points,
+      leagueId: targetLeagueId,
+      tournamentId: this.TOURNAMENT_ID,
+      isActive: true,
+    });
+    return this.bonusRepo.save(bonus);
   }
 }

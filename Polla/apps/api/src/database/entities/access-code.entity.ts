@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { League } from './league.entity';
 import { AccessCodeStatus } from '../enums/access-code-status.enum';
 import { User } from './user.entity';
@@ -11,7 +18,7 @@ export class AccessCode {
   @Column({ unique: true })
   code: string;
 
-  @ManyToOne(() => League, league => league.accessCodes, { nullable: false })
+  @ManyToOne(() => League, (league) => league.accessCodes, { nullable: false })
   @JoinColumn({ name: 'league_id' })
   league: League;
 
@@ -22,7 +29,7 @@ export class AccessCode {
   })
   status: AccessCodeStatus;
 
-  @ManyToOne(() => User, user => user.accessCodesUsed, { nullable: true })
+  @ManyToOne(() => User, (user) => user.accessCodesUsed, { nullable: true })
   @JoinColumn({ name: 'used_by_user_id' })
   usedBy?: User;
 

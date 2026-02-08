@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
@@ -21,9 +26,13 @@ export class PaymentsService {
   /**
    * Genera la firma de integridad para Wompi
    */
-  generateSignature(reference: string, amountInCents: number, currency: string): string {
+  generateSignature(
+    reference: string,
+    amountInCents: number,
+    currency: string,
+  ): string {
     const concatenatedString = `${reference}${amountInCents}${currency}${this.integritySecret}`;
-    
+
     const signature = createHash('sha256')
       .update(concatenatedString)
       .digest('hex');
@@ -65,7 +74,9 @@ export class PaymentsService {
   async processPayment(webhookData: WompiWebhookDto): Promise<void> {
     const { transaction } = webhookData.data;
 
-    this.logger.log(`Processing payment for reference: ${transaction.reference}`);
+    this.logger.log(
+      `Processing payment for reference: ${transaction.reference}`,
+    );
 
     // Buscar la transacción por referenceCode
     const dbTransaction = await this.transactionsRepository.findOne({
@@ -75,20 +86,29 @@ export class PaymentsService {
 
     if (!dbTransaction) {
       this.logger.error(`Transaction not found: ${transaction.reference}`);
-      throw new NotFoundException(`Transaction not found: ${transaction.reference}`);
+      throw new NotFoundException(
+        `Transaction not found: ${transaction.reference}`,
+      );
     }
 
     // Verificar que no haya sido procesada previamente
-    if (dbTransaction.status === TransactionStatus.APPROVED || dbTransaction.status === TransactionStatus.PAID) {
-      this.logger.warn(`Transaction already processed: ${transaction.reference}`);
+    if (
+      dbTransaction.status === TransactionStatus.APPROVED ||
+      dbTransaction.status === TransactionStatus.PAID
+    ) {
+      this.logger.warn(
+        `Transaction already processed: ${transaction.reference}`,
+      );
       return;
     }
 
     // Verificar el monto
-    const expectedAmountInCents = Math.round(Number(dbTransaction.amount) * 100);
+    const expectedAmountInCents = Math.round(
+      Number(dbTransaction.amount) * 100,
+    );
     if (transaction.amount_in_cents !== expectedAmountInCents) {
       this.logger.error(
-        `Amount mismatch for ${transaction.reference}. Expected: ${expectedAmountInCents}, Received: ${transaction.amount_in_cents}`
+        `Amount mismatch for ${transaction.reference}. Expected: ${expectedAmountInCents}, Received: ${transaction.amount_in_cents}`,
       );
       throw new UnauthorizedException('Amount mismatch');
     }
@@ -96,22 +116,27 @@ export class PaymentsService {
     // Procesar según el estado
     if (transaction.status === 'APPROVED') {
       this.logger.log(`Approving transaction: ${transaction.reference}`);
-      
+
       // Actualizar transacción (esto activará automáticamente usuario/liga)
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.APPROVED,
-        `Pago aprobado por Wompi. ID: ${transaction.id}`
+        `Pago aprobado por Wompi. ID: ${transaction.id}`,
       );
 
-      this.logger.log(`Transaction approved successfully: ${transaction.reference}`);
-    } else if (transaction.status === 'DECLINED' || transaction.status === 'ERROR') {
+      this.logger.log(
+        `Transaction approved successfully: ${transaction.reference}`,
+      );
+    } else if (
+      transaction.status === 'DECLINED' ||
+      transaction.status === 'ERROR'
+    ) {
       this.logger.warn(`Transaction declined/error: ${transaction.reference}`);
-      
+
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.REJECTED,
-        `Pago rechazado por Wompi. Estado: ${transaction.status}`
+        `Pago rechazado por Wompi. Estado: ${transaction.status}`,
       );
     }
   }
@@ -119,7 +144,9 @@ export class PaymentsService {
   /**
    * Maneja el webhook de Wompi con respuesta rápida 200 OK
    */
-  async handleWebhook(webhookData: WompiWebhookDto): Promise<{ received: boolean }> {
+  async handleWebhook(
+    webhookData: WompiWebhookDto,
+  ): Promise<{ received: boolean }> {
     this.logger.log(`Webhook received: ${webhookData.event}`);
 
     // Validar firma ANTES de responder
@@ -131,7 +158,10 @@ export class PaymentsService {
     // El procesamiento se hará de forma asíncrona
     setImmediate(() => {
       this.processPayment(webhookData).catch((error) => {
-        this.logger.error(`Error processing payment: ${error.message}`, error.stack);
+        this.logger.error(
+          `Error processing payment: ${error.message}`,
+          error.stack,
+        );
       });
     });
 

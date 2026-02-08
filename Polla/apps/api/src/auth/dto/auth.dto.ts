@@ -1,53 +1,53 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    @MinLength(2)
-    name: string;
+  @IsString()
+  @MinLength(2)
+  name: string;
 
-    @IsString()
-    @MinLength(6)
-    password: string;
+  @IsString()
+  @MinLength(6)
+  password: string;
 
-    @IsOptional()
-    @IsString()
-    phoneNumber?: string;
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
 }
 
 export class LoginDto {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    password: string;
+  @IsString()
+  password: string;
 }
 
 export class ForgotPasswordDto {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 }
 
 export class VerifyEmailDto {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    code: string;
+  @IsString()
+  code: string;
 }
 
 export class ResetPasswordDto {
-    @IsString()
-    token: string;
+  @IsString()
+  token: string;
 
-    @IsString()
-    @MinLength(6)
-    newPassword: string;
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
 }
 
 export class ResendVerificationCodeDto {
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 }

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
@@ -19,9 +24,13 @@ export class LeagueParticipantsService {
     @InjectRepository(AccessCode)
     private accessCodeRepository: Repository<AccessCode>,
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
-  async joinLeague(userId: string, code: string, department?: string): Promise<LeagueParticipant> {
+  async joinLeague(
+    userId: string,
+    code: string,
+    department?: string,
+  ): Promise<LeagueParticipant> {
     console.log('joinLeague - userId:', userId, 'code:', code);
 
     try {
@@ -41,17 +50,26 @@ export class LeagueParticipantsService {
         throw new NotFoundException('Liga no encontrada. Verifica el código.');
       }
 
-      console.log('joinLeague - Liga encontrada:', league.name, 'ID:', league.id);
+      console.log(
+        'joinLeague - Liga encontrada:',
+        league.name,
+        'ID:',
+        league.id,
+      );
 
       // 3. Verificar si el usuario ya está en la liga
-      const isAlreadyParticipant = league.participants.some(p => p.user.id === userId);
+      const isAlreadyParticipant = league.participants.some(
+        (p) => p.user.id === userId,
+      );
       if (isAlreadyParticipant) {
         throw new ConflictException('Ya eres participante de esta liga.');
       }
 
       // 4. Verificar capacidad
       if (league.participants.length >= league.maxParticipants) {
-        throw new BadRequestException('Liga llena (Máx 3 en plan Gratis). El dueño debe ampliar cupo.');
+        throw new BadRequestException(
+          'Liga llena (Máx 3 en plan Gratis). El dueño debe ampliar cupo.',
+        );
       }
 
       // 5. Crear participante
@@ -62,11 +80,11 @@ export class LeagueParticipantsService {
         department: department,
       });
 
-      const savedParticipant = await this.leagueParticipantRepository.save(leagueParticipant);
+      const savedParticipant =
+        await this.leagueParticipantRepository.save(leagueParticipant);
       console.log('joinLeague - Participante creado exitosamente');
 
       return savedParticipant;
-
     } catch (err) {
       console.error('joinLeague - Error:', err);
       throw err;
@@ -79,7 +97,9 @@ export class LeagueParticipantsService {
     requesterId: string,
     requesterRole: string,
   ): Promise<{ message: string }> {
-    console.log(`🗑️ [removeParticipant] Liga: ${leagueId}, Remover: ${userIdToRemove}, Solicitante: ${requesterId}`);
+    console.log(
+      `🗑️ [removeParticipant] Liga: ${leagueId}, Remover: ${userIdToRemove}, Solicitante: ${requesterId}`,
+    );
 
     // 1. Verificar que la liga existe
     const league = await this.leagueRepository.findOne({
@@ -96,16 +116,22 @@ export class LeagueParticipantsService {
     const isSuperAdmin = requesterRole === 'SUPER_ADMIN';
 
     if (!isAdmin && !isSuperAdmin) {
-      throw new BadRequestException('Solo el administrador de la liga puede expulsar participantes');
+      throw new BadRequestException(
+        'Solo el administrador de la liga puede expulsar participantes',
+      );
     }
 
     // 3. Verificar que no se está intentando expulsar al admin
     if (userIdToRemove === league.creator.id) {
-      throw new BadRequestException('El administrador no puede ser expulsado de su propia liga');
+      throw new BadRequestException(
+        'El administrador no puede ser expulsado de su propia liga',
+      );
     }
 
     // 4. Buscar el participante
-    const participant = league.participants.find(p => p.user.id === userIdToRemove);
+    const participant = league.participants.find(
+      (p) => p.user.id === userIdToRemove,
+    );
 
     if (!participant) {
       throw new NotFoundException('El usuario no es participante de esta liga');
@@ -114,7 +140,9 @@ export class LeagueParticipantsService {
     // 5. Eliminar participante
     await this.leagueParticipantRepository.remove(participant);
 
-    console.log(`✅ [removeParticipant] Usuario ${userIdToRemove} expulsado de la liga ${league.name}`);
+    console.log(
+      `✅ [removeParticipant] Usuario ${userIdToRemove} expulsado de la liga ${league.name}`,
+    );
 
     return {
       message: `Usuario expulsado exitosamente de la liga "${league.name}"`,
@@ -142,16 +170,22 @@ export class LeagueParticipantsService {
     const isSuperAdmin = requesterRole === 'SUPER_ADMIN';
 
     if (!isAdmin && !isSuperAdmin) {
-      throw new BadRequestException('Solo el administrador de la liga puede bloquear participantes');
+      throw new BadRequestException(
+        'Solo el administrador de la liga puede bloquear participantes',
+      );
     }
 
     // 3. Verificar que no se está intentando bloquear al admin
     if (userIdToBlock === league.creator.id) {
-      throw new BadRequestException('El administrador no puede ser bloqueado de su propia liga');
+      throw new BadRequestException(
+        'El administrador no puede ser bloqueado de su propia liga',
+      );
     }
 
     // 4. Buscar el participante
-    const participant = league.participants.find(p => p.user.id === userIdToBlock);
+    const participant = league.participants.find(
+      (p) => p.user.id === userIdToBlock,
+    );
 
     if (!participant) {
       throw new NotFoundException('El usuario no es participante de esta liga');
@@ -189,11 +223,13 @@ export class LeagueParticipantsService {
     const isSuperAdmin = requesterRole === 'SUPER_ADMIN';
 
     if (!isAdmin && !isSuperAdmin) {
-      throw new BadRequestException('Solo el administrador de la liga puede asignar puntos de trivia');
+      throw new BadRequestException(
+        'Solo el administrador de la liga puede asignar puntos de trivia',
+      );
     }
 
     // 3. Buscar el participante
-    const participant = league.participants.find(p => p.user.id === userId);
+    const participant = league.participants.find((p) => p.user.id === userId);
 
     if (!participant) {
       throw new NotFoundException('El usuario no es participante de esta liga');
@@ -211,7 +247,12 @@ export class LeagueParticipantsService {
   async updateParticipant(
     leagueId: string,
     userId: string,
-    data: { department?: string; fullName?: string; email?: string; phoneNumber?: string },
+    data: {
+      department?: string;
+      fullName?: string;
+      email?: string;
+      phoneNumber?: string;
+    },
     requesterId: string,
     requesterRole: string,
   ) {
@@ -226,7 +267,9 @@ export class LeagueParticipantsService {
     // 2. Permisos
     const isAdmin = league.creator.id === requesterId;
     if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
-      throw new BadRequestException('No tienes permisos para editar participantes');
+      throw new BadRequestException(
+        'No tienes permisos para editar participantes',
+      );
     }
 
     // 3. Buscar participante con Usuario
@@ -246,7 +289,10 @@ export class LeagueParticipantsService {
 
     // 5. Actualizar Usuario Relacionado
     if (participant.user) {
-      if (data.fullName !== undefined && data.fullName !== participant.user.fullName) {
+      if (
+        data.fullName !== undefined &&
+        data.fullName !== participant.user.fullName
+      ) {
         participant.user.fullName = data.fullName;
         hasUserUpdates = true;
       }
@@ -254,7 +300,10 @@ export class LeagueParticipantsService {
         participant.user.email = data.email;
         hasUserUpdates = true;
       }
-      if (data.phoneNumber !== undefined && data.phoneNumber !== participant.user.phoneNumber) {
+      if (
+        data.phoneNumber !== undefined &&
+        data.phoneNumber !== participant.user.phoneNumber
+      ) {
         participant.user.phoneNumber = data.phoneNumber;
         hasUserUpdates = true;
       }
@@ -264,8 +313,11 @@ export class LeagueParticipantsService {
       try {
         await this.userRepository.save(participant.user);
       } catch (error) {
-        if (error.code === '23505') { // Postgres Unique Violation Check
-          throw new ConflictException('El correo electrónico ya está en uso por otro usuario.');
+        if (error.code === '23505') {
+          // Postgres Unique Violation Check
+          throw new ConflictException(
+            'El correo electrónico ya está en uso por otro usuario.',
+          );
         }
         throw error;
       }

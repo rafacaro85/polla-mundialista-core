@@ -69,6 +69,9 @@ export class Match {
   @Column({ type: 'timestamp', nullable: true })
   aiPredictionGeneratedAt: Date | null;
 
-  @OneToMany(() => Prediction, prediction => prediction.match, { cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(() => Prediction, (prediction) => prediction.match, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   predictions: Prediction[];
 }

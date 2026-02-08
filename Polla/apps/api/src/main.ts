@@ -11,11 +11,13 @@ async function bootstrap() {
   app.use(helmet());
 
   // 0.1 Validación Global de DTOs (Blindaje)
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,            // Elimina campos que no estén en el DTO
-    forbidNonWhitelisted: true, // Lanza error si envían campos extra
-    transform: true,            // Convierte tipos automáticamente
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Elimina campos que no estén en el DTO
+      forbidNonWhitelisted: true, // Lanza error si envían campos extra
+      transform: true, // Convierte tipos automáticamente
+    }),
+  );
 
   // 1. Prefijo Global (Vital para el frontend)
   app.setGlobalPrefix('api');
@@ -28,7 +30,12 @@ async function bootstrap() {
     origin: true, // Refleja el origen de la petición (Permite cualquier dominio)
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true, // Permitir cookies/headers de autorización
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Tournament-Id'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Tournament-Id',
+    ],
     exposedHeaders: ['Authorization'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
@@ -48,7 +55,9 @@ async function bootstrap() {
   logger.log(`🚀 Server running on port: ${port}`);
   logger.log(`🚀 Application is accessible at: http://0.0.0.0:${port}/api`);
   logger.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.log(`🔗 Railway URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`);
+  logger.log(
+    `🔗 Railway URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`,
+  );
 }
 
 bootstrap();

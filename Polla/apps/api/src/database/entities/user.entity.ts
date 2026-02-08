@@ -59,15 +59,18 @@ export class User {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @OneToMany(() => Prediction, prediction => prediction.user)
+  @OneToMany(() => Prediction, (prediction) => prediction.user)
   predictions: Prediction[];
 
-  @OneToMany(() => AccessCode, accessCode => accessCode.usedBy)
+  @OneToMany(() => AccessCode, (accessCode) => accessCode.usedBy)
   accessCodesUsed: AccessCode[];
 
-  @OneToMany(() => LeagueParticipant, leagueParticipant => leagueParticipant.user)
+  @OneToMany(
+    () => LeagueParticipant,
+    (leagueParticipant) => leagueParticipant.user,
+  )
   leagueParticipants: LeagueParticipant[];
 
-  @OneToMany(() => Notification, notification => notification.user)
+  @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 }

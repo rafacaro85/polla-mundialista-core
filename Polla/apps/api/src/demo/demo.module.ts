@@ -18,14 +18,14 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      League, 
-      User, 
-      LeagueParticipant, 
-      Match, 
-      Prediction, 
-      BonusQuestion, 
+      League,
+      User,
+      LeagueParticipant,
+      Match,
+      Prediction,
+      BonusQuestion,
       UserBonusAnswer,
-      KnockoutPhaseStatus
+      KnockoutPhaseStatus,
     ]),
     MatchesModule,
     PredictionsModule,

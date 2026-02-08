@@ -12,14 +12,14 @@ import { User } from '../database/entities/user.entity';
 import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Transaction, League, User]),
-        PdfModule,
-        UploadModule,
-        TelegramModule,
-    ],
-    controllers: [TransactionsController],
-    providers: [TransactionsService],
-    exports: [TransactionsService],
+  imports: [
+    TypeOrmModule.forFeature([Transaction, League, User]),
+    PdfModule,
+    UploadModule,
+    TelegramModule,
+  ],
+  controllers: [TransactionsController],
+  providers: [TransactionsService],
+  exports: [TransactionsService],
 })
-export class TransactionsModule { }
+export class TransactionsModule {}

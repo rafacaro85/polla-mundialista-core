@@ -17,7 +17,14 @@ import { LeagueComment } from '../database/entities/league-comment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([League, LeagueParticipant, User, AccessCode, Prediction, LeagueComment]),
+    TypeOrmModule.forFeature([
+      League,
+      LeagueParticipant,
+      User,
+      AccessCode,
+      Prediction,
+      LeagueComment,
+    ]),
     TransactionsModule,
     PdfModule,
     TelegramModule,
@@ -26,4 +33,4 @@ import { LeagueComment } from '../database/entities/league-comment.entity';
   controllers: [LeaguesController],
   exports: [LeaguesService],
 })
-export class LeaguesModule { }
+export class LeaguesModule {}

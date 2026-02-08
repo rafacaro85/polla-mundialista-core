@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  Index,
+} from 'typeorm';
 import { User } from './user.entity'; // Corrected path
 import { Match } from './match.entity';
 
@@ -16,7 +22,7 @@ export class Prediction {
   @ManyToOne(() => User, (user: User) => user.predictions)
   user: User;
 
-  @ManyToOne(() => Match, match => match.predictions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Match, (match) => match.predictions, { onDelete: 'CASCADE' })
   match: Match;
 
   @Column({ name: 'league_id', nullable: true })

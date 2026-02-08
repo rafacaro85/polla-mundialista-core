@@ -1,9 +1,9 @@
 import { IsString, IsUUID } from 'class-validator';
 
 export class SaveAnswerDto {
-    @IsUUID()
-    questionId: string;
+  @IsUUID()
+  questionId: string;
 
-    @IsString()
-    answer: string;
+  @IsString()
+  answer: string;
 }

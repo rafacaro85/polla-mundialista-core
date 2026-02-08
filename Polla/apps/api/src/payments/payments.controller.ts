@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Request, Logger, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Logger,
+  HttpCode,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { PaymentsService } from './payments.service';
@@ -22,7 +30,10 @@ export class PaymentsController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('signature')
-  async generateSignature(@Request() req: any, @Body() body: CreateSignatureDto) {
+  async generateSignature(
+    @Request() req: any,
+    @Body() body: CreateSignatureDto,
+  ) {
     this.logger.log(`Generating signature for user: ${req.user.id}`);
 
     // Convertir monto a centavos
@@ -44,7 +55,9 @@ export class PaymentsController {
       body.currency,
     );
 
-    this.logger.log(`Signature generated for transaction: ${transaction.referenceCode}`);
+    this.logger.log(
+      `Signature generated for transaction: ${transaction.referenceCode}`,
+    );
 
     return {
       reference: transaction.referenceCode,

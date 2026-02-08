@@ -10,9 +10,17 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, League, LeagueParticipant, Prediction, UserBracket])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      League,
+      LeagueParticipant,
+      Prediction,
+      UserBracket,
+    ]),
+  ],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

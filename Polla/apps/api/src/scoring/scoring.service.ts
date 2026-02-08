@@ -11,7 +11,7 @@ export class ScoringService {
     private matchesRepository: Repository<Match>,
     @InjectRepository(Prediction)
     private predictionsRepository: Repository<Prediction>,
-  ) { }
+  ) {}
 
   /**
    * Calcula los puntos obtenidos en una predicción.
@@ -19,7 +19,11 @@ export class ScoringService {
    * 1 (HomeGoal) + 1 (AwayGoal) + 2 (Sign) + 3 (Exact) = 7 Total
    */
   calculatePoints(match: Match, prediction: Prediction): number {
-    if ((match.status !== 'COMPLETED' && match.status !== 'FINISHED') || match.homeScore === null || match.awayScore === null) {
+    if (
+      (match.status !== 'COMPLETED' && match.status !== 'FINISHED') ||
+      match.homeScore === null ||
+      match.awayScore === null
+    ) {
       return 0; // Match not completed or scores not available
     }
 
@@ -43,7 +47,10 @@ export class ScoringService {
     // 3. Puntos por Marcador Exacto (3 puntos adicionales)
     // Nota: Si aciertas marcador exacto, implícitamente aciertas resultado y goles individuales.
     // Total posible: 1 + 1 + 2 + 3 = 7 puntos.
-    if (actualHomeScore === predictedHomeScore && actualAwayScore === predictedAwayScore) {
+    if (
+      actualHomeScore === predictedHomeScore &&
+      actualAwayScore === predictedAwayScore
+    ) {
       points += 3;
     }
 
@@ -56,7 +63,9 @@ export class ScoringService {
   }
 
   async calculatePointsForMatch(matchId: string): Promise<void> {
-    const match = await this.matchesRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchesRepository.findOne({
+      where: { id: matchId },
+    });
     if (!match) return;
 
     const predictions = await this.predictionsRepository.find({
@@ -70,6 +79,8 @@ export class ScoringService {
       await this.predictionsRepository.save(prediction);
     }
 
-    console.log(`Calculated points for ${predictions.length} predictions for match ${matchId}`);
+    console.log(
+      `Calculated points for ${predictions.length} predictions for match ${matchId}`,
+    );
   }
 }

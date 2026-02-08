@@ -9,7 +9,7 @@ export class SystemSettingsService {
   constructor(
     @InjectRepository(SystemSettings)
     private settingsRepository: Repository<SystemSettings>,
-  ) { }
+  ) {}
 
   async getSettings(): Promise<SystemSettings> {
     let settings = await this.settingsRepository.findOne({ where: { id: 1 } });
@@ -20,7 +20,9 @@ export class SystemSettingsService {
     return settings;
   }
 
-  async updateSettings(updateDto: UpdateSystemSettingDto): Promise<SystemSettings> {
+  async updateSettings(
+    updateDto: UpdateSystemSettingDto,
+  ): Promise<SystemSettings> {
     const settings = await this.getSettings();
     Object.assign(settings, updateDto);
     return this.settingsRepository.save(settings);

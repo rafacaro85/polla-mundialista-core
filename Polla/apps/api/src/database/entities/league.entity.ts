@@ -37,8 +37,6 @@ export class League {
   @Column({ name: 'access_code_prefix', nullable: true })
   accessCodePrefix?: string;
 
-
-
   @ManyToOne(() => User)
   @JoinColumn({ name: 'creator_id' })
   creator: User;
@@ -103,10 +101,10 @@ export class League {
   @Column({ name: 'brand_cover_url', nullable: true })
   brandCoverUrl?: string; // Banner Hero
 
-  @OneToMany(() => LeagueParticipant, participant => participant.league)
+  @OneToMany(() => LeagueParticipant, (participant) => participant.league)
   participants: LeagueParticipant[];
 
-  @OneToMany(() => AccessCode, accessCode => accessCode.league)
+  @OneToMany(() => AccessCode, (accessCode) => accessCode.league)
   accessCodes: AccessCode[];
 
   @Column({ name: 'admin_name', nullable: true })
@@ -144,4 +142,3 @@ export class League {
   @Column({ name: 'ad_images', type: 'simple-array', nullable: true })
   adImages?: string[];
 }
-

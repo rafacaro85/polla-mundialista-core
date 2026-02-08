@@ -9,9 +9,11 @@ import { AccessCode } from '../database/entities/access-code.entity';
 import { LeagueParticipantsController } from './league-participants.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LeagueParticipant, User, League, AccessCode])],
+  imports: [
+    TypeOrmModule.forFeature([LeagueParticipant, User, League, AccessCode]),
+  ],
   providers: [LeagueParticipantsService],
   controllers: [LeagueParticipantsController],
   exports: [LeagueParticipantsService],
 })
-export class LeagueParticipantsModule { }
+export class LeagueParticipantsModule {}

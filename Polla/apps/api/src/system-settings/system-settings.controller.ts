@@ -7,7 +7,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('system-settings')
 export class SystemSettingsController {
-  constructor(private readonly systemSettingsService: SystemSettingsService) { }
+  constructor(private readonly systemSettingsService: SystemSettingsService) {}
 
   @Get()
   getSettings() {

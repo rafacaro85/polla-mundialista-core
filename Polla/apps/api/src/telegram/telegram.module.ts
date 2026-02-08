@@ -3,7 +3,7 @@ import { TelegramService } from './telegram.service';
 
 @Global()
 @Module({
-    providers: [TelegramService],
-    exports: [TelegramService],
+  providers: [TelegramService],
+  exports: [TelegramService],
 })
 export class TelegramModule {}

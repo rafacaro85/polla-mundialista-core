@@ -23,7 +23,7 @@ interface RequestWithUser extends Request {
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
@@ -44,7 +44,9 @@ export class UsersController {
     // Omitir passwords por seguridad
     const sanitizedUsers = users.map(({ password, ...user }) => user);
 
-    console.log(`✅ [GET /users] ${sanitizedUsers.length} usuarios encontrados`);
+    console.log(
+      `✅ [GET /users] ${sanitizedUsers.length} usuarios encontrados`,
+    );
     return sanitizedUsers;
   }
 
@@ -52,12 +54,17 @@ export class UsersController {
   @Patch('profile')
   async updateProfile(
     @Request() req: RequestWithUser,
-    @Body() body: { nickname?: string; fullName?: string; phoneNumber?: string; avatarUrl?: string },
+    @Body()
+    body: {
+      nickname?: string;
+      fullName?: string;
+      phoneNumber?: string;
+      avatarUrl?: string;
+    },
   ) {
     const userId = req.user.id;
     return this.usersService.updateProfile(userId, body);
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
@@ -69,10 +76,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  async updateUser(
-    @Param('id') id: string,
-    @Body() body: Partial<User>,
-  ) {
+  async updateUser(@Param('id') id: string, @Body() body: Partial<User>) {
     const user = await this.usersService.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');

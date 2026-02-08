@@ -10,9 +10,16 @@ import { League } from '../database/entities/league.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([BonusQuestion, UserBonusAnswer, League, LeagueParticipant])],
-    controllers: [BonusController],
-    providers: [BonusService],
-    exports: [BonusService],
+  imports: [
+    TypeOrmModule.forFeature([
+      BonusQuestion,
+      UserBonusAnswer,
+      League,
+      LeagueParticipant,
+    ]),
+  ],
+  controllers: [BonusController],
+  providers: [BonusService],
+  exports: [BonusService],
 })
-export class BonusModule { }
+export class BonusModule {}

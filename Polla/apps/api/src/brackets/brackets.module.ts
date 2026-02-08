@@ -8,9 +8,16 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserBracket, Match, LeagueParticipant, KnockoutPhaseStatus])],
-    controllers: [BracketsController],
-    providers: [BracketsService],
-    exports: [BracketsService],
+  imports: [
+    TypeOrmModule.forFeature([
+      UserBracket,
+      Match,
+      LeagueParticipant,
+      KnockoutPhaseStatus,
+    ]),
+  ],
+  controllers: [BracketsController],
+  providers: [BracketsService],
+  exports: [BracketsService],
 })
-export class BracketsModule { }
+export class BracketsModule {}

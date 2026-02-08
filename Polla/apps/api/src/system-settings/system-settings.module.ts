@@ -9,4 +9,4 @@ import { SystemSettings } from './entities/system-setting.entity';
   controllers: [SystemSettingsController],
   providers: [SystemSettingsService],
 })
-export class SystemSettingsModule { }
+export class SystemSettingsModule {}

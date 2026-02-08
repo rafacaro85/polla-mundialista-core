@@ -11,13 +11,18 @@ import { UserBracket } from '../database/entities/user-bracket.entity';
 import { MatchesModule } from '../matches/matches.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Prediction, Match, LeagueParticipant, UserBracket]),
-        BracketsModule,
-        MatchesModule
-    ],
-    controllers: [PredictionsController],
-    providers: [PredictionsService],
-    exports: [PredictionsService],
+  imports: [
+    TypeOrmModule.forFeature([
+      Prediction,
+      Match,
+      LeagueParticipant,
+      UserBracket,
+    ]),
+    BracketsModule,
+    MatchesModule,
+  ],
+  controllers: [PredictionsController],
+  providers: [PredictionsService],
+  exports: [PredictionsService],
 })
-export class PredictionsModule { }
+export class PredictionsModule {}

@@ -18,7 +18,9 @@ export class AiPredictionService {
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        this.model = this.genAI.getGenerativeModel({ model: 'models/gemini-flash-latest' });
+        this.model = this.genAI.getGenerativeModel({
+          model: 'models/gemini-flash-latest',
+        });
         this.logger.log('✅ Gemini AI initialized successfully');
       } catch (error) {
         this.logger.warn('⚠️ Failed to initialize Gemini AI:', error.message);
@@ -33,7 +35,9 @@ export class AiPredictionService {
    * Returns cached predictions or "pending" state
    */
   async getPrediction(matchId: string) {
-    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchRepository.findOne({
+      where: { id: matchId },
+    });
 
     if (!match) {
       throw new NotFoundException('Match not found');
@@ -41,7 +45,9 @@ export class AiPredictionService {
 
     // ✅ CACHE HIT - Return immediately
     if (match.aiPrediction && match.aiPredictionScore) {
-      this.logger.log(`[CACHE HIT] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`);
+      this.logger.log(
+        `[CACHE HIT] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`,
+      );
       return {
         cached: true,
         generatedAt: match.aiPredictionGeneratedAt,
@@ -51,8 +57,10 @@ export class AiPredictionService {
     }
 
     // ❌ CACHE MISS - Return "pending" state (NO API CALL)
-    this.logger.log(`[PENDING] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`);
-    
+    this.logger.log(
+      `[PENDING] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`,
+    );
+
     return {
       cached: false,
       pending: true,
@@ -61,8 +69,9 @@ export class AiPredictionService {
       analysis: {
         predictedScore: '?-?',
         confidence: 'pending',
-        reasoning: '⏳ La IA está analizando este cruce. La predicción se generará automáticamente cuando los equipos estén confirmados.'
-      }
+        reasoning:
+          '⏳ La IA está analizando este cruce. La predicción se generará automáticamente cuando los equipos estén confirmados.',
+      },
     };
   }
 
@@ -75,8 +84,8 @@ export class AiPredictionService {
     const matches = await this.matchRepository.findByIds(matchIds);
 
     for (const matchId of matchIds) {
-      const match = matches.find(m => m.id === matchId);
-      
+      const match = matches.find((m) => m.id === matchId);
+
       if (match && match.aiPredictionScore) {
         // ✅ CACHE HIT
         const score = match.aiPredictionScore.split('-').map(Number);
@@ -88,21 +97,21 @@ export class AiPredictionService {
 
       // ❌ CACHE MISS or INVALID - Try to generate or fallback
       if (match && match.homeTeam && match.awayTeam) {
-          try {
-              // Try to generate live if possible (will be throttled/limited by API key anyway)
-              const gen = await this.generatePrediction(match);
-              await this.savePredictionToCache(match, gen);
-              const score = gen.predictedScore.split('-').map(Number);
-              predictions[matchId] = [score[0], score[1]] as [number, number];
-          } catch (e) {
-              // Fail-safe: Random prediction to not break user flow
-              const fallback = this.handleFallback(e, match);
-              const score = fallback.score.split('-').map(Number);
-              predictions[matchId] = [score[0], score[1]] as [number, number];
-          }
+        try {
+          // Try to generate live if possible (will be throttled/limited by API key anyway)
+          const gen = await this.generatePrediction(match);
+          await this.savePredictionToCache(match, gen);
+          const score = gen.predictedScore.split('-').map(Number);
+          predictions[matchId] = [score[0], score[1]] as [number, number];
+        } catch (e) {
+          // Fail-safe: Random prediction to not break user flow
+          const fallback = this.handleFallback(e, match);
+          const score = fallback.score.split('-').map(Number);
+          predictions[matchId] = [score[0], score[1]] as [number, number];
+        }
       } else {
-          // If teams are not assigned yet, return [0,0] or similar default
-          predictions[matchId] = [0, 0];
+        // If teams are not assigned yet, return [0,0] or similar default
+        predictions[matchId] = [0, 0];
       }
     }
 
@@ -120,13 +129,13 @@ export class AiPredictionService {
 
     // 🗺️ Phase mapping for better AI context
     const phaseMap: Record<string, string> = {
-      'GROUP': 'Fase de Grupos',
-      'ROUND_32': 'Dieciseisavos de Final (Round of 32) - Partido Eliminatorio',
-      'ROUND_16': 'Octavos de Final - Partido Eliminatorio',
-      'QUARTER': 'Cuartos de Final - Partido Eliminatorio',
-      'SEMI': 'Semifinales - Partido Eliminatorio',
+      GROUP: 'Fase de Grupos',
+      ROUND_32: 'Dieciseisavos de Final (Round of 32) - Partido Eliminatorio',
+      ROUND_16: 'Octavos de Final - Partido Eliminatorio',
+      QUARTER: 'Cuartos de Final - Partido Eliminatorio',
+      SEMI: 'Semifinales - Partido Eliminatorio',
       '3RD_PLACE': 'Partido por el Tercer Puesto',
-      'FINAL': 'Final del Mundial',
+      FINAL: 'Final del Mundial',
     };
 
     const phaseName = phaseMap[match.phase] || match.phase || 'Fase de Grupos';
@@ -174,7 +183,9 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
     match.aiPredictionGeneratedAt = new Date();
 
     await this.matchRepository.save(match);
-    this.logger.log(`[CACHE SAVED] Match ${match.id} - Score: ${prediction.predictedScore}`);
+    this.logger.log(
+      `[CACHE SAVED] Match ${match.id} - Score: ${prediction.predictedScore}`,
+    );
   }
 
   /**
@@ -182,7 +193,9 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
    * Used by event listeners when teams are assigned to knockout matches
    */
   async generateAndSave(matchId: string): Promise<void> {
-    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchRepository.findOne({
+      where: { id: matchId },
+    });
 
     if (!match) {
       this.logger.error(`[GENERATE_AND_SAVE] Match ${matchId} not found`);
@@ -191,37 +204,49 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
 
     // Skip if already has prediction
     if (match.aiPrediction && match.aiPredictionScore) {
-      this.logger.log(`[GENERATE_AND_SAVE] Match ${matchId} already has prediction. Skipping.`);
+      this.logger.log(
+        `[GENERATE_AND_SAVE] Match ${matchId} already has prediction. Skipping.`,
+      );
       return;
     }
 
     // Skip if teams are not defined
     if (!match.homeTeam || !match.awayTeam) {
-      this.logger.warn(`[GENERATE_AND_SAVE] Match ${matchId} has undefined teams. Skipping.`);
+      this.logger.warn(
+        `[GENERATE_AND_SAVE] Match ${matchId} has undefined teams. Skipping.`,
+      );
       return;
     }
 
     try {
-      this.logger.log(`[GENERATE_AND_SAVE] Generating prediction for ${match.homeTeam} vs ${match.awayTeam}`);
+      this.logger.log(
+        `[GENERATE_AND_SAVE] Generating prediction for ${match.homeTeam} vs ${match.awayTeam}`,
+      );
       const prediction = await this.generatePrediction(match);
       await this.savePredictionToCache(match, prediction);
       this.logger.log(`[GENERATE_AND_SAVE] ✅ Success for match ${matchId}`);
     } catch (error) {
-      this.logger.error(`[GENERATE_AND_SAVE] ❌ Error for match ${matchId}:`, error.message);
-      
+      this.logger.error(
+        `[GENERATE_AND_SAVE] ❌ Error for match ${matchId}:`,
+        error.message,
+      );
+
       // Save fallback prediction on error
       const fallback = {
         predictedScore: '1-1',
         confidence: 'low',
-        reasoning: 'Predicción generada automáticamente debido a error en servicio de IA'
+        reasoning:
+          'Predicción generada automáticamente debido a error en servicio de IA',
       };
-      
+
       match.aiPrediction = JSON.stringify(fallback);
       match.aiPredictionScore = fallback.predictedScore;
       match.aiPredictionGeneratedAt = new Date();
       await this.matchRepository.save(match);
-      
-      this.logger.log(`[GENERATE_AND_SAVE] Saved fallback prediction for match ${matchId}`);
+
+      this.logger.log(
+        `[GENERATE_AND_SAVE] Saved fallback prediction for match ${matchId}`,
+      );
     }
   }
 
@@ -245,7 +270,9 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
         : 'Predicción simulada debido a error en servicio de IA',
     };
 
-    this.logger.warn(`[FALLBACK] Match ${match.id} - Random Score: ${randomScore}`);
+    this.logger.warn(
+      `[FALLBACK] Match ${match.id} - Random Score: ${randomScore}`,
+    );
 
     return {
       cached: false,
@@ -260,7 +287,9 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
    * Clears cache for a specific match (useful for re-generating predictions)
    */
   async clearCache(matchId: string) {
-    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchRepository.findOne({
+      where: { id: matchId },
+    });
 
     if (!match) {
       throw new NotFoundException('Match not found');

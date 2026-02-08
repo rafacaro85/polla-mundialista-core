@@ -9,11 +9,9 @@ import { PhaseCompletedListener } from './listeners/phase-completed.listener';
 
 @Global()
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Notification, User, Prediction]),
-    ],
-    controllers: [NotificationsController],
-    providers: [NotificationsService, PhaseCompletedListener],
-    exports: [NotificationsService],
+  imports: [TypeOrmModule.forFeature([Notification, User, Prediction])],
+  controllers: [NotificationsController],
+  providers: [NotificationsService, PhaseCompletedListener],
+  exports: [NotificationsService],
 })
 export class NotificationsModule {}

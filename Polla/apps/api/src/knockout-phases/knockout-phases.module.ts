@@ -7,9 +7,9 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
 import { Match } from '../database/entities/match.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([KnockoutPhaseStatus, Match])],
-    controllers: [KnockoutPhasesController],
-    providers: [KnockoutPhasesService, KnockoutPhasesInitService],
-    exports: [KnockoutPhasesService],
+  imports: [TypeOrmModule.forFeature([KnockoutPhaseStatus, Match])],
+  controllers: [KnockoutPhasesController],
+  providers: [KnockoutPhasesService, KnockoutPhasesInitService],
+  exports: [KnockoutPhasesService],
 })
-export class KnockoutPhasesModule { }
+export class KnockoutPhasesModule {}

@@ -43,12 +43,17 @@ export class LeaguesController {
   }
 
   @Post()
-  async createLeague(@Req() req: Request, @Body() createLeagueDto: CreateLeagueDto) {
+  async createLeague(
+    @Req() req: Request,
+    @Body() createLeagueDto: CreateLeagueDto,
+  ) {
     console.log('req.user:', req.user); // Debugging: Check the user object
     const userPayload = req.user as { id: string; userId?: string }; // Explicitly cast to expected JWT payload structure
     const userId = userPayload.userId || userPayload.id;
     if (!userId) {
-      throw new InternalServerErrorException('User ID not found in request after authentication.');
+      throw new InternalServerErrorException(
+        'User ID not found in request after authentication.',
+      );
     }
     return this.leaguesService.createLeague(userId, createLeagueDto);
   }
@@ -59,11 +64,16 @@ export class LeaguesController {
   }
 
   @Get('my')
-  async getMyLeagues(@Req() req: Request, @Query('tournamentId') tournamentId?: string) {
+  async getMyLeagues(
+    @Req() req: Request,
+    @Query('tournamentId') tournamentId?: string,
+  ) {
     const userPayload = req.user as { id: string; userId?: string };
     const userId = userPayload.userId || userPayload.id;
     if (!userId) {
-      throw new InternalServerErrorException('User ID not found in request after authentication.');
+      throw new InternalServerErrorException(
+        'User ID not found in request after authentication.',
+      );
     }
     return this.leaguesService.getMyLeagues(userId, tournamentId);
   }
@@ -72,7 +82,9 @@ export class LeaguesController {
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get('all')
   async getAllLeagues(@Query('tournamentId') tournamentId?: string) {
-    console.log(`📋 [GET /leagues/all] Listando todas las ligas (tournamentId: ${tournamentId})...`);
+    console.log(
+      `📋 [GET /leagues/all] Listando todas las ligas (tournamentId: ${tournamentId})...`,
+    );
     return this.leaguesService.getAllLeagues(tournamentId);
   }
 
@@ -105,9 +117,16 @@ export class LeaguesController {
   }
 
   @Get(':id/participants')
-  async getLeagueParticipants(@Param('id') leagueId: string, @Req() req: Request) {
-    const userPayload = req.user as { id: string, role?: string };
-    return this.leaguesService.getParticipants(leagueId, userPayload.id, userPayload.role);
+  async getLeagueParticipants(
+    @Param('id') leagueId: string,
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string; role?: string };
+    return this.leaguesService.getParticipants(
+      leagueId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 
   @Get(':id/voucher')
@@ -136,7 +155,6 @@ export class LeaguesController {
     );
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
   @Patch(':id/participants/:userId/score')
@@ -152,7 +170,7 @@ export class LeaguesController {
       dto.triviaPoints,
       dto.predictionPoints,
       dto.bracketPoints,
-      dto.jokerPoints
+      dto.jokerPoints,
     );
   }
 
@@ -164,7 +182,11 @@ export class LeaguesController {
     @Req() req: Request,
   ) {
     const userPayload = req.user as { id: string };
-    return this.leaguesService.updateTieBreaker(leagueId, userPayload.id, dto.guess);
+    return this.leaguesService.updateTieBreaker(
+      leagueId,
+      userPayload.id,
+      dto.guess,
+    );
   }
 
   // --- SOCIAL WALL ENDPOINTS ---
@@ -173,8 +195,8 @@ export class LeaguesController {
   @Post(':id/comments')
   async createComment(
     @Param('id') leagueId: string,
-    @Body() data: { content: string, imageUrl?: string },
-    @Req() req: Request
+    @Body() data: { content: string; imageUrl?: string },
+    @Req() req: Request,
   ) {
     const userPayload = req.user as { id: string };
     return this.leaguesService.createComment(leagueId, userPayload.id, data);
@@ -190,7 +212,7 @@ export class LeaguesController {
   @Patch(':id/comments/:commentId/toggle-like')
   async toggleCommentLike(
     @Param('commentId') commentId: string,
-    @Req() req: Request
+    @Req() req: Request,
   ) {
     const userPayload = req.user as { id: string };
     return this.leaguesService.toggleCommentLike(commentId, userPayload.id);
@@ -211,23 +233,33 @@ export class LeaguesController {
     console.log(`✏️ [PATCH /leagues/${leagueId}] Actualizando liga...`);
     console.log(`   Usuario: ${userId} | Rol: ${userPayload.role}`);
 
-    return this.leaguesService.updateLeague(leagueId, userId, updateLeagueDto, userPayload.role);
+    return this.leaguesService.updateLeague(
+      leagueId,
+      userId,
+      updateLeagueDto,
+      userPayload.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/toggle-block')
-  async toggleBlockStatus(
-    @Param('id') leagueId: string,
-    @Req() req: Request,
-  ) {
+  async toggleBlockStatus(@Param('id') leagueId: string, @Req() req: Request) {
     const userPayload = req.user as { id: string; role: string };
-    return this.leaguesService.toggleBlockStatus(leagueId, userPayload.id, userPayload.role);
+    return this.leaguesService.toggleBlockStatus(
+      leagueId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteLeague(@Param('id') leagueId: string, @Req() req: Request) {
-    const userPayload = req.user as { id: string; userId?: string; role: string };
+    const userPayload = req.user as {
+      id: string;
+      userId?: string;
+      role: string;
+    };
     const userId = userPayload.userId || userPayload.id;
     console.log(`🗑️ [DELETE /leagues/${leagueId}] Eliminando liga...`);
     console.log(`   Solicitante: ${userId} | Rol: ${userPayload.role}`);
@@ -244,7 +276,9 @@ export class LeaguesController {
     const userPayload = req.user as { id: string; role: string };
     const userId = userPayload.id;
 
-    console.log(`🔄 [PATCH /leagues/${leagueId}/transfer-owner] Transfiriendo propiedad...`);
+    console.log(
+      `🔄 [PATCH /leagues/${leagueId}/transfer-owner] Transfiriendo propiedad...`,
+    );
     console.log(`   Solicitante: ${userId} | Rol: ${userPayload.role}`);
     console.log(`   Nuevo admin: ${transferOwnerDto.newAdminId}`);
 
@@ -267,7 +301,9 @@ export class LeaguesController {
     const userPayload = req.user as { id: string; role: string };
     const requesterId = userPayload.id;
 
-    console.log(`🗑️ [DELETE /leagues/${leagueId}/participants/${userId}] Expulsando participante...`);
+    console.log(
+      `🗑️ [DELETE /leagues/${leagueId}/participants/${userId}] Expulsando participante...`,
+    );
     console.log(`   Solicitante: ${requesterId} | Rol: ${userPayload.role}`);
 
     return this.leagueParticipantsService.removeParticipant(
@@ -287,7 +323,9 @@ export class LeaguesController {
     const userPayload = req.user as { id: string; role: string };
     const requesterId = userPayload.id;
 
-    console.log(`🔒 [PATCH /leagues/${leagueId}/participants/${userId}/toggle-block] Bloqueando/Desbloqueando participante...`);
+    console.log(
+      `🔒 [PATCH /leagues/${leagueId}/participants/${userId}/toggle-block] Bloqueando/Desbloqueando participante...`,
+    );
 
     return this.leagueParticipantsService.toggleBlockParticipant(
       leagueId,
@@ -301,9 +339,13 @@ export class LeaguesController {
   async getParticipantDetails(
     @Param('id') leagueId: string,
     @Param('userId') targetUserId: string,
-    @Req() req: any
+    @Req() req: any,
   ) {
-    return this.leaguesService.getParticipantDetails(leagueId, req.user.id, targetUserId);
+    return this.leaguesService.getParticipantDetails(
+      leagueId,
+      req.user.id,
+      targetUserId,
+    );
   }
 
   @Get(':id/analytics')
@@ -315,15 +357,26 @@ export class LeaguesController {
   async exportLeagueData(@Param('id') leagueId: string, @Res() res: any) {
     const participants = await this.leaguesService.exportParticipants(leagueId);
 
-    const headers = ['Nombre', 'Email', 'Departamento', 'Puntos', 'Ranking', 'Puntos Trivia'];
-    const rows = participants.map(p => [
-      p.user.fullName || p.user.nickname,
-      p.user.email,
-      p.department || 'N/A',
-      p.totalPoints,
-      p.currentRank || '',
-      p.triviaPoints
-    ].map(field => `"${String(field || '').replace(/"/g, '""')}"`).join(','));
+    const headers = [
+      'Nombre',
+      'Email',
+      'Departamento',
+      'Puntos',
+      'Ranking',
+      'Puntos Trivia',
+    ];
+    const rows = participants.map((p) =>
+      [
+        p.user.fullName || p.user.nickname,
+        p.user.email,
+        p.department || 'N/A',
+        p.totalPoints,
+        p.currentRank || '',
+        p.triviaPoints,
+      ]
+        .map((field) => `"${String(field || '').replace(/"/g, '""')}"`)
+        .join(','),
+    );
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n'); // Add BOM for Excel
 
@@ -346,8 +399,14 @@ export class LeaguesController {
     const userPayload = req.user as { id: string; userId?: string }; // Explicitly cast
     const userId = userPayload.userId || userPayload.id;
     if (!userId) {
-      throw new InternalServerErrorException('User ID not found in request after authentication.');
+      throw new InternalServerErrorException(
+        'User ID not found in request after authentication.',
+      );
     }
-    return this.leagueParticipantsService.joinLeague(userId, joinLeagueDto.code, joinLeagueDto.department);
+    return this.leagueParticipantsService.joinLeague(
+      userId,
+      joinLeagueDto.code,
+      joinLeagueDto.department,
+    );
   }
 }

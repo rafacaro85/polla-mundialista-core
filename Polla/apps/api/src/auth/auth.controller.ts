@@ -1,8 +1,23 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, VerifyEmailDto, ResetPasswordDto, ResendVerificationCodeDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  ForgotPasswordDto,
+  VerifyEmailDto,
+  ResetPasswordDto,
+  ResendVerificationCodeDto,
+} from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import type { Response } from 'express';
@@ -14,7 +29,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -32,7 +47,9 @@ export class AuthController {
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     console.log('🔄 Redirigiendo a frontend:', `${frontendUrl}/auth/success`);
-    return res.redirect(`${frontendUrl}/auth/success?token=${token.access_token}`);
+    return res.redirect(
+      `${frontendUrl}/auth/success?token=${token.access_token}`,
+    );
   }
 
   @Post('register')
@@ -82,7 +99,9 @@ export class AuthController {
     const freshUser = await this.usersService.findById(req.user.id);
 
     if (!freshUser) {
-      console.log(`❌ [GET /auth/profile] Usuario NO encontrado en BD con ID: ${req.user.id}`);
+      console.log(
+        `❌ [GET /auth/profile] Usuario NO encontrado en BD con ID: ${req.user.id}`,
+      );
       console.log(`   Buscando por email: ${req.user.email}`);
 
       // Intentar buscar por email como fallback
@@ -109,7 +128,7 @@ export class AuthController {
 
     return res.json({
       message: 'Logout successful',
-      success: true
+      success: true,
     });
   }
 
@@ -117,25 +136,31 @@ export class AuthController {
   async debugMail(@Req() req: any) {
     const testEmail = 'racv85@hotmail.com';
     console.log(`🧪 [Debug] Testing email to: ${testEmail}`);
-    
+
     try {
       // Direct call to MailService bypasses user checks
-      const result = await this.mailService.sendVerificationEmail(testEmail, '123456');
-      
+      const result = await this.mailService.sendVerificationEmail(
+        testEmail,
+        '123456',
+      );
+
       return {
         status: 'Diagnostic check complete',
         mail_response: result,
         smtp_config: {
           host: process.env.SMTP_HOST || 'smtp.gmail.com',
           port: process.env.SMTP_PORT || 465,
-          user: (process.env.SMTP_USER || process.env.SMTP_user) ? '✅ set' : '❌ missing',
-          secure: process.env.SMTP_SECURE
-        }
+          user:
+            process.env.SMTP_USER || process.env.SMTP_user
+              ? '✅ set'
+              : '❌ missing',
+          secure: process.env.SMTP_SECURE,
+        },
       };
     } catch (e) {
       return {
         status: 'Error in diagnostic',
-        error: e.message
+        error: e.message,
       };
     }
   }
@@ -146,21 +171,34 @@ export class AuthController {
     const targets = [
       { host: 'smtp.gmail.com', port: 465 },
       { host: 'smtp.gmail.com', port: 587 },
-      { host: 'google.com', port: 80 }
+      { host: 'google.com', port: 80 },
     ];
-    
+
     const results = [];
     for (const t of targets) {
       const start = Date.now();
       const connected = await new Promise((resolve) => {
         const socket = new net.Socket();
         socket.setTimeout(3000);
-        socket.on('connect', () => { socket.destroy(); resolve(true); });
-        socket.on('timeout', () => { socket.destroy(); resolve(false); });
-        socket.on('error', () => { socket.destroy(); resolve(false); });
+        socket.on('connect', () => {
+          socket.destroy();
+          resolve(true);
+        });
+        socket.on('timeout', () => {
+          socket.destroy();
+          resolve(false);
+        });
+        socket.on('error', () => {
+          socket.destroy();
+          resolve(false);
+        });
         socket.connect(t.port, t.host);
       });
-      results.push({ ...t, success: connected, time: `${Date.now() - start}ms` });
+      results.push({
+        ...t,
+        success: connected,
+        time: `${Date.now() - start}ms`,
+      });
     }
     return results;
   }

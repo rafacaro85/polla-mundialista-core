@@ -1,0 +1,10 @@
+const { Client } = require('pg');
+const connectionString = 'postgresql://postgres:avGqbrYAATosnLtZRocccAERatFrfyEw@shortline.proxy.rlwy.net:13451/railway';
+async function run() {
+    const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
+    await client.connect();
+    const res = await client.query("SELECT phase, \"tournamentId\", COUNT(*) FROM matches GROUP BY phase, \"tournamentId\" ORDER BY phase, \"tournamentId\"");
+    console.table(res.rows);
+    await client.end();
+}
+run();

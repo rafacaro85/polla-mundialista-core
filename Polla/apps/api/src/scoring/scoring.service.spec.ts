@@ -97,5 +97,4 @@ describe('ScoringService', () => {
     const prediction = { homeScore: 1, awayScore: 0 } as Prediction; // Predicted: Home wins by 1
     expect(service.calculatePoints(match, prediction)).toBe(1);
   });
-
 });

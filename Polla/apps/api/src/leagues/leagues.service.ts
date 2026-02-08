@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -40,43 +46,78 @@ export class LeaguesService {
     private transactionsService: TransactionsService,
     private pdfService: PdfService,
     private telegramService: TelegramService,
-  ) { }
+  ) {}
 
-  async createLeague(userId: string, createLeagueDto: CreateLeagueDto): Promise<League> {
+  async createLeague(
+    userId: string,
+    createLeagueDto: CreateLeagueDto,
+  ): Promise<League> {
     try {
-      const { name, type, maxParticipants, accessCodePrefix, packageType, isEnterprise, companyName, adminName, adminPhone, adminEmail, adminPassword, tournamentId } = createLeagueDto;
+      const {
+        name,
+        type,
+        maxParticipants,
+        accessCodePrefix,
+        packageType,
+        isEnterprise,
+        companyName,
+        adminName,
+        adminPhone,
+        adminEmail,
+        adminPassword,
+        tournamentId,
+      } = createLeagueDto;
 
       console.log('--- CREATE LEAGUE DEBUG ---');
       console.log('Package Type:', packageType);
-      console.log('Calculated isPaid:', packageType === 'starter' || packageType === 'FREE');
+      console.log(
+        'Calculated isPaid:',
+        packageType === 'starter' || packageType === 'FREE',
+      );
       console.log('---------------------------');
 
       // Validate maxUsers based on packageType
       // This is a basic validation, you might want to move this to a config or constant
       if (packageType === 'starter' && maxParticipants > 3) {
-        throw new BadRequestException('El plan Starter solo permite hasta 3 participantes.');
+        throw new BadRequestException(
+          'El plan Starter solo permite hasta 3 participantes.',
+        );
       }
       // Add more validations for other plans if needed
 
       // Si es tipo 'VIP' (máx 5)
       if (type === LeagueType.VIP && maxParticipants > 5) {
-        throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');
+        throw new BadRequestException(
+          'Las ligas VIP no pueden tener más de 5 participantes.',
+        );
       }
 
-      let creator = await this.userRepository.findOne({ where: { id: userId } });
+      let creator = await this.userRepository.findOne({
+        where: { id: userId },
+      });
       if (!creator) {
         throw new NotFoundException(`User with ID ${userId} not found.`);
       }
 
       // SUPER ADMIN: Crear liga para TERCERO (Empresa)
-      if (creator.role === UserRole.SUPER_ADMIN && adminEmail && adminPassword) {
-        const targetUser = await this.userRepository.findOne({ where: { email: adminEmail } });
+      if (
+        creator.role === UserRole.SUPER_ADMIN &&
+        adminEmail &&
+        adminPassword
+      ) {
+        const targetUser = await this.userRepository.findOne({
+          where: { email: adminEmail },
+        });
 
         if (targetUser) {
-          console.log(`👤 [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`);
+          console.log(
+            `👤 [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`,
+          );
           creator = targetUser;
         } else {
-          console.log(`👤 [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`);
+          console.log(
+            `👤 [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`,
+          );
           const hashedPassword = await bcrypt.hash(adminPassword, 10);
           const newUser = this.userRepository.create({
             email: adminEmail,
@@ -85,7 +126,7 @@ export class LeaguesService {
             password: hashedPassword,
             phoneNumber: adminPhone,
             isVerified: true, // Auto-verificado por SuperAdmin
-            role: UserRole.PLAYER
+            role: UserRole.PLAYER,
           });
           creator = await this.userRepository.save(newUser);
         }
@@ -97,12 +138,14 @@ export class LeaguesService {
       const existingLeaguesCount = await this.leaguesRepository.count({
         where: {
           creator: { id: creator.id },
-          tournamentId: targetTournamentId
-        }
+          tournamentId: targetTournamentId,
+        },
       });
 
       if (existingLeaguesCount >= 1) {
-        throw new BadRequestException('Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.');
+        throw new BadRequestException(
+          'Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.',
+        );
       }
       // -----------------------------------------------------
 
@@ -124,9 +167,9 @@ export class LeaguesService {
         creator,
         accessCodePrefix: code,
         // Si es 'familia' o 'starter' (gratis), se considera pagado/activo.
-        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente según config, 
-        // pero generalmente las empresas se crean activas o pendientes. 
-        // Asumiremos que si viene de SuperAdmin es ENTERPRISE y quizas pagada manual, pero dejemos isPaid false si no es free, 
+        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente según config,
+        // pero generalmente las empresas se crean activas o pendientes.
+        // Asumiremos que si viene de SuperAdmin es ENTERPRISE y quizas pagada manual, pero dejemos isPaid false si no es free,
         // luego el admin la activa con el botón de pago si es necesario, O si es Enterprise activarla.
         // ACTUALIZACIÓN: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aquí isPaid se rige por type.
         // Vamos a dejar la lógica actual: solo FREE es paid auto. Enterprise se paga manual o por botón.
@@ -146,14 +189,16 @@ export class LeaguesService {
       const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
       const creatorName = adminName || creator.fullName;
 
-      this.telegramService.notifyNewLeague(
-          savedLeague.name, 
-          savedLeague.accessCodePrefix || 'N/A', 
-          creator.email, 
-          creatorPhone, 
-          creatorName, 
-          packageType
-      ).catch(e => console.error('Telegram Error (Leagues):', e));
+      this.telegramService
+        .notifyNewLeague(
+          savedLeague.name,
+          savedLeague.accessCodePrefix || 'N/A',
+          creator.email,
+          creatorPhone,
+          creatorName,
+          packageType,
+        )
+        .catch((e) => console.error('Telegram Error (Leagues):', e));
 
       // ACTUALIZAR DATOS DEL USUARIO (Fidelización)
       // Si el usuario proporcionó un teléfono de contacto para la liga, lo guardamos en su perfil
@@ -161,7 +206,9 @@ export class LeaguesService {
       if (adminPhone && creator.phoneNumber !== adminPhone) {
         creator.phoneNumber = adminPhone;
         await this.userRepository.save(creator);
-        console.log(`📞 [CreateLeague] Actualizado teléfono del usuario ${creator.id}: ${adminPhone}`);
+        console.log(
+          `📞 [CreateLeague] Actualizado teléfono del usuario ${creator.id}: ${adminPhone}`,
+        );
       }
 
       // Create Transaction only for FREE plans
@@ -171,10 +218,9 @@ export class LeaguesService {
           0,
           packageType,
           savedLeague.id,
-          TransactionStatus.PAID
+          TransactionStatus.PAID,
         );
       }
-
 
       // Automatically add the creator as a participant
       const participant = this.leagueParticipantsRepository.create({
@@ -187,7 +233,10 @@ export class LeaguesService {
       return savedLeague;
     } catch (error) {
       console.error('Error in createLeague:', error); // Log the actual error
-      throw new InternalServerErrorException('Failed to create league.', error.message);
+      throw new InternalServerErrorException(
+        'Failed to create league.',
+        error.message,
+      );
     }
   }
 
@@ -202,9 +251,7 @@ export class LeaguesService {
 
   private generateEnterpriseCode(companyName: string): string {
     // 1. Limpiar nombre: Mayúsculas y solo letras/números
-    const cleanName = companyName
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, ''); // Eliminar espacios y símbolos
+    const cleanName = companyName.toUpperCase().replace(/[^A-Z0-9]/g, ''); // Eliminar espacios y símbolos
 
     // 2. Tomar prefijo (Max 6-8 chars)
     const prefix = cleanName.length > 8 ? cleanName.substring(0, 8) : cleanName;
@@ -219,7 +266,9 @@ export class LeaguesService {
     return `${prefix}-${suffix}`;
   }
 
-  async getMetadata(leagueId: string): Promise<{ league: League; availableSlots: number }> {
+  async getMetadata(
+    leagueId: string,
+  ): Promise<{ league: League; availableSlots: number }> {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
       relations: ['participants', 'participants.user', 'creator'],
@@ -246,18 +295,22 @@ export class LeaguesService {
       throw new NotFoundException(`League with ID ${leagueId} not found.`);
     }
 
-    console.log(`[DEBUG] League Details ${leagueId}: Found ${league.participants?.length || 0} participants`);
+    console.log(
+      `[DEBUG] League Details ${leagueId}: Found ${league.participants?.length || 0} participants`,
+    );
 
     // Check if user is blocked
     if (userId) {
-      const requester = league.participants.find(p => p.user.id === userId);
+      const requester = league.participants.find((p) => p.user.id === userId);
       if (requester?.isBlocked) {
-        throw new ForbiddenException('Has sido bloqueado de esta liga por el administrador.');
+        throw new ForbiddenException(
+          'Has sido bloqueado de esta liga por el administrador.',
+        );
       }
     }
 
     // Map participants to include user info
-    const participants = league.participants.map(p => ({
+    const participants = league.participants.map((p) => ({
       id: p.id,
       userId: p.user.id,
       nickname: p.user.nickname || p.user.fullName,
@@ -334,46 +387,52 @@ export class LeaguesService {
     };
   }
 
-    // 2. Fetch Prediction Points (Global - Separated by Joker/Regular)
-    // We use DISTINCT ON to get the best scoring prediction for each match per user
-    // MOD: Filter by tournamentId to isolate rankings!
-    
-    // Determine tournament context. If not passed, we might be in trouble for "Global".
-    // Global Leagues generally don't have tournamentId in the old logic, maybe new ones do.
-    // If this method is called for "Global Ranking Screen", we need to know context.
-    // Let's assume prediction points are now tagged.
-    
-    // We need to join with matches to be sure or trust prediction.tournamentId if populated.
-    // Better safe: join match or filter if we have tournamentId.
-    // BUT getGlobalRanking signature is () -> []. It needs an update.
-    
-    // Wait, getGlobalRanking is used by Cron/Schedule? Or frontend?
-    // Let's update signature to accept tournamentId.
+  // 2. Fetch Prediction Points (Global - Separated by Joker/Regular)
+  // We use DISTINCT ON to get the best scoring prediction for each match per user
+  // MOD: Filter by tournamentId to isolate rankings!
+
+  // Determine tournament context. If not passed, we might be in trouble for "Global".
+  // Global Leagues generally don't have tournamentId in the old logic, maybe new ones do.
+  // If this method is called for "Global Ranking Screen", we need to know context.
+  // Let's assume prediction points are now tagged.
+
+  // We need to join with matches to be sure or trust prediction.tournamentId if populated.
+  // Better safe: join match or filter if we have tournamentId.
+  // BUT getGlobalRanking signature is () -> []. It needs an update.
+
+  // Wait, getGlobalRanking is used by Cron/Schedule? Or frontend?
+  // Let's update signature to accept tournamentId.
 
   async getGlobalRanking(tournamentId?: string) {
     // 1. Obtener todos los usuarios reales (excluyendo cuentas de demo)
-    const users = await this.userRepository.createQueryBuilder('u')
+    const users = await this.userRepository
+      .createQueryBuilder('u')
       .select(['u.id', 'u.nickname', 'u.fullName', 'u.avatarUrl'])
       .where("u.email NOT LIKE '%@demo.com'")
-      .andWhere("u.email NOT IN ('demo@lapollavirtual.com', 'demo-social@lapollavirtual.com')")
+      .andWhere(
+        "u.email NOT IN ('demo@lapollavirtual.com', 'demo-social@lapollavirtual.com')",
+      )
       .getMany();
 
     if (!users || users.length === 0) return [];
 
-    const userIds = users.map(u => u.id);
+    const userIds = users.map((u) => u.id);
 
     // Definir IDs de ligas demo para excluir
     const demoLeagueIds = [
       '00000000-0000-0000-0000-000000001337',
-      '00000000-0000-0000-0000-000000001338'
+      '00000000-0000-0000-0000-000000001338',
     ];
 
-    const tournamentFilter = tournamentId ? `AND p."tournamentId" = '${tournamentId}'` : '';
+    const tournamentFilter = tournamentId
+      ? `AND p."tournamentId" = '${tournamentId}'`
+      : '';
     // Corregido: Incluir league_id IS NULL para no perder predicciones globales reales
     const leagueExclusionFilter = `AND (p.league_id NOT IN ('${demoLeagueIds.join("','")}') OR p.league_id IS NULL)`;
-    
+
     // 2. Fetch Prediction Points (Excluyendo ligas demo)
-    const predictionPointsRows = (await this.predictionRepository.manager.query(`
+    const predictionPointsRows = await this.predictionRepository.manager.query(
+      `
       SELECT "userId", 
              SUM(CASE WHEN "isJoker" IS TRUE THEN match_points ELSE 0 END) as joker_points,
              SUM(CASE WHEN "isJoker" IS NOT TRUE THEN match_points ELSE 0 END) as regular_points
@@ -384,13 +443,26 @@ export class LeaguesService {
         ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"
-    `, [userIds])) as any[];
+    `,
+      [userIds],
+    );
 
-    const predRegularMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.regular_points || 0)]));
-    const predJokerMap = new Map<string, number>(predictionPointsRows.map((r: any) => [r.userId || r.userid, Number(r.joker_points || 0)]));
+    const predRegularMap = new Map<string, number>(
+      predictionPointsRows.map((r: any) => [
+        r.userId || r.userid,
+        Number(r.regular_points || 0),
+      ]),
+    );
+    const predJokerMap = new Map<string, number>(
+      predictionPointsRows.map((r: any) => [
+        r.userId || r.userid,
+        Number(r.joker_points || 0),
+      ]),
+    );
 
     // 3. Fetch Bracket Points (Excluyendo ligas demo)
-    const bracketPointsRows = (await this.userRepository.manager.query(`
+    const bracketPointsRows = await this.userRepository.manager.query(
+      `
       SELECT "userId", SUM(bracket_points) as points
       FROM (
         SELECT "userId", "leagueId", MAX(points) as bracket_points
@@ -400,31 +472,51 @@ export class LeaguesService {
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
-    `, [userIds])) as any[];
+    `,
+      [userIds],
+    );
 
-    const bracketMap = new Map<string, number>(bracketPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || 0)]));
+    const bracketMap = new Map<string, number>(
+      bracketPointsRows.map((r: any) => [
+        r.userId || r.userid,
+        Number(r.points || 0),
+      ]),
+    );
 
     // 4. Fetch Bonus Points (Global)
-    const bonusPointsRows = userIds.length > 0 ? await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
-      .innerJoin('uba.question', 'bq')
-      .select('uba.userId', 'userId')
-      .addSelect('SUM(uba.pointsEarned)', 'points')
-      .where('uba.userId IN (:...userIds)', { userIds })
-      .andWhere("(bq.leagueId NOT IN (:...demoLeagueIds) OR bq.leagueId IS NULL)", { demoLeagueIds })
-      .groupBy('uba.userId')
-      .getRawMany() : [];
+    const bonusPointsRows =
+      userIds.length > 0
+        ? await this.userRepository.manager
+            .createQueryBuilder(UserBonusAnswer, 'uba')
+            .innerJoin('uba.question', 'bq')
+            .select('uba.userId', 'userId')
+            .addSelect('SUM(uba.pointsEarned)', 'points')
+            .where('uba.userId IN (:...userIds)', { userIds })
+            .andWhere(
+              '(bq.leagueId NOT IN (:...demoLeagueIds) OR bq.leagueId IS NULL)',
+              { demoLeagueIds },
+            )
+            .groupBy('uba.userId')
+            .getRawMany()
+        : [];
 
-    const bonusMap = new Map<string, number>(bonusPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const bonusMap = new Map<string, number>(
+      bonusPointsRows.map((r: any) => [
+        r.userId || r.userid,
+        Number(r.points || r.POINTS || 0),
+      ]),
+    );
 
     // 5. Combinar
-    const finalRanking = users.map(u => {
+    const finalRanking = users.map((u) => {
       const regularPoints: number = predRegularMap.get(u.id) || 0;
       const jokerPoints: number = predJokerMap.get(u.id) || 0;
       const bracketPoints: number = bracketMap.get(u.id) || 0;
       const bonusPoints: number = bonusMap.get(u.id) || 0;
-      
+
       const predictionTotal = regularPoints + jokerPoints;
-      const totalPoints = predictionTotal + Number(bracketPoints) + Number(bonusPoints);
+      const totalPoints =
+        predictionTotal + Number(bracketPoints) + Number(bonusPoints);
 
       return {
         id: u.id,
@@ -449,8 +541,8 @@ export class LeaguesService {
         matches: user.regularPoints,
         phases: user.bracketPoints,
         wildcard: user.jokerPoints,
-        bonus: user.bonusPoints
-      }
+        bonus: user.bonusPoints,
+      },
     }));
   }
 
@@ -460,12 +552,12 @@ export class LeaguesService {
       const leagues = await this.leaguesRepository.find({
         where: tournamentId ? { tournamentId } : {},
         relations: ['creator', 'participants'],
-        order: { name: 'ASC' }
+        order: { name: 'ASC' },
       });
 
       console.log(`✅ Found ${leagues.length} leagues`);
 
-      return leagues.map(l => ({
+      return leagues.map((l) => ({
         id: l.id,
         name: l.name,
         code: l.accessCodePrefix || 'SIN-CODIGO',
@@ -474,7 +566,7 @@ export class LeaguesService {
         creator: {
           id: l.creator?.id,
           nickname: l.creator?.nickname || l.creator?.fullName || 'Desconocido',
-          avatarUrl: l.creator?.avatarUrl
+          avatarUrl: l.creator?.avatarUrl,
         },
         participantCount: l.participants?.length || 0,
         isEnterprise: !!l.isEnterprise,
@@ -490,23 +582,28 @@ export class LeaguesService {
     } catch (error) {
       console.error('❌ CRITICAL ERROR in getAllLeagues:', error);
       console.error('Error stack:', error.stack);
-      throw new InternalServerErrorException(`Error al cargar ligas: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Error al cargar ligas: ${error.message}`,
+      );
     }
   }
 
   async getMyLeagues(userId: string, tournamentId?: string) {
     console.log('getMyLeagues - userId:', userId);
     const participants = await this.leagueParticipantsRepository.find({
-      where: { 
+      where: {
         user: { id: userId },
-        league: tournamentId ? { tournamentId } : {}
+        league: tournamentId ? { tournamentId } : {},
       },
       relations: ['league', 'league.creator', 'league.participants'],
     });
     console.log('getMyLeagues - participants found:', participants.length);
-    console.log('getMyLeagues - participants:', JSON.stringify(participants, null, 2));
+    console.log(
+      'getMyLeagues - participants:',
+      JSON.stringify(participants, null, 2),
+    );
 
-    const result = participants.map(p => ({
+    const result = participants.map((p) => ({
       id: p.league.id,
       name: p.league.name,
       code: p.league.accessCodePrefix,
@@ -526,7 +623,7 @@ export class LeaguesService {
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
       prizeImageUrl: p.league.prizeImageUrl, // Agregado para Enterprise Studio
-      prizeDetails: p.league.prizeDetails,     // Agregado
+      prizeDetails: p.league.prizeDetails, // Agregado
       isPaid: p.league.isPaid,
       packageType: p.league.packageType,
       // Ads
@@ -550,7 +647,9 @@ export class LeaguesService {
     });
 
     if (!requester || !requester.isAdmin) {
-      throw new ForbiddenException('No tienes permisos para ver los participantes de esta liga.');
+      throw new ForbiddenException(
+        'No tienes permisos para ver los participantes de esta liga.',
+      );
     }
 
     return this.fetchParticipants(leagueId);
@@ -560,10 +659,10 @@ export class LeaguesService {
     const participants = await this.leagueParticipantsRepository.find({
       where: { league: { id: leagueId } },
       relations: ['user'],
-      order: { totalPoints: 'DESC' }
+      order: { totalPoints: 'DESC' },
     });
 
-    return participants.map(p => ({
+    return participants.map((p) => ({
       ...p,
       user: {
         id: p.user.id,
@@ -579,8 +678,8 @@ export class LeaguesService {
         matches: p.predictionPoints || 0,
         phases: p.bracketPoints || 0,
         wildcard: p.jokerPoints || 0,
-        bonus: p.triviaPoints || 0
-      }
+        bonus: p.triviaPoints || 0,
+      },
     }));
   }
 
@@ -598,7 +697,9 @@ export class LeaguesService {
         code: participant.league.accessCodePrefix,
         type: participant.league.type,
         isAdmin: participant.isAdmin,
-        creatorName: participant.league.creator.nickname || participant.league.creator.fullName,
+        creatorName:
+          participant.league.creator.nickname ||
+          participant.league.creator.fullName,
         participantCount: participant.league.participants?.length || 0,
         isEnterprise: participant.league.isEnterprise,
         isEnterpriseActive: participant.league.isEnterpriseActive,
@@ -637,7 +738,7 @@ export class LeaguesService {
       // Fetch league directly
       const league = await this.leaguesRepository.findOne({
         where: { id: leagueId },
-        relations: ['creator', 'participants']
+        relations: ['creator', 'participants'],
       });
 
       if (league) {
@@ -679,14 +780,17 @@ export class LeaguesService {
           adImages: league.adImages,
         };
       }
-
     }
 
-    throw new NotFoundException('League not found or user is not a participant');
+    throw new NotFoundException(
+      'League not found or user is not a participant',
+    );
   }
 
   async getLeagueRanking(leagueId: string) {
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    const league = await this.leaguesRepository.findOne({
+      where: { id: leagueId },
+    });
     if (!league) throw new NotFoundException('League not found');
 
     const participants = await this.leagueParticipantsRepository.find({
@@ -696,31 +800,44 @@ export class LeaguesService {
 
     if (!participants || participants.length === 0) return [];
 
-    const activeParticipants = participants.filter(p => !p.isBlocked);
-    const userIds = activeParticipants.map(p => p.user.id);
+    const activeParticipants = participants.filter((p) => !p.isBlocked);
+    const userIds = activeParticipants.map((p) => p.user.id);
 
     // Goles Reales para Tiebreaker
-    const goalsResult = await this.leaguesRepository.manager.createQueryBuilder(Match, 'm')
-      .select('SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))', 'total')
+    const goalsResult = await this.leaguesRepository.manager
+      .createQueryBuilder(Match, 'm')
+      .select(
+        'SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))',
+        'total',
+      )
       .where("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawOne();
     const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
 
     // Prediction Points (Improved to include Global Fallback and Joker separation)
     const isGlobal = league.type === LeagueType.GLOBAL;
-    const allPredictions = await this.predictionRepository.createQueryBuilder('p')
+    const allPredictions = await this.predictionRepository
+      .createQueryBuilder('p')
       .innerJoin('p.match', 'm')
       .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId', 'p.isJoker'])
       .where('p.userId IN (:...userIds)', { userIds })
-      .andWhere(isGlobal ? 'p.leagueId IS NULL' : '(p.leagueId = :leagueId OR p.leagueId IS NULL)', { leagueId })
+      .andWhere(
+        isGlobal
+          ? 'p.leagueId IS NULL'
+          : '(p.leagueId = :leagueId OR p.leagueId IS NULL)',
+        { leagueId },
+      )
       .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawMany();
 
     // Map to keep track of points: { userId: { matchId: { points, isJoker } } }
     // We prioritize league-specific predictions over global fallback
-    const userPointsMap = new Map<string, Map<string, { points: number, isJoker: boolean }>>();
+    const userPointsMap = new Map<
+      string,
+      Map<string, { points: number; isJoker: boolean }>
+    >();
 
-    allPredictions.forEach(r => {
+    allPredictions.forEach((r) => {
       const uId = r.userId || r.userid || r.p_user_id;
       const mId = r.matchId || r.matchid || r.p_match_id;
       const points = Number(r.points || r.p_points || 0);
@@ -734,7 +851,7 @@ export class LeaguesService {
       const userMatches = userPointsMap.get(uId)!;
 
       // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
-      if (!userMatches.has(mId) || (pLeagueId === leagueId)) {
+      if (!userMatches.has(mId) || pLeagueId === leagueId) {
         userMatches.set(mId, { points, isJoker });
       }
     });
@@ -754,7 +871,8 @@ export class LeaguesService {
     });
 
     // Bracket Points
-    const bracketPointsRows = await this.userRepository.manager.createQueryBuilder(UserBracket, 'b')
+    const bracketPointsRows = await this.userRepository.manager
+      .createQueryBuilder(UserBracket, 'b')
       .select('b.userId', 'userId')
       .addSelect('MAX(b.points)', 'points')
       .where('b.userId IN (:...userIds)', { userIds })
@@ -762,10 +880,16 @@ export class LeaguesService {
       .groupBy('b.userId')
       .getRawMany();
 
-    const bracketMap = new Map(bracketPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const bracketMap = new Map(
+      bracketPointsRows.map((r) => [
+        r.userId || r.userid,
+        Number(r.points || r.POINTS || 0),
+      ]),
+    );
 
     // Bonus Points
-    const bonusPointsRows = await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
+    const bonusPointsRows = await this.userRepository.manager
+      .createQueryBuilder(UserBonusAnswer, 'uba')
       .innerJoin('uba.question', 'bq')
       .select('uba.userId', 'userId')
       .addSelect('SUM(uba.pointsEarned)', 'points')
@@ -774,9 +898,14 @@ export class LeaguesService {
       .groupBy('uba.userId')
       .getRawMany();
 
-    const bonusMap = new Map(bonusPointsRows.map(r => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
+    const bonusMap = new Map(
+      bonusPointsRows.map((r) => [
+        r.userId || r.userid,
+        Number(r.points || r.POINTS || 0),
+      ]),
+    );
 
-    const finalRanking = activeParticipants.map(lp => {
+    const finalRanking = activeParticipants.map((lp) => {
       const uId = lp.user.id;
       const regularPoints = predRegularMap.get(uId) || 0;
       const jokerPoints = predJokerMap.get(uId) || 0;
@@ -784,9 +913,17 @@ export class LeaguesService {
       const bonusPoints = bonusMap.get(uId) || 0;
       const triviaPoints = Number(lp.triviaPoints || 0);
 
-      const totalPoints = regularPoints + jokerPoints + bracketPoints + bonusPoints + triviaPoints;
-      
-      const tieBreakerGuess = lp.tieBreakerGuess !== null && lp.tieBreakerGuess !== undefined ? Number(lp.tieBreakerGuess) : null;
+      const totalPoints =
+        regularPoints +
+        jokerPoints +
+        bracketPoints +
+        bonusPoints +
+        triviaPoints;
+
+      const tieBreakerGuess =
+        lp.tieBreakerGuess !== null && lp.tieBreakerGuess !== undefined
+          ? Number(lp.tieBreakerGuess)
+          : null;
 
       return {
         id: uId,
@@ -800,8 +937,11 @@ export class LeaguesService {
         triviaPoints,
         totalPoints,
         tieBreakerGuess,
-        tieBreakerDiff: tieBreakerGuess !== null ? Math.abs(tieBreakerGuess - realGoals) : Infinity,
-        department: lp.department
+        tieBreakerDiff:
+          tieBreakerGuess !== null
+            ? Math.abs(tieBreakerGuess - realGoals)
+            : Infinity,
+        department: lp.department,
       };
     });
 
@@ -817,15 +957,12 @@ export class LeaguesService {
         matches: user.regularPoints || 0,
         phases: user.bracketPoints || 0,
         wildcard: user.jokerPoints || 0,
-        bonus: user.bonusPoints || 0
-      }
+        bonus: user.bonusPoints || 0,
+      },
     }));
   }
 
   // --- ADMIN METHODS ---
-
-
-
 
   async updateParticipantScore(
     leagueId: string,
@@ -834,10 +971,10 @@ export class LeaguesService {
     triviaPoints?: number,
     predictionPoints?: number,
     bracketPoints?: number,
-    jokerPoints?: number
+    jokerPoints?: number,
   ) {
     const participant = await this.leagueParticipantsRepository.findOne({
-      where: { league: { id: leagueId }, user: { id: userId } }
+      where: { league: { id: leagueId }, user: { id: userId } },
     });
 
     if (!participant) {
@@ -846,11 +983,14 @@ export class LeaguesService {
 
     if (totalPoints !== undefined) participant.totalPoints = totalPoints;
     if (triviaPoints !== undefined) participant.triviaPoints = triviaPoints;
-    if (predictionPoints !== undefined) participant.predictionPoints = predictionPoints;
+    if (predictionPoints !== undefined)
+      participant.predictionPoints = predictionPoints;
     if (bracketPoints !== undefined) participant.bracketPoints = bracketPoints;
     if (jokerPoints !== undefined) participant.jokerPoints = jokerPoints;
 
-    console.log(`✏️ [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`);
+    console.log(
+      `✏️ [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`,
+    );
 
     return this.leagueParticipantsRepository.save(participant);
   }
@@ -882,48 +1022,76 @@ export class LeaguesService {
 
     if (updateLeagueDto.maxParticipants !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
-        throw new ForbiddenException('Solo el SUPER_ADMIN puede modificar el límite de participantes');
+        throw new ForbiddenException(
+          'Solo el SUPER_ADMIN puede modificar el límite de participantes',
+        );
       }
       league.maxParticipants = updateLeagueDto.maxParticipants;
     }
 
-    if (updateLeagueDto.brandingLogoUrl !== undefined) league.brandingLogoUrl = updateLeagueDto.brandingLogoUrl;
-    if (updateLeagueDto.prizeImageUrl !== undefined) league.prizeImageUrl = updateLeagueDto.prizeImageUrl;
-    if (updateLeagueDto.prizeDetails !== undefined) league.prizeDetails = updateLeagueDto.prizeDetails;
-    if (updateLeagueDto.welcomeMessage !== undefined) league.welcomeMessage = updateLeagueDto.welcomeMessage;
-    if (updateLeagueDto.isEnterprise !== undefined) league.isEnterprise = updateLeagueDto.isEnterprise;
-    if (updateLeagueDto.companyName !== undefined) league.companyName = updateLeagueDto.companyName;
-    if (updateLeagueDto.brandColorPrimary !== undefined) league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
-    if (updateLeagueDto.brandColorSecondary !== undefined) league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
-    if (updateLeagueDto.brandColorBg !== undefined) league.brandColorBg = updateLeagueDto.brandColorBg;
-    if (updateLeagueDto.brandColorText !== undefined) league.brandColorText = updateLeagueDto.brandColorText;
-    if (updateLeagueDto.brandFontFamily !== undefined) league.brandFontFamily = updateLeagueDto.brandFontFamily;
-    if (updateLeagueDto.brandCoverUrl !== undefined) league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
-    if (updateLeagueDto.enableDepartmentWar !== undefined) league.enableDepartmentWar = updateLeagueDto.enableDepartmentWar;
+    if (updateLeagueDto.brandingLogoUrl !== undefined)
+      league.brandingLogoUrl = updateLeagueDto.brandingLogoUrl;
+    if (updateLeagueDto.prizeImageUrl !== undefined)
+      league.prizeImageUrl = updateLeagueDto.prizeImageUrl;
+    if (updateLeagueDto.prizeDetails !== undefined)
+      league.prizeDetails = updateLeagueDto.prizeDetails;
+    if (updateLeagueDto.welcomeMessage !== undefined)
+      league.welcomeMessage = updateLeagueDto.welcomeMessage;
+    if (updateLeagueDto.isEnterprise !== undefined)
+      league.isEnterprise = updateLeagueDto.isEnterprise;
+    if (updateLeagueDto.companyName !== undefined)
+      league.companyName = updateLeagueDto.companyName;
+    if (updateLeagueDto.brandColorPrimary !== undefined)
+      league.brandColorPrimary = updateLeagueDto.brandColorPrimary;
+    if (updateLeagueDto.brandColorSecondary !== undefined)
+      league.brandColorSecondary = updateLeagueDto.brandColorSecondary;
+    if (updateLeagueDto.brandColorBg !== undefined)
+      league.brandColorBg = updateLeagueDto.brandColorBg;
+    if (updateLeagueDto.brandColorText !== undefined)
+      league.brandColorText = updateLeagueDto.brandColorText;
+    if (updateLeagueDto.brandFontFamily !== undefined)
+      league.brandFontFamily = updateLeagueDto.brandFontFamily;
+    if (updateLeagueDto.brandCoverUrl !== undefined)
+      league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
+    if (updateLeagueDto.enableDepartmentWar !== undefined)
+      league.enableDepartmentWar = updateLeagueDto.enableDepartmentWar;
 
     // --- SOCIAL MEDIA ---
-    if (updateLeagueDto.socialInstagram !== undefined) league.socialInstagram = updateLeagueDto.socialInstagram;
-    if (updateLeagueDto.socialFacebook !== undefined) league.socialFacebook = updateLeagueDto.socialFacebook;
-    if (updateLeagueDto.socialWhatsapp !== undefined) league.socialWhatsapp = updateLeagueDto.socialWhatsapp;
-    if (updateLeagueDto.socialYoutube !== undefined) league.socialYoutube = updateLeagueDto.socialYoutube;
-    if (updateLeagueDto.socialTiktok !== undefined) league.socialTiktok = updateLeagueDto.socialTiktok;
-    if (updateLeagueDto.socialLinkedin !== undefined) league.socialLinkedin = updateLeagueDto.socialLinkedin;
-    if (updateLeagueDto.socialWebsite !== undefined) league.socialWebsite = updateLeagueDto.socialWebsite;
+    if (updateLeagueDto.socialInstagram !== undefined)
+      league.socialInstagram = updateLeagueDto.socialInstagram;
+    if (updateLeagueDto.socialFacebook !== undefined)
+      league.socialFacebook = updateLeagueDto.socialFacebook;
+    if (updateLeagueDto.socialWhatsapp !== undefined)
+      league.socialWhatsapp = updateLeagueDto.socialWhatsapp;
+    if (updateLeagueDto.socialYoutube !== undefined)
+      league.socialYoutube = updateLeagueDto.socialYoutube;
+    if (updateLeagueDto.socialTiktok !== undefined)
+      league.socialTiktok = updateLeagueDto.socialTiktok;
+    if (updateLeagueDto.socialLinkedin !== undefined)
+      league.socialLinkedin = updateLeagueDto.socialLinkedin;
+    if (updateLeagueDto.socialWebsite !== undefined)
+      league.socialWebsite = updateLeagueDto.socialWebsite;
 
     // --- ADS ---
-    if (updateLeagueDto.showAds !== undefined) league.showAds = updateLeagueDto.showAds;
-    if (updateLeagueDto.adImages !== undefined) league.adImages = updateLeagueDto.adImages;
+    if (updateLeagueDto.showAds !== undefined)
+      league.showAds = updateLeagueDto.showAds;
+    if (updateLeagueDto.adImages !== undefined)
+      league.adImages = updateLeagueDto.adImages;
 
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
-        throw new ForbiddenException('Solo el SUPER_ADMIN puede activar/desactivar el modo Enterprise.');
+        throw new ForbiddenException(
+          'Solo el SUPER_ADMIN puede activar/desactivar el modo Enterprise.',
+        );
       }
       league.isEnterpriseActive = updateLeagueDto.isEnterpriseActive;
     }
 
     if (updateLeagueDto.isPaid !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
-        throw new ForbiddenException('Solo el SUPER_ADMIN puede modificar el estado de pago.');
+        throw new ForbiddenException(
+          'Solo el SUPER_ADMIN puede modificar el estado de pago.',
+        );
       }
       league.isPaid = updateLeagueDto.isPaid;
     }
@@ -952,18 +1120,26 @@ export class LeaguesService {
 
     // 2. Verificar permisos: SUPER_ADMIN o admin actual
     if (requesterRole !== 'SUPER_ADMIN' && league.creator.id !== requesterId) {
-      throw new ForbiddenException('Solo el SUPER_ADMIN o el admin actual pueden transferir la propiedad');
+      throw new ForbiddenException(
+        'Solo el SUPER_ADMIN o el admin actual pueden transferir la propiedad',
+      );
     }
 
     // 3. Verificar que el nuevo admin es participante de la liga
-    const newAdminParticipant = league.participants.find(p => p.user.id === newAdminId);
+    const newAdminParticipant = league.participants.find(
+      (p) => p.user.id === newAdminId,
+    );
 
     if (!newAdminParticipant) {
-      throw new BadRequestException('El nuevo administrador debe ser un participante de la liga');
+      throw new BadRequestException(
+        'El nuevo administrador debe ser un participante de la liga',
+      );
     }
 
     // 4. Obtener el nuevo admin completo
-    const newAdmin = await this.userRepository.findOne({ where: { id: newAdminId } });
+    const newAdmin = await this.userRepository.findOne({
+      where: { id: newAdminId },
+    });
 
     if (!newAdmin) {
       throw new NotFoundException(`Usuario con ID ${newAdminId} no encontrado`);
@@ -976,7 +1152,9 @@ export class LeaguesService {
 
     // 6. Actualizar isAdmin en participants
     // Remover admin del anterior
-    const oldAdminParticipant = league.participants.find(p => p.user.id === oldAdminId);
+    const oldAdminParticipant = league.participants.find(
+      (p) => p.user.id === oldAdminId,
+    );
     if (oldAdminParticipant) {
       oldAdminParticipant.isAdmin = false;
       await this.leagueParticipantsRepository.save(oldAdminParticipant);
@@ -986,14 +1164,15 @@ export class LeaguesService {
     newAdminParticipant.isAdmin = true;
     await this.leagueParticipantsRepository.save(newAdminParticipant);
 
-    console.log(`✅ [transferOwner] Propiedad transferida de ${oldAdminId} a ${newAdminId}`);
+    console.log(
+      `✅ [transferOwner] Propiedad transferida de ${oldAdminId} a ${newAdminId}`,
+    );
 
     return {
       ...league,
       message: `Propiedad transferida exitosamente a ${newAdmin.nickname || newAdmin.fullName}`,
     };
   }
-
 
   async deleteLeague(leagueId: string, userId: string, userRole: string) {
     const league = await this.leaguesRepository.findOne({
@@ -1013,21 +1192,30 @@ export class LeaguesService {
 
     if (userRole !== 'SUPER_ADMIN' && league.creator.id !== userId) {
       console.error(`❌ [deleteLeague] Permiso denegado.`);
-      throw new ForbiddenException('No tienes permisos para eliminar esta liga');
+      throw new ForbiddenException(
+        'No tienes permisos para eliminar esta liga',
+      );
     }
 
     const manager = this.leaguesRepository.manager;
 
     try {
-      console.log(`🗑️ [deleteLeague] Iniciando eliminación nuclear de liga ${leagueId}...`);
+      console.log(
+        `🗑️ [deleteLeague] Iniciando eliminación nuclear de liga ${leagueId}...`,
+      );
 
       // EJECUCIÓN NUCLEAR: Usar transacción para eliminar TODO
       await manager.transaction(async (transactionalEntityManager) => {
         // PASO 1: Logging (Participants check)
-        const participantsCount = await transactionalEntityManager.count(LeagueParticipant, {
-          where: { league: { id: leagueId } }
-        });
-        console.log(`   📋 Paso 1: Encontrados ${participantsCount} participantes para eliminar.`);
+        const participantsCount = await transactionalEntityManager.count(
+          LeagueParticipant,
+          {
+            where: { league: { id: leagueId } },
+          },
+        );
+        console.log(
+          `   📋 Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
+        );
 
         // NOTA: Las predicciones son globales, no se tocan.
 
@@ -1036,50 +1224,68 @@ export class LeaguesService {
         // Primero buscamos las preguntas de esta liga
         const questions = await transactionalEntityManager.find(BonusQuestion, {
           where: { league: { id: leagueId } },
-          select: ['id']
+          select: ['id'],
         });
-        const questionIds = questions.map(q => q.id);
+        const questionIds = questions.map((q) => q.id);
 
         if (questionIds.length > 0) {
-          await transactionalEntityManager.delete(UserBonusAnswer, { questionId: In(questionIds) });
-          console.log(`   ✓ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`);
+          await transactionalEntityManager.delete(UserBonusAnswer, {
+            questionId: In(questionIds),
+          });
+          console.log(
+            `   ✓ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
+          );
         } else {
           console.log(`   ✓ No hay respuestas de bonus para eliminar`);
         }
 
         // PASO 2.5: Eliminar comentarios del muro (LeagueComment)
         console.log(`   💬 Paso 2.5: Eliminando comentarios del muro...`);
-        await transactionalEntityManager.delete(LeagueComment, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(LeagueComment, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Comentarios eliminados`);
 
         // PASO 2.6: Eliminar predicciones específicas de la liga
         console.log(`   🔮 Paso 2.6: Eliminando predicciones de la liga...`);
-        await transactionalEntityManager.delete(Prediction, { leagueId: leagueId });
+        await transactionalEntityManager.delete(Prediction, {
+          leagueId: leagueId,
+        });
         console.log(`   ✓ Predicciones de liga eliminadas`);
 
         // PASO 3: Eliminar bonus questions
         console.log(`   ⭐ Paso 3: Eliminando bonus questions...`);
-        await transactionalEntityManager.delete(BonusQuestion, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(BonusQuestion, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Bonus questions eliminadas`);
 
         // PASO 4: Eliminar brackets de usuarios
         console.log(`   🏆 Paso 4: Eliminando brackets...`);
-        await transactionalEntityManager.delete(UserBracket, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(UserBracket, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Brackets eliminados`);
 
         // PASO 5: Eliminar códigos de acceso
         console.log(`   🔑 Paso 5: Eliminando códigos de acceso...`);
-        await transactionalEntityManager.delete(AccessCode, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(AccessCode, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Códigos de acceso eliminados`);
 
         // PASO 6: Eliminar transacciones/pagos
         console.log(`   💳 Paso 6: Eliminando transacciones...`);
-        await transactionalEntityManager.delete(Transaction, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(Transaction, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Transacciones eliminadas`);
 
         // PASO 7: Eliminar participantes de la liga
         console.log(`   👥 Paso 7: Eliminando participantes...`);
-        await transactionalEntityManager.delete(LeagueParticipant, { league: { id: leagueId } });
+        await transactionalEntityManager.delete(LeagueParticipant, {
+          league: { id: leagueId },
+        });
         console.log(`   ✓ Participantes eliminados`);
 
         // PASO 8: FINALMENTE eliminar la liga
@@ -1088,25 +1294,27 @@ export class LeaguesService {
         console.log(`   ✓ Liga eliminada`);
       });
 
-      console.log(`✅ [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`);
+      console.log(
+        `✅ [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
+      );
       return { success: true, message: 'Liga eliminada correctamente' };
-
     } catch (error: any) {
       console.error('❌ [deleteLeague] Error FATAL eliminando liga:', error);
       console.error('   Stack:', error.stack);
       console.error('   Code:', error.code);
       console.error('   Detail:', error.detail);
 
-      if (error.code === '23503') { // ForeignKeyViolation
+      if (error.code === '23503') {
+        // ForeignKeyViolation
         throw new BadRequestException(
           `No se puede eliminar: Esta liga tiene datos vinculados en la tabla '${error.table || 'desconocida'}'. ` +
-          `Detalle: ${error.detail || error.message}`
+            `Detalle: ${error.detail || error.message}`,
         );
       }
 
       throw new BadRequestException(
         `Error al eliminar liga: ${error.message}. ` +
-        `Si el problema persiste, contacta al administrador.`
+          `Si el problema persiste, contacta al administrador.`,
       );
     }
   }
@@ -1123,7 +1331,9 @@ export class LeaguesService {
 
     // Check permissions: Only SUPER_ADMIN or League Admin (Creator)
     if (userRole !== 'SUPER_ADMIN' && league.creator.id !== userId) {
-      throw new ForbiddenException('No tienes permisos para bloquear/desbloquear esta liga');
+      throw new ForbiddenException(
+        'No tienes permisos para bloquear/desbloquear esta liga',
+      );
     }
 
     // Toggle status
@@ -1137,17 +1347,24 @@ export class LeaguesService {
     return league;
   }
 
-  async getParticipantDetails(leagueId: string, requesterId: string, targetUserId: string) {
+  async getParticipantDetails(
+    leagueId: string,
+    requesterId: string,
+    targetUserId: string,
+  ) {
     const requester = await this.leagueParticipantsRepository.findOne({
-      where: { league: { id: leagueId }, user: { id: requesterId } }
+      where: { league: { id: leagueId }, user: { id: requesterId } },
     });
 
     if (!requester?.isAdmin) {
-      throw new ForbiddenException('Solo el administrador de la liga puede ver los detalles.');
+      throw new ForbiddenException(
+        'Solo el administrador de la liga puede ver los detalles.',
+      );
     }
 
     // Predicciones
-    const predictions = await this.userRepository.manager.query(`
+    const predictions = await this.userRepository.manager.query(
+      `
       SELECT 
         p.id, p.home_score as "homeScore", p.away_score as "awayScore", p.points,
         m.date, m.status, 
@@ -1160,17 +1377,22 @@ export class LeaguesService {
       LEFT JOIN teams t2 ON t2.id = m.away_team_id
       WHERE p.user_id = $1
       ORDER BY m.date DESC
-    `, [targetUserId]);
+    `,
+      [targetUserId],
+    );
 
     // Bonus
-    const bonusAnswers = await this.userRepository.manager.query(`
+    const bonusAnswers = await this.userRepository.manager.query(
+      `
       SELECT 
         uba.id, uba.answer, uba.points_earned as "pointsEarned", 
         bq.text as "questionText", bq.points as "maxPoints", bq.correct_answer as "correctAnswer"
       FROM user_bonus_answers uba
       JOIN bonus_questions bq ON bq.id = uba.question_id
       WHERE uba.user_id = $1 AND (bq.league_id = $2 OR bq.league_id IS NULL)
-    `, [targetUserId, leagueId]);
+    `,
+      [targetUserId, leagueId],
+    );
 
     return { predictions, bonusAnswers };
   }
@@ -1179,7 +1401,9 @@ export class LeaguesService {
     const transaction = await this.transactionsService.findByLeagueId(leagueId);
 
     if (!transaction) {
-      throw new NotFoundException('No se encontró una transacción para esta liga');
+      throw new NotFoundException(
+        'No se encontró una transacción para esta liga',
+      );
     }
 
     if (!transaction.user || !transaction.league) {
@@ -1187,7 +1411,11 @@ export class LeaguesService {
       throw new NotFoundException('Datos de transacción incompletos');
     }
 
-    return this.pdfService.generateVoucher(transaction, transaction.user, transaction.league);
+    return this.pdfService.generateVoucher(
+      transaction,
+      transaction.user,
+      transaction.league,
+    );
   }
 
   async updateTieBreaker(leagueId: string, userId: string, guess: number) {
@@ -1209,16 +1437,21 @@ export class LeaguesService {
       const ranking = await this.getLeagueRanking(leagueId);
 
       const totalParticipants = ranking.length;
-      const activeParticipants = ranking.filter(r => r.totalPoints > 0).length;
-      
+      const activeParticipants = ranking.filter(
+        (r) => r.totalPoints > 0,
+      ).length;
+
       // Calculate global average
       const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
-      const averagePoints = totalParticipants > 0 ? (sumTotal / totalParticipants).toFixed(1) : "0.0";
+      const averagePoints =
+        totalParticipants > 0
+          ? (sumTotal / totalParticipants).toFixed(1)
+          : '0.0';
 
       // 2. Group by Department in Memory
-      const deptMap = new Map<string, { total: number, count: number }>();
+      const deptMap = new Map<string, { total: number; count: number }>();
 
-      ranking.forEach(r => {
+      ranking.forEach((r) => {
         // @ts-ignore - Property 'department' comes from our modified getLeagueRanking returning extended object
         const dept = r.department || 'General';
         const current = deptMap.get(dept) || { total: 0, count: 0 };
@@ -1232,7 +1465,7 @@ export class LeaguesService {
         .map(([department, stats]) => ({
           department,
           avgPoints: (stats.total / stats.count).toFixed(1),
-          members: stats.count
+          members: stats.count,
         }))
         .sort((a, b) => parseFloat(b.avgPoints) - parseFloat(a.avgPoints));
 
@@ -1241,7 +1474,7 @@ export class LeaguesService {
         activeParticipants,
         zombieParticipants: Math.max(0, totalParticipants - activeParticipants),
         averagePoints,
-        departmentRanking
+        departmentRanking,
       };
     } catch (error) {
       console.error('Error in getAnalyticsSummary:', error);
@@ -1250,8 +1483,8 @@ export class LeaguesService {
         totalParticipants: 0,
         activeParticipants: 0,
         zombieParticipants: 0,
-        averagePoints: "0.0",
-        departmentRanking: []
+        averagePoints: '0.0',
+        departmentRanking: [],
       };
     }
   }
@@ -1261,8 +1494,8 @@ export class LeaguesService {
       where: { league: { id: leagueId } },
       relations: ['user'],
       order: {
-        totalPoints: 'DESC'
-      }
+        totalPoints: 'DESC',
+      },
     });
   }
 
@@ -1270,7 +1503,9 @@ export class LeaguesService {
     // Para ligas empresariales, retornar todos los partidos del torneo correspondiente
     // con las predicciones del usuario si está autenticado
 
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    const league = await this.leaguesRepository.findOne({
+      where: { id: leagueId },
+    });
     if (!league) {
       throw new NotFoundException('League not found');
     }
@@ -1284,8 +1519,6 @@ export class LeaguesService {
       .where('match.tournamentId = :tournamentId', { tournamentId })
       .orderBy('match.date', 'ASC');
 
-
-
     // Si hay userId, incluir sus predicciones
     if (userId) {
       if (isGlobal) {
@@ -1293,26 +1526,27 @@ export class LeaguesService {
           'match.predictions',
           'prediction',
           'prediction.userId = :userId AND prediction.leagueId IS NULL',
-          { userId }
+          { userId },
         );
       } else {
         matchesQuery.leftJoinAndSelect(
           'match.predictions',
           'prediction',
           'prediction.userId = :userId AND (prediction.leagueId = :leagueId OR prediction.leagueId IS NULL)',
-          { userId, leagueId }
+          { userId, leagueId },
         );
       }
     }
 
     const matches = await matchesQuery.getMany();
 
-    return matches.map(match => {
+    return matches.map((match) => {
       let finalPrediction = null;
       if (match.predictions?.length > 0) {
         finalPrediction = isGlobal
           ? match.predictions[0]
-          : (match.predictions.find(p => p.leagueId === leagueId) || match.predictions.find(p => p.leagueId === null));
+          : match.predictions.find((p) => p.leagueId === leagueId) ||
+            match.predictions.find((p) => p.leagueId === null);
       }
 
       return {
@@ -1332,12 +1566,14 @@ export class LeaguesService {
         stadium: match.stadium,
         bracketId: match.bracketId,
         nextMatchId: match.nextMatchId,
-        prediction: finalPrediction ? {
-          homeScore: finalPrediction.homeScore,
-          awayScore: finalPrediction.awayScore,
-          isJoker: finalPrediction.isJoker,
-          points: finalPrediction.points || 0
-        } : null,
+        prediction: finalPrediction
+          ? {
+              homeScore: finalPrediction.homeScore,
+              awayScore: finalPrediction.awayScore,
+              isJoker: finalPrediction.isJoker,
+              points: finalPrediction.points || 0,
+            }
+          : null,
       };
     });
   }
@@ -1346,7 +1582,14 @@ export class LeaguesService {
     return this.leagueParticipantsRepository
       .createQueryBuilder('lp')
       .leftJoinAndSelect('lp.user', 'user')
-      .select(['lp.id', 'lp.totalPoints', 'user.id', 'user.nickname', 'user.fullName', 'user.avatarUrl'])
+      .select([
+        'lp.id',
+        'lp.totalPoints',
+        'user.id',
+        'user.nickname',
+        'user.fullName',
+        'user.avatarUrl',
+      ])
       .where('lp.league.id = :leagueId', { leagueId })
       .andWhere('lp.isBlocked = :isBlocked', { isBlocked: false })
       .orderBy('lp.totalPoints', 'ASC') // Orden ascendente para obtener el menor puntaje
@@ -1356,27 +1599,33 @@ export class LeaguesService {
 
   // --- SOCIAL WALL METHODS ---
 
-  async createComment(leagueId: string, userId: string, data: { content: string, imageUrl?: string }) {
+  async createComment(
+    leagueId: string,
+    userId: string,
+    data: { content: string; imageUrl?: string },
+  ) {
     const participant = await this.leagueParticipantsRepository.findOne({
-      where: { league: { id: leagueId }, user: { id: userId } }
+      where: { league: { id: leagueId }, user: { id: userId } },
     });
 
-    if (!participant) throw new ForbiddenException('No eres participante de esta liga');
-    if (participant.isBlocked) throw new ForbiddenException('Estás bloqueado en esta liga');
+    if (!participant)
+      throw new ForbiddenException('No eres participante de esta liga');
+    if (participant.isBlocked)
+      throw new ForbiddenException('Estás bloqueado en esta liga');
 
     const comment = this.leagueCommentsRepository.create({
       league: { id: leagueId },
       user: { id: userId },
       content: data.content,
       imageUrl: data.imageUrl,
-      likes: []
+      likes: [],
     });
 
     const savedComment = await this.leagueCommentsRepository.save(comment);
 
     return this.leagueCommentsRepository.findOne({
       where: { id: savedComment.id },
-      relations: ['user']
+      relations: ['user'],
     });
   }
 
@@ -1385,12 +1634,14 @@ export class LeaguesService {
       where: { league: { id: leagueId } },
       relations: ['user'],
       order: { createdAt: 'DESC' },
-      take: 20
+      take: 20,
     });
   }
 
   async toggleCommentLike(commentId: string, userId: string) {
-    const comment = await this.leagueCommentsRepository.findOne({ where: { id: commentId } });
+    const comment = await this.leagueCommentsRepository.findOne({
+      where: { id: commentId },
+    });
     if (!comment) throw new NotFoundException('Comentario no encontrado');
 
     const likes = comment.likes || [];
@@ -1407,4 +1658,3 @@ export class LeaguesService {
     return { likes: comment.likes.length, isLiked: index === -1 };
   }
 }
-

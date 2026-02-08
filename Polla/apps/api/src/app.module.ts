@@ -28,7 +28,6 @@ import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { DemoModule } from './demo/demo.module';
 
-
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
 import { User } from './database/entities/user.entity';
@@ -67,10 +66,12 @@ import { APP_GUARD } from '@nestjs/core';
         // Validación básica: Si no hay REDIS_HOST, usamos memoria (fallback seguro)
         const host = configService.get<string>('REDIS_HOST');
         if (!host) {
-            console.warn('⚠️ REDIS_HOST no definido. Usando caché en memoria (No recomendado para producción).');
-            return {
-                ttl: 10000, // 10s default
-            };
+          console.warn(
+            '⚠️ REDIS_HOST no definido. Usando caché en memoria (No recomendado para producción).',
+          );
+          return {
+            ttl: 10000, // 10s default
+          };
         }
 
         const store = await redisStore({
@@ -80,7 +81,7 @@ import { APP_GUARD } from '@nestjs/core';
           },
           username: configService.get<string>('REDIS_USERNAME') || 'default',
           password: configService.get<string>('REDIS_PASSWORD'),
-          ttl: 10000, 
+          ttl: 10000,
         });
 
         return {
@@ -99,7 +100,9 @@ import { APP_GUARD } from '@nestjs/core';
           url: url,
           // Fallback if no URL
           host: url ? undefined : configService.get<string>('DB_HOST'),
-          port: url ? undefined : parseInt(configService.get<string>('DB_PORT')!, 10),
+          port: url
+            ? undefined
+            : parseInt(configService.get<string>('DB_PORT')!, 10),
           username: url ? undefined : configService.get<string>('DB_USERNAME'),
           password: url ? undefined : configService.get<string>('DB_PASSWORD'),
           database: url ? undefined : configService.get<string>('DB_DATABASE'),
@@ -123,7 +126,11 @@ import { APP_GUARD } from '@nestjs/core';
             Notification,
           ],
           synchronize: true, // Note: synchronize: true should not be used in production
-          ssl: url ? { rejectUnauthorized: false } : (configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined),
+          ssl: url
+            ? { rejectUnauthorized: false }
+            : configService.get<string>('DB_SSL') === 'true'
+              ? { rejectUnauthorized: false }
+              : undefined,
           extra: {
             max: 50, // Aumentado para soportar alta concurrencia
             connectionTimeoutMillis: 5000,
@@ -132,10 +139,12 @@ import { APP_GUARD } from '@nestjs/core';
       },
       inject: [ConfigService],
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000, // 60 seconds
-      limit: 500, // ✅ Límite balanceado para producción
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 60 seconds
+        limit: 500, // ✅ Límite balanceado para producción
+      },
+    ]),
     AuthModule,
     ScoringModule,
     LeaguesModule,
@@ -173,4 +182,4 @@ import { APP_GUARD } from '@nestjs/core';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

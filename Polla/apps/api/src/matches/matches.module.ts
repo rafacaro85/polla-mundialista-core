@@ -19,33 +19,33 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
 import { MatchListener } from './listeners/match.listener';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            Match,
-            Prediction,
-            LeagueParticipant,
-            UserBracket,
-            KnockoutPhaseStatus
-        ]),
-        BracketsModule,
-        TournamentModule,
-        KnockoutPhasesModule,
-        ScoringModule,
-        HttpModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                baseURL: 'https://v3.football.api-sports.io',
-                headers: {
-                    'x-rapidapi-key': configService.get<string>('RAPIDAPI_KEY'),
-                    'x-rapidapi-host': configService.get<string>('RAPIDAPI_HOST'),
-                },
-            }),
-            inject: [ConfigService],
-        }),
-        ScheduleModule.forRoot(),
-    ],
-    controllers: [MatchesController],
-    providers: [MatchesService, MatchSyncService, MatchListener],
-    exports: [MatchesService],
+  imports: [
+    TypeOrmModule.forFeature([
+      Match,
+      Prediction,
+      LeagueParticipant,
+      UserBracket,
+      KnockoutPhaseStatus,
+    ]),
+    BracketsModule,
+    TournamentModule,
+    KnockoutPhasesModule,
+    ScoringModule,
+    HttpModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        baseURL: 'https://v3.football.api-sports.io',
+        headers: {
+          'x-rapidapi-key': configService.get<string>('RAPIDAPI_KEY'),
+          'x-rapidapi-host': configService.get<string>('RAPIDAPI_HOST'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    ScheduleModule.forRoot(),
+  ],
+  controllers: [MatchesController],
+  providers: [MatchesService, MatchSyncService, MatchListener],
+  exports: [MatchesService],
 })
-export class MatchesModule { }
+export class MatchesModule {}

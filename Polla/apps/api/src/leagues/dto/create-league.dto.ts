@@ -1,4 +1,14 @@
-import { IsString, IsNotEmpty, IsEnum, IsInt, Min, Max, IsOptional, IsBoolean, IsHexColor } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsBoolean,
+  IsHexColor,
+} from 'class-validator';
 import { LeagueType } from '../../database/enums/league-type.enum';
 
 export class CreateLeagueDto {

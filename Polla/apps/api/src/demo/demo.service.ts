@@ -12,6 +12,7 @@ import { LeagueType } from '../database/enums/league-type.enum';
 import { UserRole } from '../database/enums/user-role.enum';
 import { MatchesService } from '../matches/matches.service';
 import { PredictionsService } from '../predictions/predictions.service';
+import { TournamentService } from '../tournament/tournament.service';
 import * as bcrypt from 'bcrypt';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -33,6 +34,7 @@ export class DemoService {
     @InjectRepository(UserBonusAnswer) private bonusAnswerRepo: Repository<UserBonusAnswer>,
     private matchesService: MatchesService,
     private predictionsService: PredictionsService,
+    private tournamentService: TournamentService,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -277,14 +279,29 @@ export class DemoService {
 
   async simulateBatch(count: number = 5) {
       const results = [];
+      let lastPhase = null;
+      
       for (let i = 0; i < count; i++) {
           try {
               const res = await this.simulateNextMatch();
               results.push(res);
+              lastPhase = res.phase;
           } catch (e) {
               break; // No more matches
           }
       }
+
+      // Check if we just finished the group stage
+      if (lastPhase === 'GROUP') {
+          try {
+              console.log('🔄 Checking for completed groups to promote...');
+              await this.tournamentService.promoteAllCompletedGroups();
+              console.log('✅ Group promotions completed');
+          } catch (err) {
+              console.error('❌ Error promoting groups:', err);
+          }
+      }
+
       return { success: true, count: results.length, lastMatch: results[results.length - 1] };
   }
 

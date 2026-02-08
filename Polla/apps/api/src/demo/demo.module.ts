@@ -11,6 +11,7 @@ import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { MatchesModule } from '../matches/matches.module';
 import { PredictionsModule } from '../predictions/predictions.module';
+import { TournamentModule } from '../tournament/tournament.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { AuthModule } from '../auth/auth.module';
     ]),
     MatchesModule,
     PredictionsModule,
+    TournamentModule,
     AuthModule,
   ],
   providers: [DemoService],

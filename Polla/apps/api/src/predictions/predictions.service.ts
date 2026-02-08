@@ -167,20 +167,10 @@ export class PredictionsService {
           // Si ya existe, actualizamos marcadores
           globalPrediction.homeScore = homeScore;
           globalPrediction.awayScore = awayScore;
-          // Solo replicamos el Joker si en la liga específica SE ACTIVÓ.
-          // No lo desactivamos globalmente si en la liga es false, para respetar estrategias mixtas,
-          // salvo que el usuario explícitamente quiera unificar todo.
-          // Por seguridad con el fix anterior: Si isJoker es true, lo propagamos.
-          if (isJoker === true) {
-             globalPrediction.isJoker = true;
-             // Nota: Al activar joker global, la lógica de validación (Only one per phase)
-             // debería correrse, pero como estamos manual, debemos tener cuidado.
-             // Para simplificar y evitar conflictos recursivos, guardamos directo.
-             // El usuario deberá gestionar sus jokers globales si tiene conflictos.
-          }
+          // FIX: No tocamos el Joker Global. Son estrategias independientes.
           await this.predictionsRepository.save(globalPrediction);
         } else {
-          // Si no existe, la creamos (clonando la de la empresa)
+          // Si no existe, la creamos (clonando la de la empresa, pero SIN joker)
           const newGlobal = this.predictionsRepository.create({
             user: { id: userId } as User,
             match: { id: matchId } as Match,
@@ -188,7 +178,7 @@ export class PredictionsService {
             tournamentId: match.tournamentId,
             homeScore,
             awayScore,
-            isJoker: isJoker || false,
+            isJoker: false, // Estrategia independiente
           });
           await this.predictionsRepository.save(newGlobal);
         }
@@ -406,10 +396,10 @@ export class PredictionsService {
             let globalPred = predictionsMap.get(globalKey);
 
             if (globalPred) {
-                // Update existing global
+                // Update existing global - Sync SCORES ONLY
                 globalPred.homeScore = dto.homeScore;
                 globalPred.awayScore = dto.awayScore;
-                if (dto.isJoker === true) globalPred.isJoker = true;
+                // FIX: Do NOT sync Joker. Jokers must be independent per league/context.
             } else {
                 // Create new global
                 globalPred = queryRunner.manager.create(Prediction, {
@@ -419,9 +409,9 @@ export class PredictionsService {
                     tournamentId: match.tournamentId,
                     homeScore: dto.homeScore,
                     awayScore: dto.awayScore,
-                    isJoker: dto.isJoker || false
+                    isJoker: false // Default to false for independent strategy
                 });
-                // Add to map to avoid duplicates if batch has repeats
+                // Add to map
                 predictionsMap.set(globalKey, globalPred);
             }
             

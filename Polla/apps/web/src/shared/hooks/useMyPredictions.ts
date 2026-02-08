@@ -79,7 +79,7 @@ export const useMyPredictions = (leagueId?: string) => {
             : (leagueId || null);
 
         // Mutate local cache immediately
-        mutate((currentData: any) => {
+        await mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
             return list.filter((p: any) =>
                 !((p.matchId === matchId || p.match?.id === matchId) &&
@@ -181,12 +181,21 @@ export const useMyPredictions = (leagueId?: string) => {
         const targetLeagueId = leagueId || null;
 
         // Mutate local cache immediately (optimistic)
-        mutate((currentData: any) => {
+        // Await to ensure UI updates before async operation
+        await mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
             // Remove all matches where leagueId matches targetLeagueId AND (optionally) tournamentId matches
             return list.filter((p: any) => {
                 const matchesLeague = (p.leagueId || null) === targetLeagueId;
-                const matchesTournament = !tournamentId || p.tournamentId === tournamentId;
+                
+                let matchesTournament = true;
+                if (tournamentId) {
+                    // Check direct ID or relation ID. 
+                    // If prediction lacks tournament info, assume match for aggressive clearing (better UX than stale data)
+                    const pTid = p.tournamentId || p.match?.tournamentId;
+                    matchesTournament = !pTid || pTid === tournamentId;
+                }
+                
                 return !(matchesLeague && matchesTournament);
             });
         }, false);
@@ -201,7 +210,10 @@ export const useMyPredictions = (leagueId?: string) => {
             }
 
             await api.delete(url);
-            mutate();
+            
+            // Force verify with server
+            await mutate();
+            
             toast.success('Todas las predicciones han sido eliminadas');
         } catch (err: any) {
             console.error(err);

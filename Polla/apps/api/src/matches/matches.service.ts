@@ -275,22 +275,22 @@ export class MatchesService {
     // 1. ROUND_32 (16 partidos) - Del 28 Jun al 3 Jul
     // Distribución: 3, 3, 3, 3, 2, 2
     const groupMapping = [
-      { h: '1A', a: '3RD-1' },
-      { h: '1B', a: '3RD-2' },
-      { h: '1C', a: '3RD-3' },
-      { h: '1D', a: '3RD-4' },
-      { h: '1E', a: '3RD-5' },
-      { h: '1F', a: '3RD-6' },
-      { h: '1G', a: '3RD-7' },
-      { h: '1H', a: '3RD-8' },
-      { h: '1I', a: '2A' },
-      { h: '1J', a: '2B' },
-      { h: '1K', a: '2C' },
-      { h: '1L', a: '2D' },
-      { h: '2E', a: '2F' },
-      { h: '2G', a: '2H' },
-      { h: '2I', a: '2J' },
-      { h: '2K', a: '2L' },
+      { h: '1A', a: '3RD-1' }, // M73 (Placeholder genérico para lógica de promoción de mejores terceros)
+      { h: '1E', a: '3RD-2' }, // M74
+      { h: '1F', a: '2C' },    // M75
+      { h: '2A', a: '2B' },    // M76
+      { h: '1I', a: '3RD-3' }, // M77
+      { h: '2E', a: '2I' },    // M78
+      { h: '1L', a: '3RD-4' }, // M79
+      { h: '1D', a: '3RD-5' }, // M80
+      { h: '1G', a: '3RD-6' }, // M81
+      { h: '2K', a: '2L' },    // M82
+      { h: '1H', a: '2J' },    // M83
+      { h: '1B', a: '3RD-7' }, // M84
+      { h: '2D', a: '2G' },    // M85
+      { h: '1J', a: '2H' },    // M86
+      { h: '1K', a: '3RD-8' }, // M87
+      { h: '1C', a: '2F' },    // M88
     ];
 
     const r32 = [];
@@ -349,8 +349,8 @@ export class MatchesService {
           status: 'PENDING',
           homeTeam: '',
           awayTeam: '',
-          homeTeamPlaceholder: `W32-${i * 2 - 1}`,
-          awayTeamPlaceholder: `W32-${i * 2}`,
+          homeTeamPlaceholder: `Ganador ${i * 2 - 1}`,
+          awayTeamPlaceholder: `Ganador ${i * 2}`,
           date: new Date(r16Date),
           tournamentId: tid,
         }),
@@ -368,8 +368,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'W16-1',
-        awayTeamPlaceholder: 'W16-2',
+        homeTeamPlaceholder: 'Ganador 1',
+        awayTeamPlaceholder: 'Ganador 2',
         date: new Date('2026-07-09T20:00:00Z'),
         tournamentId: tid,
       }),
@@ -381,8 +381,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'W16-3',
-        awayTeamPlaceholder: 'W16-4',
+        homeTeamPlaceholder: 'Ganador 3',
+        awayTeamPlaceholder: 'Ganador 4',
         date: new Date('2026-07-10T20:00:00Z'),
         tournamentId: tid,
       }),
@@ -394,8 +394,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'W16-5',
-        awayTeamPlaceholder: 'W16-6',
+        homeTeamPlaceholder: 'Ganador 5',
+        awayTeamPlaceholder: 'Ganador 6',
         date: new Date('2026-07-11T16:00:00Z'),
         tournamentId: tid,
       }),
@@ -407,8 +407,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'W16-7',
-        awayTeamPlaceholder: 'W16-8',
+        homeTeamPlaceholder: 'Ganador 7',
+        awayTeamPlaceholder: 'Ganador 8',
         date: new Date('2026-07-11T20:00:00Z'),
         tournamentId: tid,
       }),
@@ -424,8 +424,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'WQF-1',
-        awayTeamPlaceholder: 'WQF-2',
+        homeTeamPlaceholder: 'Ganador 1',
+        awayTeamPlaceholder: 'Ganador 2',
         date: DATES.SEMI_1,
         tournamentId: tid,
       }),
@@ -437,8 +437,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'WQF-3',
-        awayTeamPlaceholder: 'WQF-4',
+        homeTeamPlaceholder: 'Ganador 3',
+        awayTeamPlaceholder: 'Ganador 4',
         date: DATES.SEMI_2,
         tournamentId: tid,
       }),
@@ -453,8 +453,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'WSF-1',
-        awayTeamPlaceholder: 'WSF-2',
+        homeTeamPlaceholder: 'Ganador 1',
+        awayTeamPlaceholder: 'Ganador 2',
         date: DATES.FINAL,
         tournamentId: tid,
       }),
@@ -468,8 +468,8 @@ export class MatchesService {
         status: 'PENDING',
         homeTeam: 'TBD',
         awayTeam: 'TBD',
-        homeTeamPlaceholder: 'LSF-1',
-        awayTeamPlaceholder: 'LSF-2',
+        homeTeamPlaceholder: 'Perdedor 1',
+        awayTeamPlaceholder: 'Perdedor 2',
         date: DATES.THIRD,
         tournamentId: tid,
       }),

@@ -526,7 +526,15 @@ export class TournamentService {
       }
     }
 
-    if (!winnerTeam || !winnerFlag) return;
+    if (!winnerTeam) {
+      this.logger.warn(`No winner team found for match ${match.id}`);
+      return;
+    }
+    
+    // Allow promotion even without flag (for placeholder teams like PLA_X)
+    if (!winnerFlag) {
+      this.logger.log(`⚠️  Winner team "${winnerTeam}" has no flag, promoting anyway`);
+    }
 
     const nextPhaseMap: Record<string, string> = {
       ROUND_32: 'ROUND_16',
@@ -593,15 +601,24 @@ export class TournamentService {
     }
 
     // Determine Slot (Home or Away)
-    // Intentamos determinar por placeholder primero
+    // Buscamos si el placeholder del siguiente partido coincide con "Ganador [bracketId]"
     let isHomeSlot = true;
-    if (nextMatch.homeTeamPlaceholder?.includes(`${match.bracketId}`)) {
+    const currentBracketPlaceholder = `Ganador ${match.bracketId}`;
+    
+    if (nextMatch.homeTeamPlaceholder === currentBracketPlaceholder) {
       isHomeSlot = true;
-    } else if (nextMatch.awayTeamPlaceholder?.includes(`${match.bracketId}`)) {
+    } else if (nextMatch.awayTeamPlaceholder === currentBracketPlaceholder) {
       isHomeSlot = false;
     } else {
-      // Fallback a par/impar si no hay pista en el placeholder
-      isHomeSlot = match.bracketId % 2 !== 0;
+      // Fallback: buscar si el bracketId está contenido en el placeholder (para compatibilidad con formatos antiguos)
+      if (nextMatch.homeTeamPlaceholder?.includes(`${match.bracketId}`)) {
+        isHomeSlot = true;
+      } else if (nextMatch.awayTeamPlaceholder?.includes(`${match.bracketId}`)) {
+        isHomeSlot = false;
+      } else {
+        // Último fallback a par/impar si no hay pista en el placeholder
+        isHomeSlot = match.bracketId % 2 !== 0;
+      }
     }
 
     let updated = false;
@@ -622,7 +639,18 @@ export class TournamentService {
     }
 
     if (updated) {
-      await this.matchesRepository.save(nextMatch);
+      // Use UPDATE to avoid race conditions (e.g. concurrent updates to home and away slots)
+      const updateData: Partial<Match> = {};
+      if (isHomeSlot) {
+          updateData.homeTeam = winnerTeam;
+          updateData.homeFlag = winnerFlag;
+      } else {
+          updateData.awayTeam = winnerTeam;
+          updateData.awayFlag = winnerFlag;
+      }
+
+      await this.matchesRepository.update(nextMatch.id, updateData);
+
       this.logger.log(
         `🚀 Promoted ${winnerTeam} to ${nextPhase} Match ${nextMatch.id} (${isHomeSlot ? 'Home' : 'Away'})`,
       );
@@ -638,7 +666,8 @@ export class TournamentService {
     }
 
     // SPECIAL CASE: If this is a SEMI-FINAL, also promote the LOSER to 3RD_PLACE
-    if (match.phase === 'SEMI' && loserTeam && loserFlag) {
+    // Allow promotion even without flag (for placeholder teams)
+    if (match.phase === 'SEMI' && loserTeam) {
       const thirdPlaceMatch = await this.matchesRepository.findOne({
         where: { phase: '3RD_PLACE', tournamentId: match.tournamentId },
       });

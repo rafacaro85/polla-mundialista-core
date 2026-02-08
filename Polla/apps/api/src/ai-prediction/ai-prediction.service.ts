@@ -202,10 +202,10 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
       return;
     }
 
-    // Skip if already has prediction
-    if (match.aiPrediction && match.aiPredictionScore) {
+    // Skip if already has VALID prediction (not a fallback)
+    if (match.aiPrediction && match.aiPredictionScore && !match.aiPrediction.includes('error en servicio de IA')) {
       this.logger.log(
-        `[GENERATE_AND_SAVE] Match ${matchId} already has prediction. Skipping.`,
+        `[GENERATE_AND_SAVE] Match ${matchId} already has valid prediction. Skipping.`,
       );
       return;
     }
@@ -218,22 +218,61 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
       return;
     }
 
+    // Retry mechanism with exponential backoff
+    let attempts = 0;
+    const maxRetries = 3;
+
+    while (attempts < maxRetries) {
+      try {
+        attempts++;
+        this.logger.log(
+          `[GENERATE_AND_SAVE] Generating prediction for ${match.homeTeam} vs ${match.awayTeam} (Attempt ${attempts}/${maxRetries})`,
+        );
+        const prediction = await this.generatePrediction(match);
+        await this.savePredictionToCache(match, prediction);
+        this.logger.log(`[GENERATE_AND_SAVE] ✅ Success for match ${matchId}`);
+        return; // Success, exit function
+      } catch (error) {
+        this.logger.warn(
+          `[GENERATE_AND_SAVE] Attempt ${attempts} failed: ${error.message}`,
+        );
+        
+        if (attempts >= maxRetries) {
+           // Let it fall to the catch block below for random fallback
+           break; 
+        }
+        
+        // Wait before retrying (1s, 2s, 4s...)
+        const delay = Math.pow(2, attempts) * 1000;
+        this.logger.log(`[GENERATE_AND_SAVE] Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
     try {
-      this.logger.log(
-        `[GENERATE_AND_SAVE] Generating prediction for ${match.homeTeam} vs ${match.awayTeam}`,
-      );
-      const prediction = await this.generatePrediction(match);
-      await this.savePredictionToCache(match, prediction);
-      this.logger.log(`[GENERATE_AND_SAVE] ✅ Success for match ${matchId}`);
+        // This block is just to define the scope for the fallback logic which uses 'error' variable from the catch
+        throw new Error('Max retries exceeded');
     } catch (error) {
+
       this.logger.error(
         `[GENERATE_AND_SAVE] ❌ Error for match ${matchId}:`,
         error.message,
       );
+      this.logger.error(`[GENERATE_AND_SAVE] Full error:`, error);
 
-      // Save fallback prediction on error
+      // 🎲 RANDOM FALLBACK - Generate random score (0-3 goals each team)
+      const homeGoals = Math.floor(Math.random() * 4);
+      let awayGoals = Math.floor(Math.random() * 4);
+      
+      // In knockout phases, avoid draws
+      if (match.phase && match.phase !== 'GROUP' && homeGoals === awayGoals) {
+        awayGoals = homeGoals === 0 ? 1 : homeGoals - 1;
+      }
+      
+      const randomScore = `${homeGoals}-${awayGoals}`;
+
       const fallback = {
-        predictedScore: '1-1',
+        predictedScore: randomScore,
         confidence: 'low',
         reasoning:
           'Predicción generada automáticamente debido a error en servicio de IA',
@@ -245,7 +284,7 @@ Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
       await this.matchRepository.save(match);
 
       this.logger.log(
-        `[GENERATE_AND_SAVE] Saved fallback prediction for match ${matchId}`,
+        `[GENERATE_AND_SAVE] Saved fallback prediction (${randomScore}) for match ${matchId}`,
       );
     }
   }

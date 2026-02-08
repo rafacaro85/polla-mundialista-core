@@ -43,18 +43,41 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
             : api.post('/demo/simulate');
 
         toast.promise(promise, {
-            loading: count > 1 ? `Simulando ${count} partidos...` : 'Simulando partido...',
+            loading: count > 1 ? `Simulando fase completa...` : 'Simulando partido...',
             success: (res: any) => {
                 const data = res.data;
                 // Auto-refresh after 1.5s to see changes
                 setTimeout(() => window.location.reload(), 1500);
 
                 if (count > 1) {
-                    return `¡Simulación Completa! Se avanzaron ${data.count} partidos.`;
+                    return `¡Fase Completa! Se avanzaron ${data.count} partidos.`;
                 }
                 return `¡Partido Simulado! ${data.match}`;
             },
             error: (err) => err.response?.data?.message || 'No hay más partidos para simular'
+        });
+        
+        try {
+            await promise;
+        } catch (e) {
+            // Error handled by toast.promise
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSimulatePhase = async () => {
+        setLoading(true);
+        const promise = api.post('/demo/simulate', { count: 999 }); // Large number to simulate entire phase
+
+        toast.promise(promise, {
+            loading: 'Simulando toda la fase...',
+            success: (res: any) => {
+                const data = res.data;
+                setTimeout(() => window.location.reload(), 1500);
+                return `¡Fase Completa! Se simularon ${data.count} partidos.`;
+            },
+            error: (err) => err.response?.data?.message || 'Error al simular fase'
         });
         
         try {
@@ -131,12 +154,12 @@ export function DemoControlPanel({ leagueId }: DemoControlPanelProps) {
                                 SIMULAR 1 PARTIDO
                             </button>
                             <button 
-                                onClick={() => handleSimulate(5)}
+                                onClick={handleSimulatePhase}
                                 disabled={loading}
                                 className="w-full bg-[#00E676]/20 border border-[#00E676]/30 hover:bg-[#00E676]/30 text-[#00E676] font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 text-xs"
                             >
                                 <Sparkles size={14} />
-                                SIMULAR FASE (5 PARTIDOS)
+                                SIMULAR TODA LA FASE
                             </button>
                         </div>
 

@@ -501,7 +501,7 @@ export class MatchesService {
                 });
             
             if (tid) {
-                qbMatches.where("tournamentId = :tid", { tid });
+                qbMatches.where("\"tournamentId\" = :tid", { tid });
             }
             await qbMatches.execute();
 
@@ -517,10 +517,10 @@ export class MatchesService {
                      homeFlag: null,
                      awayFlag: null
                  })
-                 .where("phase != 'GROUP' AND phase != 'PLAYOFF' AND (homeTeamPlaceholder IS NOT NULL OR awayTeamPlaceholder IS NOT NULL)");
+                 .where("phase != 'GROUP' AND phase != 'PLAYOFF' AND (\"homeTeamPlaceholder\" IS NOT NULL OR \"awayTeamPlaceholder\" IS NOT NULL)");
             
             if (tid) {
-                qbPlaceholders.andWhere("tournamentId = :tid", { tid });
+                qbPlaceholders.andWhere("\"tournamentId\" = :tid", { tid });
             }
             await qbPlaceholders.execute();
 
@@ -531,7 +531,7 @@ export class MatchesService {
                 .set({ points: 0 });
             
             if (tid) {
-                qbPreds.where("tournamentId = :tid", { tid });
+                qbPreds.where("\"tournamentId\" = :tid", { tid });
             }
             await qbPreds.execute();
 
@@ -541,7 +541,7 @@ export class MatchesService {
                 .set({ points: 0 });
             
             if (tid) {
-                qbBrackets.where("tournamentId = :tid", { tid });
+                qbBrackets.where("\"tournamentId\" = :tid", { tid });
             }
             await qbBrackets.execute();
 
@@ -556,7 +556,7 @@ export class MatchesService {
                 });
             
             if (tid) {
-                qbPhases.where("tournamentId = :tid", { tid });
+                qbPhases.where("\"tournamentId\" = :tid", { tid });
             }
             await qbPhases.execute();
 
@@ -580,30 +580,32 @@ export class MatchesService {
             
             console.log('🔄 [RESET] Recalculando puntos de participantes...');
             
-            // Recalcular predictionPoints
+            // Recalcular predictionPoints con casts explícitos para evitar errores de tipo
             await queryRunner.query(`
                 UPDATE league_participants lp 
                 SET prediction_points = (
                     SELECT COALESCE(SUM(p.points), 0) 
                     FROM predictions p 
-                    WHERE p.league_id = lp.league_id AND p."userId" = lp.user_id
+                    WHERE CAST(p.league_id AS VARCHAR) = CAST(lp.league_id AS VARCHAR) 
+                    AND p."userId" = lp.user_id
                 )
             `);
 
-            // Recalcular bracketPoints
+            // Recalcular bracketPoints con casts explícitos
             await queryRunner.query(`
                 UPDATE league_participants lp 
                 SET bracket_points = (
                     SELECT COALESCE(SUM(ub.points), 0) 
                     FROM user_brackets ub 
-                    WHERE ub."leagueId" = lp.league_id AND ub."userId" = lp.user_id
+                    WHERE CAST(ub."leagueId" AS VARCHAR) = CAST(lp.league_id AS VARCHAR) 
+                    AND ub."userId" = lp.user_id
                 )
             `);
             
-            // Update Total
+            // Update Total (asegurando COALESCE para evitar NULLs que rompan la suma)
             await queryRunner.query(`
                 UPDATE league_participants 
-                SET total_points = prediction_points + bracket_points + trivia_points + joker_points
+                SET total_points = COALESCE(prediction_points, 0) + COALESCE(bracket_points, 0) + COALESCE(trivia_points, 0) + COALESCE(joker_points, 0)
             `);
 
             await queryRunner.commitTransaction();

@@ -152,32 +152,35 @@ export class DemoService {
             }
         }
 
-        // 5. Create Mock Predictions for Finished Matches
-        const finishedMatches = await this.matchRepo.find({
-            where: { tournamentId: this.TOURNAMENT_ID, status: 'FINISHED' },
-            take: 10,
+        // 5. Create Mock Predictions for ALL Group Stage Matches
+        const groupMatches = await this.matchRepo.find({
+            where: { tournamentId: this.TOURNAMENT_ID, phase: 'GROUP' },
         });
 
+        console.log(`📝 Creating predictions for ${groupMatches.length} group matches for ${mockUsers.length} users...`);
+
         for (const user of mockUsers) {
-            for (const match of finishedMatches) {
+            for (const match of groupMatches) {
                 // Ensure unique predictions
                 const existingPred = await this.predictionRepo.findOne({
-                    where: { user: { id: user.id }, match: { id: match.id }, leagueId: league.id }
+                    where: { user: { id: user.id }, match: { id: match.id }, leagueId: leagueId }
                 });
                 
                 if (!existingPred) {
                     await this.predictionRepo.save(this.predictionRepo.create({
                         user,
                         match,
-                        leagueId: league.id,
+                        leagueId: leagueId,
                         homeScore: Math.floor(Math.random() * 4),
                         awayScore: Math.floor(Math.random() * 4),
-                        points: Math.floor(Math.random() * 10),
-                        isJoker: Math.random() > 0.8,
+                        points: 0, // Points will be calculated when match finishes
+                        isJoker: Math.random() > 0.9, // 10% chance of joker
                     }));
                 }
             }
         }
+
+        console.log(`✅ Predictions created for demo league ${leagueId}`);
 
         // 6. Create Demo Bonus Questions
         const bonusText = '¿Quién llegará a la final? (Demo)';
@@ -260,13 +263,10 @@ export class DemoService {
     const h = Math.floor(Math.random() * 3);
     const a = Math.floor(Math.random() * 3);
 
-    pendingMatch.homeScore = h;
-    pendingMatch.awayScore = a;
-    pendingMatch.status = 'FINISHED';
-    await this.matchRepo.save(pendingMatch);
+    // Use MatchesService.finishMatch to properly calculate points
+    await this.matchesService.finishMatch(pendingMatch.id, h, a);
 
-    // This triggers the event system to calculate points
-    this.eventEmitter.emit('match.finished', { matchId: pendingMatch.id });
+    console.log(`⚽ Simulated: ${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`);
 
     return { 
         success: true, 

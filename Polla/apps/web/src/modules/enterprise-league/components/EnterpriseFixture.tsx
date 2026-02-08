@@ -236,11 +236,6 @@ export const EnterpriseFixture = () => {
         );
     }
 
-    // Debug: log tournamentId
-    console.log('🔍 EnterpriseFixture - League Metadata:', leagueMetadata);
-    console.log('🔍 EnterpriseFixture - Tournament ID:', leagueMetadata?.tournamentId);
-    console.log('🔍 EnterpriseFixture - Current Phase:', currentPhase);
-
     // Only use wrapper for Champions League (UCL has different phase unlock logic)
     const isChampionsLeague = leagueMetadata?.tournamentId === 'UCL2526';
     

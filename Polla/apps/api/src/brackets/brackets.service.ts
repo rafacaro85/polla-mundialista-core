@@ -166,16 +166,20 @@ export class BracketsService {
         return leagueBracket || generalBracket || null;
     }
 
-    async clearBracket(userId: string, leagueId?: string): Promise<void> {
+    async clearBracket(userId: string, leagueId?: string, tournamentId?: string): Promise<void> {
         const whereClause: any = { userId };
         if (leagueId) {
             whereClause.leagueId = leagueId;
         } else {
-            whereClause.leagueId = null;
+            whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull for global
+        }
+
+        if (tournamentId) {
+            whereClause.tournamentId = tournamentId;
         }
 
         await this.userBracketRepository.delete(whereClause);
-        console.log(`🗑️ Bracket cleared for user ${userId}`);
+        console.log(`🗑️ Bracket cleared for user ${userId} in tournament ${tournamentId}`);
     }
 
     async calculateBracketPoints(matchId: string, winnerTeamName: string): Promise<void> {

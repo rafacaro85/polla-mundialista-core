@@ -12,6 +12,7 @@ import { AiAssistButton } from '@/components/AiAssistButton';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrapper';
 import { useFilteredMatches } from '@/hooks/useFilteredMatches';
+import { useTournament } from '@/hooks/useTournament';
 
 
 interface SocialFixtureProps {
@@ -38,6 +39,7 @@ const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
 };
 
 export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
+    const { tournamentId } = useTournament();
     const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);
@@ -91,8 +93,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         };
     }) : [];
 
-    // Filter matches by unlocked phases (Mundial only)
-    const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, 'WC2026');
+    // Filter matches by unlocked phases
+    const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, tournamentId);
     
     // Use filtered matches for all operations
     const finalMatches = phaseFilteredMatches;
@@ -193,9 +195,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
-            {/* Phase Progress */}
             <div className="mb-6">
-                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId="WC2026" />
+                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={tournamentId} />
 
                 <div className="mt-4 flex flex-col gap-3">
                     <AiAssistButton
@@ -228,7 +229,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                             <Button
                                 onClick={async () => {
                                     if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                        await clearAllPredictions();
+                                        await clearAllPredictions(tournamentId);
                                         if (dates.length > 0) {
                                             setSelectedDate(dates[0]);
                                         }

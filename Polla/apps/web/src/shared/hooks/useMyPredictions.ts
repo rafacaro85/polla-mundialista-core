@@ -177,20 +177,29 @@ export const useMyPredictions = (leagueId?: string) => {
         }
     };
 
-    const clearAllPredictions = async () => {
+    const clearAllPredictions = async (tournamentId?: string) => {
         const targetLeagueId = leagueId || null;
 
         // Mutate local cache immediately (optimistic)
         mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
-            // Remove all matches where leagueId matches targetLeagueId
-            return list.filter((p: any) => (p.leagueId || null) !== targetLeagueId);
+            // Remove all matches where leagueId matches targetLeagueId AND (optionally) tournamentId matches
+            return list.filter((p: any) => {
+                const matchesLeague = (p.leagueId || null) === targetLeagueId;
+                const matchesTournament = !tournamentId || p.tournamentId === tournamentId;
+                return !(matchesLeague && matchesTournament);
+            });
         }, false);
 
         try {
-            const url = targetLeagueId
+            let url = targetLeagueId
                 ? `/predictions/all/clear?leagueId=${targetLeagueId}`
                 : `/predictions/all/clear`;
+            
+            if (tournamentId) {
+                url += (url.includes('?') ? '&' : '?') + `tournamentId=${tournamentId}`;
+            }
+
             await api.delete(url);
             mutate();
             toast.success('Todas las predicciones han sido eliminadas');

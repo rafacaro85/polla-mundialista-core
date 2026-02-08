@@ -36,8 +36,8 @@ export class PredictionsController {
 
     @UseGuards(JwtAuthGuard)
     @Delete('all/clear')
-    async deleteAllPredictions(@Request() req: any, @Query('leagueId') leagueId?: string) {
-        return this.predictionsService.removeAllPredictions(req.user.id, leagueId);
+    async deleteAllPredictions(@Request() req: any, @Query('leagueId') leagueId?: string, @Query('tournamentId') tournamentId?: string) {
+        return this.predictionsService.removeAllPredictions(req.user.id, leagueId, tournamentId);
     }
     @UseGuards(JwtAuthGuard, TimeLockGuard)
     @Post('bulk')

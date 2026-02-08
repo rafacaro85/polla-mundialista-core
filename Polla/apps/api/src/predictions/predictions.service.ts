@@ -180,14 +180,17 @@ export class PredictionsService {
         return { message: 'Prediction deleted' };
     }
 
-    async removeAllPredictions(userId: string, leagueId?: string) {
+    async removeAllPredictions(userId: string, leagueId?: string, tournamentId?: string) {
         // 1. Limpiar el Bracket (llaves eliminatorias)
-        await this.bracketsService.clearBracket(userId, leagueId);
-        console.log(`🧹 Bracket para usuario ${userId} y liga ${leagueId} limpiado.`);
+        await this.bracketsService.clearBracket(userId, leagueId, tournamentId);
+        console.log(`🧹 Bracket para usuario ${userId}, liga ${leagueId} y torneo ${tournamentId} limpiado.`);
 
         // 2. Limpiar predicciones de partidos (Scores)
         const where: any = { user: { id: userId } };
         where.leagueId = leagueId ? leagueId : IsNull();
+        if (tournamentId) {
+            where.tournamentId = tournamentId;
+        }
 
         // Solo borrar partidos que no han empezado
         const predictions = await this.predictionsRepository.find({
@@ -202,7 +205,7 @@ export class PredictionsService {
         }
 
         return {
-            message: `Sistema de predicciones reseteado: Bracket borrado y ${toDelete.length} marcadores eliminados.`,
+            message: `Sistema de predicciones reseteado para ${tournamentId || 'todos'}: Bracket borrado y ${toDelete.length} marcadores eliminados.`,
             count: toDelete.length
         };
     }

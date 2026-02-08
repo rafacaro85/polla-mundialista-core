@@ -294,7 +294,7 @@ export const EnterpriseFixture = () => {
                                         <Button
                                             onClick={async () => {
                                                 if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
-                                                    await clearAllPredictions();
+                                                    await clearAllPredictions(leagueMetadata?.tournamentId);
                                                     if (dates.length > 0) {
                                                         setSelectedDate(dates[0]);
                                                     }

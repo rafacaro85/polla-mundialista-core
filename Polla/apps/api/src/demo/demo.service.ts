@@ -17,7 +17,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class DemoService {
-  private readonly DEMO_LEAGUE_ID = 'demo-enterprise-mundial-2026';
+  private readonly DEMO_LEAGUE_ID = '00000000-0000-0000-0000-000000001337'; // Valid UUID for demo
   private readonly DEMO_ADMIN_EMAIL = 'demo@lapollavirtual.com';
   private readonly TOURNAMENT_ID = 'WC2026';
 
@@ -35,127 +35,167 @@ export class DemoService {
   ) {}
 
   async provisionDemo() {
-    console.log('🚀 Provisioning Demo Environment...');
+    try {
+        console.log('🚀 Provisioning Demo Environment...');
 
-    // 1. Create or Update Demo Admin
-    let admin = await this.userRepo.findOne({ where: { email: this.DEMO_ADMIN_EMAIL } });
-    if (!admin) {
-      const hashedPassword = await bcrypt.hash('demo123', 10);
-      admin = this.userRepo.create({
-        email: this.DEMO_ADMIN_EMAIL,
-        fullName: 'Administrador Demo',
-        nickname: 'AdminDemo',
-        password: hashedPassword,
-        role: UserRole.PLAYER,
-        isVerified: true,
-      });
-      admin = await this.userRepo.save(admin);
-    }
-
-    // 2. Create Demo League
-    let league = await this.leagueRepo.findOne({ where: { id: this.DEMO_LEAGUE_ID } });
-    if (league) {
-        // Clear existing demo data before re-provisioning
-        await this.clearDemoData();
-    }
-
-    league = this.leagueRepo.create({
-      id: this.DEMO_LEAGUE_ID,
-      name: 'Demo Corporativa Mundial 2026',
-      type: LeagueType.COMPANY,
-      isEnterprise: true,
-      isEnterpriseActive: true,
-      maxParticipants: 100,
-      creator: admin,
-      accessCodePrefix: 'DEMO-2026',
-      tournamentId: this.TOURNAMENT_ID,
-      companyName: 'Empresa Demo S.A.',
-      brandColorPrimary: '#4F46E5', // Indigo
-      brandColorBg: '#0F172A',
-      isPaid: true,
-      welcomeMessage: '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.',
-    });
-    await this.leagueRepo.save(league);
-
-    // 3. Add Admin as Participant
-    const adminParticipant = this.participantRepo.create({
-      user: admin,
-      league: league,
-      isAdmin: true,
-    });
-    await this.participantRepo.save(adminParticipant);
-
-    // 4. Create Mock Participants
-    const mockUsers = [];
-    for (let i = 1; i <= 10; i++) {
-        const user = this.userRepo.create({
-            email: `player${i}@demo.com`,
-            fullName: `Jugador Demo ${i}`,
-            nickname: `ProPlayer${i}`,
-            password: 'mock',
+        // 1. Create or Update Demo Admin
+        let admin = await this.userRepo.findOne({ where: { email: this.DEMO_ADMIN_EMAIL } });
+        if (!admin) {
+          const hashedPassword = await bcrypt.hash('demo123', 10);
+          admin = this.userRepo.create({
+            email: this.DEMO_ADMIN_EMAIL,
+            fullName: 'Administrador Demo',
+            nickname: 'AdminDemo',
+            password: hashedPassword,
+            role: UserRole.PLAYER,
             isVerified: true,
-        });
-        mockUsers.push(await this.userRepo.save(user));
-    }
-
-    for (let i = 0; i < mockUsers.length; i++) {
-        const user = mockUsers[i];
-        await this.participantRepo.save(this.participantRepo.create({
-            user,
-            league,
-            isAdmin: false,
-            department: (i + 1) % 2 === 0 ? 'Ventas' : 'Tecnología',
-        }));
-    }
-
-    // 5. Create Mock Predictions for Finished Matches
-    const finishedMatches = await this.matchRepo.find({
-        where: { tournamentId: this.TOURNAMENT_ID, status: 'FINISHED' },
-        take: 10,
-    });
-
-    for (const user of mockUsers) {
-        for (const match of finishedMatches) {
-            await this.predictionRepo.save(this.predictionRepo.create({
-                user,
-                match,
-                leagueId: league.id,
-                homeScore: Math.floor(Math.random() * 4),
-                awayScore: Math.floor(Math.random() * 4),
-                points: Math.floor(Math.random() * 10), // Random points to simulate ranking
-                isJoker: Math.random() > 0.8,
-            }));
+          });
+          admin = await this.userRepo.save(admin);
         }
-    }
 
-    // 6. Create Demo Bonus Questions
-    const bonus = this.bonusRepo.create({
-        text: '¿Quién llegará a la final?',
-        points: 50,
-        leagueId: league.id,
-        tournamentId: this.TOURNAMENT_ID,
-        isActive: true,
-    });
-    await this.bonusRepo.save(bonus);
-    
-    return { success: true, leagueId: league.id, adminEmail: admin.email, admin };
+        // 2. Create Demo League
+        let league = await this.leagueRepo.findOne({ where: { id: this.DEMO_LEAGUE_ID } });
+        if (league) {
+            // Clear existing demo data before re-provisioning
+            await this.clearDemoData();
+        }
+
+        league = this.leagueRepo.create({
+          id: this.DEMO_LEAGUE_ID,
+          name: 'Demo Corporativa Mundial 2026',
+          type: LeagueType.COMPANY,
+          packageType: 'diamond', // Ensure it has all features
+          isEnterprise: true,
+          isEnterpriseActive: true,
+          maxParticipants: 100,
+          creator: admin,
+          accessCodePrefix: 'DEMO-2026',
+          tournamentId: this.TOURNAMENT_ID,
+          companyName: 'Empresa Demo S.A.',
+          brandColorPrimary: '#4F46E5', // Indigo
+          brandColorBg: '#0F172A',
+          isPaid: true,
+          welcomeMessage: '¡Bienvenido al Demo Empresarial de La Polla Virtual! Aquí puedes ver cómo tus empleados vivirán el mundial.',
+        });
+        await this.leagueRepo.save(league);
+
+        // 3. Add Admin as Participant
+        const adminParticipant = this.participantRepo.create({
+          user: admin,
+          league: league,
+          isAdmin: true,
+        });
+        await this.participantRepo.save(adminParticipant);
+
+        // 4. Create Mock Participants
+        const mockUsers = [];
+        for (let i = 1; i <= 10; i++) {
+            const email = `player${i}@demo.com`;
+            let user = await this.userRepo.findOne({ where: { email } });
+            if (!user) {
+                user = this.userRepo.create({
+                    email,
+                    fullName: `Jugador Demo ${i}`,
+                    nickname: `ProPlayer${i}`,
+                    password: 'mock',
+                    isVerified: true,
+                });
+                user = await this.userRepo.save(user);
+            }
+            mockUsers.push(user);
+        }
+
+        for (let i = 0; i < mockUsers.length; i++) {
+            const user = mockUsers[i];
+            // Check if already in league
+            const exists = await this.participantRepo.findOne({ 
+                where: { league: { id: this.DEMO_LEAGUE_ID }, user: { id: user.id } } 
+            });
+            if (!exists) {
+                await this.participantRepo.save(this.participantRepo.create({
+                    user,
+                    league,
+                    isAdmin: false,
+                    department: (i + 1) % 2 === 0 ? 'Ventas' : 'Tecnología',
+                }));
+            }
+        }
+
+        // 5. Create Mock Predictions for Finished Matches
+        const finishedMatches = await this.matchRepo.find({
+            where: { tournamentId: this.TOURNAMENT_ID, status: 'FINISHED' },
+            take: 10,
+        });
+
+        for (const user of mockUsers) {
+            for (const match of finishedMatches) {
+                // Ensure unique predictions
+                const existingPred = await this.predictionRepo.findOne({
+                    where: { user: { id: user.id }, match: { id: match.id }, leagueId: league.id }
+                });
+                
+                if (!existingPred) {
+                    await this.predictionRepo.save(this.predictionRepo.create({
+                        user,
+                        match,
+                        leagueId: league.id,
+                        homeScore: Math.floor(Math.random() * 4),
+                        awayScore: Math.floor(Math.random() * 4),
+                        points: Math.floor(Math.random() * 10),
+                        isJoker: Math.random() > 0.8,
+                    }));
+                }
+            }
+        }
+
+        // 6. Create Demo Bonus Questions
+        const bonusText = '¿Quién llegará a la final? (Demo)';
+        let bonus = await this.bonusRepo.findOne({ where: { text: bonusText, leagueId: league.id } });
+        if (!bonus) {
+            bonus = this.bonusRepo.create({
+                text: bonusText,
+                points: 50,
+                leagueId: league.id,
+                tournamentId: this.TOURNAMENT_ID,
+                isActive: true,
+            });
+            await this.bonusRepo.save(bonus);
+        }
+
+        return { success: true, leagueId: league.id, adminEmail: admin.email, admin };
+    } catch (error) {
+        console.error('❌ ERROR IN PROVISION_DEMO:', error);
+        throw error;
+    }
   }
 
   async clearDemoData() {
-    await this.predictionRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
-    
-    // For relations we use a different approach to avoid TS errors with FilterOptions
-    const questions = await this.bonusRepo.find({ where: { leagueId: this.DEMO_LEAGUE_ID } });
-    if (questions.length > 0) {
-        const qIds = questions.map(q => q.id);
-        await this.bonusAnswerRepo.createQueryBuilder()
+    try {
+        console.log('🧹 Clearing Demo Data...');
+        await this.predictionRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
+        
+        const questions = await this.bonusRepo.find({ where: { leagueId: this.DEMO_LEAGUE_ID } });
+        if (questions.length > 0) {
+            const qIds = questions.map(q => q.id);
+            await this.bonusAnswerRepo.createQueryBuilder()
+                .delete()
+                .where('questionId IN (:...qIds)', { qIds })
+                .execute();
+        }
+        
+        await this.bonusRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
+        
+        // Use query builder for league_id delete to be safer with uuid
+        await this.participantRepo.createQueryBuilder()
             .delete()
-            .where('questionId IN (:...qIds)', { qIds })
+            .where('league_id = :leagueId', { leagueId: this.DEMO_LEAGUE_ID })
             .execute();
+            
+        console.log('✅ Demo Data Cleared.');
+    } catch (error) {
+        console.error('❌ Error clearing demo data:', error);
+        // We don't throw here to allow provisioning to try anyway
     }
-    
-    await this.bonusRepo.delete({ leagueId: this.DEMO_LEAGUE_ID });
-    await this.participantRepo.delete({ league: { id: this.DEMO_LEAGUE_ID } });
   }
 
   async simulateNextMatch() {

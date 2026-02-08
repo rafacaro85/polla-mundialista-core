@@ -24,14 +24,23 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
     const handleGenerate = async () => {
         setLoading(true);
         try {
-            // Filter matches to only include those with defined teams (not TBD)
+            // Helper function to check if a team is a real team (not placeholder)
+            const isRealTeam = (team: string) => {
+                if (!team || team === '' || team === 'TBD') return false;
+                // Check if it's a placeholder (starts with number or contains 'RD', 'W', 'L')
+                if (/^[0-9]/.test(team)) return false; // Starts with number (1A, 2B, 3RD-1, etc.)
+                if (team.includes('RD-') || team.includes('W') || team.includes('L')) return false;
+                return true;
+            };
+
+            // Filter matches to only include those with defined teams (not TBD, not placeholders)
             // This ensures we only predict the current playable phase
             const playableMatches = matches.filter(m => {
-                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || m.homeTeamPlaceholder || 'TBD';
-                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || m.awayTeamPlaceholder || 'TBD';
+                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || '';
+                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || '';
                 
-                // Only include matches where both teams are defined (not TBD, not empty)
-                return home !== 'TBD' && home !== '' && away !== 'TBD' && away !== '';
+                // Only include matches where both teams are real teams
+                return isRealTeam(home) && isRealTeam(away);
             });
 
             if (playableMatches.length === 0) {
@@ -42,8 +51,8 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
 
             // Preparar los datos para la IA solo con lo necesario
             const matchesForAi = playableMatches.map(m => {
-                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || m.homeTeamPlaceholder || 'TBD';
-                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || m.awayTeamPlaceholder || 'TBD';
+                const home = (typeof m.homeTeam === 'object' ? m.homeTeam.code : m.homeTeam) || '';
+                const away = (typeof m.awayTeam === 'object' ? m.awayTeam.code : m.awayTeam) || '';
                 
                 return {
                     id: m.id,

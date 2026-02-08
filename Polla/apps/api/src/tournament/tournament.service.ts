@@ -243,10 +243,15 @@ export class TournamentService {
         // Obtener ranking de mejores terceros
         const bestThirds = await this.standingsService.calculateBestThirdsRanking();
 
-        // Tomamos suficientes terceros para cubrir todos los huecos (por si hay más de 8 placeholders en DB)
-        const qualifiers = bestThirds.slice(0, 16);
+        // Tomamos solo los 8 mejores terceros
+        const qualifiers = bestThirds.slice(0, 8);
 
-        if (qualifiers.length === 0) return;
+        if (qualifiers.length === 0) {
+            this.logger.log(`⏳ No third-place teams available yet.`);
+            return;
+        }
+
+        this.logger.log(`📊 Best Thirds: ${qualifiers.map((q, i) => `${i + 1}. ${q.team} (${q.points}pts)`).join(', ')}`);
 
         // 2. Buscar banderas
         const teamFlags: Record<string, string> = {};
@@ -262,54 +267,61 @@ export class TournamentService {
             }
         }
 
-        // 3. Buscar partidos de ROUND_32 con placeholders de terceros
-        // Los placeholders en DB son complejos (ej: '3C/E/F/H/I')
+        // 3. Buscar partidos de ROUND_32 con placeholders de terceros (3RD-1 a 3RD-8)
         const knockoutMatches = await this.matchesRepository.find({
             where: { phase: 'ROUND_32' },
+            order: { bracketId: 'ASC' }
         });
 
         let updatedCount = 0;
-        let qualifierIndex = 0;
 
-        // Estrategia simplificada: Llenar los placeholders que empiecen con "3" en orden de ranking
-        // Primero Home
-        for (const match of knockoutMatches) {
-            if (qualifierIndex >= qualifiers.length) break;
+        // Asignar cada tercer lugar a su placeholder correspondiente
+        for (let i = 0; i < qualifiers.length && i < 8; i++) {
+            const qualifier = qualifiers[i];
+            const placeholderToFind = `3RD-${i + 1}`;
+            
+            // Buscar el partido que tiene este placeholder
+            for (const match of knockoutMatches) {
+                let updated = false;
 
-            if (match.homeTeamPlaceholder && match.homeTeamPlaceholder.startsWith('3')) {
-                // Verificar si ya está asignado (team ya tiene nombre real)
-                // Si el team sigue siendo null o vacío, asignamos
-                if (!match.homeTeam) {
-                    const q = qualifiers[qualifierIndex];
-                    match.homeTeam = q.team;
-                    match.homeFlag = teamFlags[q.team];
-                    // match.homeTeamPlaceholder = null; // Limpiar placeholder
-                    await this.matchesRepository.save(match);
-                    updatedCount++;
-                    qualifierIndex++;
+                // Verificar si el placeholder está en homeTeam
+                if (match.homeTeamPlaceholder === placeholderToFind && !match.homeTeam) {
+                    match.homeTeam = qualifier.team;
+                    match.homeFlag = teamFlags[qualifier.team] || '';
+                    updated = true;
+                    this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Home) - Placeholder: ${placeholderToFind}`);
                 }
-            }
-        }
 
-        // Luego Away (si quedan)
-        for (const match of knockoutMatches) {
-            if (qualifierIndex >= qualifiers.length) break;
+                // Verificar si el placeholder está en awayTeam
+                if (match.awayTeamPlaceholder === placeholderToFind && !match.awayTeam) {
+                    match.awayTeam = qualifier.team;
+                    match.awayFlag = teamFlags[qualifier.team] || '';
+                    updated = true;
+                    this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Away) - Placeholder: ${placeholderToFind}`);
+                }
 
-            if (match.awayTeamPlaceholder && match.awayTeamPlaceholder.startsWith('3')) {
-                if (!match.awayTeam) {
-                    const q = qualifiers[qualifierIndex];
-                    match.awayTeam = q.team;
-                    match.awayFlag = teamFlags[q.team];
-                    // match.awayTeamPlaceholder = null;
+                if (updated) {
                     await this.matchesRepository.save(match);
+                    
+                    // Emit event if both teams are now assigned
+                    if (match.homeTeam && match.awayTeam) {
+                        this.eventEmitter.emit('match.teams.assigned', {
+                            matchId: match.id,
+                            homeTeam: match.homeTeam,
+                            awayTeam: match.awayTeam
+                        });
+                    }
+                    
                     updatedCount++;
-                    qualifierIndex++;
+                    break; // Pasar al siguiente qualifier
                 }
             }
         }
 
         if (updatedCount > 0) {
             this.logger.log(`🎉 Best Thirds promotion complete. Updated ${updatedCount} Round 32 matches.`);
+        } else {
+            this.logger.log(`ℹ️ No Best Thirds to promote (already assigned or not enough completed groups).`);
         }
     }
 

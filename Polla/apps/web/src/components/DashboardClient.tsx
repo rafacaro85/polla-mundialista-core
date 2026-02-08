@@ -101,6 +101,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus'>(
     props.initialTab || 'home'
   );
+
+  const [mounted, setMounted] = useState(false);
   
   const [leaguesTab, setLeaguesTab] = useState<'social' | 'enterprise'>('social');
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
@@ -121,6 +123,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       refetchPhases()
     ]);
   };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Data Fetching
   const { data: latestTransaction } = useSWR(user ? '/transactions/my-latest?scope=account' : null, async (url) => {
@@ -266,7 +272,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                             HOLA, <span className="text-[var(--brand-primary,#00E676)]">{user?.nickname?.toUpperCase() || 'CRACK'}</span>
                         </h1>
                          <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                            {typeof window !== 'undefined' && window.location.hostname.includes('champions') 
+                            {mounted && typeof window !== 'undefined' && window.location.hostname.includes('champions') 
                                ? 'Bienvenido a la Polla Champions 2025-26. ¡Predice, compite y diviértete!'
                                : 'Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!'}
                         </p>
@@ -330,7 +336,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                <div className="mt-4">
                    {selectedLeagueId === 'global' ? (
                        // Hide prize card on Champions tournament (beta)
-                       typeof window !== 'undefined' && !window.location.hostname.includes('champions') && (
+                       mounted && typeof window !== 'undefined' && !window.location.hostname.includes('champions') && (
                            <PrizeCard 
                                description="Participa en la polla global y gana increíbles recompensas." 
                                imageUrl="/images/wc2026_hero.png"

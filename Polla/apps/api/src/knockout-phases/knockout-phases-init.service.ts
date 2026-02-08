@@ -17,7 +17,12 @@ export class KnockoutPhasesInitService implements OnModuleInit {
     private async initializePhases() {
         try {
             // Define tournaments to initialize
-            const tournaments = ['WC2026', 'DEMO_WC2026'];
+            // IMPORTANTE: Incluir TODOS los torneos activos
+            const tournaments = [
+                'WC2026',        // Mundial 2026
+                'DEMO_WC2026',   // Demo
+                'UCL2526'        // Champions League 2025-2026
+            ];
 
             for (const tournamentId of tournaments) {
                 // Check if phases already exist for this tournament

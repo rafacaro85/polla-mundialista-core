@@ -36,7 +36,12 @@ async function resetKnockoutPhases() {
         console.log('✅ All phases deleted');
 
         // Create phases for each tournament
-        const tournaments = ['WC2026', 'DEMO_WC2026'];
+        // IMPORTANTE: Incluir TODOS los torneos para no perder configuración
+        const tournaments = [
+            'WC2026',        // Mundial 2026 real
+            'DEMO_WC2026',   // Demo (usa mismo tournamentId que WC2026 en partidos)
+            'UCL2526'        // Champions League 2025-2026
+        ];
 
         for (const tournamentId of tournaments) {
             console.log(`\n🔄 Creating phases for ${tournamentId}...`);
@@ -59,7 +64,10 @@ async function resetKnockoutPhases() {
             console.log(`✅ Phases created for ${tournamentId}`);
         }
 
-        console.log('\n🎉 Knockout phases reset successfully!');
+        console.log('\n🎉 Knockout phases reset successfully for ALL tournaments!');
+        console.log('   - WC2026: Mundial 2026');
+        console.log('   - DEMO_WC2026: Demo');
+        console.log('   - UCL2526: Champions League');
         await AppDataSource.destroy();
         process.exit(0);
     } catch (error) {

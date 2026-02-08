@@ -323,9 +323,19 @@ export class PredictionsService {
 
         if (prediction) {
           // Update existente
+          // Update existente
           prediction.homeScore = dto.homeScore;
           prediction.awayScore = dto.awayScore;
-          if (dto.isJoker !== undefined) prediction.isJoker = dto.isJoker;
+          
+          // PROTECCION JOKER (Fix User Request):
+          // En cargas masivas (ej. IA, Guardar Todo), evitamos desactivar jokers accidentalmente.
+          // Solo actualizamos si el request explícitamente pide ACTIVAR (true).
+          // Si viene false o undefined, respetamos el valor que ya tiene en base de datos.
+          if (dto.isJoker === true) {
+            prediction.isJoker = true;
+          }
+          // Nota: Si dto.isJoker es false, ignoramos el cambio en Bulk para proteger el historial.
+          // El usuario debe desactivar el joker individualmente si así lo desea.
         } else {
           // Create nuevo
           prediction = queryRunner.manager.create(Prediction, {

@@ -404,14 +404,14 @@ export class LeaguesService {
     const bracketMap = new Map<string, number>(bracketPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || 0)]));
 
     // 4. Fetch Bonus Points (Global)
-    const bonusPointsRows = await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
+    const bonusPointsRows = userIds.length > 0 ? await this.userRepository.manager.createQueryBuilder(UserBonusAnswer, 'uba')
       .innerJoin('uba.question', 'bq')
       .select('uba.userId', 'userId')
       .addSelect('SUM(uba.pointsEarned)', 'points')
       .where('uba.userId IN (:...userIds)', { userIds })
-      .andWhere("bq.leagueId NOT IN (:...demoLeagueIds)", { demoLeagueIds })
+      .andWhere("(bq.leagueId NOT IN (:...demoLeagueIds) OR bq.leagueId IS NULL)", { demoLeagueIds })
       .groupBy('uba.userId')
-      .getRawMany();
+      .getRawMany() : [];
 
     const bonusMap = new Map<string, number>(bonusPointsRows.map((r: any) => [r.userId || r.userid, Number(r.points || r.POINTS || 0)]));
 

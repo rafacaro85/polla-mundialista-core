@@ -369,7 +369,8 @@ export class LeaguesService {
     ];
 
     const tournamentFilter = tournamentId ? `AND p."tournamentId" = '${tournamentId}'` : '';
-    const leagueExclusionFilter = `AND p.league_id NOT IN ('${demoLeagueIds.join("','")}')`;
+    // Corregido: Incluir league_id IS NULL para no perder predicciones globales reales
+    const leagueExclusionFilter = `AND (p.league_id NOT IN ('${demoLeagueIds.join("','")}') OR p.league_id IS NULL)`;
     
     // 2. Fetch Prediction Points (Excluyendo ligas demo)
     const predictionPointsRows = (await this.predictionRepository.manager.query(`
@@ -395,7 +396,7 @@ export class LeaguesService {
         SELECT "userId", "leagueId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
-        AND "leagueId" NOT IN ('${demoLeagueIds.join("','")}')
+        AND ("leagueId" NOT IN ('${demoLeagueIds.join("','")}') OR "leagueId" IS NULL)
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"

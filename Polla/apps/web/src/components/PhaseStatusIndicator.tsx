@@ -17,7 +17,7 @@ const PHASE_NAMES: Record<string, string> = {
     'ROUND_16': 'Octavos de Final',
     'QUARTER': 'Cuartos de Final',
     'SEMI': 'Semifinales',
-    '3RD_PLACE': 'Tercer Puesto',
+    '3RD_PLACE': 'Tercer y Cuarto Puesto',
     'FINAL': 'Final',
 };
 
@@ -53,12 +53,22 @@ export function PhaseStatusIndicator({
         return (
             <button
                 onClick={() => onClick?.(phase)}
-                className={`${baseClasses} ${clickableClasses} bg-signal/10 border-signal/30 shadow-[0_0_15px_rgba(0,230,118,0.1)]`}
+                className={`${baseClasses} ${clickableClasses} ${
+                    !hasRemaining 
+                    ? 'bg-signal/20 border-signal/50 shadow-[0_0_20px_rgba(0,230,118,0.2)]' 
+                    : 'bg-signal/10 border-signal/30'
+                }`}
             >
-                <Unlock className="w-5 h-5 text-signal shrink-0" />
+                {!hasRemaining ? (
+                    <Unlock className="w-5 h-5 text-signal shrink-0 animate-pulse" />
+                ) : (
+                    <Unlock className="w-5 h-5 text-signal shrink-0" />
+                )}
                 <div>
-                    <div className="font-semibold text-signal leading-tight">{phaseName}</div>
-                    <div className="text-[10px] text-gray-400">
+                    <div className={`font-semibold text-signal leading-tight ${!hasRemaining ? 'text-lg' : ''}`}>
+                        {phaseName}
+                    </div>
+                    <div className={`text-[10px] ${!hasRemaining ? 'text-signal font-bold' : 'text-gray-400'}`}>
                         {hasRemaining
                             ? `${remainingMatches} pendiente${remainingMatches !== 1 ? 's' : ''}`
                             : 'Disponible'

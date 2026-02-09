@@ -428,12 +428,13 @@ export class LeaguesService {
       ? `AND p."tournamentId" = '${tournamentId}'`
       : '';
     
-    // FIX RANKING GLOBAL DUPLICADO: 
-    // El ranking global debe ser estricto y basarse SOLO en las predicciones del contexto Global.
-    // Esto evita sumar puntos duplicados de mÃºltiples ligas o "Best Ball" no deseado.
-    const leagueExclusionFilter = `AND p.league_id IS NULL`;
+    // FIX RANKING GLOBAL: BEST BALL STRATEGY
+    // En lugar de excluir ligas ("league_id IS NULL"), permitimos todas las predicciones
+    // y seleccionamos la MEJOR (MAX points) gracias al ORDER BY points DESC.
+    // Esto asegura que el Global Ranking refleje el verdadero potencial del usuario.
+    const leagueExclusionFilter = ``; // REMOVED CONSTRAINT
 
-    // 2. Fetch Prediction Points (Strict Global)
+    // 2. Fetch Prediction Points (Best Ball Global)
     const predictionPointsRows = await this.predictionRepository.manager.query(
       `
       SELECT "userId", 
@@ -442,7 +443,7 @@ export class LeaguesService {
       FROM (
         SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
         FROM predictions p
-        WHERE "userId" = ANY($1) ${tournamentFilter} ${leagueExclusionFilter}
+        WHERE "userId" = ANY($1) ${tournamentFilter} 
         ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"
@@ -463,15 +464,14 @@ export class LeaguesService {
       ]),
     );
 
-    // 3. Fetch Bracket Points (Strict Global)
+    // 3. Fetch Bracket Points (Best Ball Global)
     const bracketPointsRows = await this.userRepository.manager.query(
       `
-      SELECT "userId", SUM(bracket_points) as points
+      SELECT "userId", MAX(bracket_points) as points
       FROM (
-        SELECT "userId", "leagueId", MAX(points) as bracket_points
+        SELECT "userId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
-        AND "leagueId" IS NULL 
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"

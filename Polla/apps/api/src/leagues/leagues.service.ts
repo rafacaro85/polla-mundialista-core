@@ -1,4 +1,4 @@
-import {
+﻿import {
   Injectable,
   BadRequestException,
   NotFoundException,
@@ -85,10 +85,10 @@ export class LeaguesService {
       }
       // Add more validations for other plans if needed
 
-      // Si es tipo 'VIP' (máx 5)
+      // Si es tipo 'VIP' (mÃ¡x 5)
       if (type === LeagueType.VIP && maxParticipants > 5) {
         throw new BadRequestException(
-          'Las ligas VIP no pueden tener más de 5 participantes.',
+          'Las ligas VIP no pueden tener mÃ¡s de 5 participantes.',
         );
       }
 
@@ -111,12 +111,12 @@ export class LeaguesService {
 
         if (targetUser) {
           console.log(
-            `👤 [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`,
+            `ðŸ‘¤ [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`,
           );
           creator = targetUser;
         } else {
           console.log(
-            `👤 [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`,
+            `ðŸ‘¤ [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`,
           );
           const hashedPassword = await bcrypt.hash(adminPassword, 10);
           const newUser = this.userRepository.create({
@@ -149,7 +149,7 @@ export class LeaguesService {
       }
       // -----------------------------------------------------
 
-      // Generar código automático si no se proporciona
+      // Generar cÃ³digo automÃ¡tico si no se proporciona
       let code = accessCodePrefix;
 
       if (!code) {
@@ -167,12 +167,12 @@ export class LeaguesService {
         creator,
         accessCodePrefix: code,
         // Si es 'familia' o 'starter' (gratis), se considera pagado/activo.
-        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente según config,
+        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente segÃºn config,
         // pero generalmente las empresas se crean activas o pendientes.
         // Asumiremos que si viene de SuperAdmin es ENTERPRISE y quizas pagada manual, pero dejemos isPaid false si no es free,
-        // luego el admin la activa con el botón de pago si es necesario, O si es Enterprise activarla.
-        // ACTUALIZACIÓN: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aquí isPaid se rige por type.
-        // Vamos a dejar la lógica actual: solo FREE es paid auto. Enterprise se paga manual o por botón.
+        // luego el admin la activa con el botÃ³n de pago si es necesario, O si es Enterprise activarla.
+        // ACTUALIZACIÃ“N: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aquÃ­ isPaid se rige por type.
+        // Vamos a dejar la lÃ³gica actual: solo FREE es paid auto. Enterprise se paga manual o por botÃ³n.
         isPaid: ['familia', 'starter', 'FREE'].includes(packageType),
         packageType,
         isEnterprise: !!isEnterprise,
@@ -184,7 +184,7 @@ export class LeaguesService {
 
       const savedLeague = await this.leaguesRepository.save(league);
 
-      // 📢 Admin Alert (🏆) - New League
+      // ðŸ“¢ Admin Alert (ðŸ†) - New League
       const isPaid = ['familia', 'starter', 'FREE'].includes(packageType); // Logic copied from isPaid above
       const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
       const creatorName = adminName || creator.fullName;
@@ -200,14 +200,14 @@ export class LeaguesService {
         )
         .catch((e) => console.error('Telegram Error (Leagues):', e));
 
-      // ACTUALIZAR DATOS DEL USUARIO (Fidelización)
-      // Si el usuario proporcionó un teléfono de contacto para la liga, lo guardamos en su perfil
+      // ACTUALIZAR DATOS DEL USUARIO (FidelizaciÃ³n)
+      // Si el usuario proporcionÃ³ un telÃ©fono de contacto para la liga, lo guardamos en su perfil
       // Solo si NO acabamos de crear al usuario con ese dato
       if (adminPhone && creator.phoneNumber !== adminPhone) {
         creator.phoneNumber = adminPhone;
         await this.userRepository.save(creator);
         console.log(
-          `📞 [CreateLeague] Actualizado teléfono del usuario ${creator.id}: ${adminPhone}`,
+          `ðŸ“ž [CreateLeague] Actualizado telÃ©fono del usuario ${creator.id}: ${adminPhone}`,
         );
       }
 
@@ -250,8 +250,8 @@ export class LeaguesService {
   }
 
   private generateEnterpriseCode(companyName: string): string {
-    // 1. Limpiar nombre: Mayúsculas y solo letras/números
-    const cleanName = companyName.toUpperCase().replace(/[^A-Z0-9]/g, ''); // Eliminar espacios y símbolos
+    // 1. Limpiar nombre: MayÃºsculas y solo letras/nÃºmeros
+    const cleanName = companyName.toUpperCase().replace(/[^A-Z0-9]/g, ''); // Eliminar espacios y sÃ­mbolos
 
     // 2. Tomar prefijo (Max 6-8 chars)
     const prefix = cleanName.length > 8 ? cleanName.substring(0, 8) : cleanName;
@@ -403,7 +403,7 @@ export class LeaguesService {
   // Wait, getGlobalRanking is used by Cron/Schedule? Or frontend?
   // Let's update signature to accept tournamentId.
 
-  async getGlobalRanking(tournamentId?: string) {
+    async getGlobalRanking(tournamentId?: string) {
     // 1. Obtener todos los usuarios reales (excluyendo cuentas de demo)
     const users = await this.userRepository
       .createQueryBuilder('u')
@@ -418,7 +418,7 @@ export class LeaguesService {
 
     const userIds = users.map((u) => u.id);
 
-    // Definir IDs de ligas demo para excluir
+    // Definir IDs de ligas demo para excluir (aunque con el filtro IS NULL ya no importan tanto, las dejamos por seguridad en otros lados)
     const demoLeagueIds = [
       '00000000-0000-0000-0000-000000001337',
       '00000000-0000-0000-0000-000000001338',
@@ -427,10 +427,13 @@ export class LeaguesService {
     const tournamentFilter = tournamentId
       ? `AND p."tournamentId" = '${tournamentId}'`
       : '';
-    // Corregido: Incluir league_id IS NULL para no perder predicciones globales reales
-    const leagueExclusionFilter = `AND (p.league_id NOT IN ('${demoLeagueIds.join("','")}') OR p.league_id IS NULL)`;
+    
+    // FIX RANKING GLOBAL DUPLICADO: 
+    // El ranking global debe ser estricto y basarse SOLO en las predicciones del contexto Global.
+    // Esto evita sumar puntos duplicados de mÃºltiples ligas o "Best Ball" no deseado.
+    const leagueExclusionFilter = `AND p.league_id IS NULL`;
 
-    // 2. Fetch Prediction Points (Excluyendo ligas demo)
+    // 2. Fetch Prediction Points (Strict Global)
     const predictionPointsRows = await this.predictionRepository.manager.query(
       `
       SELECT "userId", 
@@ -460,7 +463,7 @@ export class LeaguesService {
       ]),
     );
 
-    // 3. Fetch Bracket Points (Excluyendo ligas demo)
+    // 3. Fetch Bracket Points (Strict Global)
     const bracketPointsRows = await this.userRepository.manager.query(
       `
       SELECT "userId", SUM(bracket_points) as points
@@ -468,7 +471,7 @@ export class LeaguesService {
         SELECT "userId", "leagueId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
-        AND ("leagueId" NOT IN ('${demoLeagueIds.join("','")}') OR "leagueId" IS NULL)
+        AND "leagueId" IS NULL 
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
@@ -483,7 +486,7 @@ export class LeaguesService {
       ]),
     );
 
-    // 4. Fetch Bonus Points (Global)
+    // 4. Fetch Bonus Points (Strict Global)
     const bonusPointsRows =
       userIds.length > 0
         ? await this.userRepository.manager
@@ -492,10 +495,7 @@ export class LeaguesService {
             .select('uba.userId', 'userId')
             .addSelect('SUM(uba.pointsEarned)', 'points')
             .where('uba.userId IN (:...userIds)', { userIds })
-            .andWhere(
-              '(bq.leagueId NOT IN (:...demoLeagueIds) OR bq.leagueId IS NULL)',
-              { demoLeagueIds },
-            )
+            .andWhere('bq.leagueId IS NULL') // Strict Global
             .groupBy('uba.userId')
             .getRawMany()
         : [];
@@ -545,9 +545,7 @@ export class LeaguesService {
       },
     }));
   }
-
   async getAllLeagues(tournamentId?: string) {
-    console.log('🔍 getAllLeagues called');
     try {
       const leagues = await this.leaguesRepository.find({
         where: tournamentId ? { tournamentId } : {},
@@ -555,7 +553,7 @@ export class LeaguesService {
         order: { name: 'ASC' },
       });
 
-      console.log(`✅ Found ${leagues.length} leagues`);
+      console.log(`âœ… Found ${leagues.length} leagues`);
 
       return leagues.map((l) => ({
         id: l.id,
@@ -580,7 +578,7 @@ export class LeaguesService {
         isPaid: l.isPaid,
       }));
     } catch (error) {
-      console.error('❌ CRITICAL ERROR in getAllLeagues:', error);
+      console.error('âŒ CRITICAL ERROR in getAllLeagues:', error);
       console.error('Error stack:', error.stack);
       throw new InternalServerErrorException(
         `Error al cargar ligas: ${error.message}`,
@@ -851,14 +849,14 @@ export class LeaguesService {
       const userMatches = userPointsMap.get(uId)!;
 
       // FIX RANKING: Independencia de Comodines.
-      // Si estamos en una liga local (!isGlobal) y usamos una predicción global (pLeagueId === null),
-      // ignoramos su Joker para el cálculo de puntos de esta liga.
+      // Si estamos en una liga local (!isGlobal) y usamos una predicciÃ³n global (pLeagueId === null),
+      // ignoramos su Joker para el cÃ¡lculo de puntos de esta liga.
       let effectiveIsJoker = isJoker;
       if (!isGlobal && pLeagueId === null) {
           effectiveIsJoker = false;
       }
 
-      // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
+      // Si no existe predicciÃ³n para este partido aÃºn en el mapa, o la que hay es global y la nueva es especÃ­fica de liga
       if (!userMatches.has(mId) || pLeagueId === leagueId) {
         userMatches.set(mId, { points, isJoker: effectiveIsJoker });
       }
@@ -997,7 +995,7 @@ export class LeaguesService {
     if (jokerPoints !== undefined) participant.jokerPoints = jokerPoints;
 
     console.log(
-      `✏️ [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`,
+      `âœï¸ [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`,
     );
 
     return this.leagueParticipantsRepository.save(participant);
@@ -1031,7 +1029,7 @@ export class LeaguesService {
     if (updateLeagueDto.maxParticipants !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
         throw new ForbiddenException(
-          'Solo el SUPER_ADMIN puede modificar el límite de participantes',
+          'Solo el SUPER_ADMIN puede modificar el lÃ­mite de participantes',
         );
       }
       league.maxParticipants = updateLeagueDto.maxParticipants;
@@ -1106,7 +1104,7 @@ export class LeaguesService {
 
     const updatedLeague = await this.leaguesRepository.save(league);
 
-    console.log(`✅ [updateLeague] Liga actualizada: ${updatedLeague.name}`);
+    console.log(`âœ… [updateLeague] Liga actualizada: ${updatedLeague.name}`);
     return updatedLeague;
   }
 
@@ -1173,7 +1171,7 @@ export class LeaguesService {
     await this.leagueParticipantsRepository.save(newAdminParticipant);
 
     console.log(
-      `✅ [transferOwner] Propiedad transferida de ${oldAdminId} a ${newAdminId}`,
+      `âœ… [transferOwner] Propiedad transferida de ${oldAdminId} a ${newAdminId}`,
     );
 
     return {
@@ -1193,13 +1191,13 @@ export class LeaguesService {
     }
 
     // Check permissions: Only SUPER_ADMIN or League Admin (Creator)
-    console.log(`🔍 [deleteLeague] Verificando permisos...`);
+    console.log(`ðŸ” [deleteLeague] Verificando permisos...`);
     console.log(`   Creator ID: ${league.creator.id}`);
     console.log(`   Requester ID: ${userId}`);
     console.log(`   Requester Role: ${userRole}`);
 
     if (userRole !== 'SUPER_ADMIN' && league.creator.id !== userId) {
-      console.error(`❌ [deleteLeague] Permiso denegado.`);
+      console.error(`âŒ [deleteLeague] Permiso denegado.`);
       throw new ForbiddenException(
         'No tienes permisos para eliminar esta liga',
       );
@@ -1209,10 +1207,10 @@ export class LeaguesService {
 
     try {
       console.log(
-        `🗑️ [deleteLeague] Iniciando eliminación nuclear de liga ${leagueId}...`,
+        `ðŸ—‘ï¸ [deleteLeague] Iniciando eliminaciÃ³n nuclear de liga ${leagueId}...`,
       );
 
-      // EJECUCIÓN NUCLEAR: Usar transacción para eliminar TODO
+      // EJECUCIÃ“N NUCLEAR: Usar transacciÃ³n para eliminar TODO
       await manager.transaction(async (transactionalEntityManager) => {
         // PASO 1: Logging (Participants check)
         const participantsCount = await transactionalEntityManager.count(
@@ -1222,13 +1220,13 @@ export class LeaguesService {
           },
         );
         console.log(
-          `   📋 Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
+          `   ðŸ“‹ Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
         );
 
         // NOTA: Las predicciones son globales, no se tocan.
 
         // PASO 2: Eliminar respuestas de bonus questions
-        console.log(`   ⭐ Paso 2: Eliminando respuestas de bonus...`);
+        console.log(`   â­ Paso 2: Eliminando respuestas de bonus...`);
         // Primero buscamos las preguntas de esta liga
         const questions = await transactionalEntityManager.find(BonusQuestion, {
           where: { league: { id: leagueId } },
@@ -1241,73 +1239,73 @@ export class LeaguesService {
             questionId: In(questionIds),
           });
           console.log(
-            `   ✓ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
+            `   âœ“ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
           );
         } else {
-          console.log(`   ✓ No hay respuestas de bonus para eliminar`);
+          console.log(`   âœ“ No hay respuestas de bonus para eliminar`);
         }
 
         // PASO 2.5: Eliminar comentarios del muro (LeagueComment)
-        console.log(`   💬 Paso 2.5: Eliminando comentarios del muro...`);
+        console.log(`   ðŸ’¬ Paso 2.5: Eliminando comentarios del muro...`);
         await transactionalEntityManager.delete(LeagueComment, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Comentarios eliminados`);
+        console.log(`   âœ“ Comentarios eliminados`);
 
-        // PASO 2.6: Eliminar predicciones específicas de la liga
-        console.log(`   🔮 Paso 2.6: Eliminando predicciones de la liga...`);
+        // PASO 2.6: Eliminar predicciones especÃ­ficas de la liga
+        console.log(`   ðŸ”® Paso 2.6: Eliminando predicciones de la liga...`);
         await transactionalEntityManager.delete(Prediction, {
           leagueId: leagueId,
         });
-        console.log(`   ✓ Predicciones de liga eliminadas`);
+        console.log(`   âœ“ Predicciones de liga eliminadas`);
 
         // PASO 3: Eliminar bonus questions
-        console.log(`   ⭐ Paso 3: Eliminando bonus questions...`);
+        console.log(`   â­ Paso 3: Eliminando bonus questions...`);
         await transactionalEntityManager.delete(BonusQuestion, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Bonus questions eliminadas`);
+        console.log(`   âœ“ Bonus questions eliminadas`);
 
         // PASO 4: Eliminar brackets de usuarios
-        console.log(`   🏆 Paso 4: Eliminando brackets...`);
+        console.log(`   ðŸ† Paso 4: Eliminando brackets...`);
         await transactionalEntityManager.delete(UserBracket, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Brackets eliminados`);
+        console.log(`   âœ“ Brackets eliminados`);
 
-        // PASO 5: Eliminar códigos de acceso
-        console.log(`   🔑 Paso 5: Eliminando códigos de acceso...`);
+        // PASO 5: Eliminar cÃ³digos de acceso
+        console.log(`   ðŸ”‘ Paso 5: Eliminando cÃ³digos de acceso...`);
         await transactionalEntityManager.delete(AccessCode, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Códigos de acceso eliminados`);
+        console.log(`   âœ“ CÃ³digos de acceso eliminados`);
 
         // PASO 6: Eliminar transacciones/pagos
-        console.log(`   💳 Paso 6: Eliminando transacciones...`);
+        console.log(`   ðŸ’³ Paso 6: Eliminando transacciones...`);
         await transactionalEntityManager.delete(Transaction, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Transacciones eliminadas`);
+        console.log(`   âœ“ Transacciones eliminadas`);
 
         // PASO 7: Eliminar participantes de la liga
-        console.log(`   👥 Paso 7: Eliminando participantes...`);
+        console.log(`   ðŸ‘¥ Paso 7: Eliminando participantes...`);
         await transactionalEntityManager.delete(LeagueParticipant, {
           league: { id: leagueId },
         });
-        console.log(`   ✓ Participantes eliminados`);
+        console.log(`   âœ“ Participantes eliminados`);
 
         // PASO 8: FINALMENTE eliminar la liga
-        console.log(`   🏁 Paso 8: Eliminando la liga...`);
+        console.log(`   ðŸ Paso 8: Eliminando la liga...`);
         await transactionalEntityManager.delete(League, leagueId);
-        console.log(`   ✓ Liga eliminada`);
+        console.log(`   âœ“ Liga eliminada`);
       });
 
       console.log(
-        `✅ [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
+        `âœ… [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
       );
       return { success: true, message: 'Liga eliminada correctamente' };
     } catch (error: any) {
-      console.error('❌ [deleteLeague] Error FATAL eliminando liga:', error);
+      console.error('âŒ [deleteLeague] Error FATAL eliminando liga:', error);
       console.error('   Stack:', error.stack);
       console.error('   Code:', error.code);
       console.error('   Detail:', error.detail);
@@ -1410,13 +1408,13 @@ export class LeaguesService {
 
     if (!transaction) {
       throw new NotFoundException(
-        'No se encontró una transacción para esta liga',
+        'No se encontrÃ³ una transacciÃ³n para esta liga',
       );
     }
 
     if (!transaction.user || !transaction.league) {
       // Ensure relations are loaded. findByLeagueId should handle this.
-      throw new NotFoundException('Datos de transacción incompletos');
+      throw new NotFoundException('Datos de transacciÃ³n incompletos');
     }
 
     return this.pdfService.generateVoucher(
@@ -1509,7 +1507,7 @@ export class LeaguesService {
 
   async getLeagueMatches(leagueId: string, userId?: string) {
     // Para ligas empresariales, retornar todos los partidos del torneo correspondiente
-    // con las predicciones del usuario si está autenticado
+    // con las predicciones del usuario si estÃ¡ autenticado
 
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
@@ -1619,7 +1617,7 @@ export class LeaguesService {
     if (!participant)
       throw new ForbiddenException('No eres participante de esta liga');
     if (participant.isBlocked)
-      throw new ForbiddenException('Estás bloqueado en esta liga');
+      throw new ForbiddenException('EstÃ¡s bloqueado en esta liga');
 
     const comment = this.leagueCommentsRepository.create({
       league: { id: leagueId },

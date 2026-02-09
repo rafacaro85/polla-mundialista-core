@@ -850,9 +850,17 @@ export class LeaguesService {
 
       const userMatches = userPointsMap.get(uId)!;
 
+      // FIX RANKING: Independencia de Comodines.
+      // Si estamos en una liga local (!isGlobal) y usamos una predicción global (pLeagueId === null),
+      // ignoramos su Joker para el cálculo de puntos de esta liga.
+      let effectiveIsJoker = isJoker;
+      if (!isGlobal && pLeagueId === null) {
+          effectiveIsJoker = false;
+      }
+
       // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
       if (!userMatches.has(mId) || pLeagueId === leagueId) {
-        userMatches.set(mId, { points, isJoker });
+        userMatches.set(mId, { points, isJoker: effectiveIsJoker });
       }
     });
 

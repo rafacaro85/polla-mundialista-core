@@ -226,7 +226,23 @@ export class PredictionsService {
       qb.andWhere('prediction.leagueId IS NULL');
     }
 
-    return qb.getMany();
+    const predictions = await qb.getMany();
+
+    if (leagueId && leagueId !== 'global') {
+      // FIX CRITICO: Independencia de Comodines.
+      // Si estamos en una liga específica, las predicciones Globales que se usan de relleno
+      // NO deben traer su Joker activo, porque ese Joker pertenece a la estrategia Global.
+      // El usuario debe activar su Joker explícitamente en la liga local si lo quiere usar.
+      // Esto evita que aparezcan 2 jokers (uno global heredado + uno local).
+      return predictions.map((p) => {
+        if (p.leagueId === null) {
+          p.isJoker = false;
+        }
+        return p;
+      });
+    }
+
+    return predictions;
   }
 
   async removePrediction(userId: string, matchId: string, leagueId?: string) {

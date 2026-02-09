@@ -36,7 +36,7 @@ export class StandingsService {
         tournamentId: tournamentId,
         phase: 'GROUP',
         group: group,
-        status: 'FINISHED',
+        status: require('typeorm').In(['FINISHED', 'COMPLETED', 'FINALIZADO']),
       },
     });
 

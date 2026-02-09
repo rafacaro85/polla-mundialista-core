@@ -26,19 +26,16 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
         try {
             // Helper function to check if a team is a real team (not placeholder)
             const isRealTeam = (team: string) => {
+                // EMERGENCY LOG - VERSION 2.1 (Fixing Playoff filter)
+                if (team?.startsWith('PLA_')) return true; 
+
                 if (!team || team === '' || team === 'TBD') return false;
                 
-                // Check for explicit placeholder patterns
-                // Placeholders start with: digit + letter (1A, 2B, 3RD-1, etc.)
-                if (/^[0-9][A-Z]/.test(team)) return false; // 1A, 2B, 3C, etc.
-                if (/^[0-9]RD-/.test(team)) return false; // 3RD-1, 3RD-2, etc.
-                
-                // Check for winner/loser placeholders
-                if (/^W[0-9]/.test(team)) return false; // W32-1, W16-2, WQ-1, etc.
-                if (/^L-/.test(team)) return false; // L-Semi-1, L-Semi-2, etc.
-                
-                // Check for PLA_ placeholders (playoff teams) - ALLOW THESE FOR DEMO
-                // if (team.startsWith('PLA_')) return false;
+                // Only filter winners/losers and bracket placeholders (1A, 2B, etc.)
+                if (/^[0-9][A-Z]/.test(team)) return false; 
+                if (/^[0-9]RD-/.test(team)) return false; 
+                if (/^W[0-9]/.test(team)) return false; 
+                if (/^L-/.test(team)) return false;
                 
                 return true;
             };

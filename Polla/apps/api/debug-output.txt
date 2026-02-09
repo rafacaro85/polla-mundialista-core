@@ -1,0 +1,6 @@
+🚀 Starting RAW debug script...
+✅ Database connected!
+👥 Total Users in DB: 10
+🎲 Total Predictions in DB: 72
+🔎 Users found matching 'racv': []
+❌ No user found! Check .env connection.

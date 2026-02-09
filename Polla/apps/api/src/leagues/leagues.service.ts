@@ -428,22 +428,21 @@ export class LeaguesService {
       ? `AND p."tournamentId" = '${tournamentId}'`
       : '';
     
-    // FIX RANKING GLOBAL: BEST BALL STRATEGY
-    // En lugar de excluir ligas ("league_id IS NULL"), permitimos todas las predicciones
-    // y seleccionamos la MEJOR (MAX points) gracias al ORDER BY points DESC.
-    // Esto asegura que el Global Ranking refleje el verdadero potencial del usuario.
-    const leagueExclusionFilter = ``; // REMOVED CONSTRAINT
+    // FIX RANKING GLOBAL DUPLICADO: 
+    // El ranking global debe ser estricto y basarse SOLO en las predicciones del contexto Global.
+    // Esto evita sumar puntos duplicados de múltiples ligas o "Best Ball" no deseado.
+    const leagueExclusionFilter = `AND p.league_id IS NULL`;
 
-    // 2. Fetch Prediction Points (Best Ball Global)
+    // 2. Fetch Prediction Points (Strict Global)
     const predictionPointsRows = await this.predictionRepository.manager.query(
       `
       SELECT "userId", 
-             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points ELSE 0 END) as joker_points,
-             SUM(CASE WHEN "isJoker" IS NOT TRUE THEN match_points ELSE 0 END) as regular_points
+             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE 0 END) as joker_points,
+             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE match_points END) as regular_points
       FROM (
         SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
         FROM predictions p
-        WHERE "userId" = ANY($1) ${tournamentFilter} 
+        WHERE "userId" = ANY($1) ${tournamentFilter} ${leagueExclusionFilter}
         ORDER BY "userId", "matchId", points DESC
       ) as sub
       GROUP BY "userId"
@@ -464,14 +463,15 @@ export class LeaguesService {
       ]),
     );
 
-    // 3. Fetch Bracket Points (Best Ball Global)
+    // 3. Fetch Bracket Points (Strict Global)
     const bracketPointsRows = await this.userRepository.manager.query(
       `
-      SELECT "userId", MAX(bracket_points) as points
+      SELECT "userId", SUM(bracket_points) as points
       FROM (
-        SELECT "userId", MAX(points) as bracket_points
+        SELECT "userId", "leagueId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
+        AND "leagueId" IS NULL 
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
@@ -838,25 +838,29 @@ export class LeaguesService {
     allPredictions.forEach((r) => {
       const uId = r.userId || r.userid || r.p_user_id;
       const mId = r.matchId || r.matchid || r.p_match_id;
-      const points = Number(r.points || r.p_points || 0);
+      let points = Number(r.points || r.p_points || 0);
       const isJoker = !!(r.isJoker || r.p_isJoker);
       const pLeagueId = r.leagueId || r.leagueid || r.p_league_id;
 
       if (!userPointsMap.has(uId)) {
         userPointsMap.set(uId, new Map());
       }
-
+      
       const userMatches = userPointsMap.get(uId)!;
 
       // FIX RANKING: Independencia de Comodines.
-      // Si estamos en una liga local (!isGlobal) y usamos una predicciÃ³n global (pLeagueId === null),
-      // ignoramos su Joker para el cÃ¡lculo de puntos de esta liga.
+      // Si estamos en una liga local (!isGlobal) y usamos una predicción global (pLeagueId === null),
+      // ignoramos su Joker para el cálculo de puntos de esta liga.
       let effectiveIsJoker = isJoker;
       if (!isGlobal && pLeagueId === null) {
           effectiveIsJoker = false;
+          // CRITICAL FIX: If we ignore the joker, we must also revert the points multiplier!
+          if (isJoker) {
+              points = points / 2;
+          }
       }
 
-      // Si no existe predicciÃ³n para este partido aÃºn en el mapa, o la que hay es global y la nueva es especÃ­fica de liga
+      // Si no existe predicción para este partido aún en el mapa, o la que hay es global y la nueva es específica de liga
       if (!userMatches.has(mId) || pLeagueId === leagueId) {
         userMatches.set(mId, { points, isJoker: effectiveIsJoker });
       }
@@ -869,8 +873,15 @@ export class LeaguesService {
       let regTotal = 0;
       let jokerTotal = 0;
       matchesMap.forEach(({ points, isJoker }) => {
-        if (isJoker) jokerTotal += points;
-        else regTotal += points;
+        // FIX BREAKDOWN: "Partidos" = Base Score, "Comodín" = Extra Score
+        if (isJoker) {
+          const base = points / 2;
+          const extra = points / 2;
+          regTotal += base;
+          jokerTotal += extra;
+        } else {
+          regTotal += points;
+        }
       });
       predRegularMap.set(uId, regTotal);
       predJokerMap.set(uId, jokerTotal);

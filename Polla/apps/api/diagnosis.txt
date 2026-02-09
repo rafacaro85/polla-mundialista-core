@@ -1,0 +1,29 @@
+﻿[dotenv@17.2.3] injecting env (22) from .env -- tip: ­ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+
+­ƒôè ROUND_32 Finished Matches:
+  [1] PLA_A 2-1 Uruguay ÔåÆ Winner: PLA_A
+  [2] Canad├í 3-4 Uzbekist├ín ÔåÆ Winner: Uzbekist├ín
+  [3] Brasil 2-4 Paraguay ÔåÆ Winner: Paraguay
+  [4] PLA_C 0-3 Rep├║blica de Corea ÔåÆ Winner: Rep├║blica de Corea
+  [5] Costa del Marfil 2-1 Alemania ÔåÆ Winner: Costa del Marfil
+  [6] T├║nez 3-2 Austria ÔåÆ Winner: T├║nez
+  [7] Ir├ín 1-2 Marruecos ÔåÆ Winner: Marruecos
+  [8] Cabo Verde 0-2 Ghana ÔåÆ Winner: Ghana
+  [9] PLA_E 2-0 Sud├ífrica ÔåÆ Winner: PLA_E
+  [10] Argelia 3-2 Suiza ÔåÆ Winner: Argelia
+  [11] Colombia 4-1 Escocia ÔåÆ Winner: Colombia
+  [12] Inglaterra 2-1 Australia ÔåÆ Winner: Inglaterra
+  [13] Curazao 3-2 Jap├│n ÔåÆ Winner: Curazao
+  [14] Nueva Zelanda 2-0 Arabia Saud├¡ ÔåÆ Winner: Nueva Zelanda
+  [15] Francia 1-2 Argentina ÔåÆ Winner: Argentina
+  [16] PLA_F 2-1 Croacia ÔåÆ Winner: PLA_F
+
+­ƒôè ROUND_16 Current State:
+  [1] Uzbekist├ín vs Uzbekist├ín | Placeholders: Ganador 1 vs Ganador 2
+  [2] Paraguay vs Rep├║blica de Corea | Placeholders: Ganador 3 vs Ganador 4
+  [3] Costa del Marfil vs T├║nez | Placeholders: Ganador 5 vs Ganador 6
+  [4] Marruecos vs Ghana | Placeholders: Ganador 7 vs Ganador 8
+  [5] (empty) vs Argelia | Placeholders: Ganador 9 vs Ganador 10
+  [6] Colombia vs Inglaterra | Placeholders: Ganador 11 vs Ganador 12
+  [7] Curazao vs Nueva Zelanda | Placeholders: Ganador 13 vs Ganador 14
+  [8] Argentina vs (empty) | Placeholders: Ganador 15 vs Ganador 16

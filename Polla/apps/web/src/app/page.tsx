@@ -326,7 +326,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* Floating Demo Widget */}
-      <FloatingDemoWidget />
+      {/* <FloatingDemoWidget /> */}
 
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#94A3B8]/20">
@@ -337,7 +337,6 @@ export default function LandingPage() {
             <a href="#comunidad" className="hover:text-[#00E676] transition-colors text-[#00E676]">Torneo Global</a>
             <Link href="/planes" className="hover:text-[#00E676] transition-colors">Planes</Link>
             <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
-            <Link href="/demo" className="hover:text-[#00E676] font-bold px-3 py-1 bg-[#00E676]/10 rounded-full border border-[#00E676]/20 transition-all">Prueba DEMO</Link>
             <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
             <button onClick={onLoginClick} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
               Ingresar / Crear Cuenta
@@ -353,7 +352,6 @@ export default function LandingPage() {
             <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Torneo Global</a>
             <Link href="/planes" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</Link>
             <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
-            <Link href="/demo" onClick={() => setIsMenuOpen(false)} className="text-[#00E676] font-bold py-2">Demo (Personal / Empresas)</Link>
             <button
               onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
               className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase"

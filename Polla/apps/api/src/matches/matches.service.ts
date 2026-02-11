@@ -552,13 +552,26 @@ export class MatchesService {
     ];
 
     for (const ph of PHASES) {
-      const status = this.phaseStatusRepository.create({
-        phase: ph.p,
-        tournamentId: tid,
-        isUnlocked: ph.unlocked,
-        unlockedAt: ph.unlocked ? new Date() : undefined,
-        allMatchesCompleted: false,
-      });
+        // Buscar si ya existe para evitar duplicados que causen errores de constraint
+        let status = await this.phaseStatusRepository.findOne({
+            where: { phase: ph.p, tournamentId: tid }
+        });
+
+        if (!status) {
+            status = this.phaseStatusRepository.create({
+                phase: ph.p,
+                tournamentId: tid,
+                isUnlocked: ph.unlocked,
+                unlockedAt: ph.unlocked ? new Date() : new Date(0), // Dummy date if not nullable, or handle null
+                allMatchesCompleted: false,
+            });
+        } else {
+            // Update existing
+            status.isUnlocked = ph.unlocked;
+            status.unlockedAt = ph.unlocked ? new Date() : new Date(0);
+            status.allMatchesCompleted = false;
+        }
+        
       await this.phaseStatusRepository.save(status);
     }
 

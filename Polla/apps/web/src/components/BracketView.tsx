@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Save, RefreshCw, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { useTournament } from '@/hooks/useTournament'; // Import hook
 import { TournamentPodium } from './TournamentPodium';
 
 import { getTeamFlagUrl } from '@/shared/utils/flags';
@@ -150,29 +151,43 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         return getTeamFlagUrl(teamName);
     };
 
-    // Cargar bracket guardado desde la API (Siempre global para consistencia entre ligas)
     // Cargar bracket guardado desde la API
+    // Usamos useTournament para saber en qué contexto estamos (WC2026 o UCL2526)
+    const { tournamentId } = useTournament();
+
     useEffect(() => {
+        if (!tournamentId) return;
+
         const loadBracket = async () => {
             try {
                 // Si estamos en una liga, intentamos cargar el bracket de esa liga (o el global como fallback)
-                const url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
+                let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
+                
+                // CRITICAL: Append tournamentId to isolate data
+                const separator = url.includes('?') ? '&' : '?';
+                url += `${separator}tournamentId=${tournamentId}`;
+
                 const { data } = await api.get(url);
                 
                 if (data && data.picks) {
                     setWinners(data.picks);
                     setBracketPoints(data.points || 0);
-                    // toast.success("Tu bracket guardado se ha cargado");
+                } else {
+                    // Reset if no data for this tournament
+                    setWinners({});
+                    setBracketPoints(0);
                 }
             } catch (error) {
                 console.error("Error loading bracket:", error);
+                setWinners({});
+                setBracketPoints(0);
             } finally {
                 setLoading(false);
             }
         };
 
         loadBracket();
-    }, [leagueId]);
+    }, [leagueId, tournamentId]);
 
     // --- LÓGICA DE BLOQUEO ---
     const lockDate = useMemo(() => {
@@ -275,8 +290,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         }
         try {
             const { data } = await api.post('/brackets', {
-                picks: winners
-                // No enviamos leagueId para que sea global y consistente en todos los módulos
+                picks: winners,
+                tournamentId: tournamentId // CRITICAL: Save to correct tournament
             });
             setBracketPoints(data.points || 0);
             toast.success('Bracket guardado exitosamente! 🏆');

@@ -177,6 +177,7 @@ export class BracketsService {
   async getMyBracket(
     userId: string,
     leagueId?: string,
+    tournamentId: string = 'WC2026', // Default for backward compatibility
   ): Promise<UserBracket | null> {
     // Normalize 'global' string to undefined/null logic
     const targetLeagueId =
@@ -184,13 +185,14 @@ export class BracketsService {
 
     if (!targetLeagueId) {
       return this.userBracketRepository.findOne({
-        where: { userId, leagueId: IsNull() },
+        where: { userId, leagueId: IsNull(), tournamentId },
       });
     }
 
     // Smart Fallback: Intentar traer el de la liga, si no existe, traer el general (NULL)
+    // Filter by tournamentId to avoid cross-contamination
     const brackets = await this.userBracketRepository.find({
-      where: { userId },
+      where: { userId, tournamentId },
     });
 
     const leagueBracket = brackets.find((b) => b.leagueId === targetLeagueId);

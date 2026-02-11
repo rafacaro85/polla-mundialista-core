@@ -33,9 +33,10 @@ export class BracketsController {
   async getMyBracket(
     @Req() req: Request & { user: any },
     @Query('leagueId') leagueId?: string,
+    @Query('tournamentId') tournamentId?: string,
   ) {
     const userId = req.user.id;
-    return this.bracketsService.getMyBracket(userId, leagueId);
+    return this.bracketsService.getMyBracket(userId, leagueId, tournamentId);
   }
 
   @Delete('me')

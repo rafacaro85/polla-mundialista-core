@@ -505,7 +505,7 @@ export class MatchesService {
     await this.matchesRepository.delete({ tournamentId: tid });
     await this.phaseStatusRepository.delete({ tournamentId: tid });
 
-    // 2. Definir Equipos y Logos (Club Crests)
+    // 2. Definir Equipos y Logos (Club Crests - High Quality SVGs)
     const TEAMS: Record<string, string> = {
       'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
       'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
@@ -528,17 +528,18 @@ export class MatchesService {
       'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/f/f9/Aston_Villa_FC_crest_%282016%29.svg',
       PSV: 'https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg',
       Galatasaray: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galatasaray_Sports_Club_Logo.png/240px-Galatasaray_Sports_Club_Logo.png',
-      Atalanta: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/AtalantaBC.svg/240px-AtalantaBC.svg.png',
-      Monaco: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/ba/AS_Monaco_FC.svg/240px-AS_Monaco_FC.svg.png',
-      Qarabag: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Qaraba%C4%9F_FK_logo.svg/240px-Qaraba%C4%9F_FK_logo.svg.png',
-      Newcastle: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Newcastle_United_Logo.svg/240px-Newcastle_United_Logo.svg.png',
-      Olympiacos: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_CF_logo.svg/240px-Olympiacos_CF_logo.svg.png',
-      'Bodo/Glimt': 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/FK_Bod%C3%B8_Glimt.svg/240px-FK_Bod%C3%B8_Glimt.svg.png',
-      'Club Brujas': 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Club_Brugge_KV_logo.svg/240px-Club_Brugge_KV_logo.svg.png'
+      Atalanta: 'https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg',
+      Monaco: 'https://upload.wikimedia.org/wikipedia/en/b/ba/AS_Monaco_FC.svg',
+      Qarabag: 'https://upload.wikimedia.org/wikipedia/en/9/9b/Qaraba%C4%9F_FK_logo.svg',
+      Newcastle: 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
+      Olympiacos: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Olympiacos_CF_logo.svg',
+      'Bodo/Glimt': 'https://upload.wikimedia.org/wikipedia/en/f/f5/FK_Bod%C3%B8_Glimt.svg',
+      'Club Brujas': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg'
     };
 
     const getLogo = (team: string) => {
-      return TEAMS[team] || '';
+      // Intentar coincidencia exacta o default
+      return TEAMS[team] || TEAMS[Object.keys(TEAMS).find(k => k.includes(team)) || ''] || '';
     };
 
     // 3. Recrear PhaseStatuses

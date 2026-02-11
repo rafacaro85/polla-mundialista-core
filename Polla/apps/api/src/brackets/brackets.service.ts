@@ -14,6 +14,8 @@ import { SaveBracketDto } from './dto/save-bracket.dto';
 
 const PHASE_POINTS = {
   ROUND_32: 2,
+  PLAYOFF_1: 2,
+  PLAYOFF_2: 2,
   ROUND_16: 3,
   QUARTER: 6,
   SEMI: 10,

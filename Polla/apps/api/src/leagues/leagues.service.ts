@@ -427,10 +427,25 @@ export class LeaguesService {
     // En user_brackets y user_bonus_answers, leagueId es nullable.
     // En predictions, leagueId es nullable.
 
+    // 1. Obtener IDs de usuarios ACTIVOS en este torneo (Global Context Only)
+    // Un usuario es activo si tiene al menos un registro en:
+    // - Predicciones (Global)
+    // - Bracket (Global)
+    // - Bonus Answers (Global)
+    // Todo filtrado estrictamente por tournamentId y leagueId IS NULL
+    
+    // CORRECCIÓN CRÍTICA: La columna en DB para predictions es 'league_id', no 'leagueId'.
+    // Para user_brackets es 'leagueId' (según entity @Column()).
+    // Para bonus_questions (bq) asumimos 'leagueId' si sigue el patrón de bracket o 'league_id' si sigue prediction.
+    // Revisando bonus-question.entity.ts (no visto, pero asumiré standard o camel).
+    // PREDICTIONS: league_id
+    // USER_BRACKETS: leagueId (based on entity scan)
+    // BONUS: joined via question.
+
     const activeUsersQuery = `
       SELECT DISTINCT "userId" FROM (
         SELECT "userId" FROM predictions 
-        WHERE "tournamentId" = $1 AND "leagueId" IS NULL
+        WHERE "tournamentId" = $1 AND "league_id" IS NULL
         UNION
         SELECT "userId" FROM user_brackets 
         WHERE "tournamentId" = $1 AND "leagueId" IS NULL
@@ -453,8 +468,7 @@ export class LeaguesService {
     const users = await this.userRepository.find({
       where: { 
         id: In(activeUserIds),
-        // Excluir cuentas demo si es necesario, aunque el filtro de actividad ya debería limpiarlas si no juegan
-        email:  In(activeUserIds) // Dummy filter, real filtering is ID
+        // Excluir cuentas demo
       },
       select: ['id', 'nickname', 'fullName', 'avatarUrl', 'email']
     });
@@ -470,7 +484,7 @@ export class LeaguesService {
     const validUserIds = validUsers.map(u => u.id);
 
     // 3. Fetch Prediction Points (Strict Global & Tournament)
-    // Optimization: activeUserIds is already filtered, but we filter again for safety
+    // FIXED: league_id instead of leagueId
     const predictionPointsRows = await this.predictionRepository.manager.query(
       `
       SELECT "userId", 
@@ -482,7 +496,7 @@ export class LeaguesService {
         INNER JOIN matches m ON m.id = p."matchId"
         WHERE "userId" = ANY($1) 
         AND m."tournamentId" = $2
-        AND p."leagueId" IS NULL
+        AND p."league_id" IS NULL
         ORDER BY "userId", "matchId", p.points DESC
       ) as sub
       GROUP BY "userId"

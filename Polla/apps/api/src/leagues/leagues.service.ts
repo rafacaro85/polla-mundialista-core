@@ -420,179 +420,89 @@ export class LeaguesService {
     // Un usuario es activo si tiene al menos un registro en:
     // - Predicciones (Global)
     // - Bracket (Global)
-    // - Bonus Answers (Global)
-    // Todo filtrado estrictamente por tournamentId y leagueId IS NULL
+    // 🔍 VERSION CONSOLIDADA Y ROBUSTA
+    // Usamos una sola consulta SQL para traer Usuarios + Puntos (Predicciones, Brackets, Bonus)
+    // Esto evita problemas de sincronización de IDs y mejora el rendimiento al reducir round-trips.
     
-    // Usamos NULL como placeholder para leagueId en las tablas que lo soportan
-    // En user_brackets y user_bonus_answers, leagueId es nullable.
-    // En predictions, leagueId es nullable.
+    // NOTA: Usamos COALESCE(..., 0) para manejar usuarios que tienen bracket pero no predicciones, etc.
+    // FILTROS:
+    // - tournamentId stricto en cada subquery
+    // - league_id / leagueId IS NULL estricto en cada subquery
+    // - Active Participant: Debe tener AL MENOS UN punto de datos (Pred, Bracket o Bonus)
 
-    // 1. Obtener IDs de usuarios ACTIVOS en este torneo (Global Context Only)
-    // Un usuario es activo si tiene al menos un registro en:
-    // - Predicciones (Global)
-    // - Bracket (Global)
-    // - Bonus Answers (Global)
-    // Todo filtrado estrictamente por tournamentId y leagueId IS NULL
-    
-    // CORRECCIÓN CRÍTICA: La columna en DB para predictions es 'league_id', no 'leagueId'.
-    // Para user_brackets es 'leagueId' (según entity @Column()).
-    // Para bonus_questions (bq) asumimos 'leagueId' si sigue el patrón de bracket o 'league_id' si sigue prediction.
-    // Revisando bonus-question.entity.ts (no visto, pero asumiré standard o camel).
-    // PREDICTIONS: league_id
-    // USER_BRACKETS: leagueId (based on entity scan)
-    // BONUS: joined via question.
-
-    const activeUsersQuery = `
-      SELECT DISTINCT "userId" FROM (
-        SELECT "userId" FROM predictions 
+    const rawQuery = `
+      WITH 
+      predictions_data AS (
+        SELECT "userId", 
+               SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE 0 END) as joker_points,
+               SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE points END) as regular_points
+        FROM predictions 
         WHERE "tournamentId" = $1 AND "league_id" IS NULL
-        UNION
-        SELECT "userId" FROM user_brackets 
+        GROUP BY "userId"
+      ),
+      brackets_data AS (
+        SELECT "userId", SUM(points) as points 
+        FROM user_brackets 
         WHERE "tournamentId" = $1 AND "leagueId" IS NULL
-        UNION
-        SELECT "userId" FROM user_bonus_answers uba
+        GROUP BY "userId"
+      ),
+      bonus_data AS (
+        SELECT uba."userId", SUM(uba."pointsEarned") as points
+        FROM user_bonus_answers uba
         INNER JOIN bonus_questions bq ON bq.id = uba."questionId"
         WHERE bq."tournamentId" = $1 AND bq."leagueId" IS NULL
-      ) as active_ids
+        GROUP BY uba."userId"
+      )
+      SELECT 
+        u.id, 
+        u.nickname, 
+        u."fullName", 
+        u."avatarUrl",
+        u.email,
+        COALESCE(p.regular_points, 0) as "regularPoints",
+        COALESCE(p.joker_points, 0) as "jokerPoints",
+        COALESCE(b.points, 0) as "bracketPoints",
+        COALESCE(bonus.points, 0) as "bonusPoints",
+        (COALESCE(p.regular_points, 0) + COALESCE(p.joker_points, 0) + COALESCE(b.points, 0) + COALESCE(bonus.points, 0)) as "totalPoints"
+      FROM users u
+      LEFT JOIN predictions_data p ON p."userId" = u.id
+      LEFT JOIN brackets_data b ON b."userId" = u.id
+      LEFT JOIN bonus_data bonus ON bonus."userId" = u.id
+      WHERE 
+        (p."userId" IS NOT NULL OR b."userId" IS NOT NULL OR bonus."userId" IS NOT NULL)
+        AND u.email NOT LIKE '%@demo.com' 
+        AND u.email NOT IN ('demo@lapollavirtual.com', 'demo-social@lapollavirtual.com')
+      ORDER BY "totalPoints" DESC, u."fullName" ASC
     `;
 
-    const activeUserRows = await this.userRepository.manager.query(activeUsersQuery, [tournamentId]);
-    
-    if (!activeUserRows || activeUserRows.length === 0) {
+    try {
+      const results = await this.userRepository.manager.query(rawQuery, [tournamentId]);
+      
+      console.log(`📊 Global Ranking (${tournamentId}): Found ${results.length} active users via Single Query.`);
+
+      return results.map((user, index) => ({
+        position: index + 1,
+        id: user.id,
+        fullName: user.fullName || user.nickname || 'Anónimo', // Frontend expects fullName
+        nickname: user.nickname,
+        avatarUrl: user.avatarUrl,
+        regularPoints: Number(user.regularPoints),
+        jokerPoints: Number(user.jokerPoints),
+        bracketPoints: Number(user.bracketPoints),
+        bonusPoints: Number(user.bonusPoints),
+        totalPoints: Number(user.totalPoints),
+        breakdown: {
+            matches: Number(user.regularPoints),
+            phases: Number(user.bracketPoints),
+            wildcard: Number(user.jokerPoints),
+            bonus: Number(user.bonusPoints),
+        },
+      }));
+
+    } catch (error) {
+      console.error('❌ Error executing Global Ranking Query:', error);
       return [];
     }
-
-    const activeUserIds = activeUserRows.map((r: any) => r.userId);
-
-    // 2. Fetch User Details for Active Users ONLY
-    const users = await this.userRepository.find({
-      where: { 
-        id: In(activeUserIds),
-        // Excluir cuentas demo
-      },
-      select: ['id', 'nickname', 'fullName', 'avatarUrl', 'email']
-    });
-
-    // Cleanup ignored emails manually if needed or via query
-    const validUsers = users.filter(u => 
-      !u.email.endsWith('@demo.com') && 
-      !['demo@lapollavirtual.com', 'demo-social@lapollavirtual.com'].includes(u.email)
-    );
-    
-    if (validUsers.length === 0) return [];
-
-    const validUserIds = validUsers.map(u => u.id);
-
-    // 3. Fetch Prediction Points (Strict Global & Tournament)
-    // FIXED: league_id instead of leagueId
-    const predictionPointsRows = await this.predictionRepository.manager.query(
-      `
-      SELECT "userId", 
-             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE 0 END) as joker_points,
-             SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE match_points END) as regular_points
-      FROM (
-        SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", p.points as match_points, "isJoker"
-        FROM predictions p
-        INNER JOIN matches m ON m.id = p."matchId"
-        WHERE "userId" = ANY($1) 
-        AND m."tournamentId" = $2
-        AND p."league_id" IS NULL
-        ORDER BY "userId", "matchId", p.points DESC
-      ) as sub
-      GROUP BY "userId"
-    `,
-      [validUserIds, tournamentId],
-    );
-
-    const predRegularMap = new Map<string, number>(
-      predictionPointsRows.map((r: any) => [
-        r.userId || r.userid,
-        Number(r.regular_points || 0),
-      ]),
-    );
-    const predJokerMap = new Map<string, number>(
-      predictionPointsRows.map((r: any) => [
-        r.userId || r.userid,
-        Number(r.joker_points || 0),
-      ]),
-    );
-
-    // 4. Fetch Bracket Points (Strict Global & Tournament)
-    const bracketPointsRows = await this.userRepository.manager.query(
-      `
-      SELECT "userId", SUM(points) as points
-      FROM user_brackets
-      WHERE "userId" = ANY($1)
-      AND "leagueId" IS NULL
-      AND "tournamentId" = $2
-      GROUP BY "userId"
-    `,
-      [validUserIds, tournamentId],
-    );
-
-    const bracketMap = new Map<string, number>(
-      bracketPointsRows.map((r: any) => [
-        r.userId || r.userid,
-        Number(r.points || 0),
-      ]),
-    );
-
-    // 5. Fetch Bonus Points (Strict Global & Tournament)
-    const bonusPointsRows = await this.userRepository.manager
-            .createQueryBuilder(UserBonusAnswer, 'uba')
-            .innerJoin('uba.question', 'bq')
-            .select('uba.userId', 'userId')
-            .addSelect('SUM(uba.pointsEarned)', 'points')
-            .where('uba.userId IN (:...userIds)', { userIds: validUserIds })
-            .andWhere('bq.leagueId IS NULL') 
-            .andWhere('bq.tournamentId = :tournamentId', { tournamentId })
-            .groupBy('uba.userId')
-            .getRawMany();
-
-    const bonusMap = new Map<string, number>(
-      bonusPointsRows.map((r: any) => [
-        r.userId || r.userid,
-        Number(r.points || r.POINTS || 0),
-      ]),
-    );
-
-    // 6. Combinar
-    const finalRanking = validUsers.map((u) => {
-      const regularPoints: number = predRegularMap.get(u.id) || 0;
-      const jokerPoints: number = predJokerMap.get(u.id) || 0;
-      const bracketPoints: number = bracketMap.get(u.id) || 0;
-      const bonusPoints: number = bonusMap.get(u.id) || 0;
-
-      const predictionTotal = regularPoints + jokerPoints;
-      const totalPoints =
-        predictionTotal + Number(bracketPoints) + Number(bonusPoints);
-
-      return {
-        id: u.id,
-        fullName: u.fullName,
-        nickname: u.fullName || u.nickname || 'Usuario',
-        avatarUrl: u.avatarUrl,
-        regularPoints,
-        jokerPoints,
-        bracketPoints,
-        bonusPoints,
-        totalPoints,
-      };
-    });
-
-    // 7. Ordenar DESC
-    finalRanking.sort((a, b) => b.totalPoints - a.totalPoints);
-
-    return finalRanking.map((user, index) => ({
-      position: index + 1,
-      ...user,
-      breakdown: {
-        matches: user.regularPoints,
-        phases: user.bracketPoints,
-        wildcard: user.jokerPoints,
-        bonus: user.bonusPoints,
-      },
-    }));
   }
   async getAllLeagues(tournamentId?: string) {
     try {

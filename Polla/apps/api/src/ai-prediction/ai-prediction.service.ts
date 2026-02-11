@@ -1,32 +1,60 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 @Injectable()
 export class AiPredictionService {
   private readonly logger = new Logger(AiPredictionService.name);
-  private genAI: any;
-  private model: any;
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: any = null;
 
   constructor(
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
   ) {
-    // Initialize Gemini only if API key is available
-    if (process.env.GEMINI_API_KEY) {
+    this.initAi();
+  }
+
+  private initAi() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
       try {
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        this.model = this.genAI.getGenerativeModel({
-          model: 'models/gemini-flash-latest',
+        const genAI = new GoogleGenerativeAI(apiKey);
+        this.genAI = genAI;
+        this.model = genAI.getGenerativeModel({
+            model: 'models/gemini-flash-latest',
         });
-        this.logger.log('✅ Gemini AI initialized successfully');
-      } catch (error) {
-        this.logger.warn('⚠️ Failed to initialize Gemini AI:', error.message);
+        this.logger.log('✅ Gemini AI initialized');
+      } catch (err) {
+        this.logger.error('Failed to initialize Gemini:', err.message);
       }
     } else {
+      this.logger.warn('⚠️ GEMINI_API_KEY not found');
+    }
+  }
+
+  private async ensureAiInitialized() {
+    if (this.model) return true;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       this.logger.warn('⚠️ GEMINI_API_KEY not found in environment');
+      return false;
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      this.genAI = genAI;
+      this.model = genAI.getGenerativeModel({
+        model: 'models/gemini-flash-latest',
+      });
+      this.logger.log('✅ Gemini AI initialized on-demand');
+      return true;
+    } catch (error) {
+      this.logger.error('⚠️ Failed to initialize Gemini AI:', error.message);
+      return false;
     }
   }
 
@@ -44,22 +72,19 @@ export class AiPredictionService {
     }
 
     // ✅ CACHE HIT - Return immediately
-    if (match.aiPrediction && match.aiPredictionScore) {
-      this.logger.log(
-        `[CACHE HIT] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`,
-      );
-      return {
-        cached: true,
-        generatedAt: match.aiPredictionGeneratedAt,
-        score: match.aiPredictionScore,
-        analysis: JSON.parse(match.aiPrediction),
-      };
+    if (match.aiPredictionScore) {
+      try {
+          const analysis = match.aiPrediction ? JSON.parse(match.aiPrediction) : null;
+          return {
+            cached: true,
+            generatedAt: match.aiPredictionGeneratedAt,
+            score: match.aiPredictionScore,
+            analysis: analysis || { predictedScore: match.aiPredictionScore },
+          };
+      } catch (e) {
+          this.logger.warn(`Failed to parse AI prediction for match ${matchId}`);
+      }
     }
-
-    // ❌ CACHE MISS - Return "pending" state (NO API CALL)
-    this.logger.log(
-      `[PENDING] Match ${matchId} - ${match.homeTeam} vs ${match.awayTeam}`,
-    );
 
     return {
       cached: false,
@@ -69,53 +94,68 @@ export class AiPredictionService {
       analysis: {
         predictedScore: '?-?',
         confidence: 'pending',
-        reasoning:
-          '⏳ La IA está analizando este cruce. La predicción se generará automáticamente cuando los equipos estén confirmados.',
+        reasoning: '⏳ La IA está analizando este cruce.',
       },
     };
   }
 
   /**
    * Bulk retrieval of predictions for multiple matches
-   * Used by the "Suggest with IA" feature in the frontend
    */
   async getBulkPredictions(matchIds: string[]) {
-    const predictions: Record<string, [number, number]> = {};
-    const matches = await this.matchRepository.findByIds(matchIds);
+    try {
+        const predictions: Record<string, [number, number]> = {};
+        if (!matchIds || !matchIds.length) return predictions;
 
-    for (const matchId of matchIds) {
-      const match = matches.find((m) => m.id === matchId);
+        // Ensure we have a valid list of UUIDs to avoid DB errors
+        const validIds = matchIds.filter(id => id && id.length === 36);
+        if (!validIds.length) return predictions;
 
-      if (match && match.aiPredictionScore) {
-        // ✅ CACHE HIT
-        const score = match.aiPredictionScore.split('-').map(Number);
-        if (score.length === 2 && !isNaN(score[0]) && !isNaN(score[1])) {
-          predictions[matchId] = [score[0], score[1]] as [number, number];
-          continue;
+        const matches = await this.matchRepository.find({
+            where: { id: In(validIds) }
+        });
+
+        await this.ensureAiInitialized();
+
+        for (const matchId of validIds) {
+            const match = matches.find((m) => m.id === matchId);
+
+            // 1. Check Cache
+            if (match && match.aiPredictionScore) {
+                const score = match.aiPredictionScore.split('-').map(Number);
+                if (score.length === 2 && !isNaN(score[0]) && !isNaN(score[1])) {
+                    predictions[matchId] = [score[0], score[1]] as [number, number];
+                    continue;
+                }
+            }
+
+            // 2. Generate or Fallback
+            if (match && match.homeTeam && match.awayTeam) {
+                try {
+                    if (this.model) {
+                        const gen = await this.generatePrediction(match);
+                        await this.savePredictionToCache(match, gen);
+                        const score = gen.predictedScore.split('-').map(Number);
+                        predictions[matchId] = [score[0], score[1]] as [number, number];
+                    } else {
+                        throw new Error('AI Service Unavailable');
+                    }
+                } catch (e) {
+                    this.logger.warn(`Using fallback for match ${matchId}: ${e.message}`);
+                    const fallback = this.handleFallback(e, match);
+                    const score = fallback.score.split('-').map(Number);
+                    predictions[matchId] = [score[0], score[1]] as [number, number];
+                }
+            } else {
+                predictions[matchId] = [0, 0];
+            }
         }
-      }
 
-      // ❌ CACHE MISS or INVALID - Try to generate or fallback
-      if (match && match.homeTeam && match.awayTeam) {
-        try {
-          // Try to generate live if possible (will be throttled/limited by API key anyway)
-          const gen = await this.generatePrediction(match);
-          await this.savePredictionToCache(match, gen);
-          const score = gen.predictedScore.split('-').map(Number);
-          predictions[matchId] = [score[0], score[1]] as [number, number];
-        } catch (e) {
-          // Fail-safe: Random prediction to not break user flow
-          const fallback = this.handleFallback(e, match);
-          const score = fallback.score.split('-').map(Number);
-          predictions[matchId] = [score[0], score[1]] as [number, number];
-        }
-      } else {
-        // If teams are not assigned yet, return [0,0] or similar default
-        predictions[matchId] = [0, 0];
-      }
+        return predictions;
+    } catch (error) {
+        this.logger.error(`🔥 Fatal in getBulkPredictions: ${error.message}`);
+        throw error;
     }
-
-    return predictions;
   }
 
   /**
@@ -140,21 +180,27 @@ export class AiPredictionService {
 
     const phaseName = phaseMap[match.phase] || match.phase || 'Fase de Grupos';
 
-    const prompt = `Actúa como un analista deportivo experto. Sé breve y directo.
-
-Analiza el siguiente partido de fútbol y predice el resultado:
+    const prompt = `Actúa como un analista deportivo experto de la ${match.tournamentId === 'UCL2526' ? 'UEFA Champions League' : 'Copa del Mundo'}. Sé breve y directo.
+    
+Analiza el siguiente partido de fútbol considerando el momento de forma de ambos equipos y su jerarquía en la competición:
 
 **${match.homeTeam}** vs **${match.awayTeam}**
+Competición: ${match.tournamentId === 'UCL2526' ? 'Champions League' : 'Mundial'}
 Fase: ${phaseName}
 ${match.stadium ? `Estadio: ${match.stadium}` : ''}
 
-${match.phase && match.phase !== 'GROUP' ? 'IMPORTANTE: Este es un partido ELIMINATORIO. No hay empates en tiempo reglamentario si hay prórroga.' : ''}
+${match.phase && match.phase !== 'GROUP' ? 'REGLA: Este es un partido de eliminatoria directa. Debe haber un ganador (puede haber prórroga/penaltis, pero predice el resultado final del partido).' : 'REGLA: En fase de grupos se permite el empate.'}
 
-Responde ÚNICAMENTE en formato JSON válido (sin bloques de código markdown):
+Instrucciones:
+1. Proporciona un marcador REALISTA y VARIADO (ej: 0-0, 3-0, 1-2, 2-2, 1-0, etc.). Evita repetir siempre los mismos marcadores.
+2. Sé objetivo. Si hay un equipo claramente superior, refléjalo en el marcador.
+3. Responde ÚNICAMENTE en JSON válido.
+
+Respuesta JSON:
 {
   "predictedScore": "X-Y",
-  "confidence": "high|medium|low",
-  "reasoning": "breve análisis de máximo 2 líneas"
+  "confidence": "high/medium/low",
+  "reasoning": "Breve explicación de 2 frases en español sobre por qué ese resultado."
 }`;
 
     const result = await this.model.generateContent(prompt);

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { WompiButton } from '@/components/payments/WompiButton';
+import { useTournament } from '@/hooks/useTournament';
 
 interface PaymentMethodsProps {
     leagueId: string;
@@ -13,6 +13,7 @@ interface PaymentMethodsProps {
 }
 
 export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount = 50000, onSuccess }) => {
+    const { tournamentId } = useTournament();
     const [selectedQR, setSelectedQR] = useState<'NEQUI' | 'DAVIPLATA' | 'BANCOLOMBIA' | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -34,6 +35,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount
         formData.append('file', file);
         formData.append('amount', amount.toString());
         formData.append('leagueId', leagueId);
+        formData.append('tournamentId', tournamentId);
         
         // Generar referencia simple si no existe
         const reference = `MANUAL-${Date.now()}`;
@@ -141,17 +143,6 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount
                     >
                         {uploading ? 'Subiendo...' : 'Confirmar Pago Manual'}
                     </button>
-                </div>
-            </div>
-
-            {/* Wompi Payment Button (Temporarily Hidden) */}
-            <div className="w-full max-w-md opacity-50 grayscale pointer-events-none hidden"> 
-                <div className="bg-gradient-to-br from-[#00E676]/10 to-emerald-500/5 border border-[#00E676]/20 rounded-2xl p-6">
-                    <div className="text-center mb-4">
-                        <h3 className="text-white font-black uppercase text-lg mb-1">
-                            Pago Seguro (Mantenimiento)
-                        </h3>
-                    </div>
                 </div>
             </div>
         </div>

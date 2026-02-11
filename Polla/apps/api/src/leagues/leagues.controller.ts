@@ -46,6 +46,7 @@ export class LeaguesController {
   async createLeague(
     @Req() req: Request,
     @Body() createLeagueDto: CreateLeagueDto,
+    @Query('tournamentId') queryTournamentId?: string,
   ) {
     console.log('req.user:', req.user); // Debugging: Check the user object
     const userPayload = req.user as { id: string; userId?: string }; // Explicitly cast to expected JWT payload structure
@@ -55,11 +56,17 @@ export class LeaguesController {
         'User ID not found in request after authentication.',
       );
     }
+
+    // Ensure tournamentId is present
+    if (!createLeagueDto.tournamentId && queryTournamentId) {
+      createLeagueDto.tournamentId = queryTournamentId;
+    }
+
     return this.leaguesService.createLeague(userId, createLeagueDto);
   }
 
   @Get('global/ranking')
-  async getGlobalRanking(@Query('tournamentId') tournamentId?: string) {
+  async getGlobalRanking(@Query('tournamentId') tournamentId: string = 'WC2026') {
     return this.leaguesService.getGlobalRanking(tournamentId);
   }
 

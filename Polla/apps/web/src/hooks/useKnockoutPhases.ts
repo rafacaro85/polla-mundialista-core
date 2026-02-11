@@ -57,7 +57,12 @@ export function useKnockoutPhases(tournamentId?: string) {
     }, [tournamentId]);
 
     const isPhaseUnlocked = useCallback((phase: string): boolean => {
-        // Always unlock GROUP phase
+        // Special case: UCL starts from PLAYOFF, it has no GROUP in this context
+        if (tournamentId === 'UCL2526' && (phase === 'GROUP' || !phase)) {
+            return false;
+        }
+
+        // Always unlock GROUP phase for World Cup/Others
         if (phase === 'GROUP' || !phase) return true;
         
         const phaseStatus = phases.find(p => p.phase === phase);
@@ -65,11 +70,6 @@ export function useKnockoutPhases(tournamentId?: string) {
         // If we have explicit data from backend, use it
         if (phaseStatus) {
             return phaseStatus.isUnlocked;
-        }
-
-        // Default: If no data yet and it's WC2026, lock everything except GROUP
-        if (tournamentId === 'WC2026') {
-            return false;
         }
 
         return false;

@@ -56,10 +56,11 @@ export const EnterpriseFixture = () => {
 
     const fetchLeagueMetadata = async () => {
         try {
-            console.log('🔍 Fetching league metadata for leagueId:', leagueId);
+            // console.log('🔍 Fetching league metadata for leagueId:', leagueId);
             const { data } = await api.get(`/leagues/${leagueId}/metadata`);
-            console.log('✅ League metadata received:', data);
+            // console.log('✅ League metadata received:', data);
             setLeagueMetadata(data.league);
+
         } catch (error: any) {
             console.error('❌ Error fetching league metadata:', error);
             console.error('Error response:', error.response?.data);
@@ -203,7 +204,8 @@ export const EnterpriseFixture = () => {
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {
         const suggestionsMap: Record<string, { h: number, a: number }> = {};
         
-        console.log("🤖 Recibiendo predicciones IA (Enterprise):", Object.keys(newPredictions).length);
+        // console.log("🤖 Recibiendo predicciones IA (Enterprise):", Object.keys(newPredictions).length);
+
 
         Object.entries(newPredictions).forEach(([mId, scores]) => {
             const cleanId = mId.trim();

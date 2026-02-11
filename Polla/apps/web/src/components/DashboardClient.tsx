@@ -36,6 +36,7 @@ import { useMatches } from '@/hooks/useMatches';
 import { useCurrentLeague } from '@/hooks/useCurrentLeague';
 import { useKnockoutPhases } from '@/hooks/useKnockoutPhases';
 import { useLeagues } from '@/hooks/useLeagues';
+import { useTournament } from '@/hooks/useTournament';
 
 import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
@@ -94,6 +95,7 @@ const getPlanLevel = (type?: string) => {
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
+  const { tournamentId, isReady } = useTournament();
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
@@ -199,6 +201,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   }, [syncUserFromServer]);
 
 
+  // PREVENT FLASH: Wait for tournament context to stabilize
+  if (!mounted || !isReady) {
+      return (
+          <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00E676]"></div>
+          </div>
+      );
+  }
+
   return (
     <LeagueThemeProvider
       primaryColor={currentLeague?.brandColorPrimary}
@@ -271,8 +282,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                         <h1 className="text-3xl font-russo text-white mb-2">
                             HOLA, <span className="text-[var(--brand-primary,#00E676)]">{user?.nickname?.toUpperCase() || 'CRACK'}</span>
                         </h1>
-                         <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                            {mounted && typeof window !== 'undefined' && window.location.hostname.includes('champions') 
+                          <p className="text-slate-400 text-sm max-w-xs mx-auto">
+                            {tournamentId === 'UCL2526' 
                                ? 'Bienvenido a la Polla Champions 2025-26. ¡Predice, compite y diviértete!'
                                : 'Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!'}
                         </p>
@@ -336,7 +347,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                <div className="mt-4">
                    {selectedLeagueId === 'global' ? (
                        // Hide prize card on Champions tournament (beta)
-                       mounted && typeof window !== 'undefined' && !window.location.hostname.includes('champions') && (
+                       tournamentId !== 'UCL2526' && (
                            <PrizeCard 
                                description="Participa en la polla global y gana increíbles recompensas." 
                                imageUrl="/images/wc2026_hero.png"
@@ -390,6 +401,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 isEnterpriseMode={isEnterpriseMode}
                 currentLeague={currentLeague}
                 matches={matches}
+                tournamentId={tournamentId}
              />
           )}
 

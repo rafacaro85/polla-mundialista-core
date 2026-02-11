@@ -27,6 +27,8 @@ import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { EnterpriseLock } from '@/components/admin/EnterpriseLock';
+import { useTournament } from '@/hooks/useTournament';
+
 
 interface Participant {
     user: {
@@ -66,6 +68,8 @@ interface League {
 export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode; mode?: 'modal' | 'page' }) {
     const { user } = useAppStore();
     const { toast } = useToast();
+    const { tournamentId } = useTournament();
+
 
     const [open, setOpen] = useState(false);
     const [currentLeague, setCurrentLeague] = useState<League | null>(null);
@@ -456,7 +460,8 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                     <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                                                         onClick={() => {
                                                             const appUrl = window.location.origin;
-                                                            const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\n` +
+                                                            const isUCL = tournamentId === 'UCL2526';
+                                                            const text = `¡Únete a mi polla ${isUCL ? 'Champions' : 'Mundialista'} "${currentLeague.name}"! 🏆\n` +
                                                                 `Link: ${appUrl}/invite/${currentLeague.code}\n` +
                                                                 `Código: *${currentLeague.code}*`;
                                                             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');

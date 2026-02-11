@@ -12,8 +12,8 @@ export const useSystemConfig = () => {
             tiktok: "https://tiktok.com"
         },
         links: {
-            terms: "/terms",
-            privacy: "/privacy"
+            terms: "/terminos",
+            privacy: "/privacidad"
         },
         copyright: "Copyright © 2026. Todos los derechos reservados."
     });
@@ -31,8 +31,8 @@ export const useSystemConfig = () => {
                             tiktok: data.tiktok || "https://tiktok.com"
                         },
                         links: {
-                            terms: data.termsUrl || "/terms",
-                            privacy: data.privacyUrl || "/privacy"
+                            terms: data.termsUrl || "/terminos",
+                            privacy: data.privacyUrl || "/privacidad"
                         },
                         copyright: data.copyright || "Copyright © 2026"
                     });

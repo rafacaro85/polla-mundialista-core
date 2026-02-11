@@ -132,20 +132,24 @@ export class LeaguesService {
         }
       }
 
-      // --- LIMIT CHECK: 1 League Per User Per Tournament ---
+      // --- LIMIT CHECK: 1 Free League Per User Per Tournament ---
       const targetTournamentId = tournamentId || 'WC2026';
-      // Count existing leagues for this user in this tournament
-      const existingLeaguesCount = await this.leaguesRepository.count({
-        where: {
-          creator: { id: creator.id },
-          tournamentId: targetTournamentId,
-        },
-      });
+      const isFreePlan = ['familia', 'starter', 'FREE'].includes(packageType);
 
-      if (existingLeaguesCount >= 1) {
-        throw new BadRequestException(
-          'Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.',
-        );
+      if (isFreePlan) {
+        // Count existing leagues for this user in this tournament
+        const existingLeaguesCount = await this.leaguesRepository.count({
+          where: {
+            creator: { id: creator.id },
+            tournamentId: targetTournamentId,
+          },
+        });
+
+        if (existingLeaguesCount >= 1) {
+          throw new BadRequestException(
+            'Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.',
+          );
+        }
       }
       // -----------------------------------------------------
 
@@ -218,6 +222,7 @@ export class LeaguesService {
           0,
           packageType,
           savedLeague.id,
+          targetTournamentId,
           TransactionStatus.PAID,
         );
       }
@@ -233,6 +238,13 @@ export class LeaguesService {
       return savedLeague;
     } catch (error) {
       console.error('Error in createLeague:', error); // Log the actual error
+      
+      if (error instanceof BadRequestException || 
+          error instanceof NotFoundException || 
+          error instanceof ForbiddenException) {
+        throw error;
+      }
+      
       throw new InternalServerErrorException(
         'Failed to create league.',
         error.message,
@@ -403,7 +415,7 @@ export class LeaguesService {
   // Wait, getGlobalRanking is used by Cron/Schedule? Or frontend?
   // Let's update signature to accept tournamentId.
 
-    async getGlobalRanking(tournamentId?: string) {
+  async getGlobalRanking(tournamentId: string) {
     // 1. Obtener todos los usuarios reales (excluyendo cuentas de demo)
     const users = await this.userRepository
       .createQueryBuilder('u')
@@ -424,9 +436,7 @@ export class LeaguesService {
       '00000000-0000-0000-0000-000000001338',
     ];
 
-    const tournamentFilter = tournamentId
-      ? `AND p."tournamentId" = '${tournamentId}'`
-      : '';
+    const tournamentFilter = `AND p."tournamentId" = '${tournamentId}'`;
     
     // FIX RANKING GLOBAL DUPLICADO: 
     // El ranking global debe ser estricto y basarse SOLO en las predicciones del contexto Global.
@@ -440,15 +450,23 @@ export class LeaguesService {
              SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE 0 END) as joker_points,
              SUM(CASE WHEN "isJoker" IS TRUE THEN match_points / 2 ELSE match_points END) as regular_points
       FROM (
-        SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", points as match_points, "isJoker"
+        SELECT DISTINCT ON ("userId", "matchId") "userId", "matchId", p.points as match_points, "isJoker"
         FROM predictions p
-        WHERE "userId" = ANY($1) ${tournamentFilter} ${leagueExclusionFilter}
-        ORDER BY "userId", "matchId", points DESC
+        INNER JOIN matches m ON m.id = p."matchId"
+        WHERE "userId" = ANY($1) 
+        AND m."tournamentId" = '${tournamentId}' 
+        ${leagueExclusionFilter}
+        ORDER BY "userId", "matchId", p.points DESC
       ) as sub
       GROUP BY "userId"
     `,
       [userIds],
     );
+
+    console.log(`🔍 Global Ranking Debug (${tournamentId}): Found ${predictionPointsRows.length} users with points.`);
+    if (predictionPointsRows.length > 0) {
+        console.log('Sample Row:', predictionPointsRows[0]);
+    }
 
     const predRegularMap = new Map<string, number>(
       predictionPointsRows.map((r: any) => [
@@ -471,7 +489,8 @@ export class LeaguesService {
         SELECT "userId", "leagueId", MAX(points) as bracket_points
         FROM user_brackets
         WHERE "userId" = ANY($1)
-        AND "leagueId" IS NULL 
+        AND "leagueId" IS NULL
+        AND "tournamentId" = '${tournamentId}' 
         GROUP BY "userId", "leagueId"
       ) as sub
       GROUP BY "userId"
@@ -496,6 +515,7 @@ export class LeaguesService {
             .addSelect('SUM(uba.pointsEarned)', 'points')
             .where('uba.userId IN (:...userIds)', { userIds })
             .andWhere('bq.leagueId IS NULL') // Strict Global
+            .andWhere('bq.tournamentId = :tournamentId', { tournamentId })
             .groupBy('uba.userId')
             .getRawMany()
         : [];
@@ -587,27 +607,27 @@ export class LeaguesService {
   }
 
   async getMyLeagues(userId: string, tournamentId?: string) {
-    console.log('getMyLeagues - userId:', userId);
-    const participants = await this.leagueParticipantsRepository.find({
-      where: {
-        user: { id: userId },
-        league: tournamentId ? { tournamentId } : {},
-      },
-      relations: ['league', 'league.creator', 'league.participants'],
-    });
-    console.log('getMyLeagues - participants found:', participants.length);
-    console.log(
-      'getMyLeagues - participants:',
-      JSON.stringify(participants, null, 2),
-    );
+    console.log(`[LeaguesService] getMyLeagues for user: ${userId}, tournament: ${tournamentId}`);
+    
+    const query = this.leagueParticipantsRepository.createQueryBuilder('participant')
+      .innerJoinAndSelect('participant.league', 'league')
+      .leftJoinAndSelect('league.creator', 'creator')
+      .leftJoinAndSelect('league.participants', 'leagueParticipants')
+      .where('participant.user_id = :userId', { userId });
 
+    if (tournamentId && tournamentId !== 'all') {
+      query.andWhere('league.tournamentId = :tournamentId', { tournamentId });
+    }
+
+    const participants = await query.getMany();
+    
     const result = participants.map((p) => ({
       id: p.league.id,
       name: p.league.name,
       code: p.league.accessCodePrefix,
       type: p.league.type,
       isAdmin: p.isAdmin,
-      creatorName: p.league.creator.nickname || p.league.creator.fullName,
+      creatorName: p.league.creator?.nickname || p.league.creator?.fullName || 'Admin',
       participantCount: p.league.participants?.length || 0,
       isEnterprise: p.league.isEnterprise,
       isEnterpriseActive: p.league.isEnterpriseActive,
@@ -620,16 +640,14 @@ export class LeaguesService {
       brandFontFamily: p.league.brandFontFamily,
       brandCoverUrl: p.league.brandCoverUrl,
       welcomeMessage: p.league.welcomeMessage,
-      prizeImageUrl: p.league.prizeImageUrl, // Agregado para Enterprise Studio
-      prizeDetails: p.league.prizeDetails, // Agregado
+      prizeImageUrl: p.league.prizeImageUrl,
+      prizeDetails: p.league.prizeDetails,
       isPaid: p.league.isPaid,
       packageType: p.league.packageType,
-      // Ads
       showAds: p.league.showAds,
       adImages: p.league.adImages,
     }));
 
-    console.log('getMyLeagues - result:', JSON.stringify(result, null, 2));
     return result;
   }
 

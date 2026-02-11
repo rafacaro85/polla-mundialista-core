@@ -4,8 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { Trophy, Beaker } from "lucide-react"; // Assuming lucide-react is available, or use standard SVGs
 
-const MAIN_APP_URL = process.env.NEXT_PUBLIC_MAIN_APP_URL || "https://lapollavirtual.com"; // Fallback
-const BETA_APP_URL = process.env.NEXT_PUBLIC_BETA_URL || "https://champions.lapollavirtual.com"; // Fallback
+const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const MAIN_APP_URL = isLocal ? "http://localhost:3000" : (process.env.NEXT_PUBLIC_MAIN_APP_URL || "https://lapollavirtual.com");
+const BETA_APP_URL = isLocal ? "http://localhost:3000" : (process.env.NEXT_PUBLIC_BETA_URL || "https://champions.lapollavirtual.com");
 
 export default function TournamentHub() {
   const [championsUrl, setChampionsUrl] = React.useState(`${BETA_APP_URL}/dashboard`);
@@ -16,9 +17,11 @@ export default function TournamentHub() {
     if (token) {
       // Usar encodeURIComponent para asegurar que caracteres especiales del JWT no rompan la URL
       const safeToken = encodeURIComponent(token);
-      setChampionsUrl(`${BETA_APP_URL}/auth/success?token=${safeToken}&redirect=/dashboard`);
+      setChampionsUrl(`${BETA_APP_URL}/auth/success?token=${safeToken}&redirect=/dashboard&tournament=UCL2526`);
+    } else {
+      setChampionsUrl(`${BETA_APP_URL}/dashboard?tournament=UCL2526`);
     }
-  }, []);
+  }, [BETA_APP_URL]);
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
@@ -33,7 +36,7 @@ export default function TournamentHub() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Card 1: Mundial 2026 (Main App) */}
           <a
-            href={`${MAIN_APP_URL}/dashboard`}
+            href={`${MAIN_APP_URL}/dashboard?tournament=WC2026`}
             className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-emerald-500 transition-all duration-300 p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl hover:shadow-emerald-900/20"
           >
             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

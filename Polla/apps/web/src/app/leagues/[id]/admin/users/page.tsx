@@ -21,12 +21,16 @@ import {
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { BulkUserImport } from '@/components/admin/BulkUserImport';
+import { useTournament } from '@/hooks/useTournament';
+
 
 export default function AdminUsersPage() {
     const params = useParams();
     const router = useRouter();
     const { user } = useAppStore();
+    const { tournamentId } = useTournament();
     const [league, setLeague] = useState<any>(null);
+
     const [participants, setParticipants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -237,11 +241,12 @@ export default function AdminUsersPage() {
                                 return;
                             }
 
-                            const leagueName = league?.companyName || league?.name || 'Polla Mundialista';
+                            const leagueName = league?.companyName || league?.name || 'Polla';
                             const inviteUrl = `${appUrl}/invite/${code}`;
+                            const isUCL = tournamentId === 'UCL2526';
 
                             // Formato mejorado para WhatsApp
-                            const message = `¡Hola! Te invito a la Polla Mundialista de *${leagueName}*. 🏆\n\n` +
+                            const message = `¡Hola! Te invito a la Polla ${isUCL ? 'Champions' : 'Mundialista'} de *${leagueName}*. 🏆\n\n` +
                                 `Únete fácilmente dando clic aquí:\n👉 ${inviteUrl}\n\n` +
                                 `O usa el código de acceso: *${code}*`;
 

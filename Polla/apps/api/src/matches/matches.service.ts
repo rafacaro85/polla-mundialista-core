@@ -501,172 +501,149 @@ export class MatchesService {
 
   async seedUCLKnockout(): Promise<{ message: string; created: number }> {
     const tid = 'UCL2526';
-    // 1. Limpiar datos existentes de UCL (solo llaves para evitar borrar ligas si las hubiera)
-    await this.matchesRepository.delete({
-      tournamentId: tid,
-      phase: In(['ROUND_16', 'QUARTER', 'SEMI', 'FINAL']),
-    });
+    // 1. Limpiar datos existentes de UCL (Eliminar Matches y PhaseStatus para recrearlos limpios)
+    await this.matchesRepository.delete({ tournamentId: tid });
+    await this.phaseStatusRepository.delete({ tournamentId: tid });
 
-    // 2. Definir Equipos y Logos (Copiado del seeder beta para consistencia)
+    // 2. Definir Equipos y Logos (Club Crests)
     const TEAMS: Record<string, string> = {
-      'Manchester City': 'gb-eng',
-      'Real Madrid': 'es',
-      'Bayern Munich': 'de',
-      Liverpool: 'gb-eng',
-      'Inter Milan': 'it',
-      Arsenal: 'gb-eng',
-      Barcelona: 'es',
-      PSG: 'fr',
-      'Atletico Madrid': 'es',
-      'Borussia Dortmund': 'de',
-      'Bayer Leverkusen': 'de',
-      Juventus: 'it',
-      'AC Milan': 'it',
-      Benfica: 'pt',
-      'Aston Villa': 'gb-eng',
-      PSV: 'nl',
+      'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
+      'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+      'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
+      Liverpool: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg',
+      'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
+      Inter: 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
+      Arsenal: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg',
+      Barcelona: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+      PSG: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
+      'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
+      'Atlético Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
+      'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
+      Dortmund: 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
+      'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg',
+      Leverkusen: 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg',
+      Juventus: 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg',
+      'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
+      Benfica: 'https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg',
+      'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/f/f9/Aston_Villa_FC_crest_%282016%29.svg',
+      PSV: 'https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg',
+      Galatasaray: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galatasaray_Sports_Club_Logo.png/240px-Galatasaray_Sports_Club_Logo.png',
+      Atalanta: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/AtalantaBC.svg/240px-AtalantaBC.svg.png',
+      Monaco: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/ba/AS_Monaco_FC.svg/240px-AS_Monaco_FC.svg.png',
+      Qarabag: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Qaraba%C4%9F_FK_logo.svg/240px-Qaraba%C4%9F_FK_logo.svg.png',
+      Newcastle: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Newcastle_United_Logo.svg/240px-Newcastle_United_Logo.svg.png',
+      Olympiacos: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_CF_logo.svg/240px-Olympiacos_CF_logo.svg.png',
+      'Bodo/Glimt': 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/FK_Bod%C3%B8_Glimt.svg/240px-FK_Bod%C3%B8_Glimt.svg.png',
+      'Club Brujas': 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Club_Brugge_KV_logo.svg/240px-Club_Brugge_KV_logo.svg.png'
     };
 
     const getLogo = (team: string) => {
-      const code = TEAMS[team];
-      return code ? `https://flagcdn.com/w40/${code}.png` : '';
+      return TEAMS[team] || '';
     };
 
-    // 3. Round of 16 Matches (Copiado del seeder beta)
-    const MATCHES = [
-      {
-        date: '2026-02-17T20:00:00Z',
-        home: 'PSV',
-        away: 'Arsenal',
-        bracketId: 1,
-        stadium: 'Philips Stadion',
-      },
-      {
-        date: '2026-02-17T20:00:00Z',
-        home: 'Benfica',
-        away: 'Real Madrid',
-        bracketId: 2,
-        stadium: 'Estádio da Luz',
-      },
-      {
-        date: '2026-02-18T20:00:00Z',
-        home: 'Juventus',
-        away: 'Manchester City',
-        bracketId: 3,
-        stadium: 'Allianz Stadium',
-      },
-      {
-        date: '2026-02-18T20:00:00Z',
-        home: 'AC Milan',
-        away: 'Liverpool',
-        bracketId: 4,
-        stadium: 'San Siro',
-      },
-      {
-        date: '2026-02-24T20:00:00Z',
-        home: 'Atletico Madrid',
-        away: 'Bayern Munich',
-        bracketId: 5,
-        stadium: 'Metropolitano',
-      },
-      {
-        date: '2026-02-24T20:00:00Z',
-        home: 'Bayer Leverkusen',
-        away: 'Inter Milan',
-        bracketId: 6,
-        stadium: 'BayArena',
-      },
-      {
-        date: '2026-02-25T20:00:00Z',
-        home: 'Aston Villa',
-        away: 'Barcelona',
-        bracketId: 7,
-        stadium: 'Villa Park',
-      },
-      {
-        date: '2026-02-25T20:00:00Z',
-        home: 'Borussia Dortmund',
-        away: 'PSG',
-        bracketId: 8,
-        stadium: 'Signal Iduna Park',
-      },
-      // VUELTA (Mismos bracketIds)
-      {
-        date: '2026-03-10T20:00:00Z',
-        home: 'Arsenal',
-        away: 'PSV',
-        bracketId: 1,
-        stadium: 'Emirates Stadium',
-      },
-      {
-        date: '2026-03-10T20:00:00Z',
-        home: 'Real Madrid',
-        away: 'Benfica',
-        bracketId: 2,
-        stadium: 'Santiago Bernabéu',
-      },
-      {
-        date: '2026-03-11T20:00:00Z',
-        home: 'Manchester City',
-        away: 'Juventus',
-        bracketId: 3,
-        stadium: 'Etihad Stadium',
-      },
-      {
-        date: '2026-03-11T20:00:00Z',
-        home: 'Liverpool',
-        away: 'AC Milan',
-        bracketId: 4,
-        stadium: 'Anfield',
-      },
-      {
-        date: '2026-03-17T20:00:00Z',
-        home: 'Bayern Munich',
-        away: 'Atletico Madrid',
-        bracketId: 5,
-        stadium: 'Allianz Arena',
-      },
-      {
-        date: '2026-03-17T20:00:00Z',
-        home: 'Inter Milan',
-        away: 'Bayer Leverkusen',
-        bracketId: 6,
-        stadium: 'San Siro',
-      },
-      {
-        date: '2026-03-18T20:00:00Z',
-        home: 'Barcelona',
-        away: 'Aston Villa',
-        bracketId: 7,
-        stadium: 'Camp Nou',
-      },
-      {
-        date: '2026-03-18T20:00:00Z',
-        home: 'PSG',
-        away: 'Borussia Dortmund',
-        bracketId: 8,
-        stadium: 'Parc des Princes',
-      },
+    // 3. Recrear PhaseStatuses
+    const PHASES = [
+      { p: 'PLAYOFF_1', unlocked: true },
+      { p: 'PLAYOFF_2', unlocked: false },
+      { p: 'ROUND_16', unlocked: false },
+      { p: 'QUARTER', unlocked: false },
+      { p: 'SEMI', unlocked: false },
+      { p: 'FINAL', unlocked: false }
     ];
 
-    const entities = MATCHES.map((m) =>
-      this.matchesRepository.create({
+    for (const ph of PHASES) {
+      const status = this.phaseStatusRepository.create({
+        phase: ph.p,
+        tournamentId: tid,
+        isUnlocked: ph.unlocked,
+        unlockedAt: ph.unlocked ? new Date() : undefined,
+        allMatchesCompleted: false,
+      });
+      await this.phaseStatusRepository.save(status);
+    }
+
+    // 4. Partidos Play-off
+    const PLAYOFF_IDA = [
+        { h: 'Galatasaray', a: 'Juventus', d: '2026-02-17T17:45:00Z' }, 
+        { h: 'Dortmund', a: 'Atalanta', d: '2026-02-17T20:00:00Z' },
+        { h: 'Monaco', a: 'PSG', d: '2026-02-17T20:00:00Z' },
+        { h: 'Benfica', a: 'Real Madrid', d: '2026-02-17T20:00:00Z' },
+        { h: 'Qarabag', a: 'Newcastle', d: '2026-02-18T17:45:00Z' },
+        { h: 'Olympiacos', a: 'Leverkusen', d: '2026-02-18T20:00:00Z' },
+        { h: 'Bodo/Glimt', a: 'Inter', d: '2026-02-18T20:00:00Z' },
+        { h: 'Club Brujas', a: 'Atlético Madrid', d: '2026-02-18T20:00:00Z' },
+    ];
+    const PLAYOFF_VUELTA = [
+        { h: 'Atlético Madrid', a: 'Club Brujas', d: '2026-02-24T17:45:00Z' },
+        { h: 'Newcastle', a: 'Qarabag', d: '2026-02-24T20:00:00Z' },
+        { h: 'Leverkusen', a: 'Olympiacos', d: '2026-02-24T20:00:00Z' },
+        { h: 'Atalanta', a: 'Dortmund', d: '2026-02-25T17:45:00Z' },
+        { h: 'PSG', a: 'Monaco', d: '2026-02-25T20:00:00Z' },
+        { h: 'Real Madrid', a: 'Benfica', d: '2026-02-25T20:00:00Z' },
+        { h: 'Juventus', a: 'Galatasaray', d: '2026-02-25T20:00:00Z' },
+        { h: 'Inter', a: 'Bodo/Glimt', d: '2026-02-24T20:00:00Z' },
+    ];
+
+    // 5. Partidos Octavos (ROUND_16) - Estructura Placeholder (Cruce Play-off vs Clasificados)
+    const OCTAVOS = [
+      { date: '2026-03-10T20:00:00Z', home: '', away: 'Arsenal', homePlaceholder: 'Ganador Play-off', bracketId: 1, stadium: 'Por confirmar' },
+      { date: '2026-03-10T20:00:00Z', home: '', away: 'Real Madrid', homePlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Por confirmar' },
+      { date: '2026-03-11T20:00:00Z', home: '', away: 'Manchester City', homePlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Por confirmar' },
+      { date: '2026-03-11T20:00:00Z', home: '', away: 'Liverpool', homePlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Por confirmar' },
+      { date: '2026-03-17T20:00:00Z', home: '', away: 'Bayern Munich', homePlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Por confirmar' },
+      { date: '2026-03-17T20:00:00Z', home: '', away: 'Inter Milan', homePlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'Por confirmar' },
+      { date: '2026-03-18T20:00:00Z', home: '', away: 'Barcelona', homePlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Por confirmar' },
+      { date: '2026-03-18T20:00:00Z', home: '', away: 'PSG', homePlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Por confirmar' },
+      
+      // Vueltas
+      { date: '2026-03-24T20:00:00Z', home: 'Arsenal', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 1, stadium: 'Emirates Stadium' },
+      { date: '2026-03-24T20:00:00Z', home: 'Real Madrid', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Santiago Bernabéu' },
+      { date: '2026-03-25T20:00:00Z', home: 'Manchester City', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Etihad Stadium' },
+      { date: '2026-03-25T20:00:00Z', home: 'Liverpool', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Anfield' },
+      { date: '2026-03-31T20:00:00Z', home: 'Bayern Munich', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Allianz Arena' },
+      { date: '2026-04-01T20:00:00Z', home: 'Inter Milan', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'San Siro' },
+      { date: '2026-04-01T20:00:00Z', home: 'Barcelona', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Camp Nou' },
+      { date: '2026-04-01T20:00:00Z', home: 'PSG', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Parc des Princes' },
+    ];
+
+    const entities: Match[] = [];
+
+    // Playoff Ida
+    PLAYOFF_IDA.forEach(m => {
+      entities.push(this.matchesRepository.create({
+        homeTeam: m.h, awayTeam: m.a, homeFlag: getLogo(m.h), awayFlag: getLogo(m.a),
+        date: new Date(m.d), phase: 'PLAYOFF_1', status: 'PENDING', tournamentId: tid,
+      }));
+    });
+
+    // Playoff Vuelta
+    PLAYOFF_VUELTA.forEach(m => {
+        entities.push(this.matchesRepository.create({
+          homeTeam: m.h, awayTeam: m.a, homeFlag: getLogo(m.h), awayFlag: getLogo(m.a),
+          date: new Date(m.d), phase: 'PLAYOFF_2', status: 'PENDING', tournamentId: tid,
+        }));
+    });
+
+    OCTAVOS.forEach(m => {
+      entities.push(this.matchesRepository.create({
         homeTeam: m.home,
         awayTeam: m.away,
         homeFlag: getLogo(m.home),
         awayFlag: getLogo(m.away),
+        homeTeamPlaceholder: (m as any).homePlaceholder,
+        awayTeamPlaceholder: (m as any).awayPlaceholder,
         date: new Date(m.date),
         bracketId: m.bracketId,
         phase: 'ROUND_16',
-        stadium: m.stadium,
-        status: 'SCHEDULED',
+        status: 'PENDING',
         tournamentId: tid,
-      }),
-    );
+        stadium: m.stadium,
+      }));
+    });
 
     await this.matchesRepository.save(entities);
 
-    return { message: 'UCL 25/26 Knockout Seeded', created: entities.length };
+    return { message: 'UCL 25/26 Full Reset & Seeding Complete', created: entities.length };
   }
 
   async promoteAllGroups(tid: string = 'WC2026'): Promise<void> {
@@ -694,7 +671,7 @@ export class MatchesService {
         // Orden real de las fases (Merged order is OK, filtering handles isolation)
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -712,7 +689,7 @@ export class MatchesService {
         if (sortedUnlocked.length > 0) {
           targetPhase = sortedUnlocked[0].phase;
         } else {
-          targetPhase = tid === 'UCL2526' ? 'PLAYOFF' : 'GROUP'; // Default
+          targetPhase = tid === 'UCL2526' ? 'PLAYOFF_1' : 'GROUP'; // Default
         }
       }
 
@@ -734,10 +711,14 @@ export class MatchesService {
 
       // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
       // Esto corrige situaciones donde la fase N está vacía a pesar de que N-1 terminó.
-      if (targetPhase !== 'GROUP' && targetPhase !== 'PLAYOFF') {
+      if (
+        targetPhase !== 'GROUP' &&
+        targetPhase !== 'PLAYOFF' &&
+        targetPhase !== 'PLAYOFF_1'
+      ) {
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -905,6 +886,19 @@ export class MatchesService {
   async resetAllMatches(
     tid?: string,
   ): Promise<{ message: string; reset: number }> {
+    // SPECIAL HANDLING FOR UCL2526: FULL RESET & RE-SEED
+    if (tid === 'UCL2526') {
+        console.log('🚨 FULL RESET UCL2526 requested (Deleting & Seeding)...');
+        // Delete Phase Statuses first to avoid constraints
+        await this.phaseStatusRepository.delete({ tournamentId: tid });
+        // Delete All Matches
+        await this.matchesRepository.delete({ tournamentId: tid });
+        
+        // Re-seed with correct logos
+        const result = await this.seedUCLKnockout();
+        return { message: 'UCL2526 Reset & Re-seeded with Correct Logos', reset: result.created };
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -944,7 +938,7 @@ export class MatchesService {
           awayFlag: null,
         })
         .where(
-          'phase != \'GROUP\' AND phase != \'PLAYOFF\' AND ("homeTeamPlaceholder" IS NOT NULL OR "awayTeamPlaceholder" IS NOT NULL)',
+          'phase NOT IN (\'GROUP\', \'PLAYOFF\', \'PLAYOFF_1\', \'PLAYOFF_2\') AND ("homeTeamPlaceholder" IS NOT NULL OR "awayTeamPlaceholder" IS NOT NULL)',
         );
 
       if (tid) {
@@ -1372,6 +1366,8 @@ export class MatchesService {
     tournamentId: string = 'WC2026',
   ) {
     const validPhases = [
+      'PLAYOFF_1',
+      'PLAYOFF_2',
       'ROUND_32',
       'ROUND_16',
       'QUARTER',
@@ -1416,14 +1412,10 @@ export class MatchesService {
    * Get status of all knockout phases
    */
   async getAllPhaseStatus(tournamentId: string = 'WC2026') {
-    const phases = [
-      'ROUND_32',
-      'ROUND_16',
-      'QUARTER',
-      'SEMI',
-      '3RD_PLACE',
-      'FINAL',
-    ];
+    const phases =
+      tournamentId === 'UCL2526'
+        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+        : ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
 
     // Ensure we filter by tournamentId
     const statuses = await this.phaseStatusRepository.find({
@@ -1445,4 +1437,5 @@ export class MatchesService {
       };
     });
   }
+
 }

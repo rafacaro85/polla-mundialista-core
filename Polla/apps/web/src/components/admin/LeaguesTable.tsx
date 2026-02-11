@@ -11,6 +11,7 @@ import { ViewLeagueDialog } from './ViewLeagueDialog';
 import { CreateLeagueDialog } from './CreateLeagueDialog';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { superAdminService } from '@/services/superAdminService';
 
 interface League {
     id: string;
@@ -37,9 +38,10 @@ interface LeaguesTableProps {
     onDataUpdated?: () => void;
     filter?: 'ALL' | 'FREE';
     onCreateEnterprise?: () => void;
+    tournamentId: string;
 }
 
-export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise }: LeaguesTableProps) {
+export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise, tournamentId }: LeaguesTableProps) {
     const router = useRouter();
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
@@ -55,11 +57,11 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
 
     useEffect(() => {
         loadLeagues();
-    }, []);
+    }, [tournamentId]);
 
     const loadLeagues = async () => {
         try {
-            const { data } = await api.get('/leagues/all');
+            const data = await superAdminService.getAllLeagues(tournamentId);
             setLeagues(data);
         } catch (error) {
             console.error('Error cargando ligas:', error);

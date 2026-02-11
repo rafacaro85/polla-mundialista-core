@@ -201,7 +201,7 @@ const STYLES = {
     }
 };
 
-export function MatchesList() {
+export function MatchesList({ tournamentId }: { tournamentId: string }) {
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -213,6 +213,8 @@ export function MatchesList() {
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
     const [renameForm, setRenameForm] = useState({ oldName: '', newCode: '' });
     const [filterPhase, setFilterPhase] = useState<string>('ALL');
+
+    // Create Match State
 
     // Create Match State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -229,12 +231,11 @@ export function MatchesList() {
 
     useEffect(() => {
         loadMatches();
-    }, []);
+    }, [tournamentId]);
 
     const loadMatches = async () => {
         try {
             setLoading(true);
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
             const data = await superAdminService.getAllMatches(tournamentId);
             setMatches(data);
         } catch (error) {
@@ -404,10 +405,10 @@ export function MatchesList() {
                         <button
                             style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: '#0F172A' }}
                             onClick={async () => {
-                                if (confirm("¿Simular resultados aleatorios para todos los partidos pendientes?")) {
+                                const confirmId = prompt(`⚠️ ACCIÓN CRÍTICA ⚠️\n\nEstás a punto de simular resultados para ${tournamentId}.\nEsta acción no se puede deshacer.\n\nPara confirmar, escribe: ${tournamentId}`);
+                                if (confirmId === tournamentId) {
                                     try {
                                         setSyncing(true);
-                                        const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
                                         const res = await superAdminService.simulateMatches(tournamentId);
                                         toast.success(res.message);
                                         loadMatches();
@@ -416,6 +417,8 @@ export function MatchesList() {
                                     } finally {
                                         setSyncing(false);
                                     }
+                                } else if (confirmId !== null) {
+                                    toast.error("ID de torneo incorrecto. Acción cancelada.");
                                 }
                             }}
                             disabled={syncing}
@@ -425,12 +428,12 @@ export function MatchesList() {
                         </button>
 
                         <button
-                            style={{ ...STYLES.syncBtn, backgroundColor: '#475569', color: 'white' }}
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#EF4444', color: 'white' }}
                             onClick={async () => {
-                                if (confirm("¿Estás seguro de REINICIAR TODO el sistema para este torneo? Se borrarán marcadores y puntos.")) {
+                                const confirmId = prompt(`⛔ PELIGRO: RESET TOTAL ⛔\n\nEstás a punto de BORRAR TODOS los resultados y puntos de ${tournamentId}.\n\nPara confirmar, escribe bién clear y luego: ${tournamentId}`);
+                                if (confirmId === `${tournamentId}`) {
                                     try {
                                         setSyncing(true);
-                                        const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
                                         const res = await superAdminService.resetAllMatches(tournamentId);
                                         toast.success(res.message);
                                         loadMatches();
@@ -439,12 +442,14 @@ export function MatchesList() {
                                     } finally {
                                         setSyncing(false);
                                     }
+                                } else if (confirmId !== null) {
+                                    toast.error("Confirmación incorrecta.");
                                 }
                             }}
                             disabled={syncing}
                         >
                             <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-                            Limpiar
+                            Resetear TODO
                         </button>
 
                         <button
@@ -643,14 +648,13 @@ export function MatchesList() {
             </div>
 
             {/* PHASE LOCKS MANAGER */}
-            <PhaseLocksManager />
+            <PhaseLocksManager tournamentId={tournamentId} />
 
             {/* FILTROS DE FASE */}
-            {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
-                {(process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' 
-                    ? ['ALL', 'PLAYOFF', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
-                    : ['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL']
+                {(tournamentId === 'UCL2526'
+                    ? ['ALL', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'] // UCL
+                    : ['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'] // WC
                 ).map(phase => (
                     <button
                         key={phase}
@@ -669,7 +673,8 @@ export function MatchesList() {
                     >
                         {phase === 'ALL' ? 'Todos' :
                             phase === 'GROUP' ? 'Grupos' :
-                            phase === 'PLAYOFF' ? 'Play-offs' :
+                            phase === 'PLAYOFF_1' ? 'Play-off ida' :
+                            phase === 'PLAYOFF_2' ? 'Play-off vuelta' :
                                 phase === 'ROUND_32' ? '1/16' :
                                     phase === 'ROUND_16' ? 'Octavos' :
                                         phase === 'QUARTER' ? 'Cuartos' :

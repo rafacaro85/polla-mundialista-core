@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Megaphone, Send, Users, AlertTriangle, CheckCircle, Info, Gift } from 'lucide-react';
 
-export function CommunicationPanel() {
+export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) {
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
-    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID' | 'TOURNAMENT'>('ALL');
-    const [selectedTournament, setSelectedTournament] = useState<'WC2026' | 'UCL2526' | ''>('');
+    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID' | 'TOURNAMENT'>(tournamentId ? 'TOURNAMENT' : 'ALL');
+    const [selectedTournament, setSelectedTournament] = useState<string>(tournamentId || '');
     const [type, setType] = useState<'INFO' | 'SUCCESS' | 'WARNING' | 'PROMO'>('INFO');
     const [isLoading, setIsLoading] = useState(false);
 

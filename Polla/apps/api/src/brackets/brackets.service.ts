@@ -242,8 +242,10 @@ export class BracketsService {
       return;
     }
 
-    // Find all brackets that predicted this winner for this match
-    const allBrackets = await this.userBracketRepository.find();
+    // Find all brackets that predicted this winner for this match AND belong to the same tournament
+    const allBrackets = await this.userBracketRepository.find({
+      where: { tournamentId: match.tournamentId },
+    });
     const bracketsToUpdate: UserBracket[] = [];
 
     for (const bracket of allBrackets) {

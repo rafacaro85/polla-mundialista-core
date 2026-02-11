@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, HelpCircle, Star, CheckCircle, Lock, Clock, Trash2, Edit3, Award, Plus, Trophy, Loader2, Shield } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { superAdminService } from '@/services/superAdminService';
 import { CreateQuestionDialog } from './CreateQuestionDialog';
 import { EditQuestionDialog } from './EditQuestionDialog';
 import { GradeQuestionDialog } from './GradeQuestionDialog';
@@ -19,7 +20,7 @@ interface BonusQuestion {
     responses?: number;
 }
 
-export function BonusQuestionsTable() {
+export function BonusQuestionsTable({ tournamentId }: { tournamentId: string }) {
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,11 +33,11 @@ export function BonusQuestionsTable() {
 
     useEffect(() => {
         loadQuestions();
-    }, []);
+    }, [tournamentId]);
 
     const loadQuestions = async () => {
         try {
-            const { data } = await api.get('/bonus/questions/all');
+            const data = await superAdminService.getAllBonusQuestions(tournamentId);
             const mappedQuestions = data.map((q: any) => ({
                 ...q,
                 status: q.isActive ? 'OPEN' : (q.correctAnswer ? 'GRADED' : 'CLOSED'),

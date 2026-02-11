@@ -20,10 +20,34 @@ api.interceptors.request.use(
 
     // 2. Tournament Context Injection (Dynamic Header)
     if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryTournament = urlParams.get('tournament') || urlParams.get('tournamentId');
+      
+      if (queryTournament) {
+        localStorage.setItem('selectedTournament', queryTournament);
+      }
+
+      const storedTournament = localStorage.getItem('selectedTournament');
       const hostname = window.location.hostname;
-      // Simple logic: if subdomain is 'champions', send UCL, otherwise WC
-      const tournamentId = hostname.includes('champions') ? 'UCL2526' : 'WC2026';
-      config.headers['X-Tournament-Id'] = tournamentId;
+      
+      // Determine default tournament based on environment context (localStorage/hostname)
+      const defaultTournamentId = storedTournament || (hostname.includes('champions') ? 'UCL2526' : 'WC2026');
+
+      // Check if the request explicitly provides a tournamentId
+      if (!config.params) config.params = {};
+      const explicitTournamentId = config.params.tournamentId;
+
+      // Final Tournament ID: explicit > query > localStorage > hostname
+      // If explicit param exists, use it. Otherwise use the default context.
+      const targetTournamentId = explicitTournamentId || defaultTournamentId;
+
+      // Apply to headers and params
+      config.headers['X-Tournament-Id'] = targetTournamentId;
+      config.params.tournamentId = targetTournamentId;
+      
+      if (explicitTournamentId && explicitTournamentId !== defaultTournamentId) {
+        console.log(`[API] Using explicit tournamentId: ${explicitTournamentId} (ignoring context: ${defaultTournamentId})`);
+      }
     }
 
     return config;

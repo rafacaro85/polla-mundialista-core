@@ -5,6 +5,7 @@ import { UserNav } from '@/components/UserNav';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { Settings, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useTournament } from '@/hooks/useTournament';
 
 interface HeaderProps {
   userName: string;
@@ -13,10 +14,11 @@ interface HeaderProps {
 
 export function Header({ userName, leagueName }: HeaderProps) {
   const { user, selectedLeagueId, setSelectedLeague } = useAppStore();
+  const { tournamentId } = useTournament();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   // Force Frontend Rebuild - Notification UI
-  const isChampionsTheme = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS';
+  const isChampionsTheme = tournamentId === 'UCL2526';
 
   return (
     <header className={`sticky top-0 z-40 w-full border-b shadow-md ${

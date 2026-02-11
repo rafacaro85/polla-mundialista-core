@@ -48,19 +48,21 @@ export class DemoService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async provisionEnterpriseDemo() {
+  async provisionEnterpriseDemo(tournamentId: string = 'WC2026') {
     return this.provisionDemo(
       this.DEMO_ENTERPRISE_LEAGUE_ID,
       this.DEMO_ADMIN_EMAIL,
       true,
+      tournamentId,
     );
   }
 
-  async provisionSocialDemo() {
+  async provisionSocialDemo(tournamentId: string = 'WC2026') {
     return this.provisionDemo(
       this.DEMO_SOCIAL_LEAGUE_ID,
       this.DEMO_SOCIAL_ADMIN_EMAIL,
       false,
+      tournamentId,
     );
   }
 
@@ -68,9 +70,10 @@ export class DemoService {
     leagueId: string,
     adminEmail: string,
     isEnterprise: boolean,
+    tournamentId: string,
   ) {
     try {
-      console.log('🚀 Provisioning Demo Environment...');
+      console.log(`🚀 Provisioning Demo Environment for ${tournamentId}...`);
 
       // 1. Create or Update Demo Admin
       let admin = await this.userRepo.findOne({ where: { email: adminEmail } });
@@ -91,7 +94,7 @@ export class DemoService {
       let league = await this.leagueRepo.findOne({ where: { id: leagueId } });
       if (league) {
         // Clear existing demo data before re-provisioning
-        await this.clearDemoData(leagueId);
+        await this.clearDemoData(leagueId, tournamentId);
       } else {
         league = new League();
         league.id = leagueId;
@@ -99,7 +102,7 @@ export class DemoService {
 
       // Set properties based on demo type
       if (isEnterprise) {
-        league.name = 'Demo Corporativa Mundial 2026';
+        league.name = `Demo Corporativa ${tournamentId}`;
         league.type = LeagueType.COMPANY;
         league.packageType = 'diamond';
         league.isEnterprise = true;
@@ -111,9 +114,9 @@ export class DemoService {
         league.brandColorSecondary = '#1E293B';
         league.brandColorText = '#F8FAFC';
         league.welcomeMessage =
-          '¡Bienvenido al Demo Empresarial! Aquí puedes ver cómo tus empleados vivirán el mundial.';
+          '¡Bienvenido al Demo Empresarial! Aquí puedes ver cómo tus empleados vivirán el torneo.';
       } else {
-        league.name = 'Demo Social - Mundial 2026';
+        league.name = `Demo Social - ${tournamentId}`;
         league.type = LeagueType.LIBRE;
         league.packageType = 'free';
         league.isEnterprise = false;
@@ -124,12 +127,12 @@ export class DemoService {
         league.brandColorSecondary = '#1E293B';
         league.brandColorText = '#F8FAFC';
         league.welcomeMessage =
-          '¡Bienvenido al Demo Social! Compite con tus amigos y familia en este mundial.';
+          '¡Bienvenido al Demo Social! Compite con tus amigos y familia en este torneo.';
       }
 
       league.creator = admin;
       league.accessCodePrefix = isEnterprise ? 'DEMO-EMP' : 'DEMO-SOC';
-      league.tournamentId = this.TOURNAMENT_ID;
+      league.tournamentId = tournamentId;
       league.brandingLogoUrl = undefined;
       league.prizeImageUrl = undefined;
       league.isPaid = true;
@@ -182,7 +185,7 @@ export class DemoService {
 
       // 5. Create Mock Predictions for ALL Group Stage Matches
       const groupMatches = await this.matchRepo.find({
-        where: { tournamentId: this.TOURNAMENT_ID, phase: 'GROUP' },
+        where: { tournamentId: tournamentId, phase: 'GROUP' },
       });
 
       console.log(
@@ -228,7 +231,7 @@ export class DemoService {
           text: bonusText,
           points: 50,
           leagueId: league.id,
-          tournamentId: this.TOURNAMENT_ID,
+          tournamentId: tournamentId,
           isActive: true,
         });
         await this.bonusRepo.save(bonus);
@@ -246,7 +249,7 @@ export class DemoService {
     }
   }
 
-  async clearDemoData(leagueId?: string) {
+  async clearDemoData(leagueId?: string, tournamentId: string = 'WC2026') {
     const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     try {
       console.log(`🧹 Clearing Demo Data for league ${targetLeagueId}...`);
@@ -279,7 +282,7 @@ export class DemoService {
         leagueId === this.DEMO_SOCIAL_LEAGUE_ID ||
         !leagueId
       ) {
-        await this.resetTournamentResults();
+        await this.resetTournamentResults(tournamentId);
       }
 
       console.log('✅ Demo Data Cleared.');
@@ -289,8 +292,8 @@ export class DemoService {
     }
   }
 
-  async resetTournamentResults() {
-    console.log('🔄 Resetting Tournament Match Results...');
+  async resetTournamentResults(tournamentId: string = 'WC2026') {
+    console.log(`🔄 Resetting Tournament Match Results for ${tournamentId}...`);
 
     // Reset Matches
     await this.matchRepo
@@ -306,11 +309,11 @@ export class DemoService {
         awayFlag: () => "CASE WHEN phase = 'GROUP' THEN awayFlag ELSE '' END",
       })
       .where('tournamentId = :tournamentId', {
-        tournamentId: this.TOURNAMENT_ID,
+        tournamentId: tournamentId,
       })
       .execute();
 
-    console.log('🔄 Resetting Knockout Phases...');
+    console.log(`🔄 Resetting Knockout Phases for ${tournamentId}...`);
 
     // Reset Phases (Lock all except GROUP)
     await this.phaseStatusRepo
@@ -322,7 +325,7 @@ export class DemoService {
         unlockedAt: () => 'NULL',
       })
       .where("phase != 'GROUP' AND tournamentId = :tid", {
-        tid: this.TOURNAMENT_ID,
+        tid: tournamentId,
       })
       .execute();
 
@@ -336,17 +339,17 @@ export class DemoService {
         unlockedAt: new Date(),
       })
       .where("phase = 'GROUP' AND tournamentId = :tid", {
-        tid: this.TOURNAMENT_ID,
+        tid: tournamentId,
       })
       .execute();
 
-    console.log('✅ Tournament Reset Complete.');
+    console.log(`✅ Tournament ${tournamentId} Reset Complete.`);
   }
 
-  async simulateNextMatch() {
-    // Find first PENDING match for WC2026
+  async simulateNextMatch(tournamentId: string = 'WC2026') {
+    // Find first PENDING match
     const pendingMatch = await this.matchRepo.findOne({
-      where: { tournamentId: this.TOURNAMENT_ID, status: 'PENDING' },
+      where: { tournamentId: tournamentId, status: 'PENDING' },
       order: { date: 'ASC' },
     });
 
@@ -360,7 +363,7 @@ export class DemoService {
     await this.matchesService.finishMatch(pendingMatch.id, h, a);
 
     console.log(
-      `⚽ Simulated: ${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam}`,
+      `⚽ Simulated: ${pendingMatch.homeTeam} ${h} - ${a} ${pendingMatch.awayTeam} (${tournamentId})`,
     );
 
     return {
@@ -370,13 +373,13 @@ export class DemoService {
     };
   }
 
-  async simulateBatch(count: number = 5) {
+  async simulateBatch(count: number = 5, tournamentId: string = 'WC2026') {
     const results = [];
     let lastPhase = null;
 
     for (let i = 0; i < count; i++) {
       try {
-        const res = await this.simulateNextMatch();
+        const res = await this.simulateNextMatch(tournamentId);
         results.push(res);
         lastPhase = res.phase;
       } catch (e) {
@@ -388,7 +391,7 @@ export class DemoService {
     if (lastPhase === 'GROUP') {
       try {
         console.log('🔄 Checking for completed groups to promote...');
-        await this.tournamentService.promoteAllCompletedGroups();
+        await this.tournamentService.promoteAllCompletedGroups(tournamentId);
         console.log('✅ Group promotions completed');
       } catch (err) {
         console.error('❌ Error promoting groups:', err);
@@ -402,13 +405,18 @@ export class DemoService {
     };
   }
 
-  async createBonus(text: string, points: number, leagueId?: string) {
+  async createBonus(
+    text: string,
+    points: number,
+    leagueId?: string,
+    tournamentId: string = 'WC2026',
+  ) {
     const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     const bonus = this.bonusRepo.create({
       text,
       points,
       leagueId: targetLeagueId,
-      tournamentId: this.TOURNAMENT_ID,
+      tournamentId: tournamentId,
       isActive: true,
     });
     return this.bonusRepo.save(bonus);

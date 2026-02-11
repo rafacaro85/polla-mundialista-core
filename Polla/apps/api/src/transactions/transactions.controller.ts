@@ -13,6 +13,7 @@ import {
   UploadedFile,
   BadRequestException,
   Query,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -36,13 +37,16 @@ export class TransactionsController {
   @Post()
   async createTransaction(
     @Request() req: any,
-    @Body() body: { packageType: string; amount: number; leagueId: string },
+    @Body() body: { packageType: string; amount: number; leagueId: string; tournamentId?: string },
+    @Query('tournamentId') queryTournamentId?: string,
   ) {
+    const tid = body.tournamentId || queryTournamentId || 'WC2026';
     return this.transactionsService.createTransaction(
       req.user,
       body.amount,
       body.packageType,
       body.leagueId,
+      tid,
     );
   }
 
@@ -72,21 +76,35 @@ export class TransactionsController {
     @Request() req: any,
     @UploadedFile() file: Express.Multer.File,
     @Body()
-    body: { amount?: number; referenceCode?: string; leagueId?: string },
+    body: { amount?: any; referenceCode?: string; leagueId?: string; tournamentId?: string },
+    @Query('tournamentId') queryTournamentId?: string,
   ) {
-    if (!file) {
-      throw new BadRequestException('Image file is required');
+    try {
+      if (!file) {
+        throw new BadRequestException('Image file is required');
+      }
+
+      const tid = body.tournamentId || queryTournamentId || 'WC2026';
+      console.log(`[Transactions] Uploading for tournament: ${tid}, league: ${body.leagueId}`);
+      
+      const uploadResult = await this.cloudinaryService.uploadImage(file);
+
+      // Ensure amount is a number
+      const amount = body.amount ? Number(body.amount) : 50000;
+
+      return await this.transactionsService.uploadTransaction(
+        req.user,
+        uploadResult.secure_url,
+        amount,
+        body.referenceCode,
+        body.leagueId,
+        tid,
+      );
+    } catch (error: any) {
+      console.error('[Transactions] Error in uploadTransaction:', error);
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException(error.message || 'Error uploading transaction');
     }
-
-    const uploadResult = await this.cloudinaryService.uploadImage(file);
-
-    return this.transactionsService.uploadTransaction(
-      req.user,
-      uploadResult.secure_url,
-      body.amount,
-      body.referenceCode,
-      body.leagueId,
-    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -113,15 +131,15 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get()
-  async getAllTransactions() {
-    return this.transactionsService.findAll();
+  async getAllTransactions(@Query('tournamentId') tournamentId?: string) {
+    return this.transactionsService.findAll(tournamentId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get('pending')
-  async getPendingTransactions() {
-    return this.transactionsService.findPending();
+  async getPendingTransactions(@Query('tournamentId') tournamentId?: string) {
+    return this.transactionsService.findPending(tournamentId);
   }
 
   @UseGuards(JwtAuthGuard)

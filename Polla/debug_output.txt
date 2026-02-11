@@ -1,0 +1,10 @@
+User: {"id":"05d10c1f-54fc-4a40-8aae-339d89ef0ebf","email":"admin@admin.com"}
+
+--- ALL LEAGUES ---
+ID: 6159fdc4-a4e4-49c0-a409-c9265f103317, Name: PRUEBA UCL, Tournament: UCL2526, Paid: true, Enterprise: false
+
+--- PARTICIPANTS ---
+User: undefined, League: undefined, Admin: true
+
+--- TRANSACTIONS ---
+League: undefined, Tournament: UCL2526, Status: PAID

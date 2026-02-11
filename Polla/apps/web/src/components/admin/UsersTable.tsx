@@ -28,7 +28,7 @@ interface User {
     phoneNumber?: string;
 }
 
-export function UsersTable() {
+export function UsersTable({ tournamentId }: { tournamentId?: string }) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');

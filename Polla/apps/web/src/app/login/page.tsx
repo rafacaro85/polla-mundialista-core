@@ -17,6 +17,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
   const [view, setView] = useState<'login' | 'register' | 'forgot' | 'verify'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // ESTADOS DEL FORMULARIO
   const [formData, setFormData] = useState({
@@ -35,6 +36,10 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
   // AUTH ACTION HANDLER
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) {
+      toast.error('Debes aceptar los Términos y Condiciones para continuar');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -336,10 +341,33 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         {/* Si NO es recuperar contraseña NI verificar, mostramos botón Google */}
         {view !== 'forgot' && view !== 'verify' && (
           <>
-            <button style={STYLES.googleBtn} onClick={onGoogleLogin}>
+            <button 
+              style={{ ...STYLES.googleBtn, opacity: acceptedTerms ? 1 : 0.6 }} 
+              onClick={() => {
+                if (!acceptedTerms) {
+                   toast.error('Debes aceptar los Términos y Condiciones para continuar');
+                   return;
+                }
+                onGoogleLogin();
+              }}
+            >
               <Chrome size={20} color="#EA4335" />
               Continuar con Google
             </button>
+
+            {/* CHECKBOX LEGAL */}
+            <div className="flex items-center gap-2 mb-6 px-1">
+              <input 
+                type="checkbox" 
+                id="legal-checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+              />
+              <label htmlFor="legal-checkbox" className="text-xs text-slate-400 cursor-pointer leading-tight select-none">
+                Acepto los <a href="/terminos" target="_blank" className="text-emerald-500 hover:underline">Términos y Condiciones</a> y la <a href="/privacidad" target="_blank" className="text-emerald-500 hover:underline">Política de Privacidad</a>
+              </label>
+            </div>
 
             <div style={STYLES.divider}>
               <div style={STYLES.line} />
@@ -468,7 +496,11 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
           )}
 
           {/* Botón Acción Principal */}
-          <button type="submit" style={STYLES.primaryBtn} disabled={loading}>
+          <button 
+            type="submit" 
+            style={{ ...STYLES.primaryBtn, opacity: (loading || !acceptedTerms) ? 0.7 : 1 }} 
+            disabled={loading || !acceptedTerms}
+          >
             {loading ? 'Procesando...' : (
               <>
                 {view === 'login' && 'Iniciar Sesión'}

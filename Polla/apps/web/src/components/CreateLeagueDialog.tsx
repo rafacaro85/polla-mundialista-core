@@ -5,6 +5,7 @@ import { X, Shield, Zap, Crown, Check, Plus, Trophy, Copy, Loader2, Star, Gem, M
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { PaymentMethods } from './dashboard/PaymentMethods';
+import { useTournament } from '@/hooks/useTournament';
 
 /* =============================================================================
    DATOS MOCK (PLANES)
@@ -15,7 +16,7 @@ const PLANS = [
         name: 'Familia',
         price: 'GRATIS',
         members: 5,
-        icon: <Shield size={20} />,
+        icon: < Shield size={20} />,
         color: '#94A3B8', // Slate
         features: ['Hasta 5 jugadores', 'Texto del premio']
     },
@@ -24,7 +25,7 @@ const PLANS = [
         name: 'Parche',
         price: '$30.000',
         members: 15,
-        icon: <Star size={20} />,
+        icon: < Star size={20} />,
         color: '#CD7F32', // Bronze
         features: ['Hasta 15 jugadores', 'Imagen y texto del premio']
     },
@@ -33,7 +34,7 @@ const PLANS = [
         name: 'Amigos',
         price: '$80.000',
         members: 50,
-        icon: <Zap size={20} />,
+        icon: < Zap size={20} />,
         color: '#C0C0C0', // Silver
         features: ['Hasta 50 jugadores', 'Logo, imagen y texto'],
         recommended: true
@@ -43,7 +44,7 @@ const PLANS = [
         name: 'Líder',
         price: '$180.000',
         members: 100,
-        icon: <Trophy size={20} />,
+        icon: < Trophy size={20} />,
         color: '#FFD700', // Gold
         features: ['Hasta 100 jugadores', 'Muro de comentarios']
     },
@@ -52,7 +53,7 @@ const PLANS = [
         name: 'Influencer',
         price: '$350.000',
         members: 200,
-        icon: <Crown size={20} />,
+        icon: < Crown size={20} />,
         color: '#B9F2FF', // Diamond
         features: ['Hasta 200 jugadores', 'Redes Sociales']
     }
@@ -67,6 +68,7 @@ interface CreateLeagueDialogProps {
    COMPONENTE: CREAR LIGA (TACTICAL STYLE)
    ============================================================================= */
 export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeagueCreated, children }) => {
+    const { tournamentId } = useTournament();
     const [open, setOpen] = useState(false);
     const [leagueName, setLeagueName] = useState('');
     const [adminName, setAdminName] = useState('');
@@ -130,7 +132,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 isEnterprise: false,
                 adminName: adminName.trim(),
                 adminPhone: fullPhone,
-                tournamentId: process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026',
+                tournamentId,
             });
 
             console.log('✅ [CreateLeague] Respuesta servidor:', response.data);
@@ -607,10 +609,12 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                                 onClick={() => {
                                                     const appUrl = window.location.origin;
                                                     const inviteUrl = `${appUrl}/invite/${createdCode}`;
-                                                    const message = `¡Hola! Te invito a mi Polla del Mundial. 🏆\n\n` +
+                                                    const isUCL = tournamentId === 'UCL2526';
+                                                    const message = `¡Hola! Te invito a mi Polla ${isUCL ? 'Champions' : 'del Mundial'}. 🏆\n\n` +
                                                         `Polla: *${createdLeagueName}*\n\n` +
                                                         `Únete fácil dando clic aquí:\n👉 ${inviteUrl}\n\n` +
                                                         `O ingresa el código: *${createdCode}*`;
+
                                                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                                                     window.open(whatsappUrl, '_blank');
                                                 }}

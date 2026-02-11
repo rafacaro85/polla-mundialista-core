@@ -64,60 +64,71 @@ export class BonusService {
   async createQuestion(dto: CreateQuestionDto): Promise<BonusQuestion> {
     const question = this.bonusQuestionRepository.create(dto);
 
-    // Asignar tournamentId del DTO o default
-    if (dto.tournamentId) {
-      question.tournamentId = dto.tournamentId;
-    }
-
-    // Si no se especifica liga, asignar a la liga GLOBAL (General)
+    // Si no se especifica leagueId ni tournamentId, es una pregunta global del torneo actual
     if (!dto.leagueId) {
       const globalLeague = await this.leagueRepository.findOne({
-        where: { type: LeagueType.GLOBAL },
+        where: { type: LeagueType.GLOBAL, tournamentId: dto.tournamentId || 'WC2026' },
       });
       if (globalLeague) {
         question.leagueId = globalLeague.id;
       }
     }
 
+    // Garantizar que isActive sea true si no se especifica
+    if (dto.isActive === undefined) {
+      question.isActive = true;
+    }
+
     return this.bonusQuestionRepository.save(question);
   }
+
 
   // Listar preguntas activas filtradas por liga y torneo
   async getActiveQuestions(
     leagueId?: string,
     tournamentId?: string,
   ): Promise<BonusQuestion[]> {
-    const where: any = { isActive: true };
+    console.log(`🔍 [BonusService] getActiveQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`);
+    
+    const conditions: any[] = [];
+    const tId = tournamentId || 'WC2026';
 
-    if (tournamentId) {
-      where.tournamentId = tournamentId;
+    // 1. Siempre buscamos preguntas de la liga GLOBAL para este torneo
+    const globalLeague = await this.leagueRepository.findOne({
+      where: { type: LeagueType.GLOBAL, tournamentId: tId },
+    });
+    
+    if (globalLeague) {
+      conditions.push({ isActive: true, leagueId: globalLeague.id, tournamentId: tId });
     }
 
-    if (leagueId) {
-      where.leagueId = leagueId;
-    } else {
-      // Si no hay liga, buscamos la GLOBAL por defecto para la vista general
-      const globalLeague = await this.leagueRepository.findOne({
-        where: { type: LeagueType.GLOBAL },
-      });
-      if (globalLeague) {
-        where.leagueId = globalLeague.id;
-      } else {
-        where.leagueId = IsNull();
-      }
+    // 2. Si se especifica una liga, sumamos las preguntas de esa liga
+    if (leagueId && (!globalLeague || globalLeague.id !== leagueId)) {
+      conditions.push({ isActive: true, leagueId, tournamentId: tId });
     }
 
-    return this.bonusQuestionRepository.find({
-      where,
+    // Si no hay condiciones (ej. no hay global league y no pasaron leagueId), buscamos por tournamentId general
+    if (conditions.length === 0) {
+      conditions.push({ isActive: true, tournamentId: tId, leagueId: IsNull() });
+    }
+
+    console.log('🔍 [BonusService] conditions:', JSON.stringify(conditions));
+    const results = await this.bonusQuestionRepository.find({
+      where: conditions,
       order: { createdAt: 'DESC' },
     });
+    console.log(`🔍 [BonusService] found: ${results.length} questions`);
+    return results;
   }
+
+
 
   // Listar todas las preguntas (admin) - Filtradas por liga
   async getAllQuestions(
     leagueId?: string,
     tournamentId?: string,
   ): Promise<BonusQuestion[]> {
+    console.log(`🔍 [BonusService] getAllQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`);
     const where: any = {};
 
     if (tournamentId) {
@@ -131,10 +142,13 @@ export class BonusService {
       where.leagueId = IsNull();
     }
 
-    return this.bonusQuestionRepository.find({
+    console.log('🔍 [BonusService] getAll where:', JSON.stringify(where));
+    const results = await this.bonusQuestionRepository.find({
       where,
       order: { createdAt: 'DESC' },
     });
+    console.log(`🔍 [BonusService] getAll found: ${results.length} questions`);
+    return results;
   }
 
   // Usuario: Guardar/actualizar respuesta

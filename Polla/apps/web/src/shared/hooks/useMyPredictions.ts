@@ -8,14 +8,17 @@ const PREDICTIONS_ENDPOINT = '/predictions/me';
 const fetcher = (url: string) => api.get(url).then(res => res.data);
 
 export const useMyPredictions = (leagueId?: string) => {
+    // Secondary state to force re-renders when SWR mutate is slow to notify
+    const [lastUpdate, setLastUpdate] = React.useState(0);
+
     // Dynamic key ensures we fetch predictions specific to the current context (Global or League)
     const swrKey = leagueId && leagueId !== 'global'
         ? `/predictions/me?leagueId=${leagueId}`
         : '/predictions/me';
 
     const { data, error, isLoading, mutate } = useSWR(swrKey, fetcher, {
-        revalidateOnFocus: false, // Evita refrescos molestos al cambiar de ventana
-        revalidateOnReconnect: false, // Evita saltos si la conexión parpadea
+        revalidateOnFocus: false, 
+        revalidateOnReconnect: false, 
         dedupingInterval: 5000 
     });
 
@@ -24,14 +27,11 @@ export const useMyPredictions = (leagueId?: string) => {
         if (Array.isArray(data)) {
             const targetLeagueId = leagueId || null;
 
-            // 1. Cargar TODAS las predicciones como base (si hay varias para un partido, se irán sobreescribiendo)
             data.forEach((p: any) => {
                 const mId = p.matchId || p.match?.id;
                 const pLeagueId = p.leagueId || null;
 
                 if (mId) {
-                    // Si estamos en Dash General (targetLeagueId === null), aceptamos CUALQUIER liga como visualización
-                    // Si estamos en una liga específica, el punto 2 la sobreescribirá
                     map[mId] = {
                         matchId: mId,
                         homeScore: p.homeScore,
@@ -45,7 +45,6 @@ export const useMyPredictions = (leagueId?: string) => {
                 }
             });
 
-            // 2. Si estamos en una liga específica, sobreescribir con las predicciones de esa liga
             if (targetLeagueId !== null) {
                 data.forEach((p: any) => {
                     const mId = p.matchId || p.match?.id;
@@ -67,18 +66,14 @@ export const useMyPredictions = (leagueId?: string) => {
             }
         }
         return map;
-    }, [data, leagueId]);
+    }, [data, leagueId, lastUpdate]); // Identity change on lastUpdate forces consumers to update
 
-    // DEFINIMOS PRIMERO DELETE PARA QUE SAVE PUEDA USARLO
     const deletePrediction = async (matchId: string) => {
-        // INTELIGENCIA: Detectar el leagueId correcto de la predicción que estamos viendo
         const existingPrediction = predictionsMap[matchId];
-        // Si hay una predicción cargada en el mapa, usamos su leagueId. Si no, usamos el del contexto.
         const targetLeagueId = existingPrediction?.leagueId !== undefined
             ? existingPrediction.leagueId
             : (leagueId || null);
 
-        // Mutate local cache immediately
         await mutate((currentData: any) => {
             const list = Array.isArray(currentData) ? [...currentData] : [];
             return list.filter((p: any) =>
@@ -86,6 +81,7 @@ export const useMyPredictions = (leagueId?: string) => {
                     (p.leagueId || null) === targetLeagueId)
             );
         }, false);
+        setLastUpdate(prev => prev + 1);
 
         try {
             const url = targetLeagueId
@@ -97,28 +93,20 @@ export const useMyPredictions = (leagueId?: string) => {
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Error eliminando predicción');
-            mutate(); // Rollback
+            mutate(); 
         }
     };
 
     const savePrediction = async (matchId: string, homeScore: number | null | string, awayScore: number | null | string, isJoker: boolean = false, phase?: string) => {
-        // CASO DE BORRADO: Si los marcadores están vacíos
         if ((homeScore === null || homeScore === '' || homeScore === undefined) &&
             (awayScore === null || awayScore === '' || awayScore === undefined)) {
             return deletePrediction(matchId);
         }
 
-        // LOGIC FIX: Always use the current context's leagueId for saving.
-        // If we are in a League, we SAVE to that League (creating an override if needed).
-        // If we are Global, we SAVE to Global.
-        // We do NOT inherit the ID from the existing prediction, because that prevents divergence.
         const targetLeagueId = leagueId || null;
-
-        // Cast to number for API
         const hScore = Number(homeScore);
         const aScore = Number(awayScore);
 
-        // Optimistic object
         const optimisticPrediction = {
             matchId,
             match: { id: matchId, phase },
@@ -129,11 +117,8 @@ export const useMyPredictions = (leagueId?: string) => {
             points: 0
         };
 
-        // Mutate local cache immediately
         mutate((currentData: any) => {
             let list = Array.isArray(currentData) ? [...currentData] : [];
-
-            // If setting joker, optimistically unset others in same phase AND league
             if (isJoker) {
                 list = list.map((p: any) => {
                     const pMatchId = p.matchId || p.match?.id;
@@ -159,6 +144,7 @@ export const useMyPredictions = (leagueId?: string) => {
             }
             return list;
         }, false);
+        setLastUpdate(prev => prev + 1);
 
         try {
             await api.post('/predictions', {
@@ -168,37 +154,31 @@ export const useMyPredictions = (leagueId?: string) => {
                 isJoker,
                 leagueId: targetLeagueId
             });
-            mutate(); // Revalidate real data
+            mutate(); 
             toast.success('Predicción guardada');
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Error guardando predicción');
-            mutate(); // Rollback
+            mutate(); 
         }
     };
 
     const clearAllPredictions = async (tournamentId?: string) => {
         const targetLeagueId = leagueId || null;
 
-        // Mutate local cache immediately (optimistic)
-        // Await to ensure UI updates before async operation
         await mutate((currentData: any) => {
-            const list = Array.isArray(currentData) ? [...currentData] : [];
-            // Remove all matches where leagueId matches targetLeagueId AND (optionally) tournamentId matches
-            return list.filter((p: any) => {
+            if (!Array.isArray(currentData)) return [];
+            return currentData.filter((p: any) => {
                 const matchesLeague = (p.leagueId || null) === targetLeagueId;
-                
                 let matchesTournament = true;
                 if (tournamentId) {
-                    // Check direct ID or relation ID. 
-                    // If prediction lacks tournament info, assume match for aggressive clearing (better UX than stale data)
                     const pTid = p.tournamentId || p.match?.tournamentId;
                     matchesTournament = !pTid || pTid === tournamentId;
                 }
-                
                 return !(matchesLeague && matchesTournament);
             });
         }, false);
+        setLastUpdate(prev => prev + 1);
 
         try {
             let url = targetLeagueId
@@ -206,28 +186,24 @@ export const useMyPredictions = (leagueId?: string) => {
                 : `/predictions/all/clear`;
             
             if (tournamentId) {
-                url += (url.includes('?') ? '&' : '?') + `tournamentId=${tournamentId}`;
+                const cleanTid = tournamentId.includes(',') ? tournamentId.split(',')[0] : tournamentId;
+                url += (url.includes('?') ? '&' : '?') + `tournamentId=${cleanTid}`;
             }
 
             await api.delete(url);
-            
-            // Force verify with server
-            await mutate();
-            
+            mutate();
             toast.success('Todas las predicciones han sido eliminadas');
         } catch (err: any) {
             console.error(err);
             toast.error('Error al limpiar predicciones');
-            mutate(); // Rollback
+            mutate();
         }
     };
 
     const saveBulkPredictions = async (aiPredictions: Record<string, { h: number, a: number }>) => {
-        // Updated: Use the context's leagueId instead of hardcoding null
         const targetLeagueId = leagueId && leagueId !== 'global' ? leagueId : null;
         const entries = Object.entries(aiPredictions);
 
-        // Construir Array para el endpoint Bulk
         const predictionsList = entries.map(([mId, { h, a }]) => ({
             matchId: mId.trim(),
             homeScore: h,
@@ -239,10 +215,11 @@ export const useMyPredictions = (leagueId?: string) => {
         try {
             await api.post('/predictions/bulk', { predictions: predictionsList });
             await mutate();
-            toast.success(`${entries.length} predicciones guardadas ${targetLeagueId ? '(Empresa)' : '(Global)'}`);
+            setLastUpdate(prev => prev + 1);
+            toast.success(`${entries.length} predicciones guardadas`);
         } catch (err) {
             console.error(err);
-            toast.error('Error al guardar predicciones masivas');
+            toast.error('Error al guardar predicciones');
             mutate();
         }
     };
@@ -255,6 +232,9 @@ export const useMyPredictions = (leagueId?: string) => {
         saveBulkPredictions,
         deletePrediction,
         clearAllPredictions,
-        refresh: () => mutate()
+        refresh: () => {
+            mutate();
+            setLastUpdate(prev => prev + 1);
+        }
     };
 };

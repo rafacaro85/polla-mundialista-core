@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { AlertCircle, Save, RotateCcw } from 'lucide-react';
 
-export function GroupStandingsOverride() {
+export function GroupStandingsOverride({ tournamentId }: { tournamentId?: string }) {
     const [group, setGroup] = useState('A');
     const [standings, setStandings] = useState<any[]>([]);
     const [overrides, setOverrides] = useState<Record<string, number>>({});
@@ -17,12 +17,12 @@ export function GroupStandingsOverride() {
 
     useEffect(() => {
         loadStandings();
-    }, [group]);
+    }, [group, tournamentId]);
 
     const loadStandings = async () => {
         try {
             setLoading(true);
-            const { data } = await api.get(`/standings/group/${group}`);
+            const { data } = await api.get(`/standings/group/${group}`, { params: { tournamentId } });
             setStandings(data);
             
             // Initialize overrides based on API response behavior
@@ -61,6 +61,7 @@ export function GroupStandingsOverride() {
             }));
             await api.post('/standings/override', {
                 group,
+                tournamentId,
                 overrides: payload
             });
             toast.success('Tabla de posiciones actualizada manualmente');

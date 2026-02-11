@@ -1,4 +1,4 @@
-'use server';
+// 'use server'; // Removed to run on client side and leverage api.ts configuration (auth/base URL)
 
 import api from '@/lib/api';
 

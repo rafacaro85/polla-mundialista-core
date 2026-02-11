@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, Gift, Clock, CheckCircle, XCircle, Lock, Award, Save, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+import { useTournament } from '@/hooks/useTournament';
 
 /* =============================================================================
    INTERFACES
@@ -31,6 +32,7 @@ interface BonusViewProps {
 }
 
 export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
+    const { tournamentId } = useTournament();
     // ESTADO
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [userAnswers, setUserAnswers] = useState<Record<string, UserAnswer>>({});
@@ -41,20 +43,21 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
     // CARGAR DATOS
     useEffect(() => {
         loadData();
-    }, [leagueId]);
+    }, [leagueId, tournamentId]);
 
     const loadData = async () => {
         try {
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
-            const params = new URLSearchParams();
-            if (leagueId) params.append('leagueId', leagueId);
-            params.append('tournamentId', tournamentId);
-            const queryString = `?${params.toString()}`;
-
+            setLoading(true);
+            
             const [questionsRes, answersRes] = await Promise.all([
-                api.get(`/bonus/questions${queryString}`),
-                api.get(`/bonus/my-answers${queryString}`)
+                api.get('/bonus/questions', { 
+                    params: { leagueId, tournamentId } 
+                }),
+                api.get('/bonus/my-answers', { 
+                    params: { leagueId, tournamentId } 
+                })
             ]);
+
 
             setQuestions(questionsRes.data);
 
@@ -283,7 +286,7 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
                     const isSaving = saving[q.id];
 
                     return (
-                        <div key={q.id} style={STYLES.card}>
+                        <div key={q.id} style={STYLES.card} className="group transition-all hover:border-[var(--brand-primary,#00E676)]/30">
 
                             {/* Overlay de Bloqueo */}
                             {isLocked && (

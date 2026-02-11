@@ -16,6 +16,9 @@ export class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'WC2026' })
+  tournamentId: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 50000 })
   amount: number;
 

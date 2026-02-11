@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Loader2, Plus, X, HelpCircle, Trophy } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useTournament } from '@/hooks/useTournament';
+
 
 interface CreateQuestionDialogProps {
     open: boolean;
@@ -11,10 +13,12 @@ interface CreateQuestionDialogProps {
     onSuccess: () => void;
 }
 
-export function CreateQuestionDialog({ open, onOpenChange, onSuccess }: CreateQuestionDialogProps) {
+ export function CreateQuestionDialog({ open, onOpenChange, onSuccess }: CreateQuestionDialogProps) {
+    const { tournamentId } = useTournament();
     const [loading, setLoading] = useState(false);
     const [text, setText] = useState('');
     const [points, setPoints] = useState('10');
+
 
     if (!open) return null;
 
@@ -26,10 +30,12 @@ export function CreateQuestionDialog({ open, onOpenChange, onSuccess }: CreateQu
 
         setLoading(true);
         try {
-            await api.post('/bonus/questions', {
+             await api.post('/bonus/questions', {
                 text,
-                points: parseInt(points) || 10
+                points: parseInt(points) || 10,
+                tournamentId: tournamentId
             });
+
             toast.success('Pregunta creada exitosamente');
             onSuccess();
             onOpenChange(false);

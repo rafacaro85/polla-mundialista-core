@@ -20,10 +20,10 @@ export class SystemSettings {
   @Column({ default: 'mailto:soporte@tupolla.com' })
   support: string;
 
-  @Column({ default: '/terms' })
+  @Column({ default: '/terminos' })
   termsUrl: string;
 
-  @Column({ default: '/privacy' })
+  @Column({ default: '/privacidad' })
   privacyUrl: string;
 
   @Column({ default: 'Copyright © 2026 TuApp. Todos los derechos reservados.' })

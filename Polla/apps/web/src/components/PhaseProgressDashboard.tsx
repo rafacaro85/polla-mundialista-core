@@ -91,7 +91,7 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {nextPhaseInfo && !nextPhaseInfo.isComplete && nextPhaseInfo.remainingMatches > 0 && (
+                    {nextPhaseInfo && !nextPhaseInfo.isComplete && nextPhaseInfo.remainingMatches > 0 && tournamentId !== 'UCL2526' && (
                         <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-1 rounded">
                             {nextPhaseInfo.remainingMatches} pendientes
                         </span>
@@ -120,8 +120,8 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
                         ))}
                     </div>
 
-                    {/* Next Phase Info */}
-                    {nextPhaseInfo && !nextPhaseInfo.isComplete && nextPhaseInfo.remainingMatches > 0 && (
+                    {/* Next Phase Info - Hidden for UCL as requested or if it's manual */}
+                    {nextPhaseInfo && !nextPhaseInfo.isComplete && nextPhaseInfo.remainingMatches > 0 && tournamentId !== 'UCL2526' && (
                         <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                             <p className="text-xs text-blue-200">
                                 <strong>{nextPhaseInfo.remainingMatches}</strong> partido{nextPhaseInfo.remainingMatches !== 1 ? 's' : ''} pendiente{nextPhaseInfo.remainingMatches !== 1 ? 's' : ''} para desbloquear la siguiente fase

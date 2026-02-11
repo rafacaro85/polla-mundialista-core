@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Shield, Users, ArrowRight, Settings } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
+import { useTournament } from '@/hooks/useTournament';
 import { CreateLeagueDialog } from './CreateLeagueDialog';
 import { JoinLeagueDialog } from './JoinLeagueDialog';
 import { LeagueSettings as AdminLeagueSettings } from './AdminLeagueSettings';
@@ -29,14 +30,13 @@ interface League {
    ============================================================================= */
 export const LeaguesView = () => {
     const router = useRouter();
-    const { user } = useAppStore();
+    const { tournamentId } = useTournament();
     const [leagues, setLeagues] = React.useState<League[]>([]);
     const [loading, setLoading] = React.useState(true);
 
     const fetchLeagues = React.useCallback(async () => {
         try {
             setLoading(true);
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
             const { data } = await api.get('/leagues/my', { params: { tournamentId } });
 
             // Mapear datos de la API a la interfaz local

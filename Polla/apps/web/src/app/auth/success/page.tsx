@@ -9,6 +9,13 @@ function SuccessLogic() {
 
   useEffect(() => {
     const token = searchParams.get('token');
+    const tournament = searchParams.get('tournament');
+    
+    if (tournament) {
+      localStorage.setItem('selectedTournament', tournament);
+      console.log('Torneo seleccionado guardado:', tournament);
+    }
+
     if (token) {
       localStorage.setItem('token', token);
       console.log('Token guardado:', token);

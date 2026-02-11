@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In } from 'typeorm';
@@ -57,10 +58,12 @@ export class PredictionsService {
       throw new NotFoundException('Match not found');
     }
 
-    // Check if match has started
-    if (match.date < new Date()) {
+    // Check if match has started or is manually locked
+    if (match.isManuallyLocked || match.date < new Date()) {
       throw new BadRequestException(
-        'Cannot predict on a match that has already started',
+        match.isManuallyLocked 
+          ? 'Match is locked by administrator' 
+          : 'Cannot predict on a match that has already started',
       );
     }
 
@@ -135,6 +138,8 @@ export class PredictionsService {
       prediction.homeScore = homeScore;
       prediction.awayScore = awayScore;
       if (isJoker !== undefined) prediction.isJoker = isJoker;
+      // Ensure tournamentId is kept in sync (self-healing for legacy data)
+      prediction.tournamentId = match.tournamentId;
     } else {
       prediction = this.predictionsRepository.create({
         user: { id: userId } as User,
@@ -277,40 +282,96 @@ export class PredictionsService {
 
   async removeAllPredictions(
     userId: string,
-    leagueId?: string,
-    tournamentId?: string,
+    leagueId?: any,
+    tournamentId?: any,
   ) {
-    // 1. Limpiar el Bracket (llaves eliminatorias)
-    await this.bracketsService.clearBracket(userId, leagueId, tournamentId);
-    console.log(
-      `🧹 Bracket para usuario ${userId}, liga ${leagueId} y torneo ${tournamentId} limpiado.`,
-    );
+    try {
+        // 1. Normalización estricta de parámetros
+        let lId = Array.isArray(leagueId) ? leagueId[0] : leagueId;
+        if (typeof lId === 'string' && lId.includes(',')) lId = lId.split(',')[0];
+        if (!lId || lId === 'null' || lId === 'undefined' || lId === 'global' || lId === '') {
+            lId = null;
+        }
+        
+        let tId = Array.isArray(tournamentId) ? tournamentId[0] : tournamentId;
+        if (typeof tId === 'string' && tId.includes(',')) tId = tId.split(',')[0];
+        if (!tId || tId === 'null' || tId === 'undefined' || tId === '') {
+            tId = null;
+        }
 
-    // 2. Limpiar predicciones de partidos (Scores)
-    const where: any = { user: { id: userId } };
-    where.leagueId = leagueId ? leagueId : IsNull();
-    if (tournamentId) {
-      where.tournamentId = tournamentId;
+        console.log(`🚀 [CLEAR DEBUG] Normalizado -> User: ${userId} | League: ${lId} | Tournament: ${tId}`);
+        
+        // 2. Limpieza de Brackets
+        try {
+            await this.bracketsService.clearBracket(userId, lId || undefined, tId || undefined);
+        } catch (e) {
+            console.error('❌ Error en clearBracket:', e.message);
+        }
+
+        // 3. Limpieza de Marcadores (Scores)
+        const allUserPredictions = await this.predictionsRepository.find({
+            where: { user: { id: userId } },
+            relations: ['match']
+        });
+
+        console.log(`📊 [CLEAR DEBUG] DB Total: ${allUserPredictions.length}. Filtros: T=${tId}, L=${lId}`);
+        
+        // Log sample to see what's in DB
+        if (allUserPredictions.length > 0) {
+            const sample = allUserPredictions[0];
+            console.log(`📝 [CLEAR DEBUG] Sample DB Prediction: ID=${sample.id}, T=${sample.tournamentId}, L=${sample.leagueId}`);
+        }
+
+        const now = new Date();
+        const toDelete = allUserPredictions.filter(p => {
+            // 1. Torneo: Revisamos tanto en la predicción como en el partido asociado
+            const predTid = p.tournamentId;
+            const matchTid = p.match?.tournamentId;
+            
+            if (tId) {
+                // Si el torneo no coincide en NINGUNA de las dos fuentes, lo descartamos
+                if (predTid !== tId && matchTid !== tId) return false;
+            }
+            
+            // 2. Liga: Debe coincidir exactamente (null para Global)
+            const pLid = p.leagueId || null;
+            if (lId !== pLid) return false;
+
+            // 3. Tiempo: Solo borrar si el partido es futuro
+            // Si no hay fecha o no hay partido, permitimos borrar por seguridad
+            if (p.match?.date) {
+                const matchDate = new Date(p.match.date);
+                if (matchDate < now) return false;
+            }
+
+            return true;
+        });
+
+        console.log(`🔥 [CLEAR DEBUG] ${toDelete.length} marcadores pasan los filtros.`);
+        
+        // Log details if nothing found to delete but there are predictions
+        if (toDelete.length === 0 && allUserPredictions.length > 0) {
+            console.log('🔍 [CLEAR DEBUG] ¿Por qué no se borró nada?');
+            allUserPredictions.slice(0, 3).forEach(p => {
+                console.log(`   - Pred ID: ${p.id} | T_Pred: ${p.tournamentId} | T_Match: ${p.match?.tournamentId} | League: ${p.leagueId}`);
+            });
+        }
+
+        if (toDelete.length > 0) {
+            const ids = toDelete.map(p => p.id);
+            await this.predictionsRepository.delete(ids);
+            console.log(`✅ [CLEAR DEBUG] Borrados IDs: ${ids.join(', ')}`);
+        }
+
+        return {
+            success: true,
+            message: `Limpieza completada: ${toDelete.length} marcadores eliminados.`,
+            count: toDelete.length,
+        };
+    } catch (error) {
+        console.error('🔥 [CLEAR DEBUG FATAL]:', error);
+        throw new InternalServerErrorException(`Fallo crítico al limpiar: ${error.message}`);
     }
-
-    // Solo borrar partidos que no han empezado
-    const predictions = await this.predictionsRepository.find({
-      where,
-      relations: ['match'],
-    });
-
-    const toDelete = predictions.filter(
-      (p) => !p.match.date || p.match.date > new Date(),
-    );
-
-    if (toDelete.length > 0) {
-      await this.predictionsRepository.remove(toDelete);
-    }
-
-    return {
-      message: `Sistema de predicciones reseteado para ${tournamentId || 'todos'}: Bracket borrado y ${toDelete.length} marcadores eliminados.`,
-      count: toDelete.length,
-    };
   }
   async upsertBulkPredictions(
     userId: string,
@@ -370,8 +431,8 @@ export class PredictionsService {
         const match = matchesMap.get(dto.matchId);
         if (!match) continue; // Match no existe
 
-        // Check Time Validation
-        if (match.date < now) continue; // Match ya empezó
+        // Check Time Validation & Manual Lock
+        if (match.isManuallyLocked || match.date < now) continue; // Match ya empezó o está bloqueado
 
         const lid = dto.leagueId || null; // Normalizar undefined a null para lógica interna
         const key = `${dto.matchId}_${lid || 'null'}`;
@@ -385,9 +446,9 @@ export class PredictionsService {
           prediction.homeScore = dto.homeScore;
           prediction.awayScore = dto.awayScore;
           
-          if (dto.isJoker === true) {
-            prediction.isJoker = true;
-          }
+        if (dto.isJoker !== undefined) {
+          prediction.isJoker = dto.isJoker;
+        }
         } else {
           // Create nuevo
           prediction = queryRunner.manager.create(Prediction, {

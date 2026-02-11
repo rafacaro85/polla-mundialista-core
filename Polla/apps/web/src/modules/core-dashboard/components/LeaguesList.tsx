@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Users, ArrowRight, Settings, Briefcase, Trophy } from 'lucide-react';
@@ -9,8 +11,7 @@ import { JoinLeagueDialog } from '@/components/JoinLeagueDialog';
 import { LeagueSettings as AdminLeagueSettings } from '@/components/AdminLeagueSettings';
 
 import { useLeagues } from '@/hooks/useLeagues';
-
-// --- INTERFACES: Imported from hook implied or just use inferred types
+import { useTournament } from '@/hooks/useTournament';
 
 /* =============================================================================
    COMPONENTE: LEAGUES LIST (ESTILO TACTICAL CON TABS)
@@ -21,18 +22,23 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
     const [activeTab, setActiveTab] = useState<'social' | 'enterprise'>(initialTab);
 
     // Custom Hook
-    const { leagues, loading, fetchLeagues, socialLeagues, enterpriseLeagues } = useLeagues();
-
-    // Force Social tab if Champions Theme
-    const isChampionsTheme = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS';
+    const { leagues, loading: leaguesLoading, fetchLeagues, socialLeagues, enterpriseLeagues } = useLeagues();
+    const { tournamentId, isReady } = useTournament();
 
     React.useEffect(() => {
-        if (isChampionsTheme) {
-            setActiveTab('social');
-        } else if (initialTab) {
+        if (initialTab) {
             setActiveTab(initialTab);
         }
-    }, [initialTab, isChampionsTheme]);
+    }, [initialTab]);
+
+    if (!isReady || leaguesLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <div className="w-10 h-10 border-4 border-[#00E676] border-t-transparent rounded-full animate-spin" />
+                <p className="text-[#94A3B8] text-xs font-russo uppercase">Cargando pollas...</p>
+            </div>
+        );
+    }
 
     // Lista a mostrar según tab
     const displayLeagues = activeTab === 'social' ? socialLeagues : enterpriseLeagues;
@@ -49,23 +55,21 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                     </div>
                 </div>
 
-                {/* TOGGLE TABS (Solo si NO es Champions) */}
-                {!isChampionsTheme && (
-                    <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6 border border-[#334155]">
-                        <button
-                            className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'social' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
-                            onClick={() => setActiveTab('social')}
-                        >
-                            <Trophy size={14} /> Sociales
-                        </button>
-                        <button
-                            className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'enterprise' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
-                            onClick={() => setActiveTab('enterprise')}
-                        >
-                            <Briefcase size={14} /> Empresas
-                        </button>
-                    </div>
-                )}
+                {/* TOGGLE TABS (Always visible now) */}
+                <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6 border border-[#334155]">
+                    <button
+                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'social' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
+                        onClick={() => setActiveTab('social')}
+                    >
+                        <Trophy size={14} /> Sociales
+                    </button>
+                    <button
+                        className={`flex-1 p-2.5 rounded-lg border-none font-russo text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 ${activeTab === 'enterprise' ? 'bg-[#00E676] text-[#0F172A]' : 'bg-transparent text-[#94A3B8]'}`}
+                        onClick={() => setActiveTab('enterprise')}
+                    >
+                        <Briefcase size={14} /> Empresas
+                    </button>
+                </div>
 
                 {/* BOTONES DE ACCIÓN (DINÁMICOS) */}
                 <div className="flex gap-3 mb-6">
@@ -201,7 +205,7 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
 
             {/* Empty State */}
             {
-                !loading && displayLeagues.length === 0 && (
+                !leaguesLoading && displayLeagues.length === 0 && (
                     <div className="text-center mt-10 opacity-50">
                         <Shield size={48} className="mx-auto mb-4 text-[#334155]" />
                         <p className="text-[#94A3B8] text-xs">

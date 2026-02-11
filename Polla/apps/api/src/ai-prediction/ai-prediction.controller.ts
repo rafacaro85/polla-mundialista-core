@@ -30,10 +30,15 @@ export class AiPredictionController {
   @Post('bulk')
   @HttpCode(200)
   async getBulkPredictions(@Body('matchIds') matchIds: string[]) {
-    if (!matchIds || !Array.isArray(matchIds)) {
-      return {};
+    try {
+      if (!matchIds || !Array.isArray(matchIds)) {
+        return {};
+      }
+      return await this.aiPredictionService.getBulkPredictions(matchIds);
+    } catch (error) {
+      console.error('🔥 Error in AiPredictionController.getBulkPredictions:', error);
+      throw error;
     }
-    return this.aiPredictionService.getBulkPredictions(matchIds);
   }
 
   /**

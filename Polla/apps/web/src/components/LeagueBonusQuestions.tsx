@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Star, Award, Edit3, Trash2, Trophy, Loader2, HelpCircle, CheckCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useTournament } from '@/hooks/useTournament';
 
 interface BonusQuestion {
     id: string;
@@ -21,6 +22,7 @@ interface LeagueBonusQuestionsProps {
 }
 
 export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
+    const { tournamentId } = useTournament();
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
@@ -35,22 +37,19 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
 
     useEffect(() => {
         loadQuestions();
-    }, [leagueId]);
+    }, [leagueId, tournamentId]);
 
     const loadQuestions = async () => {
         try {
-            // Updated: Pass leagueId to params to authorize request on backend
-            const { data } = await api.get('/bonus/questions/all', { params: { leagueId } });
+            // Updated: Pass leagueId and tournamentId to params
+            const { data } = await api.get('/bonus/questions/all', { 
+                params: { leagueId, tournamentId } 
+            });
             
-            // Filter questions for this league (Backend now does this too via filtering, but safe to keep)
-            // But we can just use the data if backend already filters.
-            // Let's keep filter just in case API changes, but it's redundant now.
-            const leagueQuestions = data.filter((q: BonusQuestion) => q.leagueId === leagueId);
-            setQuestions(leagueQuestions);
+            setQuestions(data);
             
         } catch (error) {
             console.error('Error loading questions:', error);
-            // toast.error('Error al cargar las preguntas'); // Evitar spam si falla permisos
         } finally {
             setLoading(false);
         }
@@ -73,11 +72,13 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                 text: newQuestion.text,
                 points: points,
                 leagueId: leagueId,
+                tournamentId: tournamentId,
                 isActive: true,
                 type: newQuestion.type,
                 options: newQuestion.type === 'MULTIPLE' ? newQuestion.options : []
             });
             toast.success('Pregunta creada exitosamente');
+
             setNewQuestion({ 
                 text: '', 
                 points: '' as any, 

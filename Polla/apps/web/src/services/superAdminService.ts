@@ -12,15 +12,21 @@ export const superAdminService = {
         return response.data;
     },
 
+    // --- BONUS QUESTIONS ---
+    getAllBonusQuestions: async (tournamentId?: string) => {
+        const response = await api.get('/bonus/questions/all', { params: { tournamentId } });
+        return response.data;
+    },
+
     // --- LEAGUES ---
-    getAllLeagues: async () => {
-        const response = await api.get('/leagues/all');
+    getAllLeagues: async (tournamentId?: string) => {
+        const response = await api.get('/leagues/all', { params: { tournamentId } });
         return response.data;
     },
 
     // --- TRANSACTIONS ---
-    getAllTransactions: async () => {
-        const response = await api.get('/transactions');
+    getAllTransactions: async (tournamentId?: string) => {
+        const response = await api.get('/transactions', { params: { tournamentId } });
         return response.data;
     },
 
@@ -152,11 +158,11 @@ export const superAdminService = {
     },
 
     // --- STATS (Calculated on frontend for now) ---
-    getDashboardStats: async () => {
+    getDashboardStats: async (tournamentId?: string) => {
         const [users, leagues, transactions] = await Promise.all([
             superAdminService.getAllUsers(),
-            superAdminService.getAllLeagues(),
-            superAdminService.getAllTransactions()
+            superAdminService.getAllLeagues(tournamentId),
+            superAdminService.getAllTransactions(tournamentId)
         ]);
 
         const totalIncome = transactions.reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Shield, Zap, Crown, Check, Plus, Trophy, Copy, Loader2, Star } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useTournament } from '@/hooks/useTournament';
 
 /* =============================================================================
    DATOS MOCK (PLANES - Sincronizados con CreateLeagueDialog público)
@@ -72,6 +73,7 @@ interface CreateLeagueDialogProps {
    COMPONENTE: CREAR LIGA (ADMIN VERSION)
    ============================================================================= */
 export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeagueDialogProps) {
+    const { tournamentId } = useTournament();
     const [leagueName, setLeagueName] = useState('');
     const [selectedPlan, setSelectedPlan] = useState('amigos'); // Por defecto el Amigos
     const [loading, setLoading] = useState(false);
@@ -99,6 +101,7 @@ export function CreateLeagueDialog({ open, onOpenChange, onSuccess }: CreateLeag
                 maxParticipants: plan.members,
                 packageType: selectedPlan,
                 isEnterprise: false,
+                tournamentId,
             });
 
             const newLeagueId = response.data.id;

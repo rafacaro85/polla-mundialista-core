@@ -12,6 +12,8 @@ import { Match } from '../database/entities/match.entity';
 const PHASE_ORDER = [
   'GROUP',
   'PLAYOFF',
+  'PLAYOFF_1',
+  'PLAYOFF_2',
   'ROUND_32',
   'ROUND_16',
   'QUARTER',
@@ -28,6 +30,11 @@ const NEXT_PHASE: { [key: string]: string | null } = {
   // For now, let's map loosely, or better, keep it simple mapping.
   // If tournamentId='WC2026', GROUP -> ROUND_32.
   // If 'UCL2526', PLAYOFF -> ROUND_16.
+  // UCL Flow
+  PLAYOFF_1: 'PLAYOFF_2',
+  PLAYOFF_2: 'ROUND_16',
+  
+  // Existing
   PLAYOFF: 'ROUND_16',
   ROUND_32: 'ROUND_16',
   ROUND_16: 'QUARTER',
@@ -52,8 +59,15 @@ export class KnockoutPhasesService {
 
   private getNextPhase(current: string, tournamentId: string): string | null {
     if (tournamentId === 'WC2026' && current === 'GROUP') return 'ROUND_32';
-    if (tournamentId === 'UCL2526' && current === 'PLAYOFF') return 'ROUND_16';
-    if (tournamentId === 'UCL2526' && current === 'GROUP') return null; // UCL has no GROUP in this system? Or Phase League? Assumed PLAYOFF start.
+    
+    // UCL Specific
+    if (tournamentId === 'UCL2526') {
+        if (current === 'PLAYOFF_1') return 'PLAYOFF_2';
+        if (current === 'PLAYOFF_2') return 'ROUND_16';
+        if (current === 'GROUP') return 'PLAYOFF_1'; // Just in case
+    }
+    
+    if (tournamentId === 'UCL2526' && current === 'PLAYOFF') return 'ROUND_16'; // Legacy/Fallback
 
     return NEXT_PHASE[current] || null;
   }
@@ -202,7 +216,14 @@ export class KnockoutPhasesService {
       );
 
       // Unlock next phase
-      const nextPhase = this.getNextPhase(currentPhase, tournamentId);
+      let nextPhase = this.getNextPhase(currentPhase, tournamentId);
+      
+      // EXCEPTION: UCL Round of 16 requires manual seeding/unlock
+      if (tournamentId === 'UCL2526' && nextPhase === 'ROUND_16') {
+          console.log(`🛑 Stopping auto-unlock for ${nextPhase} in ${tournamentId} (Manual Unlock Required)`);
+          return;
+      }
+
       if (!nextPhase) {
         console.log(`🏆 ${currentPhase} is the final phase`);
         return;

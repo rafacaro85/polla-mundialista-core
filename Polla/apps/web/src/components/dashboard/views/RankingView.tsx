@@ -12,6 +12,7 @@ interface RankingViewProps {
     isEnterpriseMode?: boolean;
     currentLeague?: any;
     matches?: any[];
+    tournamentId?: string;
 }
 
 const getPlanLevel = (type?: string) => {
@@ -30,9 +31,12 @@ export const RankingView: React.FC<RankingViewProps> = ({
     leagueId,
     isEnterpriseMode,
     currentLeague,
-    matches = []
+    matches = [],
+    tournamentId: propTournamentId
 }) => {
-    const { tournamentId } = useTournament();
+    // Priority: Prop > Hook
+    const hookTournament = useTournament();
+    const tournamentId = propTournamentId || hookTournament.tournamentId;
     const isChampions = tournamentId === 'UCL2526';
 
     return (
@@ -60,7 +64,7 @@ export const RankingView: React.FC<RankingViewProps> = ({
 
                 <TabsContent value="participants" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
                      {leagueId === 'global' ? (
-                        <GlobalRankingTable />
+                        <GlobalRankingTable tournamentId={tournamentId} />
                       ) : isEnterpriseMode && leagueId ? (
                         <EnterpriseRankingTable
                           leagueId={leagueId}

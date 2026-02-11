@@ -6,6 +6,8 @@ import PrizeCard from '@/components/PrizeCard';
 import { PrizeHero } from '@/components/PrizeHero';
 import { PromoBanner } from '@/components/PromoBanner';
 
+import { useTournament } from '@/hooks/useTournament';
+
 interface GlobalHomeProps {
     userName?: string;
     onNavigateToLeagues: () => void;
@@ -14,6 +16,9 @@ interface GlobalHomeProps {
 }
 
 export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLeagues, onNavigateToBusiness, onNavigateToGames }) => {
+    const { tournamentId } = useTournament();
+    const isUCL = tournamentId === 'UCL2526';
+
     return (
         <div className="flex flex-col space-y-6 pb-20">
             {/* Welcome Section */}
@@ -22,9 +27,12 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                     HOLA, <span className="text-[var(--brand-primary,#00E676)]">{userName?.toUpperCase() || 'CRACK'}</span>
                 </h1>
                 <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                    Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!
+                    {isUCL 
+                      ? 'Bienvenido a la Polla Champions 25/26. ¡Predice, compite y diviértete!'
+                      : 'Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!'}
                 </p>
             </header>
+
 
             {/* Prize Hero Section */}
             <div className="animate-in fade-in scale-95 duration-500 delay-100">

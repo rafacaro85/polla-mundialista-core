@@ -11,6 +11,8 @@ interface PhaseStatus {
 }
 
 const PHASE_LABELS: Record<string, string> = {
+    'PLAYOFF_1': 'Play-off ida',
+    'PLAYOFF_2': 'Play-off vuelta',
     'ROUND_32': '1/16 de Final (32 equipos)',
     'ROUND_16': 'Octavos de Final',
     'QUARTER': 'Cuartos de Final',
@@ -19,7 +21,7 @@ const PHASE_LABELS: Record<string, string> = {
     'FINAL': 'Final',
 };
 
-export function PhaseLocksManager() {
+export function PhaseLocksManager({ tournamentId }: { tournamentId?: string }) {
     const [phases, setPhases] = useState<PhaseStatus[]>([]);
     const [loading, setLoading] = useState(true);
     const [toggling, setToggling] = useState<string | null>(null);
@@ -27,8 +29,8 @@ export function PhaseLocksManager() {
     const loadPhases = async () => {
         try {
             setLoading(true);
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
-            const data = await superAdminService.getPhaseStatus(tournamentId);
+            const tid = tournamentId || (process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026');
+            const data = await superAdminService.getPhaseStatus(tid);
             setPhases(data);
         } catch (error) {
             console.error('Error loading phases:', error);
@@ -40,7 +42,7 @@ export function PhaseLocksManager() {
 
     useEffect(() => {
         loadPhases();
-    }, []);
+    }, [tournamentId]);
 
     const togglePhaseLock = async (phase: string, currentLockState: boolean) => {
         const newLockState = !currentLockState;
@@ -52,8 +54,8 @@ export function PhaseLocksManager() {
         ));
 
         try {
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
-            await superAdminService.setPhaseLock(phase, newLockState, tournamentId);
+            const tid = tournamentId || (process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026');
+            await superAdminService.setPhaseLock(phase, newLockState, tid);
             toast.success(newLockState ? `🔒 Fase ${PHASE_LABELS[phase]} bloqueada` : `🔓 Fase ${PHASE_LABELS[phase]} desbloqueada`);
         } catch (error) {
             // Revert on error

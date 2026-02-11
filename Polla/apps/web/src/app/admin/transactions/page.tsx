@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Check, X, Search, Image as ImageIcon, Copy, ExternalLink, Calendar, ArrowLeft } from 'lucide-react';
+import { useTournament } from '@/hooks/useTournament';
 
 interface Transaction {
     id: string;
@@ -26,7 +27,11 @@ interface Transaction {
 }
 
 export default function AdminTransactionsPage() {
-    const { data: transactions, isLoading } = useSWR<Transaction[]>('/transactions/pending', async (url: string) => (await api.get(url)).data);
+    const { tournamentId } = useTournament();
+    const { data: transactions, isLoading } = useSWR<Transaction[]>(
+        ['/transactions/pending', tournamentId], 
+        async ([url, tid]: [string, string]) => (await api.get(url, { params: { tournamentId: tid } })).data
+    );
     const { mutate } = useSWRConfig();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -38,7 +43,7 @@ export default function AdminTransactionsPage() {
             setProcessingId(id);
             await api.patch(`/transactions/${id}/status`, { status });
             toast.success(`Transacción ${status === 'APPROVED' ? 'Aprobada' : 'Rechazada'}`);
-            mutate('/transactions/pending');
+            mutate(['/transactions/pending', tournamentId]);
         } catch (error) {
             console.error(error);
             toast.error('Error al actualizar estado');
@@ -47,30 +52,30 @@ export default function AdminTransactionsPage() {
         }
     };
 
-    if (isLoading) return <div className="p-8 text-white font-mono text-center">Cargando pagos pendientes...</div>;
+    if (isLoading) return <div className="p-8 text-white font-mono text-center">Cargando pagos pendientes ({tournamentId})...</div>;
 
     return (
         <div className="min-h-screen bg-[#0F172A] p-6 lg:p-10 font-sans text-white">
             <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/super-admin" className="bg-slate-800 p-2 rounded-lg hover:bg-slate-700 transition-colors border border-slate-700 text-slate-400 hover:text-white">
+                    <Link href={`/super-admin?tournamentId=${tournamentId}`} className="bg-slate-800 p-2 rounded-lg hover:bg-slate-700 transition-colors border border-slate-700 text-slate-400 hover:text-white">
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-russo uppercase text-emerald-400">Validación de Pagos</h1>
+                        <h1 className="text-3xl font-russo uppercase text-emerald-400">Validación de Pagos ({tournamentId})</h1>
                         <p className="text-slate-400 text-sm mt-1">Revisa y aprueba los comprobantes de pago de los usuarios.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 self-start md:self-center">
                     <Link
-                        href="/super-admin?tab=transactions"
+                        href={`/super-admin?tab=transactions&tournamentId=${tournamentId}`}
                         className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-xs font-bold text-emerald-400 uppercase hover:bg-slate-700 transition-colors flex items-center gap-2"
                     >
                         <Calendar size={14} />
                         Ver Historial Completo
                     </Link>
                     <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                        <span className="text-slate-400 text-xs uppercase font-bold">Pendientes:</span>
+                        <span className="text-slate-400 text-xs uppercase font-bold">Pendientes ({tournamentId}):</span>
                         <span className="ml-2 text-xl font-bold text-white">{transactions?.length || 0}</span>
                     </div>
                 </div>
@@ -80,7 +85,7 @@ export default function AdminTransactionsPage() {
                 <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-800 rounded-3xl bg-slate-900/50">
                     <Check className="text-emerald-500 mb-4" size={48} />
                     <h3 className="text-xl font-bold text-slate-300">¡Todo al día!</h3>
-                    <p className="text-slate-500">No hay pagos pendientes por revisar.</p>
+                    <p className="text-slate-500">No hay pagos pendientes por revisar en {tournamentId}.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -182,7 +187,7 @@ export default function AdminTransactionsPage() {
                     <img
                         src={selectedImage}
                         alt="Comprobante Full"
-                        className="max-w-full max-h-[90vh] rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+                        className="max-width: 100%; max-height: 90vh; border-radius: 12px; shadow-2xl; animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>

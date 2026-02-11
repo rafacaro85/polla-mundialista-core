@@ -27,6 +27,7 @@ export class TransactionsService {
     amount: number,
     packageId: string,
     leagueId: string,
+    tournamentId: string = 'WC2026',
     status: TransactionStatus = TransactionStatus.PENDING,
   ): Promise<Transaction> {
     const league = await this.leaguesRepository.findOne({
@@ -42,6 +43,7 @@ export class TransactionsService {
       packageId, // This stores the package type (e.g., 'gold', 'platinum')
       league,
       status,
+      tournamentId,
       referenceCode: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     });
 
@@ -54,6 +56,7 @@ export class TransactionsService {
     amount: number = 50000,
     referenceCode?: string,
     leagueId?: string,
+    tournamentId: string = 'WC2026',
   ): Promise<Transaction> {
     let league: League | undefined = undefined;
     if (leagueId) {
@@ -66,6 +69,7 @@ export class TransactionsService {
       user,
       amount,
       imageUrl,
+      tournamentId,
       league, // Attach league if found
       packageId: league?.packageType,
       status: TransactionStatus.PENDING,
@@ -232,16 +236,25 @@ export class TransactionsService {
     });
   }
 
-  async findPending(): Promise<Transaction[]> {
+  async findPending(tournamentId?: string): Promise<Transaction[]> {
+    const where: any = { status: TransactionStatus.PENDING };
+    if (tournamentId) {
+      where.tournamentId = tournamentId;
+    }
     return this.transactionsRepository.find({
-      where: { status: TransactionStatus.PENDING },
+      where,
       relations: ['user', 'league'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findAll(): Promise<Transaction[]> {
+  async findAll(tournamentId?: string): Promise<Transaction[]> {
+    const where: any = {};
+    if (tournamentId) {
+      where.tournamentId = tournamentId;
+    }
     return this.transactionsRepository.find({
+      where,
       relations: ['user', 'league'],
       order: { createdAt: 'DESC' },
     });

@@ -27,7 +27,7 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Request() req: any): Promise<Match[]> {
-    const isAdmin = req.user.role === 'ADMIN';
+    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'SUPER_ADMIN';
     const tournamentId =
       req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
     return this.matchesService.findAll(req.user.id, isAdmin, tournamentId);
@@ -37,7 +37,7 @@ export class MatchesController {
   @Get('live')
   @Header('Cache-Control', 'public, max-age=30')
   async findLive(@Request() req: any): Promise<Match[]> {
-    const isAdmin = req.user?.role === 'ADMIN';
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
     const tournamentId =
       req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
     return this.matchesService.findLive(isAdmin, tournamentId);
@@ -141,24 +141,11 @@ export class MatchesController {
         body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
       return await this.matchesService.simulateResults(phase, tournamentId);
     } catch (e: any) {
-      const fs = require('fs');
-      fs.writeFileSync(
-        'controller_error.log',
-        JSON.stringify(
-          {
-            message: e.message,
-            stack: e.stack,
-            name: e.name,
-            detail: e,
-          },
-          null,
-          2,
-        ),
-      );
-      console.error('CONTROLLER CAUGHT ERROR:', e);
+      // ... (error logging)
       throw e;
     }
   }
+
 
   // Alias con guion bajo para compatibilidad con el componente frontend
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -211,12 +198,6 @@ export class MatchesController {
     return this.matchesService.ensureTournamentIntegrity(tid);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
-  @Post('fix-ucl-data')
-  async fixUCLData() {
-    return this.matchesService.fixUCLMatchData();
-  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

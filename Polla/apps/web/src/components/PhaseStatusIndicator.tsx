@@ -13,6 +13,9 @@ interface PhaseStatusIndicatorProps {
 
 const PHASE_NAMES: Record<string, string> = {
     'GROUP': 'Fase de Grupos',
+    'PLAYOFF_1': 'Play-off Ida',
+    'PLAYOFF_2': 'Play-off Vuelta',
+    'PLAYOFF': 'Play-offs',
     'ROUND_32': 'Dieciseisavos de Final',
     'ROUND_16': 'Octavos de Final',
     'QUARTER': 'Cuartos de Final',

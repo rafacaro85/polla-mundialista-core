@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, Crown, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
+import { useTournament } from '@/hooks/useTournament';
 
 interface RankingUser {
     rank: number;
@@ -17,12 +18,14 @@ interface RankingUser {
     };
 }
 
-export const GlobalRankingTable = () => {
+export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournamentId?: string }) => {
+    const { tournamentId: hookTournamentId } = useTournament();
+    const tournamentId = propTournamentId || hookTournamentId;
     const { user } = useAppStore();
     const [ranking, setRanking] = useState<RankingUser[]>([]);
     const [loading, setLoading] = useState(false);
     const [expandedRow, setExpandedRow] = useState<number | null>(null);
-
+ 
     const getRankStyle = (rank: number, isLast: boolean) => {
         if (isLast) return { color: '#EF5350', icon: <span className="text-xl">🥄</span> };
         if (rank === 1) return { color: '#FACC15', icon: <Trophy size={18} className="text-yellow-400" /> };
@@ -30,12 +33,11 @@ export const GlobalRankingTable = () => {
         if (rank === 3) return { color: '#B45309', icon: <Trophy size={16} className="text-amber-700" /> };
         return { color: '#64748B', icon: <span className="text-sm">{rank}</span> };
     };
-
+ 
     useEffect(() => {
         const fetchRanking = async () => {
             setLoading(true);
             try {
-                const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
                 const { data } = await api.get('/leagues/global/ranking', { params: { tournamentId } });
                 const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
                     rank: index + 1,
@@ -57,7 +59,7 @@ export const GlobalRankingTable = () => {
         if (user) {
             fetchRanking();
         }
-    }, [user]);
+    }, [user, tournamentId]);
 
     return (
         <div className="w-full max-w-md mx-auto pb-24 px-4 pt-4">

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import api from '@/lib/api';
+import { useTournament } from './useTournament';
 
 export interface League {
     id: string;
@@ -18,14 +19,18 @@ export interface League {
 }
 
 export const useLeagues = () => {
+    const { tournamentId, isReady } = useTournament();
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchLeagues = useCallback(async () => {
+        if (!isReady) return;
+
         try {
             setLoading(true);
-            const tournamentId = process.env.NEXT_PUBLIC_APP_THEME === 'CHAMPIONS' ? 'UCL2526' : 'WC2026';
+            console.log(`[useLeagues] Fetching leagues for tournament: ${tournamentId}`);
             const { data } = await api.get('/leagues/my', { params: { tournamentId } });
+            console.log(`[useLeagues] Received ${data.length} leagues`);
 
             // Map API data to local interface
             const mappedLeagues = data.map((l: any) => ({
@@ -49,7 +54,7 @@ export const useLeagues = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [tournamentId, isReady]);
 
     useEffect(() => {
         fetchLeagues();

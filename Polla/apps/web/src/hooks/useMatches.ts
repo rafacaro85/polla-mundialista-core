@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import api from '@/lib/api';
+import { useTournament } from './useTournament';
 import { toast } from 'sonner';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 
@@ -25,17 +26,22 @@ interface Match {
 }
 
 export const useMatches = (predictions: any) => {
+    const { tournamentId } = useTournament();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // SWR Fetcher
     const fetcher = (url: string) => api.get(url).then(res => res.data);
 
-    // SWR Hooks
-    const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR('/matches/live', fetcher, {
-        refreshInterval: 60000, // 1 minute
-        revalidateOnFocus: true,
-        revalidateIfStale: true,
-    });
+    // SWR Hooks - Scope key by tournamentId
+    const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR(
+        tournamentId ? `/matches/live?t=${tournamentId}` : '/matches/live', 
+        fetcher, 
+        {
+            refreshInterval: 60000, 
+            revalidateOnFocus: true,
+            revalidateIfStale: true,
+        }
+    );
 
     // Calculate Merged Matches
     const matches = useMemo(() => {

@@ -21,8 +21,10 @@ import { useRouter } from 'next/navigation';
 import { EnterpriseLock } from '@/components/admin/EnterpriseLock';
 import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
 import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
+import { useTournament } from '@/hooks/useTournament';
 
 interface Participant {
+
     user: {
         id: string;
         nickname: string;
@@ -71,6 +73,8 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
     const { user } = useAppStore();
     const { toast } = useToast();
     const router = useRouter();
+    const { tournamentId } = useTournament();
+
 
     const [currentLeague, setCurrentLeague] = useState<League | null>(null);
     const [editedName, setEditedName] = useState('');
@@ -345,11 +349,13 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                                     <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                                                         onClick={() => {
                                                             const appUrl = window.location.origin;
-                                                            const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\n` +
+                                                            const isUCL = tournamentId === 'UCL2526';
+                                                            const text = `¡Únete a mi polla ${isUCL ? 'Champions' : 'Mundialista'} "${currentLeague.name}"! 🏆\n` +
                                                                 `Link: ${appUrl}/invite/${currentLeague.code}\n` +
                                                                 `Código: *${currentLeague.code}*`;
                                                             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                         }}
+
                                                     >
                                                         <Share2 className="w-3 h-3 mr-1" /> WhatsApp
                                                     </Button>
@@ -513,11 +519,13 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                             <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
                                                 onClick={() => {
                                                     const appUrl = window.location.origin;
-                                                    const text = `¡Únete a mi polla "${currentLeague.name}"! 🏆\n` +
+                                                    const isUCL = tournamentId === 'UCL2526';
+                                                    const text = `¡Únete a mi polla ${isUCL ? 'Champions' : 'Mundialista'} "${currentLeague.name}"! 🏆\n` +
                                                         `Link: ${appUrl}/invite/${currentLeague.code}\n` +
                                                         `Código: *${currentLeague.code}*`;
                                                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                 }}
+
                                             >
                                                 <Share2 className="w-3 h-3 mr-1" /> WhatsApp
                                             </Button>

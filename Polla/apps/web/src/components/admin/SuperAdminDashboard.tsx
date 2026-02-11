@@ -21,6 +21,7 @@ import { MatchesList } from '@/components/admin/MatchesList';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
 import { GroupStandingsOverride } from '@/components/admin/GroupStandingsOverride';
 import { CommunicationPanel } from '@/components/admin/CommunicationPanel';
+import { TournamentHeader } from '@/components/admin/TournamentHeader';
 import { Megaphone } from 'lucide-react';
 
 /* =============================================================================
@@ -198,8 +199,8 @@ const STYLES = {
     }
 };
 export default function SuperAdminDashboard() {
-
     const searchParams = useSearchParams();
+    const tournamentId = searchParams.get('tournamentId') || 'WC2026';
     const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, users, transactions
     const [loading, setLoading] = useState(true);
     const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
@@ -227,15 +228,15 @@ export default function SuperAdminDashboard() {
         loadDashboardData();
         const interval = setInterval(() => {
             loadDashboardData(true);
-        }, 10000); // 10 seconds refresh
+        }, 30000); // 30 seconds refresh for admin
         return () => clearInterval(interval);
-    }, []);
+    }, [tournamentId]); // Refresh when tournamentId changes
 
     const loadDashboardData = async (isBackground = false) => {
         try {
             if (!isBackground) setLoading(true);
             const [dashboardData, settingsData] = await Promise.all([
-                superAdminService.getDashboardStats(),
+                superAdminService.getDashboardStats(tournamentId),
                 superAdminService.getSettings()
             ]);
             setStats(dashboardData as any);
@@ -309,28 +310,7 @@ export default function SuperAdminDashboard() {
         <div style={STYLES.container}>
 
             {/* 1. HEADER */}
-            <div style={STYLES.header}>
-                <div style={STYLES.titleBox}>
-                    <h1 style={STYLES.title}>Super Admin</h1>
-                    <span style={STYLES.subtitle}>Control Central</span>
-                </div>
-                <a
-                    href="/dashboard"
-                    style={{
-                        ...STYLES.systemBadge,
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0, 230, 118, 0.2)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0, 230, 118, 0.1)'; }}
-                >
-                    <ChevronRight size={10} style={{ transform: 'rotate(180deg)' }} /> VOLVER
-                </a>
-            </div>
+            <TournamentHeader tournamentId={tournamentId} />
 
             {/* 2. MENÚ DE PESTAÑAS (PILL TABS) */}
             <div style={STYLES.tabsContainer} className="no-scrollbar">
@@ -371,10 +351,10 @@ export default function SuperAdminDashboard() {
 
             {/* G. PESTAÑA PREGUNTAS */}
             {activeTab === 'questions' && (
-                <BonusQuestionsTable />
+                <BonusQuestionsTable tournamentId={tournamentId} />
             )}
 
-            {activeTab === 'standings' && <GroupStandingsOverride />}
+            {activeTab === 'standings' && <GroupStandingsOverride tournamentId={tournamentId} />}
 
             {/* --- CONTENIDO DINÁMICO --- */}
 
@@ -444,13 +424,13 @@ export default function SuperAdminDashboard() {
             )}
 
             {/* B. PESTAÑA USUARIOS (OJO DE DIOS) */}
-            {activeTab === 'users' && <UsersTable />}
+            {activeTab === 'users' && <UsersTable tournamentId={tournamentId} />}
 
             {/* E. PESTAÑA LIGAS - REEMPLAZADO POR LeaguesTable */}
-            {activeTab === 'leagues' && <LeaguesTable onDataUpdated={loadDashboardData} onCreateEnterprise={() => setShowEnterpriseModal(true)} />}
+            {activeTab === 'leagues' && <LeaguesTable tournamentId={tournamentId} onDataUpdated={loadDashboardData} onCreateEnterprise={() => setShowEnterpriseModal(true)} />}
 
             {/* F. PESTAÑA PARTIDOS - NUEVO COMPONENTE */}
-            {activeTab === 'matches' && <MatchesList />}
+            {activeTab === 'matches' && <MatchesList tournamentId={tournamentId} />}
 
             {/* C. PESTAÑA VENTAS (TRANSACCIONES) */}
             {
@@ -460,7 +440,7 @@ export default function SuperAdminDashboard() {
 
                         <div className="bg-[#1E293B] border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
                             <div className="flex items-center gap-2 text-white font-bold uppercase text-xs">
-                                <Filter size={16} className="text-[#00E676]" /> Historial de Ventas
+                                <Filter size={16} className="text-[#00E676]" /> Historial de Ventas ({tournamentId})
                                 <Link href="/admin/transactions" className="ml-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/50 px-3 py-1 rounded-lg hover:bg-emerald-500 hover:text-slate-900 transition-colors flex items-center gap-2">
                                     <ShieldAlert size={12} />
                                     Verificar Comprobantes (Fotos)

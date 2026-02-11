@@ -93,15 +93,11 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     const newAway = match.userA || (match.prediction?.awayScore !== undefined ? match.prediction.awayScore.toString() : '');
     const newJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker);
 
-    // CRITICAL: ONLY update local state if the incoming data is DIFFERENT and NOT EMPTY
-    // If the data is empty (user just deleted it), we don't want to re-fill it from a pending DB state
     const isIncomingEmpty = newHome === '' && newAway === '';
-    const isCurrentEmpty = homeScore === '' && awayScore === '';
-
-    if (!isIncomingEmpty || (isIncomingEmpty && isCurrentEmpty)) {
-       if (newHome !== homeScore) setHomeScore(newHome);
-       if (newAway !== awayScore) setAwayScore(newAway);
-    }
+    
+    // Sincronizar siempre si hay cambios, quitamos la guarda que bloqueaba el borrado
+    if (newHome !== homeScore) setHomeScore(newHome);
+    if (newAway !== awayScore) setAwayScore(newAway);
     
     if (newJoker !== isJoker) setIsJoker(newJoker);
   }, [match.prediction?.homeScore, match.prediction?.awayScore, match.prediction?.isJoker, match.userH, match.userA, match.isJoker]); // eslint-disable-line react-hooks/exhaustive-deps

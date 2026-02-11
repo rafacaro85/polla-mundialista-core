@@ -88,7 +88,10 @@ export const useMyPredictions = (leagueId?: string) => {
                 ? `/predictions/${matchId}?leagueId=${targetLeagueId}`
                 : `/predictions/${matchId}`;
             await api.delete(url);
-            mutate();
+            
+            await mutate();
+            setLastUpdate(prev => prev + 1);
+            
             toast.success('Predicción eliminada');
         } catch (err: any) {
             console.error(err);
@@ -181,17 +184,22 @@ export const useMyPredictions = (leagueId?: string) => {
         setLastUpdate(prev => prev + 1);
 
         try {
-            let url = targetLeagueId
+            const url = targetLeagueId
                 ? `/predictions/all/clear?leagueId=${targetLeagueId}`
                 : `/predictions/all/clear`;
             
+            let finalUrl = url;
             if (tournamentId) {
-                const cleanTid = tournamentId.includes(',') ? tournamentId.split(',')[0] : tournamentId;
-                url += (url.includes('?') ? '&' : '?') + `tournamentId=${cleanTid}`;
+                const cleanTid = tournamentId.trim().split(',')[0];
+                finalUrl += (finalUrl.includes('?') ? '&' : '?') + `tournamentId=${cleanTid}`;
             }
 
-            await api.delete(url);
-            mutate();
+            await api.delete(finalUrl);
+            
+            // Refetch and force identity change for UI updates
+            await mutate();
+            setLastUpdate(prev => prev + 1);
+            
             toast.success('Todas las predicciones han sido eliminadas');
         } catch (err: any) {
             console.error(err);

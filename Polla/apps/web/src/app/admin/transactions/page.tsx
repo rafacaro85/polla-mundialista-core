@@ -26,7 +26,9 @@ interface Transaction {
     };
 }
 
-export default function AdminTransactionsPage() {
+import { Suspense } from 'react';
+
+function AdminTransactionsContent() {
     const { tournamentId } = useTournament();
     const { data: transactions, isLoading } = useSWR<Transaction[]>(
         ['/transactions/pending', tournamentId], 
@@ -193,5 +195,13 @@ export default function AdminTransactionsPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function AdminTransactionsPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-white font-mono text-center">Cargando administrador...</div>}>
+            <AdminTransactionsContent />
+        </Suspense>
     );
 }

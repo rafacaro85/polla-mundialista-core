@@ -188,7 +188,42 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
     };
 
     const handleSaveAiPredictions = async () => {
-        await saveBulkPredictions(aiSuggestions);
+        // Filter out any matches that might have become locked in the meantime
+        const now = new Date();
+        const validSuggestions: Record<string, { h: number, a: number }> = {};
+        let lockedCount = 0;
+
+        Object.entries(aiSuggestions).forEach(([mId, scores]) => {
+            const match = finalMatches.find(m => m.id === mId);
+            if (!match) return;
+
+            // Check Status
+            const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
+            
+            // Check Time Lock (10 mins buffer)
+            const matchDate = new Date(match.date);
+            const lockTime = new Date(matchDate.getTime() - (10 * 60 * 1000));
+            const isTimeLocked = now >= lockTime;
+
+            if (isFinished || isTimeLocked) {
+                lockedCount++;
+                return;
+            }
+
+            validSuggestions[mId] = scores;
+        });
+
+        if (Object.keys(validSuggestions).length === 0) {
+            toast.error('No hay predicciones válidas para guardar (Todos los partidos están finalizados o bloqueados)');
+            setAiSuggestions({}); // Clear stale suggestions
+            return;
+        }
+
+        if (lockedCount > 0) {
+            toast.warning(`${lockedCount} predicciones descartadas por bloqueo (partido iniciado o finalizado).`);
+        }
+
+        await saveBulkPredictions(validSuggestions);
         setAiSuggestions({});
     };
 

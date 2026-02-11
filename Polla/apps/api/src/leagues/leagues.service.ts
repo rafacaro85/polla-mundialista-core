@@ -480,7 +480,7 @@ export class LeaguesService {
       
       console.log(`📊 Global Ranking (${tournamentId}): Found ${results.length} active users via Single Query.`);
 
-      return results.map((user, index) => ({
+      return results.map((user: any, index: number) => ({
         position: index + 1,
         id: user.id,
         fullName: user.fullName || user.nickname || 'Anónimo', // Frontend expects fullName

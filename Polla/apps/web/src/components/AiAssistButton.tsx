@@ -60,6 +60,21 @@ export function AiAssistButton({ matches, onPredictionsGenerated }: AiAssistButt
                     });
                     return false;
                 }
+
+                // 🔒 FILTER OUT FINISHED OR LOCKED MATCHES
+                if (m.status === 'FINISHED' || m.status === 'COMPLETED') {
+                     rejectedMatches.push({ id: m.id, reason: 'Match is FINISHED' });
+                     return false;
+                }
+
+                const matchDate = new Date(m.date);
+                const tenMinutes = 10 * 60 * 1000;
+                const now = new Date();
+                
+                if (now.getTime() >= matchDate.getTime() - tenMinutes) {
+                    rejectedMatches.push({ id: m.id, reason: 'Match is TIME LOCKED' });
+                    return false;
+                }
                 
                 return true;
             });

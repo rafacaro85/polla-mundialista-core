@@ -75,6 +75,11 @@ export class PhaseCompletedListener {
       };
 
       const phaseName = PHASE_NAMES[phase] || `Fase ${phase}`;
+      
+      // Determine tournament name for clear messaging
+      const tournamentName = tournamentId === 'WC2026' ? 'Mundial 2026' : 
+                             tournamentId === 'UCL2526' ? 'Champions League' : 
+                             'Torneo';
 
       const notificationsData = stats.map((stat) => {
         const points = parseInt(stat.totalPoints) || 0;
@@ -82,8 +87,8 @@ export class PhaseCompletedListener {
 
         return {
           userId: stat.userId,
-          title: `${phaseName} Finalizada 🏁`,
-          message: `La ${phaseName} ha terminado. ✅ Tuviste ${hits} aciertos y sumaste ${points} puntos en esta ronda. ¡Mira tu posición en el ranking!`,
+          title: `${tournamentName}: ${phaseName} Finalizada 🏁`,
+          message: `La ${phaseName} del ${tournamentName} ha terminado. ✅ Tuviste ${hits} aciertos y sumaste ${points} puntos en esta ronda. ¡Mira tu posición en el ranking!`,
           type: NotificationType.INFO,
         };
       });

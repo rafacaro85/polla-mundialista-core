@@ -755,7 +755,7 @@ export default function SuperAdminDashboard() {
             }
 
             {/* I. PESTAÑA COMUNICACIÓN */}
-            {activeTab === 'communication' && <CommunicationPanel />}
+            {activeTab === 'communication' && <CommunicationPanel tournamentId={tournamentId} />}
 
             {/* Image Modal for Transactions */}
             {selectedImage && (

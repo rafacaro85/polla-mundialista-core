@@ -272,55 +272,68 @@ export function UsersTable({ tournamentId }: { tournamentId?: string }) {
                                     </div>
 
                                     {/* 5. ESTADO & ACCIONES (2 cols) */}
-                                    <div className="md:col-span-2 flex items-center justify-end gap-2">
-                                        {/* Estado Badge (Visible en desktop si quieres, o implícito por el color/icono) */}
-                                        <div className="hidden xl:block mr-2">
+                                    <div className="md:col-span-2 flex flex-col md:flex-row items-center justify-end gap-2 mt-4 md:mt-0">
+                                        {/* Mobile Status Badge */}
+                                        <div className="md:hidden w-full mb-2">
                                             {isBanned ? (
-                                                <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase">INACTIVO</span>
+                                                <div className="text-center text-xs font-bold text-red-500 bg-red-500/10 py-1 rounded border border-red-500/20 uppercase">Bloqueado</div>
+                                            ) : (
+                                                <div className="text-center text-xs font-bold text-emerald-500 bg-emerald-500/10 py-1 rounded border border-emerald-500/20 uppercase">Activo</div>
+                                            )}
+                                        </div>
+
+                                        {/* Desktop Status Badge (Hidden on Mobile) */}
+                                        <div className="hidden md:block mr-2">
+                                            {isBanned ? (
+                                                <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase">BLOQUEADO</span>
                                             ) : (
                                                 <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">ACTIVO</span>
                                             )}
                                         </div>
 
-                                        <div className="flex items-center gap-1">
+                                        <div className="grid grid-cols-4 md:flex items-center gap-1 w-full md:w-auto">
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="sm"
                                                 onClick={() => { setDetailUserId(user.id); setDetailDialogOpen(true); }}
-                                                className="h-8 w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                                className="h-9 md:h-8 w-full md:w-8 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 border border-emerald-500/20 md:border-none"
                                                 title="Ver Detalles"
                                             >
-                                                <Eye size={14} />
+                                                <Eye size={16} className="md:h-4 md:w-4" />
+                                                <span className="md:hidden ml-1 text-xs font-bold">VER</span>
                                             </Button>
 
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="sm"
                                                 onClick={() => handleEdit(user)}
-                                                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                                                className="h-9 md:h-8 w-full md:w-8 text-blue-400 hover:text-white hover:bg-blue-500/20 border border-slate-700 md:border-none"
                                                 title="Editar"
                                             >
-                                                <Edit3 size={14} />
+                                                <Edit3 size={16} className="md:h-4 md:w-4" />
+                                                <span className="md:hidden ml-1 text-xs font-bold">EDITAR</span>
                                             </Button>
 
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="sm"
                                                 onClick={() => handleBan(user)}
-                                                className={cn("h-8 w-8 hover:bg-opacity-20", isBanned ? "text-emerald-400 hover:bg-emerald-500" : "text-amber-400 hover:bg-amber-500")}
+                                                className={cn("h-9 md:h-8 w-full md:w-8 border md:border-none", isBanned ? "text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20" : "text-amber-400 hover:bg-amber-500/20 border-amber-500/20")}
                                                 title={isBanned ? "Activar" : "Bloquear"}
                                             >
-                                                {isBanned ? <CheckCircle size={14} /> : <Ban size={14} />}
+                                                {isBanned ? <CheckCircle size={16} className="md:h-4 md:w-4" /> : <Ban size={16} className="md:h-4 md:w-4" />}
+                                                <span className="md:hidden ml-1 text-xs font-bold">{isBanned ? 'ACTIVAR' : 'BLOQ.'}</span>
                                             </Button>
 
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="sm"
                                                 onClick={() => handleDelete(user.id)}
-                                                className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                                className="h-9 md:h-8 w-full md:w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 md:border-none"
                                                 title="Eliminar"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={16} className="md:h-4 md:w-4" />
+                                                <span className="md:hidden ml-1 text-xs font-bold">BORRAR</span>
                                             </Button>
                                         </div>
                                     </div>

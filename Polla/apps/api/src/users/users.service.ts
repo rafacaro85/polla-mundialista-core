@@ -33,111 +33,120 @@ export class UsersService {
   ) {}
 
   async getUserDetails(userId: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario no encontrado');
+    try {
+      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const participants = await this.leagueParticipantRepository.find({
-      where: { user: { id: userId } },
-      relations: ['league'],
-    });
+      const participants = await this.leagueParticipantRepository.find({
+        where: { user: { id: userId } },
+        relations: ['league'],
+      });
 
-    const leaguesData = await Promise.all(
-      participants.map(async (p) => {
-        const leagueId = p.league.id;
+      const leaguesData = await Promise.all(
+        participants.map(async (p) => {
+          if (!p.league) return null; // Safety check
+          const leagueId = p.league.id;
 
-        // Fetch predictions for SPECIFIC league
-        const predictions = await this.predictionRepository.find({
-          where: { user: { id: userId }, leagueId: leagueId },
-        });
-        const predictionPoints = predictions.reduce(
-          (sum, pred) => sum + pred.points,
-          0,
-        );
-        const jokerPoints = predictions
-          .filter((pred) => pred.isJoker)
-          .reduce((sum, pred) => sum + pred.points, 0);
+          // Fetch predictions for SPECIFIC league
+          const predictions = await this.predictionRepository.find({
+            where: { user: { id: userId }, leagueId: leagueId },
+          });
+          const predictionPoints = predictions.reduce(
+            (sum, pred) => sum + (pred.points ?? 0),
+            0,
+          );
+          const jokerPoints = predictions
+            .filter((pred) => pred.isJoker)
+            .reduce((sum, pred) => sum + (pred.points ?? 0), 0);
 
-        const bracket = await this.userBracketRepository.findOne({
-          where: { userId: userId, leagueId: leagueId },
-        });
-        const bracketPoints = bracket ? bracket.points : 0;
+          const bracket = await this.userBracketRepository.findOne({
+            where: { userId: userId, leagueId: leagueId },
+          });
+          const bracketPoints = bracket ? (bracket.points ?? 0) : 0;
 
-        // Determine final points (Manual override takes precedence if set in DB)
-        const finalPredictionPoints =
-          p.predictionPoints !== null && p.predictionPoints !== undefined
-            ? p.predictionPoints
-            : predictionPoints;
-        const finalBracketPoints =
-          p.bracketPoints !== null && p.bracketPoints !== undefined
-            ? p.bracketPoints
-            : bracketPoints;
-        const finalJokerPoints =
-          p.jokerPoints !== null && p.jokerPoints !== undefined
-            ? p.jokerPoints
-            : jokerPoints;
+          // Determine final points (Manual override takes precedence if set in DB)
+          const finalPredictionPoints =
+            p.predictionPoints !== null && p.predictionPoints !== undefined
+              ? p.predictionPoints
+              : predictionPoints;
+          const finalBracketPoints =
+            p.bracketPoints !== null && p.bracketPoints !== undefined
+              ? p.bracketPoints
+              : bracketPoints;
+          const finalJokerPoints =
+            p.jokerPoints !== null && p.jokerPoints !== undefined
+              ? p.jokerPoints
+              : jokerPoints;
 
-        return {
-          leagueId: p.league.id,
-          leagueName: p.league.name,
-          leagueCode: p.league.accessCodePrefix,
-          isBlocked: p.isBlocked,
-          stats: {
-            totalPoints: p.totalPoints,
-            predictionPoints: finalPredictionPoints,
-            triviaPoints: p.triviaPoints,
-            bracketPoints: finalBracketPoints,
-            jokerPoints: finalJokerPoints,
-          },
-        };
-      }),
-    );
+          return {
+            leagueId: p.league.id,
+            leagueName: p.league.name,
+            leagueCode: p.league.accessCodePrefix,
+            isBlocked: p.isBlocked,
+            stats: {
+              totalPoints: p.totalPoints ?? 0,
+              predictionPoints: finalPredictionPoints,
+              triviaPoints: p.triviaPoints ?? 0,
+              bracketPoints: finalBracketPoints,
+              jokerPoints: finalJokerPoints,
+            },
+          };
+        }),
+      );
 
-    // GLOBAL STATS (To catch points from predictions without leagueId or across all leagues)
-    const allPredictions = await this.predictionRepository.find({
-      where: { user: { id: userId } },
-    });
-    const globalPredictionPoints = allPredictions.reduce(
-      (sum, p) => sum + p.points,
-      0,
-    );
-    const globalJokerPoints = allPredictions
-      .filter((p) => p.isJoker)
-      .reduce((sum, p) => sum + p.points, 0);
+      // Filter out nulls if any league was missing
+      const validLeaguesData = leaguesData.filter(l => l !== null);
 
-    const allBrackets = await this.userBracketRepository.find({
-      where: { userId: userId },
-    });
-    const globalBracketPoints = allBrackets.reduce(
-      (sum, b) => sum + b.points,
-      0,
-    );
+      // GLOBAL STATS (To catch points from predictions without leagueId or across all leagues)
+      const allPredictions = await this.predictionRepository.find({
+        where: { user: { id: userId } },
+      });
+      const globalPredictionPoints = allPredictions.reduce(
+        (sum, p) => sum + (p.points ?? 0),
+        0,
+      );
+      const globalJokerPoints = allPredictions
+        .filter((p) => p.isJoker)
+        .reduce((sum, p) => sum + (p.points ?? 0), 0);
 
-    const globalTriviaPoints = participants.reduce(
-      (sum, p) => sum + p.triviaPoints,
-      0,
-    );
-    const globalTotalPoints =
-      globalPredictionPoints + globalBracketPoints + globalTriviaPoints;
+      const allBrackets = await this.userBracketRepository.find({
+        where: { userId: userId },
+      });
+      const globalBracketPoints = allBrackets.reduce(
+        (sum, b) => sum + (b.points ?? 0),
+        0,
+      );
 
-    return {
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        role: user.role,
-        createdAt: user.createdAt,
-        nickname: user.nickname,
-      },
-      globalStats: {
-        totalPoints: globalTotalPoints,
-        predictionPoints: globalPredictionPoints,
-        jokerPoints: globalJokerPoints,
-        bracketPoints: globalBracketPoints,
-        triviaPoints: globalTriviaPoints,
-      },
-      leagues: leaguesData,
-    };
+      const globalTriviaPoints = participants.reduce(
+        (sum, p) => sum + (p.triviaPoints ?? 0),
+        0,
+      );
+      const globalTotalPoints =
+        globalPredictionPoints + globalBracketPoints + globalTriviaPoints;
+
+      return {
+        user: {
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          role: user.role,
+          createdAt: user.createdAt,
+          nickname: user.nickname,
+        },
+        globalStats: {
+          totalPoints: globalTotalPoints,
+          predictionPoints: globalPredictionPoints,
+          jokerPoints: globalJokerPoints,
+          bracketPoints: globalBracketPoints,
+          triviaPoints: globalTriviaPoints,
+        },
+        leagues: validLeaguesData,
+      };
+    } catch (error) {
+      console.error(`❌ Error fetching user details for ${userId}:`, error);
+      throw error; // Re-throw to let controller handle it, but now we have a log
+    }
   }
 
   async createAdmin(dto: CreateUserDto): Promise<User> {

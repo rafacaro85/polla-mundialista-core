@@ -25,16 +25,54 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
     const [ranking, setRanking] = useState<RankingUser[]>([]);
     const [loading, setLoading] = useState(false);
     const [visibleCount, setVisibleCount] = useState(10);
+    const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
     const handleLoadMore = () => {
         setVisibleCount((prev) => prev + 10);
     };
 
-    // ... existing rank style logic ...
+    const getRankStyle = (rank: number, isLast: boolean) => {
+        if (isLast) return { color: '#EF5350', icon: <span className="text-xl">🥄</span> };
+        if (rank === 1) return { color: '#FACC15', icon: <Trophy size={18} className="text-yellow-400" /> };
+        if (rank === 2) return { color: '#E2E8F0', icon: <Trophy size={16} className="text-slate-400" /> };
+        if (rank === 3) return { color: '#B45309', icon: <Trophy size={16} className="text-amber-700" /> };
+        return { color: '#64748B', icon: <span className="text-sm">{rank}</span> };
+    };
 
     useEffect(() => {
-        // ... existing fetch logic ...
-        // Reset visible count when tournament or user changes
+        const fetchGlobalRanking = async () => {
+            if (!tournamentId) return;
+            
+            setLoading(true);
+            try {
+                console.log(`🌍 Fetching Global Ranking for ${tournamentId}...`);
+                const { data } = await api.get('/leagues/global/ranking', {
+                    params: { tournamentId }
+                });
+                
+                console.log('✅ Global Ranking received:', data?.length);
+
+                const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
+                    rank: index + 1,
+                    name: item.nickname || item.fullName || 'Anónimo',
+                    points: Number(item.totalPoints || 0),
+                    avatar: (item.nickname || item.fullName || '?').substring(0, 2).toUpperCase(),
+                    isUser: (item.id === user?.id),
+                    breakdown: item.breakdown
+                })) : [];
+
+                setRanking(mappedRanking);
+            } catch (error) {
+                console.error('❌ Error fetching global ranking:', error);
+                setRanking([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchGlobalRanking();
+        
+        // Reset visible count only when tournament changes
         setVisibleCount(10);
     }, [user, tournamentId]);
 

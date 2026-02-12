@@ -68,36 +68,41 @@ export class BracketsService {
     }
     tournamentId = tournamentId || 'WC2026'; // Final fallback
 
-    // ✅ NEW: Validate bracket is not locked (manual or automatic)
-    await this.validateBracketNotLocked(dto.picks, tournamentId);
+    try {
+      // ✅ NEW: Validate bracket is not locked (manual or automatic)
+      await this.validateBracketNotLocked(dto.picks, tournamentId);
 
-    // Find existing bracket or create new one
-    const whereClause: any = { userId, tournamentId };
-    if (targetLeagueId) {
-      whereClause.leagueId = targetLeagueId;
-    } else {
-      whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull checks
-    }
+      // Find existing bracket or create new one
+      const whereClause: any = { userId, tournamentId };
+      if (targetLeagueId) {
+        whereClause.leagueId = targetLeagueId;
+      } else {
+        whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull checks
+      }
 
-    let bracket = await this.userBracketRepository.findOne({
-      where: whereClause,
-    });
-
-    if (bracket) {
-      // Update existing bracket
-      bracket.picks = dto.picks;
-      bracket.updatedAt = new Date();
-    } else {
-      // Create new bracket
-      bracket = this.userBracketRepository.create({
-        userId,
-        leagueId: dto.leagueId || undefined,
-        tournamentId,
-        picks: dto.picks,
-        points: 0,
+      let bracket = await this.userBracketRepository.findOne({
+        where: whereClause,
       });
+
+      if (bracket) {
+        // Update existing bracket
+        bracket.picks = dto.picks;
+        bracket.updatedAt = new Date();
+      } else {
+        // Create new bracket
+        bracket = this.userBracketRepository.create({
+          userId,
+          leagueId: targetLeagueId, // FIX: Use sanitized leagueId (handles 'global' -> null) instead of raw dto.leagueId
+          tournamentId,
+          picks: dto.picks,
+          points: 0,
+        });
+      }
+      return await this.userBracketRepository.save(bracket);
+    } catch (error) {
+      console.error('Error saving bracket:', error);
+      throw error;
     }
-    return this.userBracketRepository.save(bracket);
   }
 
   /**

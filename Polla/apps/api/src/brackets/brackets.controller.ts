@@ -59,5 +59,5 @@ export class BracketsController {
         error.message || 'Unknown error during recalculation',
       );
     }
-  }
+
 }

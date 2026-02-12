@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
@@ -138,11 +139,14 @@ export class BracketsService {
       return isValid;
     });
 
-    console.log(`[DEBUG] SaveBracket - Valid UUIDs (${matchIds.length})`);
+    console.log(`[DEBUG] SaveBracket - Valid UUIDs: ${matchIds.length} / ${rawIds.length}`);
     
     if (matchIds.length === 0) {
-      console.warn('[WARN] SaveBracket - No valid match IDs found after filtering. Aborting save.');
-      return; // No valid match IDs found
+      console.warn('[WARN] SaveBracket - No valid match IDs found after filtering.');
+      if (rawIds.length > 0) {
+        throw new BadRequestException(`No se encontraron IDs de partido válidos. IDs recibidos: ${rawIds.join(', ')}`);
+      }
+      return; // Empty picks originally
     }
 
     // Get all matches involved
@@ -230,7 +234,18 @@ export class BracketsService {
     const leagueBracket = brackets.find((b) => b.leagueId === targetLeagueId);
     const generalBracket = brackets.find((b) => b.leagueId === null);
 
-    return leagueBracket || generalBracket || null;
+    const result = leagueBracket || generalBracket || null;
+    
+    // DEBUG LOGGING
+    if (tournamentId === 'WC2026') {
+      console.log(`[DEBUG] getMyBracket - userId: ${userId}, leagueId: ${leagueId} (target: ${targetLeagueId})`);
+      console.log(`[DEBUG] Found ${brackets.length} brackets. Returning:`, result ? `ID ${result.id} (League: ${result.leagueId})` : 'NULL');
+      if (result && result.picks) {
+        console.log(`[DEBUG] Picks count: ${Object.keys(result.picks).length}`);
+      }
+    }
+    
+    return result;
   }
 
   async clearBracket(

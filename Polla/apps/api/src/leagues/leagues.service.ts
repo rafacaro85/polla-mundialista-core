@@ -451,8 +451,8 @@ export class LeaguesService {
       SELECT 
         u.id, 
         u.nickname, 
-        u."fullName", 
-        u."avatarUrl",
+        u."full_name" as "fullName", 
+        u."avatar_url" as "avatarUrl",
         u.email,
         COALESCE(p.regular_points, 0) as "regularPoints",
         COALESCE(p.joker_points, 0) as "jokerPoints",

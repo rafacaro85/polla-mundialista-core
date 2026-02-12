@@ -169,7 +169,22 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
 
                 const { data } = await api.get(url);
                 
+                console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
                 if (data && data.picks) {
+                    const pickKeys = Object.keys(data.picks);
+                    const matchIds = matches.map(m => m.id);
+                    const intersections = pickKeys.filter(k => matchIds.includes(k));
+                    
+                    console.log(`[DEBUG] Matches Available: ${matches.length}`);
+                    console.log(`[DEBUG] Picks Loaded: ${pickKeys.length}`);
+                    console.log(`[DEBUG] Matches matching Picks: ${intersections.length}`);
+                    
+                    if (pickKeys.length > 0 && intersections.length === 0) {
+                        console.warn('[WARN] MISMATCH DETECTED: Picks exist but do not match any available match IDs!');
+                        console.warn('Sample Pick ID:', pickKeys[0]);
+                        console.warn('Sample Match ID:', matchIds[0]);
+                    }
+
                     setWinners(data.picks);
                     setBracketPoints(data.points || 0);
                 } else {

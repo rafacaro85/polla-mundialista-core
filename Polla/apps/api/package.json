@@ -41,6 +41,7 @@
     "seed:wc2026-real": "ts-node -r tsconfig-paths/register src/database/seeds/wc2026-real.seeder.ts",
     "seed:shells": "ts-node -r tsconfig-paths/register src/database/seeds/shells.seeder.ts",
     "seed:reset-knockout": "npx ts-node src/reset-knockout-full.ts",
+    "seed:ucl": "ts-node -r tsconfig-paths/register ../../scripts/seed-ucl.ts",
     "typeorm": "typeorm-ts-node-commonjs",
     "typeorm:migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
     "typeorm:migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",

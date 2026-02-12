@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,8 +13,16 @@ import { Megaphone, Send, Users, AlertTriangle, CheckCircle, Info, Gift } from '
 export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) {
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
-    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID' | 'TOURNAMENT'>(tournamentId ? 'TOURNAMENT' : 'ALL');
+    const [audience, setAudience] = useState<'ALL' | 'FREE' | 'PAID' | 'TOURNAMENT' | 'GLOBAL'>(tournamentId ? 'TOURNAMENT' : 'ALL');
     const [selectedTournament, setSelectedTournament] = useState<string>(tournamentId || '');
+    
+    // Sync state when tournament changes in parent
+    useEffect(() => {
+        if (tournamentId) {
+            setSelectedTournament(tournamentId);
+        }
+    }, [tournamentId]);
+
     const [type, setType] = useState<'INFO' | 'SUCCESS' | 'WARNING' | 'PROMO'>('INFO');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -27,12 +35,18 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
         setIsLoading(true);
         try {
             const endpoint = '/notifications/admin/broadcast';
+            
+            // Logic: If audience is GLOBAL, we send undefined tournamentId.
+            // Otherwise, we send the selectedTournament (which defaults to current context)
+            const isGlobal = audience === 'GLOBAL';
+            const finalTournamentId = isGlobal ? undefined : selectedTournament;
+
             const payload = {
                 title,
                 message,
                 type,
-                targetAudience: audience === 'TOURNAMENT' ? 'ALL' : audience,
-                tournamentId: (audience === 'TOURNAMENT' || selectedTournament) ? selectedTournament : undefined
+                targetAudience: (audience === 'TOURNAMENT' || audience === 'GLOBAL') ? 'ALL' : audience,
+                tournamentId: finalTournamentId
             };
 
             const response = await api.post(endpoint, payload);
@@ -62,8 +76,9 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
                 <div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-russo">
                         Centro de Comunicaciones
+                        {selectedTournament && <span className="text-emerald-500 text-lg ml-2">({selectedTournament === 'WC2026' ? 'Mundial' : 'Champions'})</span>}
                     </h1>
-                    <p className="text-slate-400">Envía notificaciones masivas a los usuarios de la plataforma</p>
+                    <p className="text-slate-400">Envía notificaciones a los usuarios del torneo <strong>{selectedTournament === 'WC2026' ? 'Mundial 2026' : selectedTournament}</strong></p>
                 </div>
             </div>
 
@@ -107,10 +122,11 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-slate-900 border-slate-800 text-white">
-                                        <SelectItem value="ALL">Todos los Usuarios</SelectItem>
-                                        <SelectItem value="FREE">Solo Gratuitos</SelectItem>
-                                        <SelectItem value="PAID">Solo Pagos (Premium)</SelectItem>
-                                        <SelectItem value="TOURNAMENT">Por Torneo Específico</SelectItem>
+                                        <SelectItem value="ALL">Todos (Torneo Actual)</SelectItem>
+                                        <SelectItem value="FREE">Gratuitos (Torneo Actual)</SelectItem>
+                                        <SelectItem value="PAID">Premium (Torneo Actual)</SelectItem>
+                                        <SelectItem value="TOURNAMENT">Otro Torneo Específico</SelectItem>
+                                        <SelectItem value="GLOBAL" className="text-amber-500 font-bold">🌍 GLOBAL (Toda la App)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -15,7 +15,7 @@ export class SystemSettingsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch()
   updateSettings(@Body() updateSystemSettingDto: UpdateSystemSettingDto) {
     return this.systemSettingsService.updateSettings(updateSystemSettingDto);

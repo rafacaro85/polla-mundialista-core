@@ -235,12 +235,21 @@ export default function SuperAdminDashboard() {
     const loadDashboardData = async (isBackground = false) => {
         try {
             if (!isBackground) setLoading(true);
-            const [dashboardData, settingsData] = await Promise.all([
-                superAdminService.getDashboardStats(tournamentId),
-                superAdminService.getSettings()
-            ]);
+            
+            // Only fetch settings on initial load (not on background refresh)
+            const promises: any[] = [superAdminService.getDashboardStats(tournamentId)];
+            if (!isBackground) {
+                promises.push(superAdminService.getSettings());
+            }
+
+            const [dashboardData, settingsData] = await Promise.all(promises);
+            
             setStats(dashboardData as any);
-            setSettingsForm(settingsData);
+            
+            // Only update settings form if we fetched it (initial load)
+            if (settingsData) {
+                setSettingsForm(settingsData);
+            }
         } catch (error) {
             console.error("Error loading dashboard data:", error);
         } finally {

@@ -468,20 +468,20 @@ export class LeaguesService {
         (p."userId" IS NOT NULL OR b."userId" IS NOT NULL OR bonus."userId" IS NOT NULL)
         AND u.email NOT LIKE '%@demo.com' 
         AND u.email NOT IN ('demo@lapollavirtual.com', 'demo-social@lapollavirtual.com')
-      ORDER BY "totalPoints" DESC, u."fullName" ASC
+      ORDER BY "totalPoints" DESC, u."full_name" ASC
     `;
 
-    try {
-      const results = await this.userRepository.manager.query(rawQuery, [tournamentId]);
+    // REMOVED TRY-CATCH TO EXPOSE ERRORS IN PROD
+    const results = await this.userRepository.manager.query(rawQuery, [tournamentId]);
       
-      console.log(`📊 Global Ranking Count (${tournamentId}):`, results.length);
-      if (results.length > 0) {
-        console.log('Sample User:', results[0]);
-      } else {
-        console.warn('⚠️ Global Ranking is EMPTY.');
-      }
+    console.log(`📊 Global Ranking Count (${tournamentId}):`, results.length);
+    if (results.length > 0) {
+      console.log('Sample User:', results[0]);
+    } else {
+      console.warn('⚠️ Global Ranking is EMPTY.');
+    }
 
-      return results.map((user: any, index: number) => ({
+    return results.map((user: any, index: number) => ({
         position: index + 1,
         id: user.id,
         fullName: user.fullName || user.nickname || 'Anónimo', // Frontend expects fullName
@@ -498,12 +498,7 @@ export class LeaguesService {
             wildcard: Number(user.jokerPoints),
             bonus: Number(user.bonusPoints),
         },
-      }));
-
-    } catch (error) {
-      console.error('❌ Error executing Global Ranking Query:', error);
-      return [];
-    }
+    }));
   }
   async getAllLeagues(tournamentId?: string) {
     try {

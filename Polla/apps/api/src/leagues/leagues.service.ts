@@ -765,6 +765,9 @@ export class LeaguesService {
         'total',
       )
       .where("m.status IN ('FINISHED', 'COMPLETED')")
+      .andWhere('m.tournamentId = :tournamentId', {
+        tournamentId: league.tournamentId,
+      })
       .getRawOne();
     const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
 
@@ -779,8 +782,11 @@ export class LeaguesService {
         isGlobal
           ? 'p.leagueId IS NULL'
           : '(p.leagueId = :leagueId OR p.leagueId IS NULL)',
-        { leagueId },
+        { leagueId, tournamentId: league.tournamentId },
       )
+      .andWhere('m.tournamentId = :tournamentId', {
+        tournamentId: league.tournamentId,
+      })
       .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
       .getRawMany();
 

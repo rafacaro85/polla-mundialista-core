@@ -65,6 +65,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
 
         const planLevels: Record<string, number> = {
             'familia': 0, 'starter': 0, 'free': 0,
+            'launch_promo': 1, // Unlock Prize Image (Level 1)
             'parche': 1,
             'amigos': 2,
             'lider': 3,

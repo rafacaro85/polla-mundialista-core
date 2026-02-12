@@ -198,6 +198,13 @@ export class MatchesController {
     return this.matchesService.ensureTournamentIntegrity(tid);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Post('seed-ucl')
+  async seedUCL() {
+      return this.matchesService.seedUCLKnockout();
+  }
+
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

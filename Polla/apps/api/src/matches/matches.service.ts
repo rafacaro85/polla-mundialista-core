@@ -534,7 +534,12 @@ export class MatchesService {
       Newcastle: 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
       Olympiacos: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Olympiacos_CF_logo.svg',
       'Bodo/Glimt': 'https://upload.wikimedia.org/wikipedia/en/f/f5/FK_Bod%C3%B8_Glimt.svg',
-      'Club Brujas': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg'
+      'Club Brujas': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Club_Brugge_KV_logo.svg',
+      // NEW TEAMS
+      Tottenham: 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
+      Chelsea: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
+      'Sporting Lisboa': 'https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Logo%29.svg',
+      'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_%28Logo%29.svg'
     };
 
     const getLogo = (team: string) => {
@@ -598,26 +603,26 @@ export class MatchesService {
         { h: 'Inter', a: 'Bodo/Glimt', d: '2026-02-24T20:00:00Z' },
     ];
 
-    // 5. Partidos Octavos (ROUND_16) - Estructura Placeholder (Cruce Play-off vs Clasificados)
+    // 5. Partidos Octavos (ROUND_16) - Updated with correct Top 8 teams
     const OCTAVOS = [
-      { date: '2026-03-10T20:00:00Z', home: '', away: 'Arsenal', homePlaceholder: 'Ganador Play-off', bracketId: 1, stadium: 'Por confirmar' },
-      { date: '2026-03-10T20:00:00Z', home: '', away: 'Real Madrid', homePlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Por confirmar' },
-      { date: '2026-03-11T20:00:00Z', home: '', away: 'Manchester City', homePlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Por confirmar' },
-      { date: '2026-03-11T20:00:00Z', home: '', away: 'Liverpool', homePlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Por confirmar' },
-      { date: '2026-03-17T20:00:00Z', home: '', away: 'Bayern Munich', homePlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Por confirmar' },
-      { date: '2026-03-17T20:00:00Z', home: '', away: 'Inter Milan', homePlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'Por confirmar' },
-      { date: '2026-03-18T20:00:00Z', home: '', away: 'Barcelona', homePlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Por confirmar' },
-      { date: '2026-03-18T20:00:00Z', home: '', away: 'PSG', homePlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Por confirmar' },
+      { date: '2026-03-10T20:00:00Z', home: '', away: 'Arsenal', homePlaceholder: 'Ganador Play-off', bracketId: 1, stadium: 'Emirates Stadium' },
+      { date: '2026-03-10T20:00:00Z', home: '', away: 'Bayern Munich', homePlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Allianz Arena' },
+      { date: '2026-03-11T20:00:00Z', home: '', away: 'Liverpool', homePlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Anfield' },
+      { date: '2026-03-11T20:00:00Z', home: '', away: 'Tottenham', homePlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Tottenham Hotspur Stadium' },
+      { date: '2026-03-17T20:00:00Z', home: '', away: 'Barcelona', homePlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Camp Nou' },
+      { date: '2026-03-17T20:00:00Z', home: '', away: 'Chelsea', homePlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'Stamford Bridge' },
+      { date: '2026-03-18T20:00:00Z', home: '', away: 'Sporting Lisboa', homePlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Estádio José Alvalade' },
+      { date: '2026-03-18T20:00:00Z', home: '', away: 'Manchester City', homePlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Etihad Stadium' },
       
-      // Vueltas
+      // Vueltas (Swapped Home/Away)
       { date: '2026-03-24T20:00:00Z', home: 'Arsenal', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 1, stadium: 'Emirates Stadium' },
-      { date: '2026-03-24T20:00:00Z', home: 'Real Madrid', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Santiago Bernabéu' },
-      { date: '2026-03-25T20:00:00Z', home: 'Manchester City', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Etihad Stadium' },
-      { date: '2026-03-25T20:00:00Z', home: 'Liverpool', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Anfield' },
-      { date: '2026-03-31T20:00:00Z', home: 'Bayern Munich', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Allianz Arena' },
-      { date: '2026-04-01T20:00:00Z', home: 'Inter Milan', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'San Siro' },
-      { date: '2026-04-01T20:00:00Z', home: 'Barcelona', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Camp Nou' },
-      { date: '2026-04-01T20:00:00Z', home: 'PSG', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Parc des Princes' },
+      { date: '2026-03-24T20:00:00Z', home: 'Bayern Munich', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 2, stadium: 'Allianz Arena' },
+      { date: '2026-03-25T20:00:00Z', home: 'Liverpool', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 3, stadium: 'Anfield' },
+      { date: '2026-03-25T20:00:00Z', home: 'Tottenham', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 4, stadium: 'Tottenham Hotspur Stadium' },
+      { date: '2026-03-31T20:00:00Z', home: 'Barcelona', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 5, stadium: 'Camp Nou' },
+      { date: '2026-04-01T20:00:00Z', home: 'Chelsea', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 6, stadium: 'Stamford Bridge' },
+      { date: '2026-04-01T20:00:00Z', home: 'Sporting Lisboa', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 7, stadium: 'Estádio José Alvalade' },
+      { date: '2026-04-01T20:00:00Z', home: 'Manchester City', away: '', awayPlaceholder: 'Ganador Play-off', bracketId: 8, stadium: 'Etihad Stadium' },
     ];
 
     const entities: Match[] = [];

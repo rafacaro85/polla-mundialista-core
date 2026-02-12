@@ -128,10 +128,20 @@ export class BracketsService {
     }
 
     // Get all match IDs from picks
+    const rawIds = Object.keys(picks);
+    console.log(`[DEBUG] SaveBracket - Raw Keys (${rawIds.length}):`, rawIds.slice(0, 3)); // Log first 3
+    
     // FILTER: Only valid UUIDs to prevent DB errors
-    const matchIds = Object.keys(picks).filter((id) => UUID_REGEX.test(id));
+    const matchIds = rawIds.filter((id) => {
+      const isValid = UUID_REGEX.test(id);
+      if (!isValid) console.warn(`[WARN] Invalid UUID filtered: ${id}`);
+      return isValid;
+    });
 
+    console.log(`[DEBUG] SaveBracket - Valid UUIDs (${matchIds.length})`);
+    
     if (matchIds.length === 0) {
+      console.warn('[WARN] SaveBracket - No valid match IDs found after filtering. Aborting save.');
       return; // No valid match IDs found
     }
 

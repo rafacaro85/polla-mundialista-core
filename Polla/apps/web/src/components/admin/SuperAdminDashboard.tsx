@@ -259,11 +259,15 @@ export default function SuperAdminDashboard() {
 
     const handleSaveSettings = async () => {
         try {
-            await superAdminService.updateSettings(settingsForm);
+            // Remove 'id' if present to avoid 400 Bad Request
+            const payload = { ...settingsForm };
+            delete payload.id;
+            
+            await superAdminService.updateSettings(payload);
             alert("Configuración guardada correctamente");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving settings:", error);
-            alert("Error al guardar la configuración");
+            alert(error.response?.data?.message || "Error al guardar la configuración");
         }
     };
 

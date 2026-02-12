@@ -134,7 +134,7 @@ export class LeaguesService {
 
       // --- LIMIT CHECK: 1 Free League Per User Per Tournament ---
       const targetTournamentId = tournamentId || 'WC2026';
-      const isFreePlan = ['familia', 'starter', 'FREE'].includes(packageType);
+      const isFreePlan = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
       if (isFreePlan) {
         // Count existing leagues for this user in this tournament
@@ -177,7 +177,7 @@ export class LeaguesService {
         // luego el admin la activa con el botÃ³n de pago si es necesario, O si es Enterprise activarla.
         // ACTUALIZACIÃ“N: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aquÃ­ isPaid se rige por type.
         // Vamos a dejar la lÃ³gica actual: solo FREE es paid auto. Enterprise se paga manual o por botÃ³n.
-        isPaid: ['familia', 'starter', 'FREE'].includes(packageType),
+        isPaid: ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType),
         packageType,
         isEnterprise: !!isEnterprise,
         companyName: companyName,
@@ -188,8 +188,8 @@ export class LeaguesService {
 
       const savedLeague = await this.leaguesRepository.save(league);
 
-      // ðŸ“¢ Admin Alert (ðŸ†) - New League
-      const isPaid = ['familia', 'starter', 'FREE'].includes(packageType); // Logic copied from isPaid above
+      // ðŸ“¢ Admin Alert (ðŸ †) - New League
+      const isPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType); // Logic copied from isPaid above
       const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
       const creatorName = adminName || creator.fullName;
 
@@ -216,7 +216,7 @@ export class LeaguesService {
       }
 
       // Create Transaction only for FREE plans
-      if (['familia', 'starter', 'FREE'].includes(packageType)) {
+      if (['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType)) {
         await this.transactionsService.createTransaction(
           creator,
           0,

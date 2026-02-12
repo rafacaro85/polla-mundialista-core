@@ -75,11 +75,34 @@ interface CreateBusinessLeagueDialogProps {
     onOpenChange?: (open: boolean) => void;
 }
 
+import { useTournament } from '@/hooks/useTournament';
+
 export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: externalOpen, onOpenChange }: CreateBusinessLeagueDialogProps) => {
+    const { tournamentId } = useTournament();
     const router = useRouter();
     const [internalOpen, setInternalOpen] = useState(false);
     const [step, setStep] = useState(1); // 1: Form, 2: Loading/Redirecting
     const [loading, setLoading] = useState(false);
+
+    // Business Plans Logic
+    const availableBusinessPlans = React.useMemo(() => {
+        const basePlans = [...BUSINESS_PLANS];
+        
+        if (tournamentId === 'UCL2526') {
+            basePlans.unshift({
+                id: 'launch_business',
+                name: 'Cortesía Lanzamiento',
+                price: 'GRATIS',
+                capacity: '15 Jugadores',
+                description: 'Plan gratuito limitado de introducción.',
+                icon: <Zap size={20} />, 
+                color: '#8B5CF6', // Violet
+                features: ['Hasta 15 participantes', 'Colores de Marca + Logo', 'Imagen del Premio'],
+                packageType: 'ENTERPRISE_LAUNCH'
+            } as any);
+        }
+        return basePlans;
+    }, [tournamentId]);
 
     // Controlled vs Uncontrolled logic
     const isControlled = externalOpen !== undefined;
@@ -97,7 +120,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('bronze'); // Default to Bronze
+    const [selectedPlanId, setSelectedPlanId] = useState(tournamentId === 'UCL2526' ? 'launch_business' : 'bronze');
 
     // ESTILOS
     const STYLES = {
@@ -161,7 +184,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
             return;
         }
 
-        const selectedPlan = BUSINESS_PLANS.find(p => p.id === selectedPlanId);
+        const selectedPlan = availableBusinessPlans.find(p => p.id === selectedPlanId);
         if (!selectedPlan) return;
 
         setLoading(true);
@@ -175,7 +198,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
                 type: 'COMPANY',
                 isEnterprise: true,
                 packageType: selectedPlan.packageType,
-                maxParticipants: parseInt(selectedPlan.capacity) || 1000 // Fallback secure
+                maxParticipants: parseInt(selectedPlan.capacity) || 25 // Clean parse
             };
 
             console.log('🏢 [BUSINESS] Creating League:', payload);
@@ -273,7 +296,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
                     <div style={STYLES.inputGroup}>
                         <label style={STYLES.label}>Selecciona un Plan Corporativo</label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {BUSINESS_PLANS.map((plan) => {
+                            {availableBusinessPlans.map((plan) => {
                                 const isSelected = selectedPlanId === plan.id;
                                 return (
                                     <div

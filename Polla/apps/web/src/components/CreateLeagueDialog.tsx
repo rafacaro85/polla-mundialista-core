@@ -69,12 +69,35 @@ interface CreateLeagueDialogProps {
    ============================================================================= */
 export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeagueCreated, children }) => {
     const { tournamentId } = useTournament();
+    
+    // Dynamic Plans based on Tournament
+    const availablePlans = React.useMemo(() => {
+        const basePlans = [...PLANS];
+        
+        // Special Launch Plan for Champions League
+        if (tournamentId === 'UCL2526') {
+            basePlans.unshift({
+                id: 'launch_promo',
+                name: 'Cortesía Lanzamiento',
+                price: 'GRATIS',
+                members: 15,
+                icon: <Gem size={20} />, // Unique icon
+                color: '#6366F1', // Indigo
+                features: ['Hasta 15 jugadores', 'Imagen del premio', 'Solo Champions League'],
+                recommended: true
+            });
+        }
+        
+        return basePlans;
+    }, [tournamentId]);
+
     const [open, setOpen] = useState(false);
     const [leagueName, setLeagueName] = useState('');
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57'); // Nuevo estado para indicativo
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlan, setSelectedPlan] = useState('amigos'); // Por defecto el Amigos (recomendado)
+    // Default to 'launch_promo' if available (UCL), otherwise 'amigos'
+    const [selectedPlan, setSelectedPlan] = useState(tournamentId === 'UCL2526' ? 'launch_promo' : 'amigos');
     const [loading, setLoading] = useState(false);
     const [createdLeagueId, setCreatedLeagueId] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
@@ -114,7 +137,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
         const fullPhone = `${countryCode.trim()} ${cleanNumber}`;
 
-        const plan = PLANS.find(p => p.id === selectedPlan);
+        const plan = availablePlans.find(p => p.id === selectedPlan);
         if (!plan) return;
 
         setLoading(true);
@@ -170,7 +193,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         setCreatedLeagueName(null);
         setCreatedLeagueId(null);
         setCopied(false);
-        setSelectedPlan('amigos');
+        setSelectedPlan(tournamentId === 'UCL2526' ? 'launch_promo' : 'amigos');
     };
 
     // SISTEMA DE DISEÑO BLINDADO
@@ -548,9 +571,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         </div>
 
                                         <div style={STYLES.plansGrid}>
-                                            {PLANS.map(plan => {
-                                                const isSelected = selectedPlan === plan.id;
-
+                                            {availablePlans.map(plan => {
+                                                const isSelected = selectedPlan === plan.id; // Correct usage of ID as value
+                                                
                                                 // Combinar estilos base con seleccionados
                                                 const cardStyle = {
                                                     ...STYLES.planCard,
@@ -564,7 +587,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                                         onClick={() => !loading && setSelectedPlan(plan.id)}
                                                     >
                                                         {/* Badge Recomendado */}
-                                                        {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>}
+                                                        {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>} // Use dynamic property
 
                                                         {/* Icono Check si seleccionado */}
                                                         {isSelected && <Check size={16} style={{ ...STYLES.checkCircle, color: plan.color }} />}
@@ -587,10 +610,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 </>
                             ) : (
                                 <div style={STYLES.successBox}>
-                                    {/* SOLO mostrar botones de compartir si es Familia (Gratis) */}
-                                    {selectedPlan === 'familia' ? (
-                                        // Wait, PLANS[0] is familia (Free). Others are paid.
-                                        // Use selectedPlan === 'familia' check.
+                                    {/* SOLO mostrar botones de compartir si es Familia o Launch (Gratis) */}
+                                    {['familia', 'launch_promo'].includes(selectedPlan) ? ( // Check ID directly
                                         <>
                                             <p className="text-tactical text-center text-sm mb-4">Comparte este código con tus amigos para que se unan:</p>
                                             <div style={STYLES.codeDisplay}>
@@ -646,11 +667,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         </div>
                                     )}
 
-                                    {selectedPlan !== 'familia' && createdLeagueId && (
+                                    {!['familia', 'launch_promo'].includes(selectedPlan) && createdLeagueId && ( // Check ID directly
                                         <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
                                             <PaymentMethods
                                                 leagueId={createdLeagueId}
-                                                amount={parseInt(PLANS.find(p => p.id === selectedPlan)?.price.replace(/\D/g, '') || '0')}
+                                                amount={parseInt(availablePlans.find(p => p.id === selectedPlan)?.price.replace(/\D/g, '') || '0')} // Use availablePlans
                                                 onSuccess={() => {
                                                     toast.success('Pago enviado. Espera la confirmación del administrador.');
                                                     handleClose();

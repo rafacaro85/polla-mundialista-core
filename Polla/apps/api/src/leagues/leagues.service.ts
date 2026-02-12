@@ -433,20 +433,20 @@ export class LeaguesService {
                SUM(CASE WHEN p."isJoker" IS TRUE THEN p.points / 2 ELSE p.points END) as regular_points
         FROM predictions p
         INNER JOIN matches m ON m.id = p."matchId"
-        WHERE m."tournamentId" = $1 
+        WHERE UPPER(m."tournamentId") = UPPER($1) 
         GROUP BY p."userId"
       ),
       brackets_data AS (
         SELECT "userId", SUM(points) as points 
         FROM user_brackets 
-        WHERE "tournamentId" = $1 
+        WHERE UPPER("tournamentId") = UPPER($1) 
         GROUP BY "userId"
       ),
       bonus_data AS (
         SELECT uba."userId", SUM(uba."pointsEarned") as points
         FROM user_bonus_answers uba
         INNER JOIN bonus_questions bq ON bq.id = uba."questionId"
-        WHERE bq."tournamentId" = $1 
+        WHERE UPPER(bq."tournamentId") = UPPER($1) 
         GROUP BY uba."userId"
       )
       SELECT 

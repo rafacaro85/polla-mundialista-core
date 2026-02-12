@@ -587,7 +587,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                                         onClick={() => !loading && setSelectedPlan(plan.id)}
                                                     >
                                                         {/* Badge Recomendado */}
-                                                        {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>} // Use dynamic property
+                                                        {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>}
 
                                                         {/* Icono Check si seleccionado */}
                                                         {isSelected && <Check size={16} style={{ ...STYLES.checkCircle, color: plan.color }} />}

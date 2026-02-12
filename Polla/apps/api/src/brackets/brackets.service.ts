@@ -12,6 +12,9 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 import { SaveBracketDto } from './dto/save-bracket.dto';
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const PHASE_POINTS = {
   ROUND_32: 2,
   PLAYOFF_1: 2,
@@ -38,8 +41,15 @@ export class BracketsService {
 
   async saveBracket(userId: string, dto: SaveBracketDto): Promise<UserBracket> {
     // Check for 'global' string and treat as null
-    const targetLeagueId =
-      dto.leagueId === 'global' || dto.leagueId === '' ? null : dto.leagueId;
+    // Also validate if it is a valid UUID, otherwise null
+    let targetLeagueId = null;
+    if (
+      dto.leagueId &&
+      dto.leagueId !== 'global' &&
+      UUID_REGEX.test(dto.leagueId)
+    ) {
+      targetLeagueId = dto.leagueId;
+    }
 
     // Check if user is blocked in the league (if leagueId is provided)
     if (targetLeagueId) {
@@ -92,7 +102,7 @@ export class BracketsService {
         // Create new bracket
         bracket = this.userBracketRepository.create({
           userId,
-          leagueId: targetLeagueId, // FIX: Use sanitized leagueId (handles 'global' -> null) instead of raw dto.leagueId
+          leagueId: targetLeagueId || undefined, // FIX: Use sanitized leagueId (handles 'global' -> null) instead of raw dto.leagueId
           tournamentId,
           picks: dto.picks,
           points: 0,
@@ -118,7 +128,12 @@ export class BracketsService {
     }
 
     // Get all match IDs from picks
-    const matchIds = Object.keys(picks);
+    // FILTER: Only valid UUIDs to prevent DB errors
+    const matchIds = Object.keys(picks).filter((id) => UUID_REGEX.test(id));
+
+    if (matchIds.length === 0) {
+      return; // No valid match IDs found
+    }
 
     // Get all matches involved
     const matches = await this.matchRepository.find({

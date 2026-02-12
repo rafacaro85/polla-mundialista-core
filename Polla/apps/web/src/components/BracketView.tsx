@@ -291,7 +291,8 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         try {
             const { data } = await api.post('/brackets', {
                 picks: winners,
-                tournamentId: tournamentId // CRITICAL: Save to correct tournament
+                tournamentId: tournamentId, // CRITICAL: Save to correct tournament
+                leagueId: leagueId // Fix: Pass the current league context so we save to the correct bracket (league vs global)
             });
             setBracketPoints(data.points || 0);
             toast.success('Bracket guardado exitosamente! 🏆');

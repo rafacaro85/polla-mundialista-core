@@ -434,12 +434,14 @@ export class LeaguesService {
         FROM predictions p
         INNER JOIN matches m ON m.id = p."matchId"
         WHERE UPPER(m."tournamentId") = UPPER($1) 
+        AND p."league_id" IS NULL
         GROUP BY p."userId"
       ),
       brackets_data AS (
         SELECT "userId", SUM(points) as points 
         FROM user_brackets 
         WHERE UPPER("tournamentId") = UPPER($1) 
+        AND "leagueId" IS NULL
         GROUP BY "userId"
       ),
       bonus_data AS (
@@ -447,6 +449,7 @@ export class LeaguesService {
         FROM user_bonus_answers uba
         INNER JOIN bonus_questions bq ON bq.id = uba."questionId"
         WHERE UPPER(bq."tournamentId") = UPPER($1) 
+        AND bq."league_id" IS NULL
         GROUP BY uba."userId"
       )
       SELECT 

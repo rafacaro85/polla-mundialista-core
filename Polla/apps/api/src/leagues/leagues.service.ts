@@ -418,17 +418,12 @@ export class LeaguesService {
   async getGlobalRanking(tournamentId: string) {
     // 1. Obtener IDs de usuarios ACTIVOS en este torneo (Global Context Only)
     // Un usuario es activo si tiene al menos un registro en:
-    // - Predicciones (Global)
-    // - Bracket (Global)
-    // 🔍 VERSION CONSOLIDADA Y ROBUSTA
-    // Usamos una sola consulta SQL para traer Usuarios + Puntos (Predicciones, Brackets, Bonus)
-    // Esto evita problemas de sincronización de IDs y mejora el rendimiento al reducir round-trips.
+    // - Prediccione  async getGlobalRanking(tournamentId: string) {
+    // 🔍 VERSION CRÍTICA: FUERZA VISIBILIDAD (User-Centric)
+    // Se eliminó la restricción estricta de league_id IS NULL para ver si los usuarios aparecen.
+    // Ahora se suman TODOS los puntos del torneo, independientemente del contexto de liga.
     
-    // NOTA: Usamos COALESCE(..., 0) para manejar usuarios que tienen bracket pero no predicciones, etc.
-    // FILTROS:
-    // - tournamentId stricto en cada subquery
-    // - league_id / leagueId IS NULL estricto en cada subquery
-    // - Active Participant: Debe tener AL MENOS UN punto de datos (Pred, Bracket o Bonus)
+    console.log(`🚀 Iniciando Global Ranking para: ${tournamentId}`);
 
     const rawQuery = `
       WITH 
@@ -437,20 +432,20 @@ export class LeaguesService {
                SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE 0 END) as joker_points,
                SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE points END) as regular_points
         FROM predictions 
-        WHERE "tournamentId" = $1 AND "league_id" IS NULL
+        WHERE "tournamentId" = $1 
         GROUP BY "userId"
       ),
       brackets_data AS (
         SELECT "userId", SUM(points) as points 
         FROM user_brackets 
-        WHERE "tournamentId" = $1 AND "leagueId" IS NULL
+        WHERE "tournamentId" = $1 
         GROUP BY "userId"
       ),
       bonus_data AS (
         SELECT uba."userId", SUM(uba."pointsEarned") as points
         FROM user_bonus_answers uba
         INNER JOIN bonus_questions bq ON bq.id = uba."questionId"
-        WHERE bq."tournamentId" = $1 AND bq."leagueId" IS NULL
+        WHERE bq."tournamentId" = $1 
         GROUP BY uba."userId"
       )
       SELECT 
@@ -478,7 +473,12 @@ export class LeaguesService {
     try {
       const results = await this.userRepository.manager.query(rawQuery, [tournamentId]);
       
-      console.log(`📊 Global Ranking (${tournamentId}): Found ${results.length} active users via Single Query.`);
+      console.log(`📊 Global Ranking Count (${tournamentId}):`, results.length);
+      if (results.length > 0) {
+        console.log('Sample User:', results[0]);
+      } else {
+        console.warn('⚠️ Global Ranking is EMPTY.');
+      }
 
       return results.map((user: any, index: number) => ({
         position: index + 1,

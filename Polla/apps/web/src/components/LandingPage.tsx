@@ -559,8 +559,8 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                     <div>
                         <h4 className="text-[#0F172A] font-black mb-6 uppercase text-xs tracking-widest">Legal</h4>
                         <ul className="space-y-3 text-sm text-[#94A3B8] font-medium">
-                            <li><a href="#" className="hover:text-[#00E676]">Términos de Uso</a></li>
-                            <li><a href="#" className="hover:text-[#00E676]">Privacidad de Datos</a></li>
+                            <li><a href="/terminos" className="hover:text-[#00E676]">Términos de Uso</a></li>
+                            <li><a href="/privacidad" className="hover:text-[#00E676]">Privacidad de Datos</a></li>
                             <li><a href="#" className="hover:text-[#00E676]">Soporte</a></li>
                         </ul>
                     </div>

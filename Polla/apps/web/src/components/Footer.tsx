@@ -119,8 +119,8 @@ export default function Footer() {
 
             {/* LINKS LEGALES */}
             < div style={STYLES.linksRow} >
-                <a href={config.links.terms} style={STYLES.link} className="hover:text-white">Términos y Condiciones</a>
-                <a href={config.links.privacy} style={STYLES.link} className="hover:text-white">Política de Privacidad</a>
+                <a href="/terminos" style={STYLES.link} className="hover:text-white">Términos y Condiciones</a>
+                <a href="/privacidad" style={STYLES.link} className="hover:text-white">Política de Privacidad</a>
             </div >
 
             {/* COPYRIGHT */}

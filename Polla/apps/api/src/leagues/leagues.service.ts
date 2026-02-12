@@ -180,6 +180,8 @@ export class LeaguesService {
         isPaid: ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType),
         packageType,
         isEnterprise: !!isEnterprise,
+        // Auto-activate enterprise features for launch promo
+        isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH', 
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,

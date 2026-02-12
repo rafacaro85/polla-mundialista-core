@@ -198,7 +198,8 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
                 type: 'COMPANY',
                 isEnterprise: true,
                 packageType: selectedPlan.packageType,
-                maxParticipants: parseInt(selectedPlan.capacity) || 25 // Clean parse
+                maxParticipants: parseInt(selectedPlan.capacity) || 25, // Clean parse
+                tournamentId, // Include tournament context
             };
 
             console.log('🏢 [BUSINESS] Creating League:', payload);

@@ -70,7 +70,14 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
             'amigos': 2,
             'lider': 3,
             'influencer': 4,
-            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5
+            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5,
+            // Enterprise Specific Plans
+            'enterprise_launch': 2, // Unlock Logo (Level 2)
+            'enterprise_bronze': 2,
+            'enterprise_silver': 3,
+            'enterprise_gold': 4,
+            'enterprise_platinum': 5,
+            'enterprise_diamond': 5
         };
 
         const currentLevel = planLevels[plan] ?? 0;

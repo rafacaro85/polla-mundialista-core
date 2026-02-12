@@ -428,12 +428,13 @@ export class LeaguesService {
     const rawQuery = `
       WITH 
       predictions_data AS (
-        SELECT "userId", 
-               SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE 0 END) as joker_points,
-               SUM(CASE WHEN "isJoker" IS TRUE THEN points / 2 ELSE points END) as regular_points
-        FROM predictions 
-        WHERE "tournamentId" = $1 
-        GROUP BY "userId"
+        SELECT p."userId", 
+               SUM(CASE WHEN p."isJoker" IS TRUE THEN p.points / 2 ELSE 0 END) as joker_points,
+               SUM(CASE WHEN p."isJoker" IS TRUE THEN p.points / 2 ELSE p.points END) as regular_points
+        FROM predictions p
+        INNER JOIN matches m ON m.id = p."matchId"
+        WHERE m."tournamentId" = $1 
+        GROUP BY p."userId"
       ),
       brackets_data AS (
         SELECT "userId", SUM(points) as points 

@@ -47,13 +47,10 @@ export class BracketsController {
 
     const tid = cleanId(tournamentId);
     const lid = cleanId(leagueId);
-
-    console.log(`📨 Controller: getMyBracket for user ${userId}, tournament: ${tid}, league: ${lid} (Raw: ${tournamentId}, ${leagueId})`);
     
     const data = await this.bracketsService.getMyBracket(userId, lid, tid);
 
     if (!data) {
-        console.warn('⚠️ Controller: Service returned null/undefined. Forcing default empty JSON.');
         return { 
             picks: {}, 
             points: 0, 

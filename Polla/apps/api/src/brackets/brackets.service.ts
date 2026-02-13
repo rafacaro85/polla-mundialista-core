@@ -244,12 +244,7 @@ export class BracketsService {
 
     const result = leagueBracket || generalBracket;
     
-    // DEBUG LOGGING
-    console.log(`[DEBUG] getMyBracket - userId: ${userId}, leagueId: ${leagueId} (target: ${targetLeagueId})`);
-    console.log(`[DEBUG] Found ${brackets.length} brackets. Matches:`, result ? `ID ${result.id}` : 'NONE');
-
     if (!result) {
-        console.log('[DEBUG] No matching bracket found. Returning DEFAULT EMPTY OBJECT.');
         return {
             userId,
             tournamentId,

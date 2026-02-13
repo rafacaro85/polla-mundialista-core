@@ -172,23 +172,10 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
 
                 const { data } = await api.get(url);
                 
-                // DEEP TRACE - DEBUG HYDRATION
-                console.log("🔥 FULL DATA DUMP:", JSON.stringify(data, null, 2));
-                if (data) {
-                    console.log("👉 Keys available in data:", Object.keys(data));
-                    if (data.picks) console.log("👉 'picks' found. Length:", Object.keys(data.picks).length);
-                    else console.warn("⚠️ 'picks' is UNDEFINED in data object");
-                    
-                    if (data.predictions) console.log("👉 'predictions' found (unexpected?). Length:", data.predictions.length);
-                }
-
-                console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
+                // console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
                 
                 if (data && data.picks) {
                     const pickKeys = Object.keys(data.picks);
-                    console.log('--- HYDRATION DEBUG ---');
-                    console.log('1. Raw Picks from DB:', data.picks);
-                    console.log('2. Match IDs in FE:', matches.map(m => m.id).slice(0, 3));
                     
                     // Force Keys to String to avoid Type Mismatch
                     const normalizedPicks: Record<string, string> = {};
@@ -198,10 +185,6 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     
                     setWinners(normalizedPicks);
                     setBracketPoints(data.points || 0);
-                    
-                    // Verify overlap
-                    const overlap = matches.filter(m => normalizedPicks[String(m.id)]);
-                    console.log(`3. Matches hydrated: ${overlap.length} / ${matches.length}`);
                 } else {
                     // Reset if no data for this tournament
                     setWinners({});

@@ -155,7 +155,15 @@ export class BracketsService {
     });
 
     if (matches.length === 0) {
-      return; // No matches found, nothing to validate
+      console.warn(`[WARN] SaveBracket - ALL ${matchIds.length} match IDs were rejected (not found in DB). First ID: ${matchIds[0]}`);
+      throw new BadRequestException(
+        `Los partidos seleccionados ya no son válidos (el torneo se ha actualizado). Por favor recarga la página para obtener los nuevos partidos.`,
+      );
+    }
+
+    if (matches.length < matchIds.length) {
+        console.warn(`[WARN] SaveBracket - Partial mismatch. Received ${matchIds.length}, found ${matches.length}.`);
+        // Opcional: Podríamos lanzar error aquí también si queremos consistencia estricta
     }
 
     // Get unique phases from matches

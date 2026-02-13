@@ -1124,9 +1124,11 @@ export class MatchesService {
 
     if (isCorrupted) {
       console.log(
-        `🚨 [INTEGRITY] DETECTED MISSING PHASES IN ${tid}. Initiating Auto-Repair...`,
+        `🚨 [INTEGRITY] DETECTED MISSING PHASES IN ${tid}. Auto-Repair DISABLED to prevent data loss.`,
       );
-
+      return { repaired: false, message: 'Structure corrupted but auto-repair disabled.' };
+      
+      /*
       // 0. SAFETY: Unlink Foreign Keys before deletion
       console.log('🧹 [INTEGRITY] Unlinking FK references...');
       const phasesToDelete = [
@@ -1168,6 +1170,7 @@ export class MatchesService {
 
       console.log('✅ [INTEGRITY] Tournament structure repaired.');
       return { repaired: true, message: 'Structure restored from seeds.' };
+      */
     }
 
     console.log('✅ [INTEGRITY] Structure appears healthy.');

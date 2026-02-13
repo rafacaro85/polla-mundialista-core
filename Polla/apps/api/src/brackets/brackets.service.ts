@@ -243,7 +243,22 @@ export class BracketsService {
     const leagueBracket = brackets.find((b) => b.leagueId === targetLeagueId);
     const generalBracket = brackets.find((b) => b.leagueId === null);
 
-    const result = leagueBracket || generalBracket;
+    // Logic change: Return the bracket with correct points (MAX) to match Ranking logic
+    // If both exist, prioritize the one with higher points (likely the Global one if League one is stale)
+    let result: UserBracket | undefined;
+
+    if (leagueBracket && generalBracket) {
+       const leaguePts = leagueBracket.points || 0;
+       const generalPts = generalBracket.points || 0;
+       // If General is better, use it. Otherwise Stick to League (Priority to context if tied)
+       if (generalPts > leaguePts) {
+           result = generalBracket;
+       } else {
+           result = leagueBracket;
+       }
+    } else {
+       result = leagueBracket || generalBracket;
+    }
     
     if (!result) {
         return {

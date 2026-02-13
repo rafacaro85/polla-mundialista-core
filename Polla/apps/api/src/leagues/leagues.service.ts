@@ -688,6 +688,7 @@ export class LeaguesService {
         socialWebsite: participant.league.socialWebsite,
         showAds: participant.league.showAds,
         adImages: participant.league.adImages,
+        userStatus: participant.status, // EXPOSE USER STATUS
       };
     }
 

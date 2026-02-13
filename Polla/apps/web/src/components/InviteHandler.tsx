@@ -63,7 +63,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
             // Check status for feedback
             if (data.status === 'PENDING') {
-                toast.info(`Solicitud enviada a ${previewData?.name || 'la liga'}. Espera la aprobación del admin.`, { duration: 5000 });
+                // REMOVED TOAST as requested
+                // toast.info(`Solicitud enviada a ${previewData?.name || 'la liga'}. Espera la aprobación del admin.`, { duration: 5000 });
             } else {
                 toast.success(`¡Bienvenido a ${previewData?.name || 'la polla'}!`);
             }
@@ -79,7 +80,9 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             // Force tournament param to ensure context switch
             const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
             
-            router.push(redirectUrl);
+            // Force hard reload or ensure context is picked up? 
+            // Router push should work if useTournament hooks into searchParams
+            window.location.href = redirectUrl; // Using window.location to ensure full state reset/reload for tournament context
 
         } catch (error: any) {
             console.error('Join Error:', error);
@@ -95,11 +98,10 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                     localStorage.setItem('selectedTournament', leagueTournamentId);
                 }
                 
-                if (previewData?.id) {
-                     router.push(`/leagues/${previewData.id}${leagueTournamentId ? `?tournament=${leagueTournamentId}` : ''}`);
-                } else {
-                    router.push('/dashboard');
-                }
+                const targetUrl = previewData?.id ? `/leagues/${previewData.id}` : '/dashboard';
+                const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
+
+                window.location.href = redirectUrl; // Force reload for same reason
                 return;
             }
 

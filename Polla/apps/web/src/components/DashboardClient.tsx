@@ -269,6 +269,37 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           />
         )}
 
+        {/* PENDING APPROVAL LOCK */}
+        {currentLeague && currentLeague.userStatus === 'PENDING' && selectedLeagueId !== 'global' && (
+             <div className="absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50"></div>
+                    
+                    <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                        <Shield className="w-8 h-8 text-orange-500" />
+                    </div>
+                    
+                    <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
+                        SOLICITUD <span className="text-orange-500">ENVIADA</span>
+                    </h2>
+                    
+                    <p className="text-slate-400 mb-6 text-sm leading-relaxed">
+                        Tu solicitud para unirte a <span className="text-white font-bold">{currentLeague.name}</span> está pendiente de aprobación por el administrador.
+                    </p>
+                    
+                    <div className="flex flex-col gap-3">
+                        <Button 
+                            variant="outline" 
+                            className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
+                            onClick={() => setSelectedLeague('global')}
+                        >
+                            Volver al Inicio
+                        </Button>
+                    </div>
+                </div>
+             </div>
+        )}
+
         <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
 
           {/* VISTAS */}

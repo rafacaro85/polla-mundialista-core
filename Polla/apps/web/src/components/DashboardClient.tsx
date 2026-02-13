@@ -284,7 +284,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                     </h2>
                     
                     <p className="text-slate-400 mb-6 text-sm leading-relaxed">
-                        Tu solicitud para unirte a <span className="text-white font-bold">{currentLeague.name}</span> está pendiente de aprobación por el administrador.
+                        Tu solicitud para unirte a la polla <span className="text-white font-bold">{currentLeague.name}</span> está pendiente de aprobación por el administrador.
                     </p>
                     
                     <div className="flex flex-col gap-3">

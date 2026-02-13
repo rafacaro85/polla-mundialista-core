@@ -374,17 +374,17 @@ export default function AdminUsersPage() {
                                                         <>
                                                             <button
                                                                 onClick={() => handleApproveRequest(participant)}
-                                                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-colors"
+                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
                                                                 title="Aprobar Solicitud"
                                                             >
-                                                                <Check size={18} />
+                                                                <Check size={20} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleRejectRequest(participant)}
-                                                                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"
                                                                 title="Rechazar Solicitud"
                                                             >
-                                                                <X size={18} />
+                                                                <X size={20} />
                                                             </button>
                                                         </>
                                                     ) : (
@@ -392,7 +392,7 @@ export default function AdminUsersPage() {
                                                             {/* Editar */}
                                                             <button
                                                                 onClick={() => handleEditClick(participant)}
-                                                                className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
+                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all shadow-sm"
                                                                 title="Editar Información"
                                                             >
                                                                 <Edit2 size={18} />
@@ -401,7 +401,11 @@ export default function AdminUsersPage() {
                                                             {/* Bloquear / Desbloquear */}
                                                             <button
                                                                 onClick={() => handleToggleBlock(participant)}
-                                                                className={`p-2 rounded-lg transition-colors ${participant.isBlocked || participant.status === 'BLOCKED' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20'}`}
+                                                                className={`h-10 w-10 flex items-center justify-center rounded-full transition-all shadow-sm ${
+                                                                    participant.isBlocked || participant.status === 'BLOCKED'
+                                                                        ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'
+                                                                        : 'bg-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white'
+                                                                }`}
                                                                 title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear Usuario" : "Bloquear Usuario"}
                                                             >
                                                                 {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={18} /> : <Ban size={18} />}
@@ -410,14 +414,13 @@ export default function AdminUsersPage() {
                                                             {/* Eliminar */}
                                                             <button
                                                                 onClick={() => handleDelete(participant)}
-                                                                className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm"
                                                                 title="Expulsar de la Liga"
                                                             >
                                                                 <Trash2 size={18} />
                                                             </button>
                                                         </>
-                                                    )}
-                                                </div>
+                                                    )}                                                </div>
                                             </td>
                                         </tr>
                                     ))

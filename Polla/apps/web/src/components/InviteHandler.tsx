@@ -35,7 +35,7 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
                 // 3. Si es normal, unirse directo
                 setStatus('joining');
-                await joinLeague(code);
+                await joinLeague(code, undefined, data);
 
             } catch (error: any) {
                 console.error(error);
@@ -48,7 +48,7 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
         verifyAndJoin();
     }, [code, router]);
 
-    const joinLeague = async (leagueCode: string, dept?: string) => {
+    const joinLeague = async (leagueCode: string, dept?: string, explicitPreviewData?: any) => {
         try {
             const { data } = await api.post('/leagues/join', {
                 code: leagueCode,
@@ -56,7 +56,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             });
             
             // Check tournament context
-            const leagueTournamentId = data.league?.tournamentId || previewData?.tournamentId;
+            const leagueTournamentId = data.league?.tournamentId || explicitPreviewData?.tournamentId || previewData?.tournamentId;
+
             if (leagueTournamentId && (leagueTournamentId === 'WC2026' || leagueTournamentId === 'UCL2526')) {
                 localStorage.setItem('selectedTournament', leagueTournamentId);
             }
@@ -66,7 +67,7 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 // REMOVED TOAST as requested
                 // toast.info(`Solicitud enviada a ${previewData?.name || 'la liga'}. Espera la aprobación del admin.`, { duration: 5000 });
             } else {
-                toast.success(`¡Bienvenido a ${previewData?.name || 'la polla'}!`);
+                toast.success(`¡Bienvenido a ${previewData?.name || explicitPreviewData?.name || 'la polla'}!`);
             }
 
             // Clean up invite
@@ -93,12 +94,13 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 toast.info('Ya eres miembro de esta polla.');
 
                 // Redirect anyway, ensuring tournament context
-                const leagueTournamentId = previewData?.tournamentId;
+                const leagueTournamentId = explicitPreviewData?.tournamentId || previewData?.tournamentId;
                 if (leagueTournamentId) {
                     localStorage.setItem('selectedTournament', leagueTournamentId);
                 }
                 
-                const targetUrl = previewData?.id ? `/leagues/${previewData.id}` : '/dashboard';
+                const dataToUse = explicitPreviewData || previewData;
+                const targetUrl = dataToUse?.id ? `/leagues/${dataToUse.id}` : '/dashboard';
                 const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
 
                 window.location.href = redirectUrl; // Force reload for same reason

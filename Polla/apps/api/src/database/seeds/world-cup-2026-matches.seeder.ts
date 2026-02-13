@@ -1174,9 +1174,9 @@ async function main() {
   try {
     await dataSource.initialize();
 
-    console.log('🗑️ Limpiando calendarios antiguos...');
-    await dataSource.query('DELETE FROM matches');
-    await dataSource.query('DELETE FROM knockout_phase_status');
+    console.log('🗑️ Limpiando calendarios antiguos (SOLO WC2026)...');
+    await dataSource.query("DELETE FROM matches WHERE \"tournamentId\" = 'WC2026'");
+    await dataSource.query("DELETE FROM knockout_phase_status WHERE \"tournamentId\" = 'WC2026'");
 
     console.log('📅 Configurando fases del torneo...');
     const phases = [
@@ -1190,8 +1190,8 @@ async function main() {
     ];
     for (const phase of phases) {
       await dataSource.query(
-        'INSERT INTO knockout_phase_status (phase, is_unlocked, all_matches_completed) VALUES ($1, $2, $3)',
-        [phase, phase === 'GROUP', false],
+        'INSERT INTO knockout_phase_status (phase, "tournamentId", "is_unlocked", "all_matches_completed") VALUES ($1, $2, $3, $4)',
+        [phase, 'WC2026', phase === 'GROUP', false],
       );
     }
 
@@ -1201,9 +1201,9 @@ async function main() {
       const query = `
                 INSERT INTO matches (
                     "group", "date", "homeTeam", "awayTeam", "homeFlag", "awayFlag", 
-                    "stadium", "phase", "status", "isLocked", "bracketId", 
-                    "homeTeamPlaceholder", "awayTeamPlaceholder"
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                    "stadium", "phase", "status", "isManuallyLocked", "bracketId", 
+                    "homeTeamPlaceholder", "awayTeamPlaceholder", "tournamentId"
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             `;
 
       const values = [
@@ -1216,10 +1216,11 @@ async function main() {
         m.stadium,
         m.phase,
         'PENDING',
-        false,
+        false, // isManuallyLocked (was isLocked in old schema?)
         m.bracket_id || null,
         m.home_placeholder || null,
         m.away_placeholder || null,
+        'WC2026'
       ];
 
       await dataSource.query(query, values);

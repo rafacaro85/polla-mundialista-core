@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2, Users,
     AlertTriangle, RefreshCw, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette, Crown
+    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette, Crown, UserPlus
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -77,6 +77,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
     const [activeTab, setActiveTab] = useState('branding');
     const [editedName, setEditedName] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
+    const [pendingRequests, setPendingRequests] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingParticipants, setLoadingParticipants] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -124,11 +125,43 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 totalPoints: Number(u.totalPoints || 0)
             }));
             setParticipants(participantsData);
+
+            // Load Pending Requests if Admin
+            if (fetchedLeague.isAdmin) {
+                try {
+                    const { data: requests } = await api.get(`/leagues/${league.id}/requests`);
+                    setPendingRequests(requests);
+                } catch (e) {
+                    console.error('Error loading requests', e);
+                }
+            }
+
         } catch (error) {
             console.error('Error cargando datos de la liga:', error);
             toast({ title: 'Error', description: 'No se pudo cargar la información', variant: 'destructive', });
         } finally {
             setLoadingParticipants(false);
+        }
+    };
+
+    const handleApproveRequest = async (userId: string) => {
+        try {
+            await api.post(`/leagues/${currentLeague?.id}/approve`, { userId });
+            toast({ title: 'Aprobado', description: 'El usuario ha sido aceptado.' });
+            loadLeagueData(); // Reload all
+        } catch (error) {
+            toast({ title: 'Error', variant: 'destructive' });
+        }
+    };
+
+    const handleRejectRequest = async (userId: string) => {
+        if (!confirm('¿Rechazar esta solicitud?')) return;
+        try {
+            await api.post(`/leagues/${currentLeague?.id}/reject`, { userId });
+            toast({ title: 'Rechazado', description: 'Solicitud eliminada.' });
+            loadLeagueData(); // Reload all
+        } catch (error) {
+            toast({ title: 'Error', variant: 'destructive' });
         }
     };
 
@@ -250,6 +283,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                     <NavItem value="branding" icon={Edit} label="EDITAR" />
                     <NavItem value="plan" icon={Gem} label="PLAN" />
                     <NavItem value="analytics" icon={BarChart3} label="DATA" />
+                    <NavItem value="requests" icon={UserPlus} label={`SOLICITUDES ${pendingRequests.length > 0 ? `(${pendingRequests.length})` : ''}`} />
                 </>
             )}
             <NavItem value="bonus" icon={Trophy} label="BONUS" />
@@ -339,6 +373,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                     <MobileNavItem value="branding" icon={Palette} label="Marca" />
                                     <MobileNavItem value="plan" icon={Gem} label="Plan" />
                                     <MobileNavItem value="analytics" icon={BarChart3} label="Data" />
+                                    <MobileNavItem value="requests" icon={UserPlus} label={`Solicitudes (${pendingRequests.length})`} />
                                 </>
                             )}
                             <MobileNavItem value="bonus" icon={Trophy} label="Bonus" />
@@ -612,6 +647,59 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             <EnterpriseLock featureName="Analítica Avanzada" />
                                         ) : (
                                             <LeagueAnalyticsPanel leagueId={currentLeague.id} />
+                                        )}
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA SOLICITUDES --- */}
+                                    <TabsContent value="requests" className="mt-0 space-y-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase">Solicitudes Pendientes</h3>
+                                            <span className="text-xs text-slate-500">{pendingRequests.length} pendientes</span>
+                                        </div>
+
+                                        {pendingRequests.length === 0 ? (
+                                            <div className="text-center py-10 opacity-50">
+                                                <Users size={48} className="mx-auto mb-4 text-[#334155]" />
+                                                <p className="text-[#94A3B8] text-xs">No hay solicitudes pendientes.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {pendingRequests.map((p: any) => (
+                                                    <div key={p.user.id} className="bg-[#1E293B] border border-amber-500/30 rounded-xl p-3 flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-10 w-10 border border-slate-600">
+                                                                <AvatarImage src={p.user.avatarUrl} />
+                                                                <AvatarFallback>{p.user.nickname?.charAt(0) || 'U'}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <div className="font-bold text-sm text-white flex items-center gap-2">
+                                                                    {p.user.nickname || p.user.name}
+                                                                    <span className="bg-amber-500/20 text-amber-500 text-[9px] px-1 rounded font-bold uppercase border border-amber-500/50">PENDIENTE</span>
+                                                                </div>
+                                                                <div className="text-[10px] text-slate-400">{p.user.email}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-emerald-500 hover:bg-emerald-600 text-white border-none h-8 px-3"
+                                                                onClick={() => handleApproveRequest(p.user.id)}
+                                                            >
+                                                                <Check className="w-4 h-4 mr-1" /> Aprobar
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                className="h-8 px-3"
+                                                                onClick={() => handleRejectRequest(p.user.id)}
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         )}
                                     </TabsContent>
 

@@ -20,6 +20,7 @@ import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { UserRole } from '../database/enums/user-role.enum';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -586,6 +587,7 @@ export class LeaguesService {
       packageType: p.league.packageType,
       showAds: p.league.showAds,
       adImages: p.league.adImages,
+      status: p.status, // EXPOSE STATUS
     }));
 
     return result;
@@ -628,7 +630,7 @@ export class LeaguesService {
         avatarUrl: p.user.avatarUrl,
         phoneNumber: p.user.phoneNumber,
       },
-      status: p.isBlocked ? 'BLOCKED' : 'ACTIVE',
+      status: p.isBlocked ? 'BLOCKED' : p.status,
       // Breakdown for Transparency UI
       breakdown: {
         matches: p.predictionPoints || 0,
@@ -743,7 +745,25 @@ export class LeaguesService {
     );
   }
 
-  async getLeagueRanking(leagueId: string) {
+  async getLeagueRanking(leagueId: string, userId: string) {
+    // 1. Check if user is a participant and ACTIVE
+    const participant = await this.leagueParticipantsRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: userId } },
+    });
+
+    if (!participant) {
+        // Allow if Super Admin? Or maybe not.
+        // For now, if not participant, maybe they can't see private league ranking?
+        // But if it's GLOBAL or LIBRE?
+    }
+    
+    // If pending, BLOCK
+    if (participant && participant.status === LeagueParticipantStatus.PENDING) {
+       throw new ForbiddenException('Tu solicitud de unión está pendiente. No puedes ver el ranking aún.');
+    }
+    
+    // ... rest of logic
+
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
     });
@@ -1411,11 +1431,11 @@ export class LeaguesService {
     participant.tieBreakerGuess = guess;
     return this.leagueParticipantsRepository.save(participant);
   }
-  async getAnalyticsSummary(leagueId: string) {
+  async getAnalyticsSummary(leagueId: string, userId: string) {
     try {
       // 1. Get real-time calculated ranking (includes updated points from predictions)
       // This solves the issue of stale data in DB (0 points)
-      const ranking = await this.getLeagueRanking(leagueId);
+      const ranking = await this.getLeagueRanking(leagueId, userId);
 
       const totalParticipants = ranking.length;
       const activeParticipants = ranking.filter(

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { League } from './league.entity';
 import { User } from './user.entity';
+import { LeagueParticipantStatus } from '../enums/league-participant-status.enum';
 
 @Entity({ name: 'league_participants' })
 @Unique(['league', 'user'])
@@ -58,4 +59,11 @@ export class LeagueParticipant {
 
   @Column({ nullable: true })
   department?: string;
+
+  @Column({
+    type: 'enum',
+    enum: LeagueParticipantStatus,
+    default: LeagueParticipantStatus.ACTIVE,
+  })
+  status: LeagueParticipantStatus;
 }

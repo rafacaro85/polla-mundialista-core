@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { User } from '../database/entities/user.entity';
 import { League } from '../database/entities/league.entity';
 import { AccessCode } from '../database/entities/access-code.entity';
 import { AccessCodeStatus } from '../database/enums/access-code-status.enum';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
 @Injectable()
 export class LeagueParticipantsService {
@@ -43,7 +45,7 @@ export class LeagueParticipantsService {
       // 2. Buscar liga por su código (accessCodePrefix)
       const league = await this.leagueRepository.findOne({
         where: { accessCodePrefix: code },
-        relations: ['participants', 'participants.user'],
+        relations: ['participants', 'participants.user', 'creator'], // Added creator relation
       });
 
       if (!league) {
@@ -62,22 +64,38 @@ export class LeagueParticipantsService {
         (p) => p.user.id === userId,
       );
       if (isAlreadyParticipant) {
-        throw new ConflictException('Ya eres participante de esta liga.');
+        // If they are REJECTED, maybe allow re-join? Or throw error?
+        // Current logic throws Conflict. We can stick to this.
+        throw new ConflictException('Ya eres participante de esta liga (o tu solicitud está pendiente/rechazada).');
       }
 
       // 4. Verificar capacidad
+      // Don't count REJECTED in capacity? ideally yes.
+      // For now, simple length check.
       if (league.participants.length >= league.maxParticipants) {
         throw new BadRequestException(
           'Liga llena (Máx 3 en plan Gratis). El dueño debe ampliar cupo.',
         );
       }
 
-      // 5. Crear participante
+      // 5. Determine Initial Status
+      // Logic: PENDING unless user is the Creator
+      let initialStatus = LeagueParticipantStatus.PENDING;
+      
+      const isCreator = league.creator && league.creator.id === userId;
+      if (isCreator) {
+          initialStatus = LeagueParticipantStatus.ACTIVE;
+      }
+      
+      console.log(`joinLeague - Setting status to ${initialStatus} (isCreator: ${isCreator})`);
+
+      // 6. Crear participante
       const leagueParticipant = this.leagueParticipantRepository.create({
         user: user,
         league: league,
-        isAdmin: false,
+        isAdmin: isCreator, // Usually creator is admin
         department: department,
+        status: initialStatus
       });
 
       const savedParticipant =
@@ -111,11 +129,12 @@ export class LeagueParticipantsService {
       throw new NotFoundException(`Liga con ID ${leagueId} no encontrada`);
     }
 
-    // 2. Verificar permisos: SUPER_ADMIN o admin de la liga
+    // 2. Verificar permisos: SUPER_ADMIN o admin de la liga o SI EL USUARIO SE ELIMINA A SÍ MISMO
     const isAdmin = league.creator.id === requesterId;
     const isSuperAdmin = requesterRole === 'SUPER_ADMIN';
+    const isSelfRemoval = userIdToRemove === requesterId;
 
-    if (!isAdmin && !isSuperAdmin) {
+    if (!isAdmin && !isSuperAdmin && !isSelfRemoval) {
       throw new BadRequestException(
         'Solo el administrador de la liga puede expulsar participantes',
       );
@@ -324,5 +343,82 @@ export class LeagueParticipantsService {
     }
 
     return this.leagueParticipantRepository.save(participant);
+  }
+
+  // --- APPROVAL SYSTEM METHODS ---
+
+  async getPendingRequests(leagueId: string, requesterId: string, requesterRole: string) {
+    const league = await this.leagueRepository.findOne({
+        where: { id: leagueId },
+        relations: ['creator']
+    });
+
+    if (!league) throw new NotFoundException('League not found');
+
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+        throw new ForbiddenException('Only admins can view pending requests');
+    }
+
+    return this.leagueParticipantRepository.find({
+        where: { 
+            league: { id: leagueId }, 
+            status: LeagueParticipantStatus.PENDING 
+        },
+        relations: ['user']
+    });
+  }
+
+  async approveParticipant(leagueId: string, participantUserId: string, requesterId: string, requesterRole: string) {
+      const league = await this.leagueRepository.findOne({
+          where: { id: leagueId },
+          relations: ['creator']
+      });
+
+      if (!league) throw new NotFoundException('League not found');
+
+      const isAdmin = league.creator.id === requesterId;
+      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+          throw new ForbiddenException('Only admins can approve requests');
+      }
+
+      const participant = await this.leagueParticipantRepository.findOne({
+          where: { 
+              league: { id: leagueId },
+              user: { id: participantUserId }
+          },
+          relations: ['user']
+      });
+
+      if (!participant) throw new NotFoundException('Participant request not found');
+
+      participant.status = LeagueParticipantStatus.ACTIVE;
+      return this.leagueParticipantRepository.save(participant);
+  }
+
+  async rejectParticipant(leagueId: string, participantUserId: string, requesterId: string, requesterRole: string) {
+      const league = await this.leagueRepository.findOne({
+          where: { id: leagueId },
+          relations: ['creator']
+      });
+
+      if (!league) throw new NotFoundException('League not found');
+
+      const isAdmin = league.creator.id === requesterId;
+      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+          throw new ForbiddenException('Only admins can reject requests');
+      }
+
+      const participant = await this.leagueParticipantRepository.findOne({
+          where: { 
+              league: { id: leagueId },
+              user: { id: participantUserId }
+          }
+      });
+
+      if (!participant) throw new NotFoundException('Participant request not found');
+
+      participant.status = LeagueParticipantStatus.REJECTED;
+      return this.leagueParticipantRepository.save(participant);
   }
 }

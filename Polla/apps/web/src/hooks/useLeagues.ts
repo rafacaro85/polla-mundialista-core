@@ -16,6 +16,7 @@ export interface League {
     isEnterprise?: boolean;
     isEnterpriseActive?: boolean;
     isPaid?: boolean;
+    status?: string; // PENDING, ACTIVE, REJECTED
 }
 
 export const useLeagues = () => {
@@ -45,7 +46,8 @@ export const useLeagues = () => {
                 type: l.type,
                 isEnterprise: l.isEnterprise,
                 isEnterpriseActive: l.isEnterpriseActive,
-                isPaid: l.isPaid
+                isPaid: l.isPaid,
+                status: l.status // New field
             }));
 
             setLeagues(mappedLeagues);

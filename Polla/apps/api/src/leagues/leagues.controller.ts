@@ -112,9 +112,18 @@ export class LeaguesController {
     return this.leaguesService.getLeagueByCode(code);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id/ranking')
-  async getLeagueRanking(@Param('id') leagueId: string) {
-    return this.leaguesService.getLeagueRanking(leagueId);
+  async getLeagueRanking(@Param('id') leagueId: string, @Req() req: Request) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.getLeagueRanking(leagueId, userPayload.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/analytics')
+  async getLeagueAnalytics(@Param('id') leagueId: string, @Req() req: Request) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.getAnalyticsSummary(leagueId, userPayload.id);
   }
 
   @Get(':id/matches')
@@ -356,8 +365,9 @@ export class LeaguesController {
   }
 
   @Get(':id/analytics')
-  async getAnalytics(@Param('id') leagueId: string) {
-    return this.leaguesService.getAnalyticsSummary(leagueId);
+  async getAnalytics(@Param('id') leagueId: string, @Req() req: Request) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.getAnalyticsSummary(leagueId, userPayload.id);
   }
 
   @Get(':id/export')
@@ -415,5 +425,28 @@ export class LeaguesController {
       joinLeagueDto.code,
       joinLeagueDto.department,
     );
+  }
+
+  // --- JOIN REQUESTS ENDPOINTS ---
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/requests')
+  async getPendingRequests(@Param('id') leagueId: string, @Req() req: Request) {
+      const userPayload = req.user as { id: string; role: string };
+      return this.leagueParticipantsService.getPendingRequests(leagueId, userPayload.id, userPayload.role);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/approve')
+  async approveRequest(@Param('id') leagueId: string, @Body() body: { userId: string }, @Req() req: Request) {
+      const userPayload = req.user as { id: string; role: string };
+      return this.leagueParticipantsService.approveParticipant(leagueId, body.userId, userPayload.id, userPayload.role);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/reject')
+  async rejectRequest(@Param('id') leagueId: string, @Body() body: { userId: string }, @Req() req: Request) {
+      const userPayload = req.user as { id: string; role: string };
+      return this.leagueParticipantsService.rejectParticipant(leagueId, body.userId, userPayload.id, userPayload.role);
   }
 }

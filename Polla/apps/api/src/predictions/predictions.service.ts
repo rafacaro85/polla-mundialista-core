@@ -11,6 +11,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { Match } from '../database/entities/match.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
 import { BracketsService } from '../brackets/brackets.service';
 
@@ -43,9 +44,9 @@ export class PredictionsService {
         },
       });
 
-      if (participant && participant.isBlocked) {
+      if (participant && (participant.isBlocked || participant.status === LeagueParticipantStatus.PENDING)) {
         throw new ForbiddenException(
-          'No puedes realizar predicciones porque estás bloqueado en esta liga.',
+          'No puedes realizar predicciones porque tu estado es PENDIENTE o BLOQUEADO en esta liga.',
         );
       }
     }

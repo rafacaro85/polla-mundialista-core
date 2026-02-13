@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, ArrowRight, Settings, Briefcase, Trophy } from 'lucide-react';
+import { Shield, Users, ArrowRight, Settings, Briefcase, Trophy, Trash } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import api from '@/lib/api';
 import { CreateLeagueDialog } from '@/components/CreateLeagueDialog';
@@ -160,13 +160,45 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                     DISEÑAR
                                 </button>
                             ) : !league.isAdmin ? (
-                                // CASO 3: Participante -> Jugar
-                                <button
-                                    onClick={() => router.push(`/leagues/${league.id}`)}
-                                    className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase cursor-pointer flex items-center justify-center bg-transparent border border-[#475569] text-white"
-                                >
-                                    JUGAR
-                                </button>
+                                // CASO 3: Participante (Active / Pending / Rejected)
+                                league.status === 'PENDING' ? (
+                                    <button
+                                        disabled
+                                        className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-yellow-500/50 cursor-not-allowed flex items-center justify-center bg-yellow-500/10 text-yellow-500 opacity-70"
+                                    >
+                                        PENDIENTE
+                                    </button>
+                                ) : league.status === 'REJECTED' ? (
+                                    <div className="flex gap-2">
+                                        <div className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-red-500/50 flex items-center justify-center bg-red-500/10 text-red-500 cursor-default">
+                                            RECHAZADO
+                                        </div>
+                                        <button
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (!confirm('¿Eliminar esta liga de tu lista?')) return;
+                                                try {
+                                                    await api.delete(`/leagues/${league.id}/participants/${user?.id}`);
+                                                    fetchLeagues();
+                                                } catch (err) {
+                                                    console.error('Error leaving league', err);
+                                                    alert('Error al salir de la liga');
+                                                }
+                                            }}
+                                            className="h-8 w-8 rounded-md bg-red-500/20 text-red-500 border border-red-500/50 flex items-center justify-center cursor-pointer hover:bg-red-500 hover:text-white transition-all"
+                                            title="Eliminar de mi lista"
+                                        >
+                                            <Trash size={14} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => router.push(`/leagues/${league.id}`)}
+                                        className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase cursor-pointer flex items-center justify-center bg-transparent border border-[#475569] text-white hover:bg-[#334155] transition-colors"
+                                    >
+                                        JUGAR
+                                    </button>
+                                )
                             ) : (
                                 // CASO 4: Admin Polla Social
                                 <div className="flex gap-2">

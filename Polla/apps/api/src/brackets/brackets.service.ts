@@ -10,6 +10,7 @@ import { Repository, IsNull } from 'typeorm';
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { Match } from '../database/entities/match.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 import { SaveBracketDto } from './dto/save-bracket.dto';
 
@@ -61,9 +62,9 @@ export class BracketsService {
         },
       });
 
-      if (participant && participant.isBlocked) {
+      if (participant && (participant.isBlocked || participant.status === LeagueParticipantStatus.PENDING)) {
         throw new ForbiddenException(
-          'No puedes guardar tu bracket porque estás bloqueado en esta liga.',
+          'No puedes guardar tu bracket porque tu estado es PENDIENTE o BLOQUEADO en esta liga.',
         );
       }
     }

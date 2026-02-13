@@ -271,8 +271,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
         {/* PENDING APPROVAL LOCK */}
         {currentLeague && currentLeague.userStatus === 'PENDING' && selectedLeagueId !== 'global' && (
-             <div className="absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
-                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden">
+             <div className="absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-sm flex items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden flex flex-col items-center justify-center">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50"></div>
                     
                     <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">

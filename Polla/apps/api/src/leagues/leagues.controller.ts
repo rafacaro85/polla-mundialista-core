@@ -449,4 +449,15 @@ export class LeaguesController {
       const userPayload = req.user as { id: string; role: string };
       return this.leagueParticipantsService.rejectParticipant(leagueId, body.userId, userPayload.id, userPayload.role);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/participants/:userId/toggle-payment')
+  async togglePayment(
+      @Param('id') leagueId: string,
+      @Param('userId') participantId: string,
+      @Req() req: Request
+  ) {
+      const userPayload = req.user as { id: string; role: string };
+      return this.leagueParticipantsService.togglePaymentStatus(leagueId, participantId, userPayload.id, userPayload.role);
+  }
 }

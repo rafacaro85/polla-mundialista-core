@@ -66,4 +66,7 @@ export class LeagueParticipant {
     default: LeagueParticipantStatus.ACTIVE,
   })
   status: LeagueParticipantStatus;
+
+  @Column({ name: 'is_paid', default: false })
+  isPaid: boolean;
 }

@@ -156,6 +156,20 @@ export default function AdminUsersPage() {
         }
     };
 
+    const handleTogglePaid = async (participant: any) => {
+        try {
+            await api.patch(`/leagues/${params.id}/participants/${participant.user.id}/toggle-payment`);
+            // Optimistic update or refresh
+            setParticipants(prev => prev.map(p => 
+                p.id === participant.id ? { ...p, isPaid: !p.isPaid } : p
+            ));
+            toast.success(`Estado de pago actualizado para ${participant.user.nickname}`);
+        } catch (error) {
+            console.error('Error toggling payment:', error);
+            toast.error('Error al actualizar estado de pago.');
+        }
+    };
+
     const filteredParticipants = participants.filter(p =>
         p.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,6 +180,7 @@ export default function AdminUsersPage() {
         total: participants.length,
         active: participants.filter(p => p.status === 'ACTIVE').length,
         blocked: participants.filter(p => p.status === 'BLOCKED' || p.isBlocked).length,
+        pending: participants.filter(p => p.status === 'PENDING').length,
     };
 
     if (loading) {
@@ -203,39 +218,52 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-slate-400 text-sm mb-1">Total Participantes</p>
-                                <p className="text-3xl font-bold text-white">{stats.total}</p>
+                                <p className="text-slate-400 text-xs md:text-sm mb-1">Total</p>
+                                <p className="text-2xl md:text-3xl font-bold text-white">{stats.total}</p>
                             </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <Users className="text-blue-400" size={24} />
+                            <div className="p-2 md:p-3 bg-blue-500/10 rounded-lg">
+                                <Users className="text-blue-400" size={20} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-6">
+                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-slate-400 text-sm mb-1">Activos</p>
-                                <p className="text-3xl font-bold text-green-400">{stats.active}</p>
+                                <p className="text-slate-400 text-xs md:text-sm mb-1">Activos</p>
+                                <p className="text-2xl md:text-3xl font-bold text-green-400">{stats.active}</p>
                             </div>
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                                <Shield className="text-green-400" size={24} />
+                            <div className="p-2 md:p-3 bg-green-500/10 rounded-lg">
+                                <Shield className="text-green-400" size={20} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-6">
+                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-slate-400 text-sm mb-1">Bloqueados</p>
-                                <p className="text-3xl font-bold text-red-500 animate-in zoom-in">{stats.blocked}</p>
+                                <p className="text-slate-400 text-xs md:text-sm mb-1">Bloqueados</p>
+                                <p className="text-2xl md:text-3xl font-bold text-red-500">{stats.blocked}</p>
                             </div>
-                            <div className="p-3 bg-red-500/10 rounded-lg">
-                                <Ban className="text-red-500" size={24} />
+                            <div className="p-2 md:p-3 bg-red-500/10 rounded-lg">
+                                <Ban className="text-red-500" size={20} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6 relative overflow-hidden">
+                         {stats.pending > 0 && <div className="absolute top-0 right-0 w-3 h-3 bg-orange-500 rounded-full animate-ping"></div>}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-slate-400 text-xs md:text-sm mb-1">Pendientes</p>
+                                <p className="text-2xl md:text-3xl font-bold text-orange-500">{stats.pending}</p>
+                            </div>
+                            <div className="p-2 md:p-3 bg-orange-500/10 rounded-lg">
+                                <UserPlus className="text-orange-500" size={20} />
                             </div>
                         </div>
                     </div>
@@ -255,179 +283,166 @@ export default function AdminUsersPage() {
                         />
                     </div>
 
-                    {/* WhatsApp Invitation Button */}
-                    <button
-                        onClick={() => {
-                            const appUrl = window.location.origin;
-                            const code = league?.accessCodePrefix || league?.code;
+                    {/* Buttons Group */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                        <button
+                            onClick={() => {
+                                const appUrl = window.location.origin;
+                                const code = league?.accessCodePrefix || league?.code;
+                                if (!code) return;
+                                const leagueName = league?.companyName || league?.name || 'Polla';
+                                const inviteUrl = `${appUrl}/invite/${code}`;
+                                const isUCL = tournamentId === 'UCL2526';
+                                const message = `¡Hola! Te invito a la Polla ${isUCL ? 'Champions' : 'Mundialista'} de *${leagueName}*. 🏆\n\nÚnete aquí: ${inviteUrl}\nCódigo: *${code}*`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                            }}
+                            className="px-4 py-3 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap border border-green-600/30"
+                        >
+                            <Share2 size={18} />
+                            <span className="hidden md:inline">WhatsApp</span>
+                        </button>
 
-                            if (!code) {
-                                console.error('Falta el código de acceso en la liga:', league);
-                                alert('Error: No se encontró el código de invitación para esta liga. Por favor recarga la página.');
-                                return;
-                            }
+                        <button
+                            onClick={() => setShowBulkImport(true)}
+                            className="px-4 py-3 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap border border-blue-600/30"
+                        >
+                            <Upload size={18} />
+                            <span className="hidden md:inline">Importar</span>
+                        </button>
 
-                            const leagueName = league?.companyName || league?.name || 'Polla';
-                            const inviteUrl = `${appUrl}/invite/${code}`;
-                            const isUCL = tournamentId === 'UCL2526';
-
-                            // Formato mejorado para WhatsApp
-                            const message = `¡Hola! Te invito a la Polla ${isUCL ? 'Champions' : 'Mundialista'} de *${leagueName}*. 🏆\n\n` +
-                                `Únete fácilmente dando clic aquí:\n👉 ${inviteUrl}\n\n` +
-                                `O usa el código de acceso: *${code}*`;
-
-                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                            window.open(whatsappUrl, '_blank');
-                        }}
-                        disabled={loading}
-                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Share2 size={20} />
-                        Invitar por WhatsApp
-                    </button>
-
-                    {/* Bulk Import Button */}
-                    <button
-                        onClick={() => setShowBulkImport(true)}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30"
-                    >
-                        <Upload size={20} />
-                        Importar Excel
-                    </button>
-
-                    {/* Add Single User */}
-                    <button
-                        className="px-6 py-3 bg-brand-primary hover:bg-brand-primary/80 text-brand-bg font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                    >
-                        <UserPlus size={20} />
-                        Agregar Usuario
-                    </button>
+                        <button
+                            className="px-4 py-3 bg-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-brand-bg font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap border border-brand-primary/30"
+                        >
+                            <UserPlus size={18} />
+                            <span className="hidden md:inline">Agregar</span>
+                        </button>
+                    </div>
                 </div>
 
-                {/* Users Table */}
-                <div className="bg-brand-secondary border border-slate-700 rounded-xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-brand-bg border-b border-slate-700">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Usuario
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Departamento
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Puntos
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Estado
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700">
-                                {filteredParticipants.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                                            {searchTerm ? 'No se encontraron usuarios' : 'No hay participantes aún'}
-                                        </td>
-                                    </tr>
+                {/* Users Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredParticipants.map((participant) => (
+                        <div key={participant.id} className="bg-brand-secondary border border-slate-700 rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden hover:border-brand-primary/30 transition-colors group">
+                             {/* Status Indicator Top Right */}
+                            <div className="absolute top-4 right-4 flex items-center gap-2">
+                                {/* Pago Check */}
+                                <div 
+                                    className={`relative z-10 cursor-pointer px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                                        participant.isPaid 
+                                            ? 'bg-green-500/10 border-green-500/50 text-green-400' 
+                                            : 'bg-slate-800 border-slate-600 text-slate-500 hover:border-slate-400'
+                                    }`}
+                                    onClick={() => handleTogglePaid(participant)}
+                                    title="Alternar estado de pago"
+                                >
+                                    {participant.isPaid ? 'PAGADO' : 'NO PAGADO'}
+                                </div>
+                                
+                                {participant.status === 'ACTIVE' && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
+                                {participant.status === 'BLOCKED' && <span className="w-2 h-2 rounded-full bg-red-500"></span>}
+                                {participant.status === 'PENDING' && <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>}
+                            </div>
+
+                            {/* User Info */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-brand-bg flex items-center justify-center border border-slate-600 overflow-hidden relative">
+                                    {participant.user?.avatarUrl ? (
+                                        <img src={participant.user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-lg font-bold text-slate-400">
+                                            {(participant.user?.fullName?.[0] || participant.user?.nickname?.[0] || '?').toUpperCase()}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-white truncate max-w-[180px]">
+                                        {participant.user?.fullName || participant.user?.nickname || 'Sin nombre'}
+                                    </h3>
+                                    <p className="text-xs text-slate-400 truncate">{participant.user?.email}</p>
+                                    {participant.department && (
+                                        <p className="text-xs text-brand-primary mt-0.5 font-medium">{participant.department}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Stats & Details */}
+                            <div className="grid grid-cols-2 gap-2 py-3 border-y border-slate-700/50">
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Puntos</p>
+                                    <p className="text-xl font-black text-white">{participant.points || 0}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Estado</p>
+                                    <div className="flex justify-end mt-1">
+                                        {participant.status === 'ACTIVE' ? (
+                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-400 rounded text-xs font-bold border border-green-500/20">Activo</span>
+                                        ) : participant.status === 'BLOCKED' || participant.isBlocked ? (
+                                            <span className="px-2 py-0.5 bg-red-500/10 text-red-500 rounded text-xs font-bold border border-red-500/20">Bloqueado</span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded text-xs font-bold border border-orange-500/20">Pendiente</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 mt-auto pt-1">
+                                {participant.status === 'PENDING' ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleApproveRequest(participant)}
+                                            className="flex-1 h-10 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                                        >
+                                            <Check size={18} /> Aprobar
+                                        </button>
+                                        <button
+                                            onClick={() => handleRejectRequest(participant)}
+                                            className="h-10 w-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-red-500/20 text-slate-300 hover:text-red-400 transition-all border border-slate-600"
+                                            title="Rechazar"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </>
                                 ) : (
-                                    filteredParticipants.map((participant) => (
-                                        <tr key={participant.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-bold text-white">
-                                                        {participant.user?.fullName || participant.user?.nickname || 'Sin nombre'}
-                                                    </p>
-                                                    <p className="text-sm text-slate-500">{participant.user?.email}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-slate-300">
-                                                    {participant.department || '-'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-white font-bold">{participant.points || 0}</span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {participant.status === 'ACTIVE' ? (
-                                                    <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-bold">
-                                                        Activo
-                                                    </span>
-                                                ) : participant.status === 'BLOCKED' ? (
-                                                    <span className="px-3 py-1 bg-red-500/10 text-red-500 rounded-full text-xs font-bold">
-                                                        Bloqueado
-                                                    </span>
-                                                ) : (
-                                                    <span className="px-3 py-1 bg-orange-500/10 text-orange-400 rounded-full text-xs font-bold">
-                                                        Pendiente
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex gap-2">
-                                                    {participant.status === 'PENDING' ? (
-                                                        <>
-                                                            <button
-                                                                onClick={() => handleApproveRequest(participant)}
-                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
-                                                                title="Aprobar Solicitud"
-                                                            >
-                                                                <Check size={20} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRejectRequest(participant)}
-                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                                                                title="Rechazar Solicitud"
-                                                            >
-                                                                <X size={20} />
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            {/* Editar */}
-                                                            <button
-                                                                onClick={() => handleEditClick(participant)}
-                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all shadow-sm"
-                                                                title="Editar Información"
-                                                            >
-                                                                <Edit2 size={18} />
-                                                            </button>
+                                    <>
+                                        <button
+                                            onClick={() => handleEditClick(participant)}
+                                            className="h-10 w-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-blue-500 text-slate-300 hover:text-white transition-all border border-slate-600"
+                                            title="Editar"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => handleToggleBlock(participant)}
+                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all border border-slate-600 ${
+                                                participant.isBlocked || participant.status === 'BLOCKED'
+                                                    ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'
+                                                    : 'bg-slate-700 text-slate-300 hover:bg-orange-500 hover:text-white'
+                                            }`}
+                                            title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear" : "Bloquear"}
+                                        >
+                                            {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={16} /> : <Ban size={16} />}
+                                        </button>
 
-                                                            {/* Bloquear / Desbloquear */}
-                                                            <button
-                                                                onClick={() => handleToggleBlock(participant)}
-                                                                className={`h-10 w-10 flex items-center justify-center rounded-full transition-all shadow-sm ${
-                                                                    participant.isBlocked || participant.status === 'BLOCKED'
-                                                                        ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'
-                                                                        : 'bg-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white'
-                                                                }`}
-                                                                title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear Usuario" : "Bloquear Usuario"}
-                                                            >
-                                                                {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={18} /> : <Ban size={18} />}
-                                                            </button>
-
-                                                            {/* Eliminar */}
-                                                            <button
-                                                                onClick={() => handleDelete(participant)}
-                                                                className="h-10 w-10 flex items-center justify-center rounded-full bg-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                                                                title="Expulsar de la Liga"
-                                                            >
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </>
-                                                    )}                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                        <button
+                                            onClick={() => handleDelete(participant)}
+                                            className="h-10 w-10 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-red-500 text-slate-300 hover:text-white transition-all border border-slate-600 ml-auto"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </>
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {filteredParticipants.length === 0 && (
+                        <div className="col-span-full py-12 text-center text-slate-500 bg-brand-secondary/50 rounded-2xl border border-slate-800 border-dashed">
+                            <p>No se encontraron participantes.</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

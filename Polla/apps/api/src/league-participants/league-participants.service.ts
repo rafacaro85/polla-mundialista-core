@@ -421,4 +421,35 @@ export class LeagueParticipantsService {
       participant.status = LeagueParticipantStatus.REJECTED;
       return this.leagueParticipantRepository.save(participant);
   }
+
+  async togglePaymentStatus(
+    leagueId: string,
+    participantUserId: string,
+    requesterId: string,
+    requesterRole: string
+  ) {
+      const league = await this.leagueRepository.findOne({
+          where: { id: leagueId },
+          relations: ['creator']
+      });
+
+      if (!league) throw new NotFoundException('League not found');
+
+      const isAdmin = league.creator.id === requesterId;
+      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+          throw new ForbiddenException('Only admins can manage payment status');
+      }
+
+      const participant = await this.leagueParticipantRepository.findOne({
+          where: { 
+              league: { id: leagueId },
+              user: { id: participantUserId }
+          }
+      });
+
+      if (!participant) throw new NotFoundException('Participant not found');
+
+      participant.isPaid = !participant.isPaid;
+      return this.leagueParticipantRepository.save(participant);
+  }
 }

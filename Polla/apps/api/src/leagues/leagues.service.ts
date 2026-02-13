@@ -879,6 +879,7 @@ export class LeaguesService {
       .addSelect('MAX(b.points)', 'points')
       .where('b.userId IN (:...userIds)', { userIds })
       .andWhere('(b.leagueId = :leagueId OR b.leagueId IS NULL)', { leagueId })
+      .andWhere('b.tournamentId = :tournamentId', { tournamentId: league.tournamentId }) // FIX: Filter by Tournament
       .groupBy('b.userId')
       .getRawMany();
 

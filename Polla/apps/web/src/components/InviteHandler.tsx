@@ -54,38 +54,57 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 code: leagueCode,
                 department: dept
             });
+            
+            // Check tournament context
+            const leagueTournamentId = data.league?.tournamentId || previewData?.tournamentId;
+            if (leagueTournamentId && (leagueTournamentId === 'WC2026' || leagueTournamentId === 'UCL2526')) {
+                localStorage.setItem('selectedTournament', leagueTournamentId);
+            }
 
-            toast.success(`¡Bienvenido a ${previewData?.name || 'la polla'}!`);
+            // Check status for feedback
+            if (data.status === 'PENDING') {
+                toast.info(`Solicitud enviada a ${previewData?.name || 'la liga'}. Espera la aprobación del admin.`, { duration: 5000 });
+            } else {
+                toast.success(`¡Bienvenido a ${previewData?.name || 'la polla'}!`);
+            }
 
-            // Limpiar invitación pendiente
+            // Clean up invite
             localStorage.removeItem('pendingInviteCode');
             document.cookie = "pendingInviteCode=; path=/; max-age=0";
 
-            // Redirigir a la liga específica
-            const targetUrl = `/leagues/${data.leagueId}`;
-
-            // Fallback por si la respuesta no trae leagueId, usar dashboard general
-            router.push(data.leagueId ? targetUrl : '/dashboard');
+            // Redirect with context
+            const targetId = data.league?.id || data.leagueId;
+            const targetUrl = targetId ? `/leagues/${targetId}` : '/dashboard';
+            
+            // Force tournament param to ensure context switch
+            const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
+            
+            router.push(redirectUrl);
 
         } catch (error: any) {
             console.error('Join Error:', error);
             const msg = error.response?.data?.message || 'Error desconocido';
 
-            // Manejar caso "Ya unido"
+            // Handle "Already joined"
             if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
                 toast.info('Ya eres miembro de esta polla.');
 
-                // Redirigir a la liga en lugar del dashboard
+                // Redirect anyway, ensuring tournament context
+                const leagueTournamentId = previewData?.tournamentId;
+                if (leagueTournamentId) {
+                    localStorage.setItem('selectedTournament', leagueTournamentId);
+                }
+                
                 if (previewData?.id) {
-                    router.push(`/leagues/${previewData.id}`);
+                     router.push(`/leagues/${previewData.id}${leagueTournamentId ? `?tournament=${leagueTournamentId}` : ''}`);
                 } else {
                     router.push('/dashboard');
                 }
                 return;
             }
 
-            // Mostrar error en pantalla en lugar de redirigir
-            setStatus('error' as any); // Type cast rápido o actualizar estado
+            // Show error
+            setStatus('error' as any);
             setPreviewData((prev: any) => ({ ...prev, error: msg }));
         }
     };

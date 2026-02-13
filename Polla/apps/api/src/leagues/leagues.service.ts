@@ -399,6 +399,7 @@ export class LeaguesService {
       isEnterprise: league.type === LeagueType.COMPANY || league.isEnterprise,
       companyName: league.companyName,
       enableDepartmentWar: !!league.enableDepartmentWar,
+      tournamentId: league.tournamentId, // Added for redirection context
     };
   }
 

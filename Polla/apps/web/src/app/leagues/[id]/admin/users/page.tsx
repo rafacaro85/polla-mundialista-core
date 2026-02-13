@@ -14,10 +14,12 @@ import {
     Trash2,
 
     Share2,
-    Edit2, // Added
-    X, // Added
-    Save // Added
+    Edit2,
+    X,
+    Save,
+    Check // Added
 } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { BulkUserImport } from '@/components/admin/BulkUserImport';
@@ -124,9 +126,33 @@ export default function AdminUsersPage() {
         try {
             await api.delete(`/leagues/${params.id}/participants/${participant.user.id}`);
             await fetchData();
+            toast.success('Usuario eliminado correctamente');
         } catch (error) {
             console.error('Error deleting participant:', error);
             alert('Error al eliminar usuario.');
+        }
+    };
+
+    const handleApproveRequest = async (participant: any) => {
+        try {
+            await api.post(`/leagues/${params.id}/approve`, { userId: participant.user.id });
+            toast.success(`Usuario ${participant.user.nickname} aprobado correctamente.`);
+            await fetchData();
+        } catch (error) {
+            console.error('Error approving participant:', error);
+            toast.error('Error al aprobar usuario.');
+        }
+    };
+
+    const handleRejectRequest = async (participant: any) => {
+        if (!confirm(`¿Rechazar solicitud de ${participant.user.fullName || participant.user.nickname}?`)) return;
+        try {
+            await api.post(`/leagues/${params.id}/reject`, { userId: participant.user.id });
+            toast.success('Solicitud rechazada.');
+            await fetchData();
+        } catch (error) {
+            console.error('Error rejecting participant:', error);
+            toast.error('Error al rechazar usuario.');
         }
     };
 
@@ -344,32 +370,53 @@ export default function AdminUsersPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex gap-2">
-                                                    {/* Editar */}
-                                                    <button
-                                                        onClick={() => handleEditClick(participant)}
-                                                        className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
-                                                        title="Editar Información"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
+                                                    {participant.status === 'PENDING' ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleApproveRequest(participant)}
+                                                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-colors"
+                                                                title="Aprobar Solicitud"
+                                                            >
+                                                                <Check size={18} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRejectRequest(participant)}
+                                                                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                                                                title="Rechazar Solicitud"
+                                                            >
+                                                                <X size={18} />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            {/* Editar */}
+                                                            <button
+                                                                onClick={() => handleEditClick(participant)}
+                                                                className="p-2 bg-slate-700/50 hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary rounded-lg transition-colors"
+                                                                title="Editar Información"
+                                                            >
+                                                                <Edit2 size={18} />
+                                                            </button>
 
-                                                    {/* Bloquear / Desbloquear */}
-                                                    <button
-                                                        onClick={() => handleToggleBlock(participant)}
-                                                        className={`p-2 rounded-lg transition-colors ${participant.isBlocked || participant.status === 'BLOCKED' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20'}`}
-                                                        title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear Usuario" : "Bloquear Usuario"}
-                                                    >
-                                                        {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={18} /> : <Ban size={18} />}
-                                                    </button>
+                                                            {/* Bloquear / Desbloquear */}
+                                                            <button
+                                                                onClick={() => handleToggleBlock(participant)}
+                                                                className={`p-2 rounded-lg transition-colors ${participant.isBlocked || participant.status === 'BLOCKED' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20'}`}
+                                                                title={participant.isBlocked || participant.status === 'BLOCKED' ? "Desbloquear Usuario" : "Bloquear Usuario"}
+                                                            >
+                                                                {participant.isBlocked || participant.status === 'BLOCKED' ? <Shield size={18} /> : <Ban size={18} />}
+                                                            </button>
 
-                                                    {/* Eliminar */}
-                                                    <button
-                                                        onClick={() => handleDelete(participant)}
-                                                        className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                                                        title="Expulsar de la Liga"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
+                                                            {/* Eliminar */}
+                                                            <button
+                                                                onClick={() => handleDelete(participant)}
+                                                                className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                                                title="Expulsar de la Liga"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

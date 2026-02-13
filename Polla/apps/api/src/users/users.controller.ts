@@ -85,7 +85,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
     return this.usersService.delete(id);

@@ -64,7 +64,10 @@ const MatchNode = ({
     };
 
     const getStatusColor = (team: string) => {
-        if (!winner || winner !== team) return 'bg-[#1E293B]/80 text-slate-300'; // No selected or other team
+        // Loose comparison: Ensure both are strings and trimmed
+        const isSelected = winner && String(winner).trim() === String(team).trim();
+        
+        if (!isSelected) return 'bg-[#1E293B]/80 text-slate-300'; // No selected or other team
         
         if (isFinished && correctWinner) {
             return correctWinner === team 
@@ -88,7 +91,7 @@ const MatchNode = ({
                     <span className="text-[9px] font-bold truncate text-left flex-1">
                         {displayTeam1}
                     </span>
-                    {winner === displayTeam1 && (
+                    {winner && String(winner).trim() === String(displayTeam1).trim() && (
                         isFinished && correctWinner ? (
                             correctWinner === displayTeam1 ? <CheckCircle2 size={12} /> : <XCircle size={12} />
                         ) : <div className="w-1.5 h-1.5 rounded-full bg-current shadow-sm" />
@@ -105,7 +108,7 @@ const MatchNode = ({
                     <span className="text-[9px] font-bold truncate text-left flex-1">
                         {displayTeam2}
                     </span>
-                    {winner === displayTeam2 && (
+                    {winner && String(winner).trim() === String(displayTeam2).trim() && (
                         isFinished && correctWinner ? (
                             correctWinner === displayTeam2 ? <CheckCircle2 size={12} /> : <XCircle size={12} />
                         ) : <div className="w-1.5 h-1.5 rounded-full bg-current shadow-sm" />
@@ -170,23 +173,25 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                 const { data } = await api.get(url);
                 
                 console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
+                
                 if (data && data.picks) {
                     const pickKeys = Object.keys(data.picks);
-                    const matchIds = matches.map(m => m.id);
-                    const intersections = pickKeys.filter(k => matchIds.includes(k));
+                    console.log('--- HYDRATION DEBUG ---');
+                    console.log('1. Raw Picks from DB:', data.picks);
+                    console.log('2. Match IDs in FE:', matches.map(m => m.id).slice(0, 3));
                     
-                    console.log(`[DEBUG] Matches Available: ${matches.length}`);
-                    console.log(`[DEBUG] Picks Loaded: ${pickKeys.length}`);
-                    console.log(`[DEBUG] Matches matching Picks: ${intersections.length}`);
+                    // Force Keys to String to avoid Type Mismatch
+                    const normalizedPicks: Record<string, string> = {};
+                    pickKeys.forEach(key => {
+                        normalizedPicks[String(key)] = data.picks[key];
+                    });
                     
-                    if (pickKeys.length > 0 && intersections.length === 0) {
-                        console.warn('[WARN] MISMATCH DETECTED: Picks exist but do not match any available match IDs!');
-                        console.warn('Sample Pick ID:', pickKeys[0]);
-                        console.warn('Sample Match ID:', matchIds[0]);
-                    }
-
-                    setWinners(data.picks);
+                    setWinners(normalizedPicks);
                     setBracketPoints(data.points || 0);
+                    
+                    // Verify overlap
+                    const overlap = matches.filter(m => normalizedPicks[String(m.id)]);
+                    console.log(`3. Matches hydrated: ${overlap.length} / ${matches.length}`);
                 } else {
                     // Reset if no data for this tournament
                     setWinners({});

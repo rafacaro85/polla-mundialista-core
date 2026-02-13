@@ -242,15 +242,24 @@ export class BracketsService {
     const leagueBracket = brackets.find((b) => b.leagueId === targetLeagueId);
     const generalBracket = brackets.find((b) => b.leagueId === null);
 
-    const result = leagueBracket || generalBracket || null;
+    const result = leagueBracket || generalBracket;
     
     // DEBUG LOGGING
-    if (tournamentId === 'WC2026') {
-      console.log(`[DEBUG] getMyBracket - userId: ${userId}, leagueId: ${leagueId} (target: ${targetLeagueId})`);
-      console.log(`[DEBUG] Found ${brackets.length} brackets. Returning:`, result ? `ID ${result.id} (League: ${result.leagueId})` : 'NULL');
-      if (result && result.picks) {
-        console.log(`[DEBUG] Picks count: ${Object.keys(result.picks).length}`);
-      }
+    console.log(`[DEBUG] getMyBracket - userId: ${userId}, leagueId: ${leagueId} (target: ${targetLeagueId})`);
+    console.log(`[DEBUG] Found ${brackets.length} brackets. Matches:`, result ? `ID ${result.id}` : 'NONE');
+
+    if (!result) {
+        console.log('[DEBUG] No matching bracket found. Returning DEFAULT EMPTY OBJECT.');
+        return {
+            userId,
+            tournamentId,
+            leagueId: targetLeagueId || null,
+            picks: {},
+            points: 0,
+            id: 'virtual-empty',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as unknown as UserBracket;
     }
     
     return result;

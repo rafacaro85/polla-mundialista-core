@@ -36,7 +36,21 @@ export class BracketsController {
     @Query('tournamentId') tournamentId?: string,
   ) {
     const userId = req.user.id;
-    return this.bracketsService.getMyBracket(userId, leagueId, tournamentId);
+    
+    console.log(`📨 Controller: getMyBracket for user ${userId}, tournament: ${tournamentId}`);
+    const data = await this.bracketsService.getMyBracket(userId, leagueId, tournamentId);
+
+    if (!data) {
+        console.warn('⚠️ Controller: Service returned null/undefined. Forcing default empty JSON.');
+        return { 
+            picks: {}, 
+            points: 0, 
+            tournamentId: tournamentId || 'WC2026',
+            leagueId: leagueId || null
+        };
+    }
+
+    return data;
   }
 
   @Delete('me')

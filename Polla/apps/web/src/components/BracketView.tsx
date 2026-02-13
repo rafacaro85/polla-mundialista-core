@@ -172,6 +172,16 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
 
                 const { data } = await api.get(url);
                 
+                // DEEP TRACE - DEBUG HYDRATION
+                console.log("🔥 FULL DATA DUMP:", JSON.stringify(data, null, 2));
+                if (data) {
+                    console.log("👉 Keys available in data:", Object.keys(data));
+                    if (data.picks) console.log("👉 'picks' found. Length:", Object.keys(data.picks).length);
+                    else console.warn("⚠️ 'picks' is UNDEFINED in data object");
+                    
+                    if (data.predictions) console.log("👉 'predictions' found (unexpected?). Length:", data.predictions.length);
+                }
+
                 console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
                 
                 if (data && data.picks) {

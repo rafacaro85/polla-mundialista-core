@@ -166,7 +166,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             setCreatedLeagueName(leagueName.trim());
             setCreatedLeagueId(response.data.id);
             toast.success('¡Polla creada exitosamente!');
-            await onLeagueCreated();
+            // DO NOT call onLeagueCreated() here. It triggers a re-render in parent that unmounts this dialog!
+            // await onLeagueCreated(); 
         } catch (error: any) {
             console.error('Error creando liga:', error);
             toast.error(error.response?.data?.message || 'Error al crear la liga');
@@ -185,6 +186,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     };
 
     const handleClose = () => {
+        // Refresh parent list only when closing, to prevent unmounting during payment flow
+        if (createdLeagueId && onLeagueCreated) {
+            onLeagueCreated();
+        }
+        
         setOpen(false);
         setLeagueName('');
         setAdminName('');

@@ -6,6 +6,8 @@ import { League } from '../database/entities/league.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { UserBracket } from '../database/entities/user-bracket.entity';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
@@ -17,6 +19,8 @@ import { UsersController } from './users.controller';
       LeagueParticipant,
       Prediction,
       UserBracket,
+      AccessCode,
+      UserBonusAnswer,
     ]),
   ],
   controllers: [UsersController],

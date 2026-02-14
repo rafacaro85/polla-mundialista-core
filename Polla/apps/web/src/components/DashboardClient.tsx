@@ -176,7 +176,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     const localCode = localStorage.getItem('pendingInviteCode');
     const code = cookieCode || localCode;
 
-    if (code) setPendingInvite(code);
+    if (code) {
+        console.log('🚀 [Dashboard] Pending Invite Found. Auto-redirecting to processor:', code);
+        // FORCE REDIRECT to process the invite immediately.
+        // InviteHandler will clean up the cookie to prevent loops.
+        window.location.replace(`/invite/${code}`);
+        return;
+    }
   }, []);
 
   const handleProcessInvite = () => {

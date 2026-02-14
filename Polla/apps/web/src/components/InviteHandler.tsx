@@ -21,6 +21,13 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // Consumir el invite pendiente inmediatamente para evitar bucles infinitos
+        // si el dashboard redirige automáticamente aquí.
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('pendingInviteCode');
+            document.cookie = "pendingInviteCode=; path=/; max-age=0";
+        }
+
         const verifyAndJoin = async () => {
             try {
                 // 1. Verificar el código para saber qué tipo de liga es

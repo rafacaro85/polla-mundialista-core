@@ -610,8 +610,11 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                 </>
                             ) : (
                                 <div style={STYLES.successBox}>
-                                    {/* SOLO mostrar botones de compartir si es Familia o Launch (Gratis) */}
-                                    {['familia', 'launch_promo'].includes(selectedPlan) ? ( // Check ID directly
+                                    {(() => {
+                                        const selectedPlanDetails = availablePlans.find(p => p.id === selectedPlan);
+                                        const isFreePlan = selectedPlanDetails?.price === 'GRATIS';
+                                        
+                                        return isFreePlan ? (
                                         <>
                                             <p className="text-tactical text-center text-sm mb-4">Comparte este código con tus amigos para que se unan:</p>
                                             <div style={STYLES.codeDisplay}>
@@ -658,28 +661,31 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         </>
                                     ) : (
                                         // Mensaje para ligas de pago
-                                        <div className="text-center space-y-4 mb-4 w-full">
-                                            <p className="text-white text-lg font-bold">¡Tu polla ha sido reservada!</p>
+                                        <>
+                                            <div className="text-center space-y-4 mb-4 w-full">
+                                                <p className="text-white text-lg font-bold">¡Tu polla ha sido reservada!</p>
 
-                                            <p className="text-yellow-500 text-xs italic border border-yellow-500/30 bg-yellow-500/10 p-2 rounded-lg">
-                                                ⚠️ Tu polla está PENDIENTE de activación. Realiza el pago para desbloquearla.
-                                            </p>
-                                        </div>
-                                    )}
+                                                <p className="text-yellow-500 text-xs italic border border-yellow-500/30 bg-yellow-500/10 p-2 rounded-lg">
+                                                    ⚠️ Tu polla está PENDIENTE de activación. Realiza el pago para desbloquearla.
+                                                </p>
+                                            </div>
 
-                                    {!['familia', 'launch_promo'].includes(selectedPlan) && createdLeagueId && ( // Check ID directly
-                                        <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
-                                            <PaymentMethods
-                                                leagueId={createdLeagueId}
-                                                amount={parseInt(availablePlans.find(p => p.id === selectedPlan)?.price.replace(/\D/g, '') || '0')} // Use availablePlans
-                                                onSuccess={() => {
-                                                    toast.success('Pago enviado. Espera la confirmación del administrador.');
-                                                    handleClose();
-                                                    onLeagueCreated();
-                                                }}
-                                            />
-                                        </div>
-                                    )}
+                                            {createdLeagueId && (
+                                                <div style={{ width: '100%', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
+                                                    <PaymentMethods
+                                                        leagueId={createdLeagueId}
+                                                        amount={parseInt(selectedPlanDetails?.price.replace(/\D/g, '') || '0')}
+                                                        onSuccess={() => {
+                                                            toast.success('Pago enviado. Espera la confirmación del administrador.');
+                                                            handleClose();
+                                                            onLeagueCreated();
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                    })()}
                                 </div>
                             )}
 

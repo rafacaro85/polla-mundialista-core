@@ -54,18 +54,40 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 code: leagueCode,
                 department: dept
             });
-            
-            // Check tournament context
-            const leagueTournamentId = data.league?.tournamentId || explicitPreviewData?.tournamentId || previewData?.tournamentId;
 
-            if (leagueTournamentId && (leagueTournamentId === 'WC2026' || leagueTournamentId === 'UCL2526')) {
-                localStorage.setItem('selectedTournament', leagueTournamentId);
+            console.log('✅ [InviteHandler] Joined League Data:', data);
+            
+            // Robust extraction of tournament ID
+            // 1. From Join Response (data.league.tournamentId)
+            // 2. From Explicit Preview Data causing the join (if immediate)
+            // 3. From State Preview Data (if enterprise flow)
+            let leagueTournamentId = data.league?.tournamentId || 
+                                     data.tournamentId || // Possible direct prop
+                                     explicitPreviewData?.tournamentId || 
+                                     previewData?.tournamentId;
+
+            console.log('🔍 [InviteHandler] Raw Tournament ID:', leagueTournamentId);
+
+            if (leagueTournamentId) {
+                leagueTournamentId = String(leagueTournamentId).trim(); // Ensure string and trim
+                
+                // Allow known tournaments. If we add more, this needs update.
+                if (leagueTournamentId === 'WC2026' || leagueTournamentId === 'UCL2526') {
+                    console.log('💾 [InviteHandler] Setting localStorage:', leagueTournamentId);
+                    localStorage.setItem('selectedTournament', leagueTournamentId);
+                    
+                    // Dispatch storage event to force sync if hooks listen to it
+                    window.dispatchEvent(new Event('storage'));
+                } else {
+                    console.warn('⚠️ [InviteHandler] Unknown Tournament ID:', leagueTournamentId);
+                }
+            } else {
+                console.error('❌ [InviteHandler] Could not determine Tournament ID!');
             }
 
             // Check status for feedback
             if (data.status === 'PENDING') {
-                // REMOVED TOAST as requested
-                // toast.info(`Solicitud enviada a ${previewData?.name || 'la liga'}. Espera la aprobación del admin.`, { duration: 5000 });
+                // Pending logic...
             } else {
                 toast.success(`¡Bienvenido a ${previewData?.name || explicitPreviewData?.name || 'la polla'}!`);
             }
@@ -81,9 +103,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             // Force tournament param to ensure context switch
             const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
             
-            // Force hard reload or ensure context is picked up? 
-            // Router push should work if useTournament hooks into searchParams
-            window.location.href = redirectUrl; // Using window.location to ensure full state reset/reload for tournament context
+            console.log('🚀 [InviteHandler] Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl; 
 
         } catch (error: any) {
             console.error('Join Error:', error);
@@ -94,16 +115,23 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 toast.info('Ya eres miembro de esta polla.');
 
                 // Redirect anyway, ensuring tournament context
-                const leagueTournamentId = explicitPreviewData?.tournamentId || previewData?.tournamentId;
+                let leagueTournamentId = explicitPreviewData?.tournamentId || previewData?.tournamentId;
+                
+                console.log('🔄 [InviteHandler] Already joined. Tournament ID:', leagueTournamentId);
+
                 if (leagueTournamentId) {
-                    localStorage.setItem('selectedTournament', leagueTournamentId);
+                    leagueTournamentId = String(leagueTournamentId).trim();
+                    if (leagueTournamentId === 'WC2026' || leagueTournamentId === 'UCL2526') {
+                        localStorage.setItem('selectedTournament', leagueTournamentId);
+                    }
                 }
                 
                 const dataToUse = explicitPreviewData || previewData;
                 const targetUrl = dataToUse?.id ? `/leagues/${dataToUse.id}` : '/dashboard';
                 const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
 
-                window.location.href = redirectUrl; // Force reload for same reason
+                console.log('🚀 [InviteHandler] Redirecting (Already Joined) to:', redirectUrl);
+                window.location.href = redirectUrl; 
                 return;
             }
 

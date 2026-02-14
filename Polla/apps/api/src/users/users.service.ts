@@ -16,6 +16,9 @@ import { ConflictException } from '@nestjs/common';
 
 import { Prediction } from '../database/entities/prediction.entity';
 import { UserBracket } from '../database/entities/user-bracket.entity';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { AccessCodeStatus } from '../database/enums/access-code-status.enum';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +33,10 @@ export class UsersService {
     private readonly predictionRepository: Repository<Prediction>,
     @InjectRepository(UserBracket)
     private readonly userBracketRepository: Repository<UserBracket>,
+    @InjectRepository(AccessCode)
+    private readonly accessCodeRepository: Repository<AccessCode>,
+    @InjectRepository(UserBonusAnswer)
+    private readonly userBonusAnswerRepository: Repository<UserBonusAnswer>,
   ) {}
 
   async getUserDetails(userId: string) {
@@ -191,9 +198,44 @@ export class UsersService {
   }
 
   async delete(id: string): Promise<void> {
-    const result = await this.usersRepository.delete(id);
-    if (result.affected === 0) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    try {
+      // 1. Liberar códigos de acceso usados por este usuario
+      // (Opcional: podrías querer dejarlos como "glitched" o borrarlos, pero liberarlos permite reutilización si fue error)
+      // Si prefieres que NO se reutilicen, podrías poner status: AccessCodeStatus.USED pero usedBy: null.
+      // Aquí asumiremos que queremos desvincularlos.
+      await this.accessCodeRepository.update(
+        { usedBy: { id } },
+        { usedBy: null as any, status: AccessCodeStatus.AVAILABLE },
+      );
+
+      // 2. Eliminar Predicciones
+      await this.predictionRepository.delete({ user: { id } });
+
+      // 3. Eliminar Participaciones en Ligas
+      await this.leagueParticipantRepository.delete({ user: { id } });
+
+      // 4. Eliminar Respuestas Bonus
+      await this.userBonusAnswerRepository.delete({ userId: id });
+
+      // 5. Eliminar Brackets
+      await this.userBracketRepository.delete({ userId: id });
+
+      // 6. Eliminar Usuario
+      const result = await this.usersRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+      }
+    } catch (error) {
+      console.error(
+        `❌ [UsersService] Error eliminando usuario ${id}:`,
+        error,
+      );
+      throw error;
     }
   }
 

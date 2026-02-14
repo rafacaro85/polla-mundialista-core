@@ -1179,6 +1179,10 @@ export class LeaguesService {
   }
 
   async deleteLeague(leagueId: string, userId: string, userRole: string) {
+    console.log(`🗑️ [deleteLeague] Solicitud de eliminación para leagueId: ${leagueId}`);
+    console.log(`   User ID: ${userId}`);
+    console.log(`   User Role: ${userRole}`);
+
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
       relations: ['creator'],
@@ -1188,14 +1192,14 @@ export class LeaguesService {
       throw new NotFoundException(`Liga con ID ${leagueId} no encontrada`);
     }
 
-    // Check permissions: Only SUPER_ADMIN or League Admin (Creator)
-    console.log(`ðŸ” [deleteLeague] Verificando permisos...`);
-    console.log(`   Creator ID: ${league.creator.id}`);
-    console.log(`   Requester ID: ${userId}`);
-    console.log(`   Requester Role: ${userRole}`);
+    console.log(`   Creator ID: ${league.creator?.id}`);
+    
+    // Check permissions: Only SUPER_ADMIN (any casing) or League Admin (Creator)
+    const isSuperAdmin = userRole?.toUpperCase() === 'SUPER_ADMIN';
+    const isCreator = league.creator?.id === userId;
 
-    if (userRole !== 'SUPER_ADMIN' && league.creator.id !== userId) {
-      console.error(`âŒ [deleteLeague] Permiso denegado.`);
+    if (!isSuperAdmin && !isCreator) {
+      console.error(`❌ [deleteLeague] Permiso denegado. No es Super Admin ni Creador.`);
       throw new ForbiddenException(
         'No tienes permisos para eliminar esta liga',
       );
@@ -1205,10 +1209,10 @@ export class LeaguesService {
 
     try {
       console.log(
-        `ðŸ—‘ï¸ [deleteLeague] Iniciando eliminaciÃ³n nuclear de liga ${leagueId}...`,
+        `🗑️ [deleteLeague] Iniciando eliminación nuclear de liga ${leagueId}...`,
       );
 
-      // EJECUCIÃ“N NUCLEAR: Usar transacciÃ³n para eliminar TODO
+      // EJECUCIÓN NUCLEAR: Usar transacción para eliminar TODO
       await manager.transaction(async (transactionalEntityManager) => {
         // PASO 1: Logging (Participants check)
         const participantsCount = await transactionalEntityManager.count(
@@ -1218,13 +1222,13 @@ export class LeaguesService {
           },
         );
         console.log(
-          `   ðŸ“‹ Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
+          `   📋 Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
         );
 
         // NOTA: Las predicciones son globales, no se tocan.
 
         // PASO 2: Eliminar respuestas de bonus questions
-        console.log(`   â­ Paso 2: Eliminando respuestas de bonus...`);
+        console.log(`   ⭐ Paso 2: Eliminando respuestas de bonus...`);
         // Primero buscamos las preguntas de esta liga
         const questions = await transactionalEntityManager.find(BonusQuestion, {
           where: { league: { id: leagueId } },
@@ -1237,86 +1241,88 @@ export class LeaguesService {
             questionId: In(questionIds),
           });
           console.log(
-            `   âœ“ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
+            `   ✓ Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
           );
         } else {
-          console.log(`   âœ“ No hay respuestas de bonus para eliminar`);
+          console.log(`   ✓ No hay respuestas de bonus para eliminar`);
         }
 
         // PASO 2.5: Eliminar comentarios del muro (LeagueComment)
-        console.log(`   ðŸ’¬ Paso 2.5: Eliminando comentarios del muro...`);
+        console.log(`   💬 Paso 2.5: Eliminando comentarios del muro...`);
         await transactionalEntityManager.delete(LeagueComment, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ Comentarios eliminados`);
+        console.log(`   ✓ Comentarios eliminados`);
 
-        // PASO 2.6: Eliminar predicciones especÃ­ficas de la liga
-        console.log(`   ðŸ”® Paso 2.6: Eliminando predicciones de la liga...`);
+        // PASO 2.6: Eliminar predicciones específicas de la liga
+        console.log(`   🔮 Paso 2.6: Eliminando predicciones de la liga...`);
         await transactionalEntityManager.delete(Prediction, {
           leagueId: leagueId,
         });
-        console.log(`   âœ“ Predicciones de liga eliminadas`);
+        console.log(`   ✓ Predicciones de liga eliminadas`);
 
         // PASO 3: Eliminar bonus questions
-        console.log(`   â­ Paso 3: Eliminando bonus questions...`);
+        console.log(`   ⭐ Paso 3: Eliminando bonus questions...`);
         await transactionalEntityManager.delete(BonusQuestion, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ Bonus questions eliminadas`);
+        console.log(`   ✓ Bonus questions eliminadas`);
 
         // PASO 4: Eliminar brackets de usuarios
-        console.log(`   ðŸ† Paso 4: Eliminando brackets...`);
+        console.log(`   🏆 Paso 4: Eliminando brackets...`);
         await transactionalEntityManager.delete(UserBracket, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ Brackets eliminados`);
+        console.log(`   ✓ Brackets eliminados`);
 
-        // PASO 5: Eliminar cÃ³digos de acceso
-        console.log(`   ðŸ”‘ Paso 5: Eliminando cÃ³digos de acceso...`);
+        // PASO 5: Eliminar códigos de acceso
+        console.log(`   🔑 Paso 5: Eliminando códigos de acceso...`);
         await transactionalEntityManager.delete(AccessCode, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ CÃ³digos de acceso eliminados`);
+        console.log(`   ✓ Códigos de acceso eliminados`);
 
         // PASO 6: Eliminar transacciones/pagos
-        console.log(`   ðŸ’³ Paso 6: Eliminando transacciones...`);
+        console.log(`   💳 Paso 6: Eliminando transacciones...`);
         await transactionalEntityManager.delete(Transaction, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ Transacciones eliminadas`);
+        console.log(`   ✓ Transacciones eliminadas`);
 
         // PASO 7: Eliminar participantes de la liga
-        console.log(`   ðŸ‘¥ Paso 7: Eliminando participantes...`);
+        console.log(`   👥 Paso 7: Eliminando participantes...`);
         await transactionalEntityManager.delete(LeagueParticipant, {
           league: { id: leagueId },
         });
-        console.log(`   âœ“ Participantes eliminados`);
+        console.log(`   ✓ Participantes eliminados`);
 
         // PASO 8: FINALMENTE eliminar la liga
-        console.log(`   ðŸ Paso 8: Eliminando la liga...`);
-        await transactionalEntityManager.delete(League, leagueId);
-        console.log(`   âœ“ Liga eliminada`);
+        console.log(`   ☠️ Paso 8: Eliminando la liga...`);
+        const deleteResult = await transactionalEntityManager.delete(League, leagueId);
+        
+        if (deleteResult.affected === 0) {
+            console.warn(`⚠️ [deleteLeague] No se encontró la liga en el paso final (¿Ya fue eliminada?)`);
+        } else {
+            console.log(`   ✓ Liga eliminada`);
+        }
       });
 
       console.log(
-        `âœ… [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
+        `✅ [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
       );
       return { success: true, message: 'Liga eliminada correctamente' };
     } catch (error: any) {
-      console.error('âŒ [deleteLeague] Error FATAL eliminando liga:', error);
-      console.error('   Stack:', error.stack);
-      console.error('   Code:', error.code);
-      console.error('   Detail:', error.detail);
-
-      if (error.code === '23503') {
-        // ForeignKeyViolation
-        throw new BadRequestException(
-          `No se puede eliminar: Esta liga tiene datos vinculados en la tabla '${error.table || 'desconocida'}'. ` +
-            `Detalle: ${error.detail || error.message}`,
-        );
+      console.error('❌ [deleteLeague] Error FATAL eliminando liga:', error);
+      
+      // Si ya es Forbidden, relanzar
+      if (error instanceof ForbiddenException) throw error;
+      
+      // Si es error de base de datos (clave foránea), envolverlo
+      if (error.code === '23503') { // PostgreSQL Foreign Key Violation
+          throw new BadRequestException(`No se pudo eliminar la liga por dependencias activas (Error DB: ${error.detail})`);
       }
 
-      throw new BadRequestException(
+      throw new InternalServerErrorException(
         `Error al eliminar liga: ${error.message}. ` +
           `Si el problema persiste, contacta al administrador.`,
       );

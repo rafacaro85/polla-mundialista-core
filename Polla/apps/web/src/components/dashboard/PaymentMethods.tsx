@@ -65,24 +65,24 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount
                     Pago Manual
                 </h3>
                 
-                <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-6">
                     <button 
                         onClick={() => setSelectedQR('NEQUI')}
                         className={`p-2 rounded-xl border transition-all ${selectedQR === 'NEQUI' ? 'bg-slate-700 border-emerald-500' : 'bg-slate-700/50 border-transparent hover:bg-slate-700'}`}
                     >
-                        <div className="text-xs font-bold text-center text-white">NEQUI</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-center text-white truncate">NEQUI</div>
                     </button>
                     <button 
                         onClick={() => setSelectedQR('DAVIPLATA')}
                         className={`p-2 rounded-xl border transition-all ${selectedQR === 'DAVIPLATA' ? 'bg-slate-700 border-red-500' : 'bg-slate-700/50 border-transparent hover:bg-slate-700'}`}
                     >
-                        <div className="text-xs font-bold text-center text-white">DAVIPLATA</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-center text-white truncate">DAVIPLATA</div>
                     </button>
                     <button 
                         onClick={() => setSelectedQR('BANCOLOMBIA')}
                         className={`p-2 rounded-xl border transition-all ${selectedQR === 'BANCOLOMBIA' ? 'bg-slate-700 border-yellow-500' : 'bg-slate-700/50 border-transparent hover:bg-slate-700'}`}
                     >
-                        <div className="text-xs font-bold text-center text-white">BANCOLOMBIA</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-center text-white truncate">BANCOLOMBIA</div>
                     </button>
                 </div>
 

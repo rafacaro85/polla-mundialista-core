@@ -54,17 +54,19 @@ const FLAG_UPDATES: Record<string, string> = {
   'Benfica': '/images/escudos/sl-benfica-footballlogos-org.svg',
   'Juventus': '/images/escudos/juventus-footballlogos-org.svg',
   'Atletico Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
+  'Atlético Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg', // Found in DB
   'Bayer Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
   'Inter Milan': '/images/escudos/inter-milan-footballlogos-org.svg',
   'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
-  'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg', // Alias found in DB
+  'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg', // Found in DB
   'PSG': '/images/escudos/paris-saint-germain-footballlogos-org.svg',
   'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
   'Monaco': '/images/escudos/as-monaco-footballlogos-org.svg',
   'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg', 
   'Club Brugge': '/images/escudos/club-brugge-footballlogos-org.svg', 
+  'Club Brujas': '/images/escudos/club-brugge-footballlogos-org.svg', // Likely in DB if spanish
   'Galatasaray': '/images/escudos/galatasaray-footballlogos-org.svg',
-  'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg', // Just in case
+  'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg',
   'Olympiacos': '/images/escudos/olympiacos-footballlogos-org.svg', 
   'Qarabag': '/images/escudos/qarabag-fk-footballlogos-org.svg', 
 };
@@ -75,7 +77,7 @@ async function updateFlags() {
     console.log('✅ Connected to DB');
 
     const matchRepo = AppDataSource.getRepository(Match);
-
+    
     console.log('🔄 Updating flags for UCL2526...');
     
     for (const [teamName, flagUrl] of Object.entries(FLAG_UPDATES)) {

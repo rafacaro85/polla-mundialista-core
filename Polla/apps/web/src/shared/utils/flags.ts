@@ -65,10 +65,41 @@ const TEAM_TO_ISO: Record<string, string> = {
     'QAT': 'qa', 'SAU': 'sa', 'DEN': 'dk', 'CMR': 'cm'
 };
 
+const CLUB_SHIELDS: Record<string, string> = {
+    'Real Madrid': '/images/escudos/real-madrid-footballlogos-org.svg',
+    'Benfica': '/images/escudos/sl-benfica-footballlogos-org.svg',
+    'Juventus': '/images/escudos/juventus-footballlogos-org.svg',
+    'Atletico Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
+    'Atlético Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg', // Database variation with accent
+    'Bayer Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
+    'Inter Milan': '/images/escudos/inter-milan-footballlogos-org.svg',
+    'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
+    'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
+    'PSG': '/images/escudos/paris-saint-germain-footballlogos-org.svg',
+    'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
+    'Monaco': '/images/escudos/as-monaco-footballlogos-org.svg',
+    'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
+    'Club Brugge': '/images/escudos/club-brugge-footballlogos-org.svg',
+    'Club Brujas': '/images/escudos/club-brugge-footballlogos-org.svg', // Database variation
+    'Galatasaray': '/images/escudos/galatasaray-footballlogos-org.svg',
+    'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg',
+    'Olympiacos': '/images/escudos/olympiacos-footballlogos-org.svg',
+    'Qarabag': '/images/escudos/qarabag-fk-footballlogos-org.svg',
+};
+
 export const getTeamFlagUrl = (teamName: string) => {
     if (!teamName) return FALLBACK_FLAG;
 
     const normalized = teamName.trim();
+
+    // 1. Check specific Club Shield overrides (e.g. UCL)
+    if (CLUB_SHIELDS[normalized]) {
+        return CLUB_SHIELDS[normalized];
+    }
+    
+    // Also check case-insensitive just in case
+    const normalizedUpper = normalized.toUpperCase();
+    // (Optional: loop through keys if we really needed fuzzy matching, but direct is better for performance)
 
     // Placeholders
     if (normalized === '-' || normalized === 'TBD' || normalized === 'LOC' || normalized === 'VIS' ||

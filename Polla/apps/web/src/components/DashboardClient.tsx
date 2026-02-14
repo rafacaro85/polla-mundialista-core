@@ -163,26 +163,35 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
   }, [props.defaultLeagueId, props.initialTab, setSelectedLeague]);
 
-  // Invite Logic
+  // Invite Logic - BLOCKING CHECK
+  const [isCheckingInvite, setIsCheckingInvite] = useState(true);
+
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
+    const checkInvite = () => {
+        const getCookie = (name: string) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop()?.split(';').shift();
+          return null;
+        };
+    
+        const cookieCode = getCookie('pendingInviteCode');
+        const localCode = localStorage.getItem('pendingInviteCode');
+        const code = cookieCode || localCode;
+    
+        if (code) {
+            console.log('🚀 [Dashboard] Pending Invite Found. Auto-redirecting to processor:', code);
+            setPendingInvite(code);
+            // FORCE REDIRECT to process the invite immediately.
+            window.location.replace(`/invite/${code}`);
+            return; // Keep isCheckingInvite true to block render
+        }
+        
+        // No invite found, proceed to render
+        setIsCheckingInvite(false);
     };
-
-    const cookieCode = getCookie('pendingInviteCode');
-    const localCode = localStorage.getItem('pendingInviteCode');
-    const code = cookieCode || localCode;
-
-    if (code) {
-        console.log('🚀 [Dashboard] Pending Invite Found. Auto-redirecting to processor:', code);
-        // FORCE REDIRECT to process the invite immediately.
-        // InviteHandler will clean up the cookie to prevent loops.
-        window.location.replace(`/invite/${code}`);
-        return;
-    }
+    
+    checkInvite();
   }, []);
 
   const handleProcessInvite = () => {
@@ -207,11 +216,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   }, [syncUserFromServer]);
 
 
-  // PREVENT FLASH: Wait for tournament context to stabilize
-  if (!mounted || !isReady) {
+  // PREVENT FLASH: Wait for tournament context to stabilize AND invite check
+  if (!mounted || !isReady || isCheckingInvite) {
       return (
-          <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+          <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00E676]"></div>
+              {isCheckingInvite && <p className="text-slate-400 text-sm animate-pulse">Verificando invitaciones...</p>}
           </div>
       );
   }

@@ -218,7 +218,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
             display: 'flex',
             flexDirection: 'column' as const,
-            maxHeight: '90vh',
+            maxHeight: '80vh', // REDUCIDO: Antes 90vh, para dar más margen en móviles
             fontFamily: 'sans-serif',
             position: 'relative' as const,
             overflow: 'hidden' // Prevent card from scrolling, inner body will scroll
@@ -233,7 +233,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
         // HEADER
         header: {
-            padding: '24px',
+            padding: '20px', // REDUCIDO: Antes 24px
             borderBottom: '1px solid #334155',
             display: 'flex',
             justifyContent: 'space-between',
@@ -247,8 +247,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             gap: '12px'
         },
         iconBox: {
-            width: '44px',
-            height: '44px',
+            width: '40px', // REDUCIDO: Antes 44px
+            height: '40px', // REDUCIDO: Antes 44px
             borderRadius: '12px',
             backgroundColor: '#0F172A',
             border: '1px solid #00E676',
@@ -258,7 +258,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         },
         titleText: {
             fontFamily: "'Russo One', sans-serif",
-            fontSize: '20px',
+            fontSize: '18px', // REDUCIDO: Antes 20px
             color: 'white',
             textTransform: 'uppercase' as const,
             lineHeight: '1'
@@ -278,10 +278,10 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
         // BODY
         body: {
-            padding: '24px',
+            padding: '20px', // REDUCIDO: Antes 24px
             display: 'flex',
             flexDirection: 'column' as const,
-            gap: '32px',
+            gap: '20px', // REDUCIDO: Antes 32px
             overflowY: 'auto' as const, // Scrollable body
             flex: 1 // Take remaining space
         },
@@ -290,10 +290,10 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         inputSection: {
             display: 'flex',
             flexDirection: 'column' as const,
-            gap: '8px'
+            gap: '6px' // REDUCIDO: Antes 8px
         },
         label: {
-            fontSize: '11px',
+            fontSize: '10px', // REDUCIDO: Antes 11px
             color: '#94A3B8',
             fontWeight: 'bold',
             textTransform: 'uppercase' as const,
@@ -305,9 +305,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             backgroundColor: '#0F172A',
             border: '2px solid #334155',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '12px', // REDUCIDO: Antes 16px
             color: 'white',
-            fontSize: '18px', // Letra grande
+            fontSize: '16px', // REDUCIDO: Antes 18px
             fontWeight: 'bold',
             outline: 'none',
             transition: 'border-color 0.2s',
@@ -319,19 +319,19 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '12px'
+            marginBottom: '8px' // REDUCIDO: Antes 12px
         },
         plansGrid: {
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)', // Force 2 columns
-            gap: '12px'
+            gap: '8px' // REDUCIDO: Antes 12px
         },
         // Tarjeta de Plan Individual
         planCard: {
             backgroundColor: '#0F172A',
             borderRadius: '16px',
             border: '1px solid #334155',
-            padding: '12px', // Reduced padding
+            padding: '10px', // REDUCIDO: Antes 12px
             cursor: 'pointer',
             position: 'relative' as const,
             transition: 'all 0.2s ease',
@@ -343,22 +343,22 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         },
 
         planIcon: {
-            marginBottom: '8px',
-            padding: '8px',
+            marginBottom: '6px', // REDUCIDO
+            padding: '6px', // REDUCIDO
             borderRadius: '50%',
             backgroundColor: '#1E293B'
         },
         planName: {
-            fontSize: '14px',
+            fontSize: '13px', // REDUCIDO
             fontWeight: 'bold',
             color: 'white',
-            marginBottom: '4px',
+            marginBottom: '2px', // REDUCIDO
             fontFamily: "'Russo One', sans-serif"
         },
         planPrice: {
-            fontSize: '12px',
+            fontSize: '11px', // REDUCIDO
             color: '#94A3B8',
-            marginBottom: '12px'
+            marginBottom: '8px' // REDUCIDO
         },
         featureList: {
             fontSize: '9px',
@@ -388,7 +388,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
 
         // FOOTER
         footer: {
-            padding: '24px',
+            padding: '20px', // REDUCIDO: Antes 24px
             borderTop: '1px solid #334155',
             display: 'flex',
             gap: '12px',
@@ -400,7 +400,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             backgroundColor: 'transparent',
             color: '#94A3B8',
             border: '1px solid #334155',
-            padding: '16px',
+            padding: '14px', // REDUCIDO: Antes 16px
             borderRadius: '12px',
             fontWeight: 'bold',
             fontSize: '12px',
@@ -413,7 +413,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             backgroundColor: '#00E676',
             color: '#0F172A',
             border: 'none',
-            padding: '16px',
+            padding: '14px', // REDUCIDO: Antes 16px
             borderRadius: '12px',
             fontWeight: '900',
             fontFamily: '"Russo One", sans-serif',

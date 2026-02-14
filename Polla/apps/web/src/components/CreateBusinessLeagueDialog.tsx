@@ -133,7 +133,7 @@ export const CreateBusinessLeagueDialog = ({ onLeagueCreated, children, open: ex
         },
         modal: {
             backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '24px',
-            width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' as const,
+            width: '100%', maxWidth: '500px', maxHeight: '85dvh', overflowY: 'auto' as const,
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', position: 'relative' as const
         },
         header: {

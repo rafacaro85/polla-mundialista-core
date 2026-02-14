@@ -365,13 +365,31 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
             <Info size={18} />
           </div>
           <div style={STYLES.metaData}>
-            <div style={{ color: '#00E676' }}>{groupName.length > 4 ? groupName : `GRUPO ${groupName}`}</div>
+            <div style={{ color: '#00E676' }}>
+              {(() => {
+                const d = new Date(match.date);
+                const month = d.getMonth(); // 0 = Jan, 1 = Feb, 2 = Mar
+                const isUCL = match.tournamentId === 'UCL2526' || (d.getFullYear() === 2026 && (month === 1 || month === 2));
+
+                // Lógica específica para UCL
+                if (isUCL) {
+                    if (month === 1) return "PLAY OFF IDA";
+                    if (month === 2) return "PLAY OFF VUELTA";
+                    if (match.phase === 'ROUND_16') return "OCTAVOS DE FINAL";
+                }
+                
+                // Default
+                return groupName.length > 4 ? groupName : `GRUPO ${groupName}`;
+              })()}
+            </div>
             <div style={{ color: isLive ? '#FF1744' : '#94A3B8', fontWeight: isLive ? 'bold' : 'normal' }}>
               {isLive ? `🔴 EN VIVO ${match.minute || '0'}'` : timeDisplay}
             </div>
-            <div style={{ color: '#64748B', fontSize: '9px', marginTop: '2px' }}>
-              {stadium}
-            </div>
+            {stadium && stadium !== 'Estadio TBD' && (
+                <div style={{ color: '#64748B', fontSize: '9px', marginTop: '2px' }}>
+                {stadium}
+                </div>
+            )}
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Post,
   Delete,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -84,10 +85,12 @@ export class UsersController {
     return this.usersService.update(user, body);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id') id: string, @Request() req: RequestWithUser) {
+    if (req.user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only Super Admin can delete users');
+    }
     return this.usersService.delete(id);
   }
 }

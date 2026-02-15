@@ -3,7 +3,8 @@
     "seed:champions:prod": "npm run seed:champions:prod --workspace=apps/api"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1"
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.5"
   },
   "workspaces": [
     "apps/*"

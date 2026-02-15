@@ -36,8 +36,7 @@ import { MatchListener } from './listeners/match.listener';
       useFactory: async (configService: ConfigService) => ({
         baseURL: 'https://v3.football.api-sports.io',
         headers: {
-          'x-rapidapi-key': configService.get<string>('RAPIDAPI_KEY'),
-          'x-rapidapi-host': configService.get<string>('RAPIDAPI_HOST'),
+          'x-apisports-key': configService.get<string>('APISPORTS_KEY'),
         },
       }),
       inject: [ConfigService],

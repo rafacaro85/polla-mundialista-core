@@ -78,6 +78,14 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
   const isLive = match.status === 'LIVE';
   const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
+  
+  // Check if match is within 5 minutes of starting (lockout period)
+  const now = new Date();
+  const minutesUntilKickoff = (matchDate.getTime() - now.getTime()) / (1000 * 60);
+  const isLockedForKickoff = minutesUntilKickoff <= 5 && minutesUntilKickoff > 0 && !isLive && !isFinished;
+  
+  // Inputs should be read-only if: finished, live, or within 5 minutes of kickoff
+  const isInputLocked = isFinished || isLive || isLockedForKickoff;
 
   // 2. ESTADO LOCAL PARA INPUTS
   // PRIORIDAD: 1. Sugerencia de IA (match.userH) | 2. Predicción Guardada | 3. Vacío
@@ -132,7 +140,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
   const toggleJoker = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isFinished) return;
+    if (isInputLocked) return;
     const newState = !isJoker;
     setIsJoker(newState);
     // Guardar el cambio del joker inmediatamente si hay marcador
@@ -432,7 +440,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                     value={homeScore}
                     onChange={(e) => handleInputChange(e.target.value, setHomeScore)}
                     onBlur={handleBlur}
-                    readOnly={isFinished}
+                    readOnly={isInputLocked}
                     style={STYLES.inputBox}
                   />
                   <span style={{ color: '#64748B', fontWeight: 'bold' }}>-</span>
@@ -442,13 +450,13 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                     value={awayScore}
                     onChange={(e) => handleInputChange(e.target.value, setAwayScore)}
                     onBlur={handleBlur}
-                    readOnly={isFinished}
+                    readOnly={isInputLocked}
                     style={STYLES.inputBox}
                   />
                 </div>
 
                 {/* JOKER BUTTON */}
-                {!isFinished ? (
+                {!isInputLocked ? (
                   <button style={STYLES.jokerBtn} onClick={toggleJoker} title="Usar Comodín (x2 Puntos)">
                     <Star size={12} fill={isJoker ? "#0F172A" : "none"} strokeWidth={isJoker ? 0 : 2} />
                     {isJoker ? 'COMODÍN ACTIVO' : 'COMODÍN'}

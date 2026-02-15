@@ -76,39 +76,100 @@ async function mapUCLFixtures() {
       where: { tournamentId: 'UCL2526' },
     });
 
-    console.log(`📊 Found ${ourMatches.length} UCL matches in our database`);
+    // SNIPER METHOD: Query by specific dates instead of season
+    // Target: Feb 17-18, 2026 (UCL Round of 16 - Ida)
+    console.log('🔄 Fetching UCL fixtures for Feb 17-18, 2026...');
+    
+    let apiFixtures: any[] = [];
+    
+    // Strategy 1: Try date range query with league filter
+    try {
+      console.log('📅 Trying: /fixtures?league=2&season=2025&from=2026-02-17&to=2026-02-18');
+      const response1 = await axios.get(`${BASE_URL}/fixtures`, {
+        headers: {
+          'x-apisports-key': API_KEY,
+        },
+        params: {
+          league: 2,
+          season: 2025,
+          from: '2026-02-17',
+          to: '2026-02-18',
+        },
+      });
+      
+      apiFixtures = response1.data.response || [];
+      console.log(`📊 Strategy 1 returned: ${apiFixtures.length} fixtures`);
+      
+      if (apiFixtures.length > 0) {
+        console.log('📅 API Response Sample:', JSON.stringify(apiFixtures[0], null, 2));
+      }
+    } catch (error: any) {
+      console.log('⚠️ Strategy 1 failed:', error.message);
+    }
+    
+    // Strategy 2: If Strategy 1 fails, try single date query (Feb 17)
+    if (apiFixtures.length === 0) {
+      try {
+        console.log('📅 Trying: /fixtures?date=2026-02-17 (then filter by league)');
+        const response2 = await axios.get(`${BASE_URL}/fixtures`, {
+          headers: {
+            'x-apisports-key': API_KEY,
+          },
+          params: {
+            date: '2026-02-17',
+          },
+        });
+        
+        const allFixtures = response2.data.response || [];
+        console.log(`📊 Strategy 2 returned: ${allFixtures.length} total fixtures`);
+        
+        // Filter for Champions League (league id = 2)
+        apiFixtures = allFixtures.filter((f: any) => f.league.id === 2);
+        console.log(`🎯 Filtered to ${apiFixtures.length} UCL fixtures`);
+        
+        if (apiFixtures.length > 0) {
+          console.log('📅 API Response Sample:', JSON.stringify(apiFixtures[0], null, 2));
+        }
+      } catch (error: any) {
+        console.log('⚠️ Strategy 2 failed:', error.message);
+      }
+    }
+    
+    // Strategy 3: Try Feb 18 if still no results
+    if (apiFixtures.length === 0) {
+      try {
+        console.log('📅 Trying: /fixtures?date=2026-02-18');
+        const response3 = await axios.get(`${BASE_URL}/fixtures`, {
+          headers: {
+            'x-apisports-key': API_KEY,
+          },
+          params: {
+            date: '2026-02-18',
+          },
+        });
+        
+        const allFixtures = response3.data.response || [];
+        console.log(`📊 Strategy 3 returned: ${allFixtures.length} total fixtures`);
+        
+        apiFixtures = allFixtures.filter((f: any) => f.league.id === 2);
+        console.log(`🎯 Filtered to ${apiFixtures.length} UCL fixtures`);
+      } catch (error: any) {
+        console.log('⚠️ Strategy 3 failed:', error.message);
+      }
+    }
 
-    // Strategy 1: Try fetching upcoming fixtures for UCL
-    console.log('🔄 Fetching upcoming UCL fixtures from API-SPORTS...');
-    const response = await axios.get(`${BASE_URL}/fixtures`, {
-      headers: {
-        'x-apisports-key': API_KEY,
-      },
-      params: {
-        league: 2, // UEFA Champions League
-        next: 50, // Next 50 fixtures
-      },
-    });
+    console.log(`\n📊 Total UCL fixtures found: ${apiFixtures.length}`);
 
-    let apiFixtures = response.data.response;
-    console.log(`📊 Found ${apiFixtures.length} upcoming fixtures from API-SPORTS`);
-
-    // Debug: Log first few fixture dates
+    // Debug: Log all fixture details
     if (apiFixtures.length > 0) {
-      console.log('\n🔍 Sample fixture dates:');
-      apiFixtures.slice(0, 10).forEach((f: any) => {
-        console.log(`   - ${f.teams.home.name} vs ${f.teams.away.name}: ${f.fixture.date}`);
+      console.log('\n🔍 All UCL fixtures found:');
+      apiFixtures.forEach((f: any, idx: number) => {
+        console.log(`   ${idx + 1}. ${f.teams.home.name} vs ${f.teams.away.name}`);
+        console.log(`      ID: ${f.fixture.id}, Date: ${f.fixture.date}`);
       });
     }
 
-    // Filter to only February/March 2026 matches (Round of 16)
-    const relevantFixtures = apiFixtures.filter((fixture: any) => {
-      const fixtureDate = new Date(fixture.fixture.date);
-      const year = fixtureDate.getFullYear();
-      const month = fixtureDate.getMonth(); // 0-indexed: 1 = Feb, 2 = Mar
-      
-      return year === 2026 && (month === 1 || month === 2);
-    });
+    const relevantFixtures = apiFixtures; // All are relevant since we queried specific dates
 
     console.log(`🎯 Filtered to ${relevantFixtures.length} Round of 16 fixtures (Feb/Mar 2026)`);
 

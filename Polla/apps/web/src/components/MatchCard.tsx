@@ -375,6 +375,11 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
           <div style={STYLES.metaData}>
             <div style={{ color: '#00E676' }}>
               {(() => {
+                // Priority 1: Use group field if it's a custom label (not a single letter)
+                if (groupName && groupName.length > 1 && !['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(groupName)) {
+                  return groupName;
+                }
+
                 const d = new Date(match.date);
                 const month = d.getMonth(); // 0 = Jan, 1 = Feb, 2 = Mar
                 const isUCL = match.tournamentId === 'UCL2526' || (d.getFullYear() === 2026 && (month === 1 || month === 2));

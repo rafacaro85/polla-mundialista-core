@@ -60,6 +60,9 @@ export class Match {
   @Column({ nullable: true })
   stadium: string;
 
+  @Column({ type: 'int', nullable: true })
+  minute: number; // Elapsed minutes during live match
+
   @Column({ name: 'ai_prediction', type: 'text', nullable: true })
   aiPrediction: string | null; // JSON stringified analysis
 

@@ -99,6 +99,11 @@ export class MatchSyncService {
       // Update scores
       match.homeScore = homeScore;
       match.awayScore = awayScore;
+      
+      // Update elapsed time if available
+      if (fixture.fixture.status.elapsed !== null) {
+        match.minute = fixture.fixture.status.elapsed;
+      }
 
       // Check if match finished
       if (['FT', 'AET', 'PEN'].includes(statusShort)) {

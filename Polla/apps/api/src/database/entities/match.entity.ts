@@ -54,14 +54,17 @@ export class Match {
   @Column({ nullable: true })
   externalId: number;
 
+  @Column({ nullable: true })
+  minute: string; // Ej: "45'", "90+2", "HT"
+
   @Column({ default: false })
   isManuallyLocked: boolean; // Admin override lock
 
+  @Column({ default: false })
+  isTimerActive: boolean; // If true, cron job increments minute automatically
+
   @Column({ nullable: true })
   stadium: string;
-
-  @Column({ type: 'int', nullable: true })
-  minute: number; // Elapsed minutes during live match
 
   @Column({ name: 'ai_prediction', type: 'text', nullable: true })
   aiPrediction: string | null; // JSON stringified analysis

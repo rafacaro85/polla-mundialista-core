@@ -207,7 +207,7 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [assignMatch, setAssignMatch] = useState<any>(null); // New State
-    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '' });
+    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '', minute: '' });
     const [assignForm, setAssignForm] = useState({ homeCode: '', awayCode: '' }); // New State
     // Rename Team State
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -349,7 +349,9 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
             homeScore: match.homeScore || 0,
             awayScore: match.awayScore || 0,
             isManuallyLocked: match.isManuallyLocked || false,
-            status: match.status
+            status: match.status,
+            minute: match.minute || '',
+            isTimerActive: match.isTimerActive || false // Init Timer State
         });
     };
 
@@ -360,7 +362,9 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                 homeScore: Number(formData.homeScore),
                 awayScore: Number(formData.awayScore),
                 isManuallyLocked: formData.isManuallyLocked,
-                status: formData.status
+                status: formData.status,
+                minute: formData.minute || null,
+                isTimerActive: formData.isTimerActive // Save Timer State
             });
             setEditingMatch(null);
             toast.success("Partido actualizado");
@@ -714,8 +718,16 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                                 <div style={STYLES.score}>
                                     {match.homeScore ?? '-'} : {match.awayScore ?? '-'}
                                 </div>
-                                <div style={STYLES.statusBadge(match.status)}>
-                                    {match.status}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                    <div style={STYLES.statusBadge(match.status)}>
+                                        {match.status}
+                                    </div>
+                                    {match.status === 'LIVE' && match.minute && (
+                                        <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {match.isTimerActive && <Clock size={10} className="animate-pulse" />}
+                                            {match.minute}'
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
@@ -808,6 +820,55 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                                 <label style={STYLES.label}>{editingMatch.awayTeam}</label>
                                 <input type="number" style={STYLES.input} value={formData.awayScore} onChange={e => handleScoreChange('awayScore', e.target.value)} />
                             </div>
+                        </div>
+
+                        <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                            <label style={{ ...STYLES.label, color: '#60A5FA', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Clock size={16} /> CONTROL CRONÓMETRO AUTOMÁTICO
+                            </label>
+                            
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                                <input 
+                                    type="text" 
+                                    style={{ ...STYLES.input, flex: 2, textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }} 
+                                    value={formData.minute} 
+                                    onChange={e => setFormData(prev => ({ ...prev, minute: e.target.value }))}
+                                    placeholder="Minuto"
+                                />
+                                <div style={{ display: 'flex', gap: '5px', flex: 3 }}>
+                                    <button 
+                                        style={{ ...STYLES.saveBtn, backgroundColor: editingMatch.isTimerActive ? '#EF4444' : '#10B981', flex: 1, textTransform: 'uppercase', fontSize: '12px' }}
+                                        onClick={() => setFormData(prev => ({ ...prev, isTimerActive: !prev.isTimerActive, status: 'LIVE' }))}
+                                    >
+                                        {/* Optimistic UI toggle logic handled in render by formData check if we want, but simpler to just toggle state */}
+                                        {formData.isTimerActive ? '⏸ PAUSAR' : '▶️ INICIAR'}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <button 
+                                    style={{ ...STYLES.saveBtn, backgroundColor: '#3B82F6', flex: 1, fontSize: '11px', padding: '8px 4px' }}
+                                    onClick={() => setFormData(prev => ({ ...prev, minute: 'HT', isTimerActive: false }))}
+                                >
+                                    ⏸ ENTRETIEMPO
+                                </button>
+                                <button 
+                                    style={{ ...STYLES.saveBtn, backgroundColor: '#8B5CF6', flex: 1, fontSize: '11px', padding: '8px 4px' }}
+                                    onClick={() => setFormData(prev => ({ ...prev, minute: '45', isTimerActive: true, status: 'LIVE' }))}
+                                >
+                                    ▶️ 2DO TIEMPO
+                                </button>
+                                <button 
+                                    style={{ ...STYLES.saveBtn, backgroundColor: '#EF4444', flex: 1, fontSize: '11px', padding: '8px 4px' }}
+                                    onClick={() => setFormData(prev => ({ ...prev, status: 'FINISHED', minute: 'FT', isTimerActive: false }))}
+                                >
+                                    🏁 FINALIZAR
+                                </button>
+                            </div>
+                            <p style={{ fontSize: '10px', color: '#94A3B8', marginTop: '10px', fontStyle: 'italic' }}>
+                                * AL INICIAR, el sistema sumará 1 minuto automáticamente cada 60 segundos.
+                            </p>
                         </div>
 
                         <div style={{ marginBottom: '20px' }}>

@@ -211,11 +211,10 @@ export class MatchesService {
     if (data.awayTeam !== undefined) match.awayTeam = data.awayTeam;
     if (data.homeFlag !== undefined) match.homeFlag = data.homeFlag;
     if (data.awayFlag !== undefined) match.awayFlag = data.awayFlag;
-    if (data.date !== undefined) match.date = data.date;
-    if (data.bracketId !== undefined) match.bracketId = data.bracketId;
-    if (data.nextMatchId !== undefined) match.nextMatchId = data.nextMatchId;
     if (data.isManuallyLocked !== undefined)
       match.isManuallyLocked = data.isManuallyLocked;
+    if (data.isTimerActive !== undefined) match.isTimerActive = data.isTimerActive;
+    if (data.minute !== undefined) match.minute = data.minute;
 
     const savedMatch = await this.matchesRepository.save(match);
 

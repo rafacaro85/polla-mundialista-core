@@ -23,6 +23,32 @@ export class MatchSyncService {
   @Cron('*/1 * * * *') // Run every minute
   async syncLiveMatches() {
     try {
+      // 0. AUTO-INCREMENT MANUAL TIMERS (Runs every minute)
+      try {
+        const activeTimerMatches = await this.matchesRepository.find({
+            where: { status: 'LIVE', isTimerActive: true }
+        });
+        
+        if (activeTimerMatches.length > 0) {
+            this.logger.log(`⏱️  Auto-incrementing timer for ${activeTimerMatches.length} matches...`);
+            for (const m of activeTimerMatches) {
+                // If minute is a number, increment it
+                if (m.minute && !isNaN(Number(m.minute))) {
+                    const nextMin = Number(m.minute) + 1;
+                    // Stop at 45 (Wait for HT) or 90+ (don't auto increment past 90 usually, but let's allow it for now or stop at 90?)
+                    // Let's just increment. The user can stop it manually.
+                    await this.matchesRepository.update(m.id, { minute: nextMin.toString() });
+                    this.logger.log(`   -> Match ${m.homeTeam} vs ${m.awayTeam}: ${m.minute}' -> ${nextMin}'`);
+                } else if (!m.minute) {
+                     // Start at 1 if empty
+                     await this.matchesRepository.update(m.id, { minute: '1' });
+                }
+            }
+        }
+      } catch (timerError) {
+          this.logger.error('Error auto-incrementing timers:', timerError);
+      }
+
       // SMART TIME-WINDOW FILTERING (API Quota Protection)
       const now = new Date();
       const windowStart = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 hours ago
@@ -37,6 +63,10 @@ export class MatchSyncService {
         .createQueryBuilder('match')
         .where('match.externalId IS NOT NULL')
         .andWhere('match.status != :status', { status: 'FINISHED' })
+        // Exclude manual timer matches from API sync to avoid overwriting?
+        // Actually, if isTimerActive is true, we probably shouldn't overwrite with API data unless we want to mixed mode.
+        // For safety, let's exclude them from API sync if timer is active.
+        .andWhere('match.isTimerActive = false') 
         .andWhere('match.date BETWEEN :start AND :end', {
           start: windowStart,
           end: windowEnd,
@@ -44,7 +74,7 @@ export class MatchSyncService {
         .getMany();
 
       this.logger.log(
-        `📊 Found ${matches.length} active match(es) to update.`,
+        `📊 Found ${matches.length} active match(es) to update from API.`,
       );
 
       if (matches.length === 0) {

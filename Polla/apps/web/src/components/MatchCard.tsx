@@ -395,8 +395,28 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 return groupName.length > 4 ? groupName : `GRUPO ${groupName}`;
               })()}
             </div>
-            <div style={{ color: isLive ? '#FF1744' : '#94A3B8', fontWeight: isLive ? 'bold' : 'normal' }}>
-              {isLive ? `🔴 EN VIVO ${match.minute || '0'}'` : timeDisplay}
+            <div style={{ 
+              color: isLive ? '#F59E0B' : '#94A3B8', 
+              fontWeight: isLive ? 'bold' : 'normal',
+              backgroundColor: isLive ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
+              padding: isLive ? '4px 8px' : '0',
+              borderRadius: '6px',
+              border: isLive ? '1px solid rgba(245, 158, 11, 0.4)' : 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: isLive ? '11px' : '10px',
+              textTransform: 'uppercase',
+              boxShadow: isLive ? '0 0 10px rgba(245, 158, 11, 0.2)' : 'none'
+            }}>
+              {isLive && match.minute !== 'HT' && <span style={{ color: '#F59E0B', fontSize: '8px' }} className="animate-pulse">●</span>}
+              {(() => {
+                  if (isLive) {
+                      if (match.minute === 'HT' || match.minute === 'ET') return '⏸ ENTRETIEMPO';
+                      return `EN VIVO ${match.minute ? match.minute + "'" : ""}`;
+                  }
+                  return formatMatchDate(match.date);
+              })()}
             </div>
             {stadium && stadium !== 'Estadio TBD' && (
                 <div style={{ color: '#64748B', fontSize: '9px', marginTop: '2px' }}>

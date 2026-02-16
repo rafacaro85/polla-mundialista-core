@@ -91,6 +91,8 @@ export class MatchesController {
       bracketId?: number;
       nextMatchId?: string;
       isManuallyLocked?: boolean;
+      isTimerActive?: boolean;
+      minute?: string | null;
     },
   ) {
     return this.matchesService.updateMatch(id, body);

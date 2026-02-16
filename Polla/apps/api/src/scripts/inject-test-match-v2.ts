@@ -38,6 +38,12 @@ class Match {
 
   @Column({ default: 'PENDING' })
   status: string;
+
+  @Column({ type: 'int', nullable: true })
+  homeScore: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  awayScore: number | null;
 }
 
 const AppDataSource = process.env.DATABASE_URL

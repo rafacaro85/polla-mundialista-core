@@ -29,6 +29,14 @@ const TOURNAMENT_THEMES: Record<string, {
         icon: <Star size={24} color="#3B82F6" />, // Star for Champions
         textColor: '#3B82F6',
         accentColor: '#3B82F6'
+    },
+    'TEST_LIVE_MONDAY': {
+        name: 'Pruebas en Vivo',
+        bgColor: '#1a1405', // Dark Amber
+        borderColor: '#F59E0B', 
+        icon: <Shield size={24} color="#F59E0B" />,
+        textColor: '#F59E0B',
+        accentColor: '#F59E0B'
     }
 };
 
@@ -172,6 +180,7 @@ export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
                     >
                         <option value="WC2026">🏆 Mundial</option>
                         <option value="UCL2526">⭐ Champions</option>
+                        <option value="TEST_LIVE_MONDAY">🧪 Pruebas en Vivo</option>
                     </select>
                 </div>
             </div>

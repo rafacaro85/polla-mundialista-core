@@ -33,7 +33,7 @@ export default function TournamentHub() {
           Elige en qué competencia deseas participar ahora.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Card 1: Mundial 2026 (Main App) */}
           <a
             href={`${MAIN_APP_URL}/dashboard?tournament=WC2026`}
@@ -75,24 +75,6 @@ export default function TournamentHub() {
             </p>
             <span className="inline-block px-6 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors">
               Probar Beta
-            </span>
-          </a>
-
-          {/* Card 3: TEST_LIVE_MONDAY (Admin Only) */}
-          <a
-            href={`${MAIN_APP_URL}/dashboard?tournament=TEST_LIVE_MONDAY`}
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-900 to-slate-900 border border-orange-800 hover:border-orange-400 transition-all duration-300 p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl hover:shadow-orange-900/20"
-          >
-            <div className="absolute inset-0 bg-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Beaker className="h-32 w-32 text-orange-400 drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]" />
-            </div>
-            <h2 className="text-xl font-bold mb-2 text-white uppercase tracking-wider">⚙️ System Config</h2>
-            <p className="text-sm text-slate-400 mb-6">
-              Admin Only. Torneo de prueba para testing de sincronización en vivo.
-            </p>
-            <span className="inline-block px-6 py-2 rounded-full bg-orange-600 hover:bg-orange-500 text-white font-semibold transition-colors">
-              Acceder
             </span>
           </a>
         </div>

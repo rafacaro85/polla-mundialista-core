@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export type TournamentId = 'WC2026' | 'UCL2526';
+export type TournamentId = 'WC2026' | 'UCL2526' | string;
 
 export const useTournament = () => {
   const searchParams = useSearchParams();
@@ -13,13 +13,13 @@ export const useTournament = () => {
     // 1. URL Params
     const urlParams = new URL(window.location.href).searchParams;
     const queryTournament = urlParams.get('tournament') || urlParams.get('tournamentId');
-    if (queryTournament && (queryTournament === 'WC2026' || queryTournament === 'UCL2526')) {
+    if (queryTournament) {
       return queryTournament as TournamentId;
     }
 
     // 2. LocalStorage
     const stored = localStorage.getItem('selectedTournament');
-    if (stored && (stored === 'WC2026' || stored === 'UCL2526')) {
+    if (stored) {
       return stored as TournamentId;
     }
 
@@ -40,7 +40,7 @@ export const useTournament = () => {
     if (typeof window !== 'undefined') {
         const urlParams = new URL(window.location.href).searchParams;
         const query = urlParams.get('tournament') || urlParams.get('tournamentId');
-        if (query === 'WC2026' || query === 'UCL2526') {
+        if (query) {
             localStorage.setItem('selectedTournament', query);
         }
     }

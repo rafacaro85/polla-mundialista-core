@@ -29,12 +29,13 @@ export const useMatches = (predictions: any) => {
     const { tournamentId } = useTournament();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // SWR Fetcher
-    const fetcher = (url: string) => api.get(url).then(res => res.data);
+    // SWR Fetcher with explicit tournamentId param
+    const fetcher = ([url, tid]: [string, string]) => 
+        api.get(url, { params: { tournamentId: tid } }).then(res => res.data);
 
     // SWR Hooks - Scope key by tournamentId
     const { data: matchesData, mutate: mutateMatches, isLoading: isLoadingMatchesSWR } = useSWR(
-        tournamentId ? `/matches/live?t=${tournamentId}` : '/matches/live', 
+        tournamentId ? ['/matches/live', tournamentId] : null, 
         fetcher, 
         {
             refreshInterval: 60000, 

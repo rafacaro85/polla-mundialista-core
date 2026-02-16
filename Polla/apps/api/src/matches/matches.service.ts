@@ -1459,4 +1459,34 @@ export class MatchesService {
     });
   }
 
+  async fixTestMatches() {
+    const tid = 'TEST_LIVE_MONDAY';
+    
+    // 1. Update matches to have phase 'GROUP' (if missing)
+    await this.matchesRepository.update(
+        { tournamentId: tid },
+        { phase: 'GROUP' }
+    );
+
+    // 2. Ensure Phase Status exists and is unlocked
+    const phaseRepo = this.phaseStatusRepository;
+    let phaseStatus = await phaseRepo.findOne({
+        where: { tournamentId: tid, phase: 'GROUP' }
+    });
+
+    if (!phaseStatus) {
+        phaseStatus = phaseRepo.create({
+            tournamentId: tid,
+            phase: 'GROUP',
+            isUnlocked: true,
+            allMatchesCompleted: false
+        });
+        await phaseRepo.save(phaseStatus);
+    } else if (!phaseStatus.isUnlocked) {
+        phaseStatus.isUnlocked = true;
+        await phaseRepo.save(phaseStatus);
+    }
+
+    return '✅ Test matches updated to phase GROUP and phase unlocked.';
+  }
 }

@@ -480,6 +480,23 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                         </button>
                     </div>
 
+                    {tournamentId === 'TEST_LIVE_MONDAY' && (
+                         <button
+                            style={{ ...STYLES.syncBtn, backgroundColor: '#F59E0B', color: '#0F172A', marginTop: '8px' }}
+                            onClick={async () => {
+                                try {
+                                    await api.get('/matches/fix-test-matches');
+                                    toast.success('Torneo de Pruebas Inicializado');
+                                    loadMatches();
+                                } catch (e: any) {
+                                    toast.error('Error al inicializar');
+                                }
+                            }}
+                        >
+                            🧪 Inicializar Torneo Pruebas
+                        </button>
+                    )}
+
                     {/* SETUP INICIAL - Collapsible */}
                     <details style={{ width: '100%', textAlign: 'right' }}>
                         <summary style={{ 

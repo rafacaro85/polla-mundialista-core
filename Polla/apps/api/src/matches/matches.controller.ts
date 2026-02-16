@@ -159,6 +159,13 @@ export class MatchesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @Get('fix-test-matches')
+  async fixTestMatches() {
+    return this.matchesService.fixTestMatches();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post('reset-all')
   async resetAllMatches(
     @Body() body: { tournamentId?: string },

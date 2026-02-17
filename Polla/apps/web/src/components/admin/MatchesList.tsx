@@ -207,7 +207,7 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
     const [syncing, setSyncing] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [assignMatch, setAssignMatch] = useState<any>(null); // New State
-    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '', minute: '' });
+    const [formData, setFormData] = useState({ homeScore: 0, awayScore: 0, isManuallyLocked: false, status: '', minute: '', isTimerActive: false });
     const [assignForm, setAssignForm] = useState({ homeCode: '', awayCode: '' }); // New State
     // Rename Team State
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -358,14 +358,22 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
     const handleSave = async () => {
         if (!editingMatch) return;
         try {
-            await superAdminService.updateMatch(editingMatch.id, {
+            const updatePayload: any = {
                 homeScore: Number(formData.homeScore),
                 awayScore: Number(formData.awayScore),
                 isManuallyLocked: formData.isManuallyLocked,
                 status: formData.status,
-                minute: formData.minute || null,
-                isTimerActive: formData.isTimerActive // Save Timer State
-            });
+                isTimerActive: formData.isTimerActive
+            };
+
+            // 🔥 FIX: Solo enviamos el minuto si el usuario lo editó manualmente.
+            // Si es igual al valor que cargó el modal inicialmente, lo omitimos
+            // para no sobrescribir el progreso real que lleva el servidor.
+            if (formData.minute !== (editingMatch.minute || '')) {
+                updatePayload.minute = formData.minute || null;
+            }
+
+            await superAdminService.updateMatch(editingMatch.id, updatePayload);
             setEditingMatch(null);
             toast.success("Partido actualizado");
             loadMatches();

@@ -46,26 +46,16 @@ export class MatchSyncService {
           this.logger.error('Error auto-incrementing timers:', timerError);
       }
 
-      // SMART TIME-WINDOW FILTERING (API Quota Protection)
-      const now = new Date();
-      // Window: [Now - 160 minutes] to [Now + 30 minutes]
-      const windowStart = new Date(now.getTime() - 160 * 60 * 1000); 
-      const windowEnd = new Date(now.getTime() + 30 * 60 * 1000); 
-
       this.logger.log(
-        `🕒 Smart Sync (Batch Mode): Checking matches between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`,
+        `🕒 Smart Sync (Batch Mode): Checking ALL active matches (Time Window Disabled)`,
       );
 
-      // Query matches with externalId in time window
+      // Query matches with externalId that are NOT FINISHED
       const matches = await this.matchesRepository
         .createQueryBuilder('match')
         .where('match.externalId IS NOT NULL')
         .andWhere('match.status != :status', { status: 'FINISHED' })
         .andWhere('match.isTimerActive = false') 
-        .andWhere('match.date BETWEEN :start AND :end', {
-          start: windowStart,
-          end: windowEnd,
-        })
         .getMany();
 
       if (matches.length === 0) {

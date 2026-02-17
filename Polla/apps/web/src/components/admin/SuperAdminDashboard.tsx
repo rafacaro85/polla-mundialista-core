@@ -21,6 +21,7 @@ import { MatchesList } from '@/components/admin/MatchesList';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
 import { GroupStandingsOverride } from '@/components/admin/GroupStandingsOverride';
 import { CommunicationPanel } from '@/components/admin/CommunicationPanel';
+import { BroadcastTab } from '@/components/admin/BroadcastTab';
 import { TournamentHeader } from '@/components/admin/TournamentHeader';
 import { Megaphone } from 'lucide-react';
 
@@ -768,7 +769,7 @@ export default function SuperAdminDashboard() {
             }
 
             {/* I. PESTAÑA COMUNICACIÓN */}
-            {activeTab === 'communication' && <CommunicationPanel tournamentId={tournamentId} />}
+            {activeTab === 'communication' && <BroadcastTab tournamentId={tournamentId} />}
 
             {/* Image Modal for Transactions */}
             {selectedImage && (

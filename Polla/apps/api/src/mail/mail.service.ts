@@ -204,5 +204,35 @@ export class MailService {
       );
       return { success: false, error: error.message, code: error.code };
     }
+  async sendEmail(to: string, subject: string, html: string) {
+    // Intentar Resend primero si hay API KEY
+    if (process.env.RESEND_API_KEY) {
+      const result = await this.sendViaResend(to, subject, html);
+      if (result?.success) {
+        return result;
+      }
+    }
+
+    const smtpUser = process.env.SMTP_USER || process.env.SMTP_user;
+    if (!smtpUser) {
+      return {
+        success: false,
+        error: 'SMTP_USER is not set and Resend not configured.',
+      };
+    }
+
+    const mailOptions = {
+      from: `"Polla Mundialista" <${smtpUser}>`,
+      to,
+      subject,
+      html,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      return { success: true, messageId: info.messageId };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
   }
 }

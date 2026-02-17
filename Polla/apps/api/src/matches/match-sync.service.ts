@@ -20,10 +20,11 @@ export class MatchSyncService {
     private readonly tournamentService: TournamentService,
   ) {}
 
-  @Cron('*/1 * * * *') // Run every minute
+  @Cron('*/5 * * * *') // Run every 5 minutes
   async syncLiveMatches() {
     try {
-      // 0. AUTO-INCREMENT MANUAL TIMERS (Runs every minute)
+      // 0. AUTO-INCREMENT MANUAL TIMERS (Runs every 5 minutes now, but we logic expects 1 min?)
+      // Wait, if cron is every 5 minutes, we should increment by 5.
       try {
         const activeTimerMatches = await this.matchesRepository.find({
             where: { status: 'LIVE', isTimerActive: true }
@@ -32,15 +33,11 @@ export class MatchSyncService {
         if (activeTimerMatches.length > 0) {
             this.logger.log(`⏱️  Auto-incrementing timer for ${activeTimerMatches.length} matches...`);
             for (const m of activeTimerMatches) {
-                // If minute is a number, increment it
                 if (m.minute && !isNaN(Number(m.minute))) {
-                    const nextMin = Number(m.minute) + 1;
-                    // Stop at 45 (Wait for HT) or 90+ (don't auto increment past 90 usually, but let's allow it for now or stop at 90?)
-                    // Let's just increment. The user can stop it manually.
+                    const nextMin = Number(m.minute) + 5; // Increment by 5 because Cron is 5 min
                     await this.matchesRepository.update(m.id, { minute: nextMin.toString() });
                     this.logger.log(`   -> Match ${m.homeTeam} vs ${m.awayTeam}: ${m.minute}' -> ${nextMin}'`);
                 } else if (!m.minute) {
-                     // Start at 1 if empty
                      await this.matchesRepository.update(m.id, { minute: '1' });
                 }
             }
@@ -51,11 +48,12 @@ export class MatchSyncService {
 
       // SMART TIME-WINDOW FILTERING (API Quota Protection)
       const now = new Date();
-      const windowStart = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 hours ago
-      const windowEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours from now
+      // Window: [Now - 160 minutes] to [Now + 30 minutes]
+      const windowStart = new Date(now.getTime() - 160 * 60 * 1000); 
+      const windowEnd = new Date(now.getTime() + 30 * 60 * 1000); 
 
       this.logger.log(
-        `🕒 Smart Sync: Checking matches between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`,
+        `🕒 Smart Sync (Batch Mode): Checking matches between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`,
       );
 
       // Query matches with externalId in time window
@@ -63,9 +61,6 @@ export class MatchSyncService {
         .createQueryBuilder('match')
         .where('match.externalId IS NOT NULL')
         .andWhere('match.status != :status', { status: 'FINISHED' })
-        // Exclude manual timer matches from API sync to avoid overwriting?
-        // Actually, if isTimerActive is true, we probably shouldn't overwrite with API data unless we want to mixed mode.
-        // For safety, let's exclude them from API sync if timer is active.
         .andWhere('match.isTimerActive = false') 
         .andWhere('match.date BETWEEN :start AND :end', {
           start: windowStart,
@@ -73,65 +68,45 @@ export class MatchSyncService {
         })
         .getMany();
 
-      this.logger.log(
-        `📊 Found ${matches.length} active match(es) to update from API.`,
-      );
-
       if (matches.length === 0) {
+        this.logger.log('📊 No active matches in window. Skipping API call.');
         return;
       }
 
-      let updatedCount = 0;
-      for (const match of matches) {
-        this.logger.log(
-          `🔎 Checking Match: ${match.homeTeam} vs ${match.awayTeam} (External ID: ${match.externalId})`,
+      // BATCH ID STRATEGY: Reduce API calls by grouping IDs
+      const externalIds = matches.map(m => m.externalId).join('-');
+      
+      this.logger.log(
+        `📡 Requesting BATCH Update for matches: ${externalIds}`,
+      );
+
+      try {
+        const { data } = await firstValueFrom(
+          this.httpService.get('/fixtures', {
+            params: { ids: externalIds },
+          }),
         );
 
-        try {
-          // Query specific fixture by ID
-          const { data } = await firstValueFrom(
-            this.httpService.get('/fixtures', {
-              params: { id: match.externalId },
-            }),
-          );
-
-          const fixtures = data.response;
-          if (!fixtures || fixtures.length === 0) {
-            this.logger.warn(
-              `⚠️  Match not found in API (ID: ${match.externalId})`,
-            );
-            continue;
-          }
-
-          const fixture = fixtures[0];
-          this.logger.log(
-            `📡 API Response: Status=[${fixture.fixture.status.short}], Score=[${fixture.goals.home}-${fixture.goals.away}], Minute=[${fixture.fixture.status.elapsed || 'N/A'}']`,
-          );
-
-          const wasUpdated = await this.processFixtureData(fixture);
-          if (wasUpdated) {
-            updatedCount++;
-            this.logger.log(
-              `✅ Updated: ${match.homeTeam} vs ${match.awayTeam}`,
-            );
-          } else {
-            this.logger.log(`ℹ️  No changes needed for match ${match.id}`);
-          }
-        } catch (error) {
-          this.logger.error(
-            `❌ Error fetching fixture ${match.externalId}:`,
-            error.message,
-          );
+        const fixtures = data.response;
+        if (!fixtures || fixtures.length === 0) {
+          this.logger.warn(`⚠️  No fixtures returned from API for IDs: ${externalIds}`);
+          return;
         }
-      }
 
-      if (updatedCount > 0) {
-        this.logger.log(
-          `🎉 Sincronización completada. ${updatedCount} partido(s) actualizado(s).`,
-        );
+        let updatedCount = 0;
+        for (const fixture of fixtures) {
+          const wasUpdated = await this.processFixtureData(fixture);
+          if (wasUpdated) updatedCount++;
+        }
+
+        if (updatedCount > 0) {
+          this.logger.log(`🎉 Batch Sync completed. ${updatedCount} matches updated.`);
+        }
+      } catch (error) {
+        this.logger.error(`❌ Error in Batch API Request:`, error.message);
       }
     } catch (error) {
-      this.logger.error('💥 Error sincronizando partidos', error);
+      this.logger.error('💥 General Sync Error', error);
     }
   }
 

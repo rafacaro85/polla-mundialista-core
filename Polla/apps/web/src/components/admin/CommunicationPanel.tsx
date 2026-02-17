@@ -69,19 +69,6 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-500/10 rounded-xl">
-                    <Megaphone className="w-8 h-8 text-blue-500" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-russo">
-                        Centro de Comunicaciones
-                        {selectedTournament && <span className="text-emerald-500 text-lg ml-2">({selectedTournament === 'WC2026' ? 'Mundial' : 'Champions'})</span>}
-                    </h1>
-                    <p className="text-slate-400">Envía notificaciones a los usuarios del torneo <strong>{selectedTournament === 'WC2026' ? 'Mundial 2026' : selectedTournament}</strong></p>
-                </div>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* FORMULARIO */}
                 <Card className="bg-slate-900 border-slate-800">

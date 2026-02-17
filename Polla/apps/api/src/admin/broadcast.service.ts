@@ -17,30 +17,79 @@ export class BroadcastService {
     private readonly mailService: MailService,
   ) {}
 
-  async broadcastEmail(subject: string, message: string, target: 'ALL' | 'NO_PREDICTION') {
+  async broadcastEmail(
+    subject: string,
+    message: string,
+    target: 'ALL' | 'NO_PREDICTION' | 'NO_BRACKET' | 'FREE_BRACKET' | 'PAID_BRACKET',
+    tournamentId: string = 'UCL2526'
+  ) {
     let users: User[] = [];
 
-    if (target === 'ALL') {
-      users = await this.userRepository.find({
-        where: { isVerified: true },
-      });
-    } else if (target === 'NO_PREDICTION') {
-      // Find users who have NOT made any prediction for UCL2526
-      // Subquery to find users with predictions
-      const usersWithPredictions = await this.predictionRepository
-        .createQueryBuilder('p')
-        .select('DISTINCT p."userId"', 'userId')
-        .where('p.tournamentId = :tournamentId', { tournamentId: 'UCL2526' })
-        .getRawMany();
-      
-      const excludedUserIds = usersWithPredictions.map(r => r.userId);
+    const query = this.userRepository.createQueryBuilder('u')
+      .where('u.isVerified = true');
 
-      const query = this.userRepository.createQueryBuilder('u')
-        .where('u.isVerified = true');
+    if (target === 'ALL') {
+      users = await query.getMany();
+    } else if (target === 'NO_PREDICTION') {
+      // Users with no predictions for this tournament
+      query.andWhere(qb => {
+        const subQuery = qb.subQuery()
+          .select('p.userId')
+          .from(Prediction, 'p')
+          .where('p.tournamentId = :tournamentId')
+          .getQuery();
+        return 'u.id NOT IN ' + subQuery;
+      }).setParameter('tournamentId', tournamentId);
       
-      if (excludedUserIds.length > 0) {
-        query.andWhere('u.id NOT IN (:...ids)', { ids: excludedUserIds });
-      }
+      users = await query.getMany();
+    } else if (target === 'NO_BRACKET') {
+      // Users who NOT participate in any league for this tournament
+      query.andWhere(qb => {
+        const subQuery = qb.subQuery()
+          .select('lp.userId')
+          .from('league_participants', 'lp')
+          .innerJoin('leagues', 'l', 'lp.leagueId = l.id')
+          .where('l.tournamentId = :tournamentId')
+          .getQuery();
+        return 'u.id NOT IN ' + subQuery;
+      }).setParameter('tournamentId', tournamentId);
+
+      users = await query.getMany();
+    } else if (target === 'PAID_BRACKET') {
+      // Users in at least one paid league for this tournament
+      query.andWhere(qb => {
+        const subQuery = qb.subQuery()
+          .select('lp.userId')
+          .from('league_participants', 'lp')
+          .innerJoin('leagues', 'l', 'lp.leagueId = l.id')
+          .where('l.tournamentId = :tournamentId')
+          .andWhere('l.isPaid = true')
+          .getQuery();
+        return 'u.id IN ' + subQuery;
+      }).setParameter('tournamentId', tournamentId);
+
+      users = await query.getMany();
+    } else if (target === 'FREE_BRACKET') {
+      // Users in at least one free league AND NOT in any paid league for this tournament
+      query.andWhere(qb => {
+        const subQueryFree = qb.subQuery()
+          .select('lp.userId')
+          .from('league_participants', 'lp')
+          .innerJoin('leagues', 'l', 'lp.leagueId = l.id')
+          .where('l.tournamentId = :tournamentId')
+          .andWhere('l.isPaid = false')
+          .getQuery();
+        return 'u.id IN ' + subQueryFree;
+      }).andWhere(qb => {
+        const subQueryPaid = qb.subQuery()
+          .select('lp.userId')
+          .from('league_participants', 'lp')
+          .innerJoin('leagues', 'l', 'lp.leagueId = l.id')
+          .where('l.tournamentId = :tournamentId')
+          .andWhere('l.isPaid = true')
+          .getQuery();
+        return 'u.id NOT IN ' + subQueryPaid;
+      }).setParameter('tournamentId', tournamentId);
 
       users = await query.getMany();
     }

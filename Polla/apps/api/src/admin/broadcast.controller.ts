@@ -13,13 +13,22 @@ export class BroadcastController {
   constructor(private readonly broadcastService: BroadcastService) {}
 
   @Post()
-  async sendBroadcast(@Body() body: { subject: string; message: string; target: 'ALL' | 'NO_PREDICTION' }) {
-    this.logger.log(`📥 Received broadcast request: ${body.subject} (Target: ${body.target})`);
+  async sendBroadcast(
+    @Body() body: { 
+      subject: string; 
+      message: string; 
+      target: 'ALL' | 'NO_PREDICTION' | 'NO_BRACKET' | 'FREE_BRACKET' | 'PAID_BRACKET';
+      tournamentId?: string;
+    }
+  ) {
+    this.logger.log(`📥 Received broadcast request: ${body.subject} (Target: ${body.target}, Tournament: ${body.tournamentId})`);
     
-    // Fire and forget or wait?
-    // Since it can take time, maybe return "in progress"
-    // But let's wait for now to give feedback to admin
-    const results = await this.broadcastService.broadcastEmail(body.subject, body.message, body.target);
+    const results = await this.broadcastService.broadcastEmail(
+      body.subject, 
+      body.message, 
+      body.target,
+      body.tournamentId || 'UCL2526'
+    );
     
     return {
       success: true,

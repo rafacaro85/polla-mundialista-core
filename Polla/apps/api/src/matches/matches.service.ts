@@ -1462,10 +1462,18 @@ export class MatchesService {
   async fixTestMatches() {
     const tid = 'TEST_LIVE_MONDAY';
     
-    // 1. Update matches to have phase 'GROUP' (if missing)
+    // 1. Update matches to have phase 'GROUP' and set time to Today 9:30 PM (Colombia Time)
+    // 9:30 PM Colombia (GMT-5) = 02:30 AM UTC Next Day
+    const targetDate = new Date('2026-02-17T02:30:00Z');
+
     await this.matchesRepository.update(
         { tournamentId: tid },
-        { phase: 'GROUP' }
+        { 
+            phase: 'GROUP',
+            date: targetDate,
+            status: 'SCHEDULED', // Ensure they are open
+            isManuallyLocked: false
+        }
     );
 
     // 2. Ensure Phase Status exists and is unlocked
@@ -1487,6 +1495,6 @@ export class MatchesService {
         await phaseRepo.save(phaseStatus);
     }
 
-    return '✅ Test matches updated to phase GROUP and phase unlocked.';
+    return '✅ Test matches updated: 9:30 PM & Phase Unlocked.';
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm'; // Added IsNull
+import { Repository, Not, IsNull } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { TournamentService } from '../tournament/tournament.service';
@@ -20,134 +20,120 @@ export class MatchSyncService {
     private configService: ConfigService,
   ) {}
 
-  // 🕒 CRON: Ejecutar cada 5 minutos
+  // 🕒 CRON: Run every 5 minutes
   @Cron('*/5 * * * *')
   async syncLiveMatches() {
-    this.logger.log('🔄 Running URGENT SYNC (Individual Loop / Time Window Disabled)');
+    this.logger.log('🔄 Running URGENT SYNC (Target: API-SPORTS Direct / Throttled Loop)');
 
     try {
-      // 1. Buscar TODOS los partidos activos que tengan ID externo
-      // Sin filtro de fecha para evitar problemas de zona horaria
+      // 1. Find ALL active matches with an external ID (No Time Window check)
       const activeMatches = await this.matchesRepository.find({
         where: {
           status: Not('FINISHED'),
-          externalId: Not(IsNull()) // Correct usage of IsNull
+          externalId: Not(IsNull())
         }
       });
 
       if (activeMatches.length === 0) {
-        this.logger.log('💤 No hay partidos activos para sincronizar.');
+        this.logger.log('💤 No active matches to sync.');
         return;
       }
 
-      this.logger.log(`🎯 Encontrados ${activeMatches.length} partidos para actualizar.`);
+      this.logger.log(`🎯 Found ${activeMatches.length} matches to update.`);
 
-      // 2. Bucle INDIVIDUAL (Evita Error 403 de la API por Batch)
+      // 2. Individual Loop with PAUSE (Prevents 429 & 403)
       for (const match of activeMatches) {
         if (!match.externalId) continue;
 
         try {
           this.logger.log(`🔄 Syncing Match ID: ${match.externalId} (${match.homeTeam} vs ${match.awayTeam})...`);
 
+          // USE DIRECT API KEY (Fallback to RAPIDAPI_KEY env var if needed)
+          const apiKey = this.configService.get<string>('RAPIDAPI_KEY') || this.configService.get<string>('API_KEY');
+
           const options = {
             method: 'GET',
-            url: 'https://api-football-v1.p.rapidapi.com/v3/fixtures',
-            params: { id: match.externalId }, // Llamada individual
+            url: 'https://v3.football.api-sports.io/fixtures', // DIRECT ENDPOINT
+            params: { id: match.externalId },
             headers: {
-              'x-rapidapi-key': this.configService.get<string>('RAPIDAPI_KEY'),
-              'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+              'x-apisports-key': apiKey, // DIRECT HEADER
             },
           };
 
           const response = await axios.request(options);
           
           if (response.data.response && response.data.response.length > 0) {
-            // Procesamos la respuesta
             await this.processFixtureData(response.data.response[0]);
+          } else {
+             if (response.data.errors) {
+                 this.logger.warn(`⚠️ API Warning for match ${match.externalId}: ${JSON.stringify(response.data.errors)}`);
+             }
           }
 
         } catch (innerError) {
           this.logger.error(`❌ Error syncing match ${match.externalId}: ${innerError.message}`);
-          // Continuamos con el siguiente aunque este falle
         }
+
+        // 🛑 THROTTLE: Wait 2 seconds between calls
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
     } catch (error) {
-      this.logger.error('❌ Error CRÍTICO en syncLiveMatches:', error);
+      this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);
     }
   }
 
-  // 🛠️ FUNCIÓN AUXILIAR: Procesa los datos de UN partido
-  // Esta función debe estar DENTRO de la clase, antes de la última llave }
+  // 🛠️ HELPER: Process Single Fixture
   async processFixtureData(fixture: any): Promise<boolean> {
     try {
       const externalId = fixture.fixture.id;
-      const statusShort = fixture.fixture.status.short; // '1H', 'HT', 'FT', etc.
+      const statusShort = fixture.fixture.status.short;
       const homeScore = fixture.goals.home;
       const awayScore = fixture.goals.away;
+      const elapsed = fixture.fixture.status.elapsed;
 
-      // Buscar el partido en DB
-      // Convertimos a number por seguridad y tipo correcto
       const match = await this.matchesRepository.findOne({
         where: { externalId: Number(externalId) }, 
       });
 
       if (!match) return false;
 
-      // Si está bloqueado manualmente, no tocar
-      if (match.isManuallyLocked) {
-        this.logger.log(`🔒 Partido ${match.id} bloqueado manualmente. Saltando.`);
-        return false;
-      }
+      if (match.isManuallyLocked) return false;
 
-      // Detectar cambios
       const hasChanged =
         match.homeScore !== homeScore ||
         match.awayScore !== awayScore ||
         match.status !== 'FINISHED'; 
 
       if (hasChanged) {
-        // Actualizar Nombres (solo si están vacíos para no borrar ediciones manuales)
         if (!match.homeTeam) match.homeTeam = fixture.teams.home.name;
         if (!match.awayTeam) match.awayTeam = fixture.teams.away.name;
         
-        // Actualizar Marcador
         match.homeScore = homeScore;
         match.awayScore = awayScore;
 
-        // Actualizar Minuto
-        if (fixture.fixture.status.elapsed !== null) {
-          match.minute = fixture.fixture.status.elapsed;
-        }
+        if (elapsed !== null) match.minute = elapsed;
 
-        // --- LÓGICA DE ESTADOS ---
-
-        // CASO 1: FINALIZADO
+        // STATUS LOGIC
         if (['FT', 'AET', 'PEN'].includes(statusShort)) {
           if (match.status !== 'FINISHED') {
             match.status = 'FINISHED';
-            await this.matchesRepository.save(match); // Guardar estado antes de calcular
+            await this.matchesRepository.save(match);
             
-            this.logger.log(`🏁 Partido ${match.id} FINALIZADO. Calculando puntos...`);
-            
-            // 🔥 DISPARAR CÁLCULO DE PUNTOS
+            this.logger.log(`🏁 Match ${match.id} FINISHED. Calculating points...`);
             await this.scoringService.calculatePointsForMatch(match.id);
-            
-            // AVANZAR RONDA
             await this.tournamentService.promoteToNextRound(match);
           } else {
             await this.matchesRepository.save(match);
           }
         } 
-        // CASO 2: EN VIVO
         else if (['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE', 'INT'].includes(statusShort)) {
           if (match.status !== 'LIVE') {
             match.status = 'LIVE';
-            this.logger.log(`🔴 Partido ${match.id} ahora está EN VIVO.`);
+            this.logger.log(`🔴 Match ${match.id} is now LIVE.`);
           }
           await this.matchesRepository.save(match);
         }
-        // CASO 3: OTROS (NS, SUSP, etc)
         else {
            await this.matchesRepository.save(match);
         }
@@ -155,7 +141,7 @@ export class MatchSyncService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error procesando fixture data: ${error.message}`);
+      this.logger.error(`Error processing fixture data: ${error.message}`);
       return false;
     }
   }

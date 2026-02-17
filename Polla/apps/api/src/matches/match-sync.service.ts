@@ -68,11 +68,16 @@ export class MatchSyncService {
       );
 
       // INDIVIDUAL LOOP STRATEGY: Revert to single calls to avoid 403 Batch Error
+      this.logger.log(
+        `📡 Requesting INDIVIDUAL Update for ${matches.length} matches...`,
+      );
+
+      // INDIVIDUAL LOOP STRATEGY: Revert to single calls to avoid 403 Batch Error
       let updatedCount = 0;
       
       for (const match of matches) {
         try {
-            this.logger.log(`� Syncing Match ID: ${match.externalId} ...`);
+            this.logger.log(`🔄 Syncing Match ID: ${match.externalId} ...`);
             
             const { data } = await firstValueFrom(
                 this.httpService.get('/fixtures', {
@@ -94,7 +99,7 @@ export class MatchSyncService {
         this.logger.log(`🎉 Sync completed. ${updatedCount} matches updated.`);
       }
       } catch (error) {
-        this.logger.error(`❌ Error in Batch API Request:`, error.message);
+        this.logger.error('Error in Sync Loop:', error);
       }
     } catch (error) {
       this.logger.error('💥 General Sync Error', error);

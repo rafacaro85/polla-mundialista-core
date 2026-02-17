@@ -1463,8 +1463,8 @@ export class MatchesService {
     const tid = 'TEST_LIVE_MONDAY';
     
     // 1. Update matches to have phase 'GROUP' and set time to Today 9:30 PM (Colombia Time)
-    // 9:30 PM Colombia (GMT-5) = 02:30 AM UTC Next Day
-    const targetDate = new Date('2026-02-17T02:30:00Z');
+    // 9:45 PM Colombia (GMT-5) = 02:45 AM UTC Next Day
+    const targetDate = new Date('2026-02-17T02:45:00Z');
 
     await this.matchesRepository.update(
         { tournamentId: tid },

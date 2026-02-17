@@ -204,6 +204,8 @@ export class MailService {
       );
       return { success: false, error: error.message, code: error.code };
     }
+  }
+
   async sendEmail(to: string, subject: string, html: string) {
     // Intentar Resend primero si hay API KEY
     if (process.env.RESEND_API_KEY) {

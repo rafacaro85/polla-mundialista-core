@@ -67,11 +67,11 @@ export function Header({ userName, leagueName }: HeaderProps) {
                   />
                   <div className="flex flex-col">
                     <h1 className="font-russo text-base leading-none tracking-wide text-white">
-                      POLLA <br /> 
-                      MUNDIALISTA
+                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'PRUEBAS' : 'POLLA'} <br /> 
+                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'EN VIVO' : 'MUNDIALISTA'}
                     </h1>
-                    <span className="text-slate-400 text-[8px] font-bold tracking-widest mt-1">
-                      FIFA WORLD CUP 2026
+                    <span className={`${tournamentId === 'TEST_LIVE_MONDAY' ? 'text-amber-500' : 'text-slate-400'} text-[8px] font-bold tracking-widest mt-1`}>
+                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'AMBIENTE DE PRUEBAS' : 'FIFA WORLD CUP 2026'}
                     </span>
                   </div>
                 </div>

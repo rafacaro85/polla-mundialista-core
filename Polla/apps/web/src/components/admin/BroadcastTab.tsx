@@ -61,38 +61,38 @@ export function BroadcastTab({ tournamentId }: { tournamentId?: string }) {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Section */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                        <Megaphone className="w-8 h-8 text-emerald-500" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shrink-0">
+                        <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-russo text-white uppercase tracking-wider">Centro de Difusión</h1>
-                        <p className="text-slate-400 text-sm">Gestiona comunicaciones del torneo <strong className="text-emerald-500">{tournamentName}</strong>.</p>
+                        <h1 className="text-xl sm:text-2xl font-russo text-white uppercase tracking-wider">Centro de Difusión</h1>
+                        <p className="text-slate-400 text-xs sm:text-sm">Gestiona comunicaciones del torneo <strong className="text-emerald-500">{tournamentName}</strong>.</p>
                     </div>
                 </div>
 
                 {/* Sub-Tabs Navigation */}
-                <div className="flex bg-[#0F172A] border border-slate-800 p-1 rounded-lg">
+                <div className="flex w-full sm:w-auto bg-[#0F172A] border border-slate-800 p-1 rounded-lg">
                     <button
                         onClick={() => setActiveSubTab('internal')}
-                        className={`px-4 py-2 rounded-md text-xs font-black uppercase transition-all flex items-center gap-2 ${
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
                             activeSubTab === 'internal'
                                 ? 'bg-blue-600 text-white shadow-lg'
                                 : 'text-slate-500 hover:text-slate-300'
                         }`}
                     >
-                        <Bell size={14} /> Notificaciones
+                        <Bell size={14} /> <span className="whitespace-nowrap">Notificaciones</span>
                     </button>
                     <button
                         onClick={() => setActiveSubTab('external')}
-                        className={`px-4 py-2 rounded-md text-xs font-black uppercase transition-all flex items-center gap-2 ${
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
                             activeSubTab === 'external'
                                 ? 'bg-emerald-600 text-slate-900 shadow-lg'
                                 : 'text-slate-500 hover:text-slate-300'
                         }`}
                     >
-                        <Mail size={14} /> Email / WhatsApp
+                        <Mail size={14} /> <span className="whitespace-nowrap">Email / WhatsApp</span>
                     </button>
                 </div>
             </div>

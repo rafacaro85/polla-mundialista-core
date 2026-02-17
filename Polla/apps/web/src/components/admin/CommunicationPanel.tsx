@@ -101,11 +101,11 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Audiencia</Label>
+                                <Label className="text-slate-300 text-xs sm:text-sm">Audiencia</Label>
                                 <Select value={audience} onValueChange={(val: any) => setAudience(val)}>
-                                    <SelectTrigger className="bg-slate-950 border-slate-800 text-white">
+                                    <SelectTrigger className="bg-slate-950 border-slate-800 text-white text-xs sm:text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-slate-900 border-slate-800 text-white">
@@ -120,9 +120,9 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
 
                             {audience === 'TOURNAMENT' && (
                                 <div className="space-y-2 animate-in fade-in zoom-in duration-300">
-                                    <Label className="text-slate-300">Seleccionar Torneo</Label>
+                                    <Label className="text-slate-300 text-xs sm:text-sm">Seleccionar Torneo</Label>
                                     <Select value={selectedTournament} onValueChange={(val: any) => setSelectedTournament(val)}>
-                                        <SelectTrigger className="bg-slate-950 border-blue-500 text-white">
+                                        <SelectTrigger className="bg-slate-950 border-blue-500 text-white text-xs sm:text-sm">
                                             <SelectValue placeholder="Elegir Torneo" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-slate-900 border-slate-800 text-white">
@@ -134,9 +134,9 @@ export function CommunicationPanel({ tournamentId }: { tournamentId?: string }) 
                             )}
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Tipo de Alerta</Label>
+                                <Label className="text-slate-300 text-xs sm:text-sm">Tipo de Alerta</Label>
                                 <Select value={type} onValueChange={(val: any) => setType(val)}>
-                                    <SelectTrigger className="bg-slate-950 border-slate-800 text-white">
+                                    <SelectTrigger className="bg-slate-950 border-slate-800 text-white text-xs sm:text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-slate-900 border-slate-800 text-white">

@@ -63,35 +63,36 @@ export class MatchSyncService {
         return;
       }
 
-      // BATCH ID STRATEGY: Reduce API calls by grouping IDs
-      const externalIds = matches.map(m => m.externalId).join('-');
-      
       this.logger.log(
-        `📡 Requesting BATCH Update for matches: ${externalIds}`,
+        `📡 Requesting INDIVIDUAL Update for ${matches.length} matches...`,
       );
 
-      try {
-        const { data } = await firstValueFrom(
-          this.httpService.get('/fixtures', {
-            params: { ids: externalIds },
-          }),
-        );
+      // INDIVIDUAL LOOP STRATEGY: Revert to single calls to avoid 403 Batch Error
+      let updatedCount = 0;
+      
+      for (const match of matches) {
+        try {
+            this.logger.log(`� Syncing Match ID: ${match.externalId} ...`);
+            
+            const { data } = await firstValueFrom(
+                this.httpService.get('/fixtures', {
+                    params: { id: match.externalId }, // Single ID
+                }),
+            );
 
-        const fixtures = data.response;
-        if (!fixtures || fixtures.length === 0) {
-          this.logger.warn(`⚠️  No fixtures returned from API for IDs: ${externalIds}`);
-          return;
+            const fixtures = data.response;
+            if (fixtures && fixtures.length > 0) {
+                const wasUpdated = await this.processFixtureData(fixtures[0]);
+                if (wasUpdated) updatedCount++;
+            }
+        } catch (innerError) {
+            this.logger.error(`❌ Error syncing match ${match.externalId}:`, innerError.message);
         }
+      }
 
-        let updatedCount = 0;
-        for (const fixture of fixtures) {
-          const wasUpdated = await this.processFixtureData(fixture);
-          if (wasUpdated) updatedCount++;
-        }
-
-        if (updatedCount > 0) {
-          this.logger.log(`🎉 Batch Sync completed. ${updatedCount} matches updated.`);
-        }
+      if (updatedCount > 0) {
+        this.logger.log(`🎉 Sync completed. ${updatedCount} matches updated.`);
+      }
       } catch (error) {
         this.logger.error(`❌ Error in Batch API Request:`, error.message);
       }

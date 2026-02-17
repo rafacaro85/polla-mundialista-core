@@ -1,207 +1,161 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { TournamentService } from '../tournament/tournament.service';
-import { firstValueFrom } from 'rxjs';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MatchSyncService {
   private readonly logger = new Logger(MatchSyncService.name);
 
   constructor(
-    private readonly httpService: HttpService,
     @InjectRepository(Match)
-    private readonly matchesRepository: Repository<Match>,
-    private readonly scoringService: ScoringService,
-    private readonly tournamentService: TournamentService,
+    private matchesRepository: Repository<Match>,
+    private scoringService: ScoringService,
+    private tournamentService: TournamentService,
+    private configService: ConfigService,
   ) {}
 
-  @Cron('*/5 * * * *') // Run every 5 minutes
+  // 🕒 CRON: Ejecutar cada 5 minutos
+  @Cron('*/5 * * * *')
   async syncLiveMatches() {
+    this.logger.log('🔄 Running URGENT SYNC (Individual Loop / Time Window Disabled)');
+
     try {
-      // 0. AUTO-INCREMENT MANUAL TIMERS (Runs every 5 minutes now, but we logic expects 1 min?)
-      // Wait, if cron is every 5 minutes, we should increment by 5.
-      try {
-        const activeTimerMatches = await this.matchesRepository.find({
-            where: { status: 'LIVE', isTimerActive: true }
-        });
-        
-        if (activeTimerMatches.length > 0) {
-            this.logger.log(`⏱️  Auto-incrementing timer for ${activeTimerMatches.length} matches...`);
-            for (const m of activeTimerMatches) {
-                if (m.minute && !isNaN(Number(m.minute))) {
-                    const nextMin = Number(m.minute) + 5; // Increment by 5 because Cron is 5 min
-                    await this.matchesRepository.update(m.id, { minute: nextMin.toString() });
-                    this.logger.log(`   -> Match ${m.homeTeam} vs ${m.awayTeam}: ${m.minute}' -> ${nextMin}'`);
-                } else if (!m.minute) {
-                     await this.matchesRepository.update(m.id, { minute: '1' });
-                }
-            }
+      // 1. Buscar TODOS los partidos activos que tengan ID externo
+      // Sin filtro de fecha para evitar problemas de zona horaria
+      const activeMatches = await this.matchesRepository.find({
+        where: {
+          status: Not('FINISHED'),
+          externalId: Not(null) // Debe tener ID de API
         }
-      } catch (timerError) {
-          this.logger.error('Error auto-incrementing timers:', timerError);
-      }
+      });
 
-      this.logger.log(
-        `🕒 Smart Sync (Batch Mode): Checking ALL active matches (Time Window Disabled)`,
-      );
-
-      // Query matches with externalId that are NOT FINISHED
-      const matches = await this.matchesRepository
-        .createQueryBuilder('match')
-        .where('match.externalId IS NOT NULL')
-        .andWhere('match.status != :status', { status: 'FINISHED' })
-        .andWhere('match.isTimerActive = false') 
-        .getMany();
-
-      if (matches.length === 0) {
-        this.logger.log('📊 No active matches in window. Skipping API call.');
+      if (activeMatches.length === 0) {
+        this.logger.log('� No hay partidos activos para sincronizar.');
         return;
       }
 
-      this.logger.log(
-        `📡 Requesting INDIVIDUAL Update for ${matches.length} matches...`,
-      );
+      this.logger.log(`🎯 Encontrados ${activeMatches.length} partidos para actualizar.`);
 
-      // INDIVIDUAL LOOP STRATEGY: Revert to single calls to avoid 403 Batch Error
-      this.logger.log(
-        `📡 Requesting INDIVIDUAL Update for ${matches.length} matches...`,
-      );
+      // 2. Bucle INDIVIDUAL (Evita Error 403 de la API por Batch)
+      for (const match of activeMatches) {
+        if (!match.externalId) continue;
 
-      // INDIVIDUAL LOOP STRATEGY: Revert to single calls to avoid 403 Batch Error
-      let updatedCount = 0;
-      
-      for (const match of matches) {
         try {
-            this.logger.log(`🔄 Syncing Match ID: ${match.externalId} ...`);
-            
-            const { data } = await firstValueFrom(
-                this.httpService.get('/fixtures', {
-                    params: { id: match.externalId }, // Single ID
-                }),
-            );
+          this.logger.log(`🔄 Syncing Match ID: ${match.externalId} (${match.homeTeam} vs ${match.awayTeam})...`);
 
-            const fixtures = data.response;
-            if (fixtures && fixtures.length > 0) {
-                const wasUpdated = await this.processFixtureData(fixtures[0]);
-                if (wasUpdated) updatedCount++;
-            }
+          const options = {
+            method: 'GET',
+            url: 'https://api-football-v1.p.rapidapi.com/v3/fixtures',
+            params: { id: match.externalId }, // Llamada individual
+            headers: {
+              'x-rapidapi-key': this.configService.get<string>('RAPIDAPI_KEY'),
+              'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+            },
+          };
+
+          const response = await axios.request(options);
+          
+          if (response.data.response && response.data.response.length > 0) {
+            // Procesamos la respuesta
+            await this.processFixtureData(response.data.response[0]);
+          }
+
         } catch (innerError) {
-            this.logger.error(`❌ Error syncing match ${match.externalId}:`, innerError.message);
+          this.logger.error(`❌ Error syncing match ${match.externalId}: ${innerError.message}`);
+          // Continuamos con el siguiente aunque este falle
         }
       }
 
-      if (updatedCount > 0) {
-        this.logger.log(`🎉 Sync completed. ${updatedCount} matches updated.`);
-      }
-      } catch (error) {
-        this.logger.error('Error in Sync Loop:', error);
-      }
     } catch (error) {
-      this.logger.error('💥 General Sync Error', error);
+      this.logger.error('❌ Error CRÍTICO en syncLiveMatches:', error);
     }
   }
 
-  // Método público para simulación o webhook
+  // 🛠️ FUNCIÓN AUXILIAR: Procesa los datos de UN partido
+  // Esta función debe estar DENTRO de la clase, antes de la última llave }
   async processFixtureData(fixture: any): Promise<boolean> {
     try {
       const externalId = fixture.fixture.id;
-      const statusShort = fixture.fixture.status.short;
+      const statusShort = fixture.fixture.status.short; // '1H', 'HT', 'FT', etc.
       const homeScore = fixture.goals.home;
       const awayScore = fixture.goals.away;
 
-      // Find match in our DB
+      // Buscar el partido en DB
+      // Convertimos a string por seguridad en la comparación
       const match = await this.matchesRepository.findOne({
-        where: { externalId },
+        where: { externalId: String(externalId) }, 
       });
 
-      if (!match) {
-        return false; // Match not tracked
-      }
+      if (!match) return false;
 
+      // Si está bloqueado manualmente, no tocar
       if (match.isManuallyLocked) {
-        this.logger.log(
-          `Partido ${match.id} (Ext: ${externalId}) está bloqueado manualmente. Saltando.`,
-        );
+        this.logger.log(`🔒 Partido ${match.id} bloqueado manualmente. Saltando.`);
         return false;
       }
 
-      // Detectar cambios o necesidad de restaurar nombres/banderas
-      const needsNames =
-        !match.homeTeam ||
-        !match.awayTeam ||
-        !match.homeFlag ||
-        !match.awayFlag;
+      // Detectar cambios
       const hasChanged =
         match.homeScore !== homeScore ||
         match.awayScore !== awayScore ||
-        match.status !== 'COMPLETED' ||
-        needsNames;
+        match.status !== 'FINISHED'; 
 
-      if (!hasChanged) return false;
+      if (hasChanged) {
+        // Actualizar Nombres (solo si están vacíos para no borrar ediciones manuales)
+        if (!match.homeTeam) match.homeTeam = fixture.teams.home.name;
+        if (!match.awayTeam) match.awayTeam = fixture.teams.away.name;
+        
+        // Actualizar Marcador
+        match.homeScore = homeScore;
+        match.awayScore = awayScore;
 
-      // Update teams/flags if missing
-      if (needsNames) {
-        match.homeTeam = fixture.teams.home.name;
-        match.awayTeam = fixture.teams.away.name;
-        match.homeFlag = fixture.teams.home.logo;
-        match.awayFlag = fixture.teams.away.logo;
-      }
+        // Actualizar Minuto
+        if (fixture.fixture.status.elapsed !== null) {
+          match.minute = fixture.fixture.status.elapsed;
+        }
 
-      // Update scores
-      match.homeScore = homeScore;
-      match.awayScore = awayScore;
-      
-      // Update elapsed time if available
-      if (fixture.fixture.status.elapsed !== null) {
-        match.minute = fixture.fixture.status.elapsed;
-      }
+        // --- LÓGICA DE ESTADOS ---
 
-      // COMPREHENSIVE STATUS MAPPING
-      // FT = Full Time, AET = After Extra Time, PEN = Penalties
-      if (['FT', 'AET', 'PEN'].includes(statusShort)) {
-        if (match.status !== 'FINISHED') {
-          match.status = 'FINISHED';
+        // CASO 1: FINALIZADO
+        if (['FT', 'AET', 'PEN'].includes(statusShort)) {
+          if (match.status !== 'FINISHED') {
+            match.status = 'FINISHED';
+            await this.matchesRepository.save(match); // Guardar estado antes de calcular
+            
+            this.logger.log(`🏁 Partido ${match.id} FINALIZADO. Calculando puntos...`);
+            
+            // 🔥 DISPARAR CÁLCULO DE PUNTOS
+            await this.scoringService.calculatePointsForMatch(match.id);
+            
+            // AVANZAR RONDA
+            await this.tournamentService.promoteToNextRound(match);
+          } else {
+            await this.matchesRepository.save(match);
+          }
+        } 
+        // CASO 2: EN VIVO
+        else if (['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE', 'INT'].includes(statusShort)) {
+          if (match.status !== 'LIVE') {
+            match.status = 'LIVE';
+            this.logger.log(`🔴 Partido ${match.id} ahora está EN VIVO.`);
+          }
           await this.matchesRepository.save(match);
-
-          this.logger.log(
-            `🏁 Partido ${match.id} finalizado. Calculando puntos...`,
-          );
-          await this.scoringService.calculatePointsForMatch(match.id);
-
-          // Promote winner if it's a knockout match
-          await this.tournamentService.promoteToNextRound(match);
         }
-      } else if (['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'].includes(statusShort)) {
-        // 1H = First Half, 2H = Second Half, HT = Half Time
-        // ET = Extra Time, P = Penalty Shootout, BT = Break Time
-        if (match.status !== 'LIVE') {
-          match.status = 'LIVE';
-          this.logger.log(
-            `🔴 Partido ${match.id} ahora está EN VIVO (${statusShort})`,
-          );
+        // CASO 3: OTROS (NS, SUSP, etc)
+        else {
+           await this.matchesRepository.save(match);
         }
-        await this.matchesRepository.save(match);
-      } else if (statusShort === 'NS') {
-        // NS = Not Started - keep as scheduled
-        this.logger.log(
-          `⏳ Partido ${match.id} aún no ha comenzado (${statusShort})`,
-        );
-      } else {
-        // Unknown status, save anyway but log warning
-        this.logger.warn(
-          `⚠️  Unknown status "${statusShort}" for match ${match.id}`,
-        );
-        await this.matchesRepository.save(match);
       }
 
       return true;
-    } catch (e) {
-      this.logger.error(`Error procesando fixture ${fixture?.fixture?.id}`, e);
+    } catch (error) {
+      this.logger.error(`Error procesando fixture data: ${error.message}`);
       return false;
     }
   }

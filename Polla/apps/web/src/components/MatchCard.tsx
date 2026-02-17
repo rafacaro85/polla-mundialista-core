@@ -442,7 +442,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                   {match.scoreH || 0}-{match.scoreA || 0}
                 </span>
                 <div style={STYLES.liveIndicator}>
-                  🔴 EN VIVO {match.minute ? `${match.minute}'` : ''}
+                  🔴 {match.minute === 'HT' ? 'ENTRETIEMPO' : `EN VIVO ${match.minute ? `${match.minute}'` : ''}`}
                 </div>
               </>
             ) : (

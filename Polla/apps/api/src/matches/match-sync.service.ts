@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm'; // Added IsNull
 import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { TournamentService } from '../tournament/tournament.service';
@@ -31,12 +31,12 @@ export class MatchSyncService {
       const activeMatches = await this.matchesRepository.find({
         where: {
           status: Not('FINISHED'),
-          externalId: Not(null) // Debe tener ID de API
+          externalId: Not(IsNull()) // Correct usage of IsNull
         }
       });
 
       if (activeMatches.length === 0) {
-        this.logger.log('� No hay partidos activos para sincronizar.');
+        this.logger.log('💤 No hay partidos activos para sincronizar.');
         return;
       }
 
@@ -87,9 +87,9 @@ export class MatchSyncService {
       const awayScore = fixture.goals.away;
 
       // Buscar el partido en DB
-      // Convertimos a string por seguridad en la comparación
+      // Convertimos a number por seguridad y tipo correcto
       const match = await this.matchesRepository.findOne({
-        where: { externalId: String(externalId) }, 
+        where: { externalId: Number(externalId) }, 
       });
 
       if (!match) return false;

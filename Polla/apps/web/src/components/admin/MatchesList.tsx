@@ -231,6 +231,10 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
 
     useEffect(() => {
         loadMatches();
+        
+        // Auto-refresh cada 10 segundos para ver el tiempo correr en vivo
+        const interval = setInterval(loadMatches, 10000);
+        return () => clearInterval(interval);
     }, [tournamentId]);
 
     const loadMatches = async () => {

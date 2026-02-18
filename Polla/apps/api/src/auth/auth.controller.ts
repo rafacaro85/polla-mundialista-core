@@ -68,6 +68,12 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @Post('login-company')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async loginCompany(@Body() body: { fullName: string; accessCode: string }) {
+    return this.authService.loginWithCompanyCode(body.fullName, body.accessCode);
+  }
+
   @Post('forgot-password')
   async forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.forgotPassword(body);

@@ -200,6 +200,7 @@ export const LeaguesView = () => {
                     <h2 style={STYLES.title}>Mis Pollas</h2>
                     <p style={STYLES.subtitle}>GESTIONA TUS TORNEOS PRIVADOS</p>
                 </div>
+                {/* BUTTONS HIDDEN FOR WHITE LABEL PLATFORM
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                     <CreateLeagueDialog onLeagueCreated={fetchLeagues}>
                         <button style={STYLES.createButton}>
@@ -220,6 +221,7 @@ export const LeaguesView = () => {
                         </button>
                     </JoinLeagueDialog>
                 </div>
+                */}
             </div>
 
             {/* 1.5. BORRADORES EMPRESARIALES */}

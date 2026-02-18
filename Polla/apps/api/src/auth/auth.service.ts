@@ -80,6 +80,41 @@ export class AuthService {
     };
   }
 
+  async loginWithCompanyCode(fullName: string, accessCode: string) {
+    const validCode = process.env.COMPANY_ACCESS_CODE;
+    
+    if (!validCode) {
+        throw new ConflictException('Company Access Code not configured on server.');
+    }
+
+    if (accessCode !== validCode) {
+        throw new UnauthorizedException('Código de acceso inválido.');
+    }
+
+    // Generar un email ficticio basado en el nombre para compatibilidad
+    // Ej: Juan Perez -> juan.perez.corp@ptwp.com
+    const sanitized = fullName.toLowerCase().replace(/[^a-z0-9]/g, '.');
+    const email = `${sanitized}@ptwp.com`;
+
+    let user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+        // Crear usuario automáticamente
+        user = await this.usersService.create(
+            email,
+            fullName,
+            undefined, // Sin password
+            undefined, 
+            undefined,
+            undefined
+        );
+        // Auto verificar
+        await this.usersService.update(user, { isVerified: true });
+    }
+
+    return this.login(user);
+  }
+
   async register(registerDto: RegisterDto): Promise<User> {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
 

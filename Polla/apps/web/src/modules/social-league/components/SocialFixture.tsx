@@ -110,6 +110,18 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 return isSame ? prev : uniqueDates;
             });
 
+            // TIME TRAVEL FIX FOR CORPORATE MODE:
+            // If corporate mode is active, prioritize showing the start of the tournament (June 11 presumably)
+            const isCorporate = process.env.NEXT_PUBLIC_IS_CORPORATE === 'true';
+            
+            if (isCorporate) {
+                 const targetDate = uniqueDates.find(d => d.toUpperCase().includes('JUNIO 11') || d.toUpperCase().includes('JUNE 11'));
+                 if (targetDate) {
+                     if (selectedDate !== targetDate) setSelectedDate(targetDate);
+                     return;
+                 }
+            }
+
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
                 setSelectedDate(uniqueDates[0]);
             }

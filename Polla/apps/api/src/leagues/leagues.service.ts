@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -425,7 +425,7 @@ export class LeaguesService {
 
   async getGlobalRanking(tournamentId: string) {
     const cacheKey = `ranking:global:${tournamentId}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<any[]>(cacheKey);
     if (cached) {
         return cached;
     }
@@ -771,7 +771,7 @@ export class LeaguesService {
     }
     
     const cacheKey = `ranking:league:${leagueId}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager.get<any[]>(cacheKey);
     if (cached) {
         return cached;
     }

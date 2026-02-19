@@ -1,0 +1,23 @@
+
+> api@0.0.1 build
+> nest build
+
+[96msrc/matches/match-sync.service.ts[0m:[93m41[0m:[93m69[0m - [91merror[0m[90m TS2552: [0mCannot find name 'match'. Did you mean 'matches'?
+
+[7m41[0m                     this.logger.log(`   -> Match ${m.homeTeam} vs ${match.awayTeam}: ${m.minute}' -> ${nextMin}'`);
+[7m  [0m [91m                                                                    ~~~~~[0m
+
+  [96msrc/matches/match-sync.service.ts[0m:[93m62[0m:[93m13[0m
+    [7m62[0m       const matches = await this.matchesRepository
+    [7m  [0m [96m            ~~~~~~~[0m
+    'matches' is declared here.
+
+Found 1 error(s).
+
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\AppWeb\Polla\apps\api
+npm error workspace api@0.0.1
+npm error location C:\AppWeb\Polla\apps\api
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c nest build

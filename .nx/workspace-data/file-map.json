@@ -99,6 +99,410 @@
           "hash": "14186219912588415944"
         },
         {
+          "file": "Polla/apps/web/public/assets/flags/ar.svg",
+          "hash": "16512602600144856504"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/at.svg",
+          "hash": "5675435178538554342"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/au.svg",
+          "hash": "13551994393066227031"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/be.svg",
+          "hash": "6114620816650268317"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/bo.svg",
+          "hash": "2521121690316072155"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/br.svg",
+          "hash": "1493443363481998303"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ca.svg",
+          "hash": "16266688080021612069"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ch.svg",
+          "hash": "12878653201080913855"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ci.svg",
+          "hash": "8137061799904824422"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/cl.svg",
+          "hash": "12854382362714166693"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/cm.svg",
+          "hash": "9732474818554776073"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/co.svg",
+          "hash": "15199452854265169346"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/cr.svg",
+          "hash": "5078578385911744552"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/cv.svg",
+          "hash": "6207102509763213914"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/cw.svg",
+          "hash": "6174844788082029926"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/de.svg",
+          "hash": "1942223375731123713"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/dk.svg",
+          "hash": "8353955749422239428"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/dz.svg",
+          "hash": "2733384099174358442"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ec.svg",
+          "hash": "4940204370240316731"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/eg.svg",
+          "hash": "14470724353859484913"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/es.svg",
+          "hash": "2888317087626582166"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/fi.svg",
+          "hash": "2341906902429377156"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/fr.svg",
+          "hash": "17175076392931054476"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/gb-eng.svg",
+          "hash": "7333610179148312378"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/gb-sct.svg",
+          "hash": "14782972467220055375"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/gb-wls.svg",
+          "hash": "15330324525637238272"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/gh.svg",
+          "hash": "12205694600061438813"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/gr.svg",
+          "hash": "1162853667376093110"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/hn.svg",
+          "hash": "14466291599971399197"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/hr.svg",
+          "hash": "14250356698584844801"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ht.svg",
+          "hash": "13792516129624389877"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ir.svg",
+          "hash": "2353091742017183145"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/it.svg",
+          "hash": "5881782650596686062"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/jm.svg",
+          "hash": "8116211956834018237"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/jp.svg",
+          "hash": "16423108167393958008"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/kr.svg",
+          "hash": "2247219531606847169"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ma.svg",
+          "hash": "12714550170022176969"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/mx.svg",
+          "hash": "12503310774698906"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/nl.svg",
+          "hash": "11864843972599087245"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/no.svg",
+          "hash": "11930986596201504965"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/nz.svg",
+          "hash": "8978979189300303342"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/pa.svg",
+          "hash": "1725440892120408235"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/pe.svg",
+          "hash": "8696295415260028445"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/pl.svg",
+          "hash": "12787489268793687136"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/pt.svg",
+          "hash": "14773612827359410359"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/py.svg",
+          "hash": "17454494234050394776"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/qa.svg",
+          "hash": "576894480203389278"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/rs.svg",
+          "hash": "1995937752155652931"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/sa.svg",
+          "hash": "10238836958409755861"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/se.svg",
+          "hash": "10198233510966722510"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/sn.svg",
+          "hash": "15785052572710793149"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/tn.svg",
+          "hash": "13483756279648687116"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/un.svg",
+          "hash": "8089648630660532105"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/us.svg",
+          "hash": "6392961950608429037"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/uy.svg",
+          "hash": "3246051890305911666"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/uz.svg",
+          "hash": "17573244269716552866"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/ve.svg",
+          "hash": "8730152150943477249"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/flags/za.svg",
+          "hash": "9247938014747183775"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/tournaments/ucl.svg",
+          "hash": "4479519292930498507"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/tournaments/wc26.svg",
+          "hash": "10013333742194668696"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/ac-milan.svg",
+          "hash": "7939741267483943977"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/arsenal.svg",
+          "hash": "10003705190319455711"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/aston-villa.svg",
+          "hash": "2409499534500132909"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/atalanta.svg",
+          "hash": "17368176401796426405"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/atletico-madrid.svg",
+          "hash": "37603502792115301"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/barcelona.svg",
+          "hash": "3981217402779509965"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/bayer-leverkusen.svg",
+          "hash": "15508601105135413102"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/bayern-munich.svg",
+          "hash": "9757247316857787313"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/benfica.svg",
+          "hash": "10737830107138415996"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/bodo-glimt.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/bologna.svg",
+          "hash": "4130274569207901412"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/brest.svg",
+          "hash": "6269075898153093924"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/celtic.svg",
+          "hash": "11005980501532185622"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/club-brugge.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/dinamo-zagreb.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/dortmund.svg",
+          "hash": "14099422464199724373"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/feyenoord.svg",
+          "hash": "12641394144400121779"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/galatasaray.svg",
+          "hash": "16865707799043821395"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/girona.svg",
+          "hash": "9161335089484836358"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/inter-milan.svg",
+          "hash": "5821896157664860531"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/juventus.svg",
+          "hash": "4389006303691508109"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/lille.svg",
+          "hash": "9082118940294808025"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/liverpool.svg",
+          "hash": "9571665436633373394"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/manchester-city.svg",
+          "hash": "15921863651479718192"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/monaco.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/newcastle.svg",
+          "hash": "6816151254583905342"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/olympiacos.svg",
+          "hash": "5073179274069422541"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/paris-saint-germain.svg",
+          "hash": "16201311828963233007"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/psv.svg",
+          "hash": "1538068978684137221"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/qarabag.svg",
+          "hash": "5998091268192934304"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/rb-leipzig.svg",
+          "hash": "4878670400086507435"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/real-madrid.svg",
+          "hash": "6394359443295217806"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/red-star-belgrade.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/salzburg.svg",
+          "hash": "1820750438691992772"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/shakhtar-donetsk.svg",
+          "hash": "3601466668662819822"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/slovan-bratislava.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/sparta-prague.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/sporting-cp.svg",
+          "hash": "13689585553493973149"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/sturm-graz.svg",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/stuttgart.svg",
+          "hash": "13925319490495074502"
+        },
+        {
+          "file": "Polla/apps/web/public/assets/ucl/young-boys.svg",
+          "hash": "890713534258287628"
+        },
+        {
           "file": "Polla/apps/web/public/file.svg",
           "hash": "15617830351863523835"
         },
@@ -115,6 +519,70 @@
           "hash": "15866562426023736497"
         },
         {
+          "file": "Polla/apps/web/public/images/escudos/as-monaco-footballlogos-org.svg",
+          "hash": "11582568864780710715"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/atalanta-footballlogos-org.svg",
+          "hash": "10837002947422916287"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/atletico-madrid-footballlogos-org.svg",
+          "hash": "9211305428991834202"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/bayer-leverkusen-footballlogos-org.svg",
+          "hash": "3755515861023997301"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/bodo-glimt-footballlogos-org.svg",
+          "hash": "14080854881035174493"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/borussia-dortmund-footballlogos-org.svg",
+          "hash": "13345654267239553300"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/club-brugge-footballlogos-org.svg",
+          "hash": "6123109025721679662"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/galatasaray-footballlogos-org.svg",
+          "hash": "12169319619205008078"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/inter-milan-footballlogos-org.svg",
+          "hash": "14426894449548933783"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/juventus-footballlogos-org.svg",
+          "hash": "6614950723441417047"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/newcastle-united-footballlogos-org.svg",
+          "hash": "9912742535688898868"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/olympiacos-footballlogos-org.svg",
+          "hash": "8935197641623308155"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/paris-saint-germain-footballlogos-org.svg",
+          "hash": "122774369752407486"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/qarabag-fk-footballlogos-org.svg",
+          "hash": "11836992154991585741"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/real-madrid-footballlogos-org.svg",
+          "hash": "12252577684992089702"
+        },
+        {
+          "file": "Polla/apps/web/public/images/escudos/sl-benfica-footballlogos-org.svg",
+          "hash": "8387391170013381523"
+        },
+        {
           "file": "Polla/apps/web/public/images/qr-bancolombia.jpg",
           "hash": "6594202159968118859"
         },
@@ -127,16 +595,52 @@
           "hash": "18099873946436658572"
         },
         {
+          "file": "Polla/apps/web/public/images/ucl-logo.png",
+          "hash": "5785770790918688331"
+        },
+        {
+          "file": "Polla/apps/web/public/images/wc-logo.png",
+          "hash": "1469658285961504513"
+        },
+        {
           "file": "Polla/apps/web/public/images/wc2026_hero.png",
           "hash": "6328299372876657167"
         },
         {
           "file": "Polla/apps/web/public/manifest.json",
-          "hash": "11036645175183471022"
+          "hash": "9918441548981160371"
         },
         {
           "file": "Polla/apps/web/public/next.svg",
           "hash": "8300767200008744458"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/atletico.svg",
+          "hash": "3661109496377572312"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/benfica.svg",
+          "hash": "7317614787040340662"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/bodo.svg",
+          "hash": "726050075793471648"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/juventus.svg",
+          "hash": "6625141452064677381"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/monaco.svg",
+          "hash": "12052055014041683236"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/olympiacos.svg",
+          "hash": "7608560434449947632"
+        },
+        {
+          "file": "Polla/apps/web/public/teams/qarabag.png",
+          "hash": "16948108141299462684"
         },
         {
           "file": "Polla/apps/web/public/vercel.svg",
@@ -148,7 +652,7 @@
         },
         {
           "file": "Polla/apps/web/src/actions/ai-predictions.ts",
-          "hash": "6519008398118133960"
+          "hash": "14117123904728811778"
         },
         {
           "file": "Polla/apps/web/src/actions/data.ts",
@@ -168,11 +672,11 @@
         },
         {
           "file": "Polla/apps/web/src/app/admin/transactions/page.tsx",
-          "hash": "16243174383641919127"
+          "hash": "1102721975856118381"
         },
         {
           "file": "Polla/apps/web/src/app/auth/success/page.tsx",
-          "hash": "14723020402047598700"
+          "hash": "14878153129985092247"
         },
         {
           "file": "Polla/apps/web/src/app/business/new/page.tsx",
@@ -180,7 +684,11 @@
         },
         {
           "file": "Polla/apps/web/src/app/dashboard/page.tsx",
-          "hash": "14165896901356853872"
+          "hash": "2251040768169524538"
+        },
+        {
+          "file": "Polla/apps/web/src/app/demo/page.tsx",
+          "hash": "17421573360812315897"
         },
         {
           "file": "Polla/apps/web/src/app/favicon.ico",
@@ -192,7 +700,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/hub/page.tsx",
-          "hash": "595196844198333540"
+          "hash": "6128111979644949818"
         },
         {
           "file": "Polla/apps/web/src/app/instructions/page.tsx",
@@ -204,7 +712,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/layout.tsx",
-          "hash": "105983019730855123"
+          "hash": "14903091004539752637"
         },
         {
           "file": "Polla/apps/web/src/app/league-admin/[id]/page.tsx",
@@ -232,7 +740,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/leagues/[id]/admin/users/page.tsx",
-          "hash": "3152618964710549862"
+          "hash": "10064633443892185845"
         },
         {
           "file": "Polla/apps/web/src/app/leagues/[id]/bonus/page.tsx",
@@ -240,7 +748,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/leagues/[id]/layout.tsx",
-          "hash": "12675833739833504308"
+          "hash": "2250069780862564466"
         },
         {
           "file": "Polla/apps/web/src/app/leagues/[id]/page.tsx",
@@ -300,7 +808,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/login/page.tsx",
-          "hash": "5568346489602818206"
+          "hash": "8373194985164437052"
         },
         {
           "file": "Polla/apps/web/src/app/login/page_footer.tsx",
@@ -312,7 +820,7 @@
         },
         {
           "file": "Polla/apps/web/src/app/page.tsx",
-          "hash": "2156494777984856441"
+          "hash": "15650175981715216438"
         },
         {
           "file": "Polla/apps/web/src/app/payment/success/page.tsx",
@@ -321,6 +829,10 @@
         {
           "file": "Polla/apps/web/src/app/planes/page.tsx",
           "hash": "331067251409221798"
+        },
+        {
+          "file": "Polla/apps/web/src/app/privacidad/page.tsx",
+          "hash": "11792359104551524403"
         },
         {
           "file": "Polla/apps/web/src/app/profile/page.tsx",
@@ -335,8 +847,12 @@
           "hash": "16997944764096554870"
         },
         {
+          "file": "Polla/apps/web/src/app/terminos/page.tsx",
+          "hash": "15905517536060638203"
+        },
+        {
           "file": "Polla/apps/web/src/components/AdminLeagueSettings.tsx",
-          "hash": "15879711691226975141"
+          "hash": "958150011972546470"
         },
         {
           "file": "Polla/apps/web/src/components/AdminMatchTable.tsx",
@@ -344,11 +860,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/AiAssistButton.tsx",
-          "hash": "13559157223946609735"
+          "hash": "16797301806639437342"
         },
         {
           "file": "Polla/apps/web/src/components/BonusView.tsx",
-          "hash": "7155168875451595111"
+          "hash": "1448401252435466139"
         },
         {
           "file": "Polla/apps/web/src/components/BottomNav.tsx",
@@ -356,7 +872,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/BracketView.tsx",
-          "hash": "17898140499035029432"
+          "hash": "9442846965859266343"
         },
         {
           "file": "Polla/apps/web/src/components/BrandLogo.tsx",
@@ -368,23 +884,27 @@
         },
         {
           "file": "Polla/apps/web/src/components/CreateBusinessLeagueDialog.tsx",
-          "hash": "3740429865031163496"
+          "hash": "7859647233089034419"
         },
         {
           "file": "Polla/apps/web/src/components/CreateLeagueDialog.tsx",
-          "hash": "5981504083860970243"
+          "hash": "8959756031284911766"
         },
         {
           "file": "Polla/apps/web/src/components/DashboardClient.tsx",
-          "hash": "10097228858786818483"
+          "hash": "7396070460875484401"
         },
         {
           "file": "Polla/apps/web/src/components/DateFilter.tsx",
           "hash": "773685694939290594"
         },
         {
+          "file": "Polla/apps/web/src/components/DemoControlPanel.tsx",
+          "hash": "6695758440395621097"
+        },
+        {
           "file": "Polla/apps/web/src/components/DynamicPredictionsWrapper.tsx",
-          "hash": "17735703266355468931"
+          "hash": "5049132826197756448"
         },
         {
           "file": "Polla/apps/web/src/components/EditMatchDialog.tsx",
@@ -392,15 +912,19 @@
         },
         {
           "file": "Polla/apps/web/src/components/EnterpriseLeagueView.tsx",
-          "hash": "10928762960467762705"
+          "hash": "10349638941149941020"
         },
         {
           "file": "Polla/apps/web/src/components/EnterpriseSocialWallWidget.tsx",
           "hash": "9542143759999882717"
         },
         {
+          "file": "Polla/apps/web/src/components/FloatingDemoWidget.tsx",
+          "hash": "9580816714611629148"
+        },
+        {
           "file": "Polla/apps/web/src/components/Footer.tsx",
-          "hash": "16210622775173191999"
+          "hash": "178137448678737973"
         },
         {
           "file": "Polla/apps/web/src/components/GlobalHomeView.tsx",
@@ -416,7 +940,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/InviteHandler.tsx",
-          "hash": "9632313984945018049"
+          "hash": "8903667224136092627"
         },
         {
           "file": "Polla/apps/web/src/components/JoinLeagueDialog.tsx",
@@ -424,15 +948,15 @@
         },
         {
           "file": "Polla/apps/web/src/components/LandingPage.tsx",
-          "hash": "11229508693050767851"
+          "hash": "736805097521049157"
         },
         {
           "file": "Polla/apps/web/src/components/LeagueBonusQuestions.tsx",
-          "hash": "7317916276507627491"
+          "hash": "15302231469791992291"
         },
         {
           "file": "Polla/apps/web/src/components/LeagueBrandingForm.tsx",
-          "hash": "8295563774112197849"
+          "hash": "5210037598368832165"
         },
         {
           "file": "Polla/apps/web/src/components/LeagueNavigation.tsx",
@@ -448,7 +972,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/LeaguesView.tsx",
-          "hash": "9226569065973804962"
+          "hash": "15189053229627808810"
         },
         {
           "file": "Polla/apps/web/src/components/LockedPhaseView.tsx",
@@ -456,7 +980,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/MatchCard.tsx",
-          "hash": "16196920911797886489"
+          "hash": "13576447276403715312"
         },
         {
           "file": "Polla/apps/web/src/components/MatchInfoSheet.tsx",
@@ -468,11 +992,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/PhaseProgressDashboard.tsx",
-          "hash": "7452034412245760463"
+          "hash": "7695943564740925162"
         },
         {
           "file": "Polla/apps/web/src/components/PhaseStatusIndicator.tsx",
-          "hash": "13237337691553475246"
+          "hash": "15602455806341723896"
         },
         {
           "file": "Polla/apps/web/src/components/PrizeCard.tsx",
@@ -488,7 +1012,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/RankingView.tsx",
-          "hash": "1710281324492841967"
+          "hash": "5616062535964525492"
         },
         {
           "file": "Polla/apps/web/src/components/SocialWallWidget.tsx",
@@ -504,7 +1028,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/UserNav.tsx",
-          "hash": "211972465969033085"
+          "hash": "5088263002820094971"
         },
         {
           "file": "Polla/apps/web/src/components/UserPredictionsDialog.tsx",
@@ -512,7 +1036,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/BonusQuestionsTable.tsx",
-          "hash": "12369895355362195327"
+          "hash": "11550040613539762441"
+        },
+        {
+          "file": "Polla/apps/web/src/components/admin/BroadcastTab.tsx",
+          "hash": "15056561618069967196"
         },
         {
           "file": "Polla/apps/web/src/components/admin/BulkUserImport.tsx",
@@ -520,7 +1048,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/CommunicationPanel.tsx",
-          "hash": "3827155992049214825"
+          "hash": "4486596735827953480"
         },
         {
           "file": "Polla/apps/web/src/components/admin/CreateEnterpriseLeagueForm.tsx",
@@ -528,11 +1056,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/CreateLeagueDialog.tsx",
-          "hash": "2101137364780247467"
+          "hash": "6352865259140180304"
         },
         {
           "file": "Polla/apps/web/src/components/admin/CreateQuestionDialog.tsx",
-          "hash": "13683333853951685690"
+          "hash": "8277570008621283323"
         },
         {
           "file": "Polla/apps/web/src/components/admin/CreateUserDialog.tsx",
@@ -560,7 +1088,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/GroupStandingsOverride.tsx",
-          "hash": "12608379387444131112"
+          "hash": "2394386455582300112"
         },
         {
           "file": "Polla/apps/web/src/components/admin/LeagueAnalyticsPanel.tsx",
@@ -568,11 +1096,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/LeagueSettingsPanel.tsx",
-          "hash": "14706593142552471057"
+          "hash": "12672469219388715061"
         },
         {
           "file": "Polla/apps/web/src/components/admin/LeaguesTable.tsx",
-          "hash": "4796081087271836360"
+          "hash": "13848390252061115667"
         },
         {
           "file": "Polla/apps/web/src/components/admin/ManageLeagueLimitDialog.tsx",
@@ -584,15 +1112,19 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/MatchesList.tsx",
-          "hash": "4284356341406180335"
+          "hash": "5526478172583146254"
         },
         {
           "file": "Polla/apps/web/src/components/admin/PhaseLocksManager.tsx",
-          "hash": "1621317225470686589"
+          "hash": "1672188230542128634"
         },
         {
           "file": "Polla/apps/web/src/components/admin/SuperAdminDashboard.tsx",
-          "hash": "9839090582458156080"
+          "hash": "5304606815207257703"
+        },
+        {
+          "file": "Polla/apps/web/src/components/admin/TournamentHeader.tsx",
+          "hash": "1378482803581065229"
         },
         {
           "file": "Polla/apps/web/src/components/admin/TransferOwnerDialog.tsx",
@@ -604,7 +1136,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/admin/UsersTable.tsx",
-          "hash": "1497900450295155484"
+          "hash": "7066491130565553927"
         },
         {
           "file": "Polla/apps/web/src/components/admin/ViewLeagueDialog.tsx",
@@ -616,11 +1148,11 @@
         },
         {
           "file": "Polla/apps/web/src/components/dashboard/PaymentMethods.tsx",
-          "hash": "11772652654418149843"
+          "hash": "12974289801976587160"
         },
         {
           "file": "Polla/apps/web/src/components/dashboard/PaymentStatusCard.tsx",
-          "hash": "1839064916206773595"
+          "hash": "14958134932690272334"
         },
         {
           "file": "Polla/apps/web/src/components/dashboard/PendingInviteBanner.tsx",
@@ -636,7 +1168,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/dashboard/views/RankingView.tsx",
-          "hash": "14928822492133936454"
+          "hash": "7519302198123010016"
         },
         {
           "file": "Polla/apps/web/src/components/leagues/LeagueHeader.tsx",
@@ -656,7 +1188,7 @@
         },
         {
           "file": "Polla/apps/web/src/components/ui/Header.tsx",
-          "hash": "6556807218916812526"
+          "hash": "18214991981309494011"
         },
         {
           "file": "Polla/apps/web/src/components/ui/LeaderboardRow.tsx",
@@ -744,7 +1276,11 @@
         },
         {
           "file": "Polla/apps/web/src/hooks/useCurrentLeague.ts",
-          "hash": "4316341277544806721"
+          "hash": "11486442113011835075"
+        },
+        {
+          "file": "Polla/apps/web/src/hooks/useFilteredMatches.ts",
+          "hash": "5756736837489727664"
         },
         {
           "file": "Polla/apps/web/src/hooks/useImageUpload.ts",
@@ -752,23 +1288,27 @@
         },
         {
           "file": "Polla/apps/web/src/hooks/useKnockoutPhases.ts",
-          "hash": "9428359671776247221"
+          "hash": "7639433477368346746"
         },
         {
           "file": "Polla/apps/web/src/hooks/useLeagues.ts",
-          "hash": "794346642862178573"
+          "hash": "9461084091894681087"
         },
         {
           "file": "Polla/apps/web/src/hooks/useMatches.ts",
-          "hash": "6644581218208131210"
+          "hash": "13125494308689822184"
         },
         {
           "file": "Polla/apps/web/src/hooks/useSystemConfig.ts",
-          "hash": "5452768983615813542"
+          "hash": "5008240719442280243"
+        },
+        {
+          "file": "Polla/apps/web/src/hooks/useTournament.ts",
+          "hash": "4226887636446806790"
         },
         {
           "file": "Polla/apps/web/src/lib/api.ts",
-          "hash": "5170651174483024053"
+          "hash": "3536840553796100914"
         },
         {
           "file": "Polla/apps/web/src/lib/auth.tsx",
@@ -784,19 +1324,19 @@
         },
         {
           "file": "Polla/apps/web/src/modules/core-dashboard/components/GlobalHome.tsx",
-          "hash": "7179222701278802746"
+          "hash": "2139342235252427674"
         },
         {
           "file": "Polla/apps/web/src/modules/core-dashboard/components/GlobalRankingTable.tsx",
-          "hash": "5487293575415000243"
+          "hash": "2004845349720140641"
         },
         {
           "file": "Polla/apps/web/src/modules/core-dashboard/components/LeaguesList.tsx",
-          "hash": "7533040541495421516"
+          "hash": "5298512632194397330"
         },
         {
           "file": "Polla/apps/web/src/modules/enterprise-league/components/EnterpriseFixture.tsx",
-          "hash": "4090931689838829785"
+          "hash": "4346302599740928611"
         },
         {
           "file": "Polla/apps/web/src/modules/enterprise-league/components/EnterpriseLeagueHome.tsx",
@@ -820,7 +1360,7 @@
         },
         {
           "file": "Polla/apps/web/src/modules/social-league/components/SocialFixture.tsx",
-          "hash": "3038823192686639969"
+          "hash": "8332719007104520927"
         },
         {
           "file": "Polla/apps/web/src/modules/social-league/components/SocialLeagueHome.tsx",
@@ -828,7 +1368,7 @@
         },
         {
           "file": "Polla/apps/web/src/modules/social-league/components/SocialRankingTable.tsx",
-          "hash": "13956204158922002583"
+          "hash": "13305913936959511452"
         },
         {
           "file": "Polla/apps/web/src/modules/social-league/views/SocialLeagueView.tsx",
@@ -836,7 +1376,7 @@
         },
         {
           "file": "Polla/apps/web/src/services/superAdminService.ts",
-          "hash": "2632634146883422586"
+          "hash": "14643584701021895781"
         },
         {
           "file": "Polla/apps/web/src/shared/components/ui/LoadingSpinner.tsx",
@@ -848,11 +1388,11 @@
         },
         {
           "file": "Polla/apps/web/src/shared/hooks/useMyPredictions.ts",
-          "hash": "5744872792200360850"
+          "hash": "16403190518254461173"
         },
         {
           "file": "Polla/apps/web/src/shared/utils/flags.ts",
-          "hash": "4416110663014036733"
+          "hash": "14572567073212351939"
         },
         {
           "file": "Polla/apps/web/src/store/useAppStore.ts",
@@ -883,6 +1423,58 @@
         {
           "file": "Polla/.turbo/daemon/e9677950e793a788-turbo.log.2026-02-02",
           "hash": "4219115114649317573"
+        },
+        {
+          "file": "Polla/debug-check-locks.js",
+          "hash": "11105639531420878107"
+        },
+        {
+          "file": "Polla/debug-db-raw-v2.js",
+          "hash": "4380875858056283127"
+        },
+        {
+          "file": "Polla/debug-db-raw.js",
+          "hash": "8825445807506387130"
+        },
+        {
+          "file": "Polla/debug-db-save.js",
+          "hash": "1809728735554713801"
+        },
+        {
+          "file": "Polla/debug-db.js",
+          "hash": "16232317026933833482"
+        },
+        {
+          "file": "Polla/debug-matches-ucl.js",
+          "hash": "2297048095979124383"
+        },
+        {
+          "file": "Polla/debug-matches-ucl.ts",
+          "hash": "6413719993061857537"
+        },
+        {
+          "file": "Polla/debug-output.txt",
+          "hash": "1583417335602035328"
+        },
+        {
+          "file": "Polla/debug-ranking-data.ts",
+          "hash": "877449289377736883"
+        },
+        {
+          "file": "Polla/debug-ranking-ucl-fixed.js",
+          "hash": "8126170444072173204"
+        },
+        {
+          "file": "Polla/debug-ranking-ucl.js",
+          "hash": "3089517122629238483"
+        },
+        {
+          "file": "Polla/debug-ucl-matches.js",
+          "hash": "14521217046506372490"
+        },
+        {
+          "file": "Polla/debug_output.txt",
+          "hash": "10776443700687679392"
         },
         {
           "file": "Polla/docker-compose.yml",
@@ -953,6 +1545,14 @@
           "hash": "15843700202269295672"
         },
         {
+          "file": "Polla/fix-ucl-playoffs.js",
+          "hash": "14555532678254382408"
+        },
+        {
+          "file": "Polla/inyeccion-ucl-final.js",
+          "hash": "7440197449581660522"
+        },
+        {
           "file": "Polla/matches.json",
           "hash": "10213193403066208928"
         },
@@ -961,15 +1561,86 @@
           "hash": "14762852940199547333"
         },
         {
+          "file": "Polla/output_check_wc.log",
+          "hash": "6676953501016491162"
+        },
+        {
+          "file": "Polla/output_check_wc_2.log",
+          "hash": "14786796794905764505"
+        },
+        {
+          "file": "Polla/output_dump.log",
+          "hash": "2422271184497581611"
+        },
+        {
+          "file": "Polla/output_dump_2.log",
+          "hash": "10384623507335863488"
+        },
+        {
+          "file": "Polla/output_dump_3.log",
+          "hash": "14719922097655702798"
+        },
+        {
+          "file": "Polla/output_prod.log",
+          "hash": "6394211728788550601"
+        },
+        {
+          "file": "Polla/output_prod_fix.log",
+          "hash": "12782496339966960343"
+        },
+        {
+          "file": "Polla/output_prod_local.log",
+          "hash": "7563676452093508198"
+        },
+        {
+          "file": "Polla/output_prod_verify.log",
+          "hash": "298353077207668547"
+        },
+        {
+          "file": "Polla/output_root.log",
+          "hash": "16454245677369054157"
+        },
+        {
           "file": "Polla/package-lock.json",
-          "hash": "14669018829798701965"
+          "hash": "11971393102157941118"
         },
         {
           "file": "Polla/package.json",
-          "hash": "10659787078992884468",
+          "hash": "5208558536062526577",
           "deps": [
-            "npm:@google/generative-ai"
+            "npm:@types/node",
+            "npm:dotenv",
+            "npm:pg",
+            "npm:ts-node",
+            "npm:typeorm",
+            "npm:typescript",
+            "npm:@google/generative-ai",
+            "npm:axios"
           ]
+        },
+        {
+          "file": "Polla/restore-ucl-logos-and-points.js",
+          "hash": "7229477570815817791"
+        },
+        {
+          "file": "Polla/scripts/check-matches.ts",
+          "hash": "626283755973987363"
+        },
+        {
+          "file": "Polla/scripts/check-schema.ts",
+          "hash": "16130754148884958409"
+        },
+        {
+          "file": "Polla/scripts/production-check.ts",
+          "hash": "17818122963403474321"
+        },
+        {
+          "file": "Polla/scripts/reset-predictions-wc2026.ts",
+          "hash": "12300355450227540539"
+        },
+        {
+          "file": "Polla/scripts/seed-ucl.ts",
+          "hash": "154926200788161757"
         },
         {
           "file": "Polla/structure.txt",
@@ -1006,12 +1677,80 @@
           "hash": "3244421341483603138"
         },
         {
+          "file": "Polla/apps/api/backfill-global.ts",
+          "hash": "279632046744448548"
+        },
+        {
+          "file": "Polla/apps/api/check-all-r32.js",
+          "hash": "13568622608434742609"
+        },
+        {
+          "file": "Polla/apps/api/check-columns-clear.js",
+          "hash": "5741231904029960558"
+        },
+        {
+          "file": "Polla/apps/api/check-columns-real.js",
+          "hash": "18377501175947458156"
+        },
+        {
+          "file": "Polla/apps/api/check-demo-ranking.js",
+          "hash": "1586987023931437757"
+        },
+        {
+          "file": "Polla/apps/api/check-table.js",
+          "hash": "2748427530854811247"
+        },
+        {
+          "file": "Polla/apps/api/check-ucl.js",
+          "hash": "11467846762796403200"
+        },
+        {
+          "file": "Polla/apps/api/check-user-names-by-email.js",
+          "hash": "17154990718953623520"
+        },
+        {
+          "file": "Polla/apps/api/check-user-names.js",
+          "hash": "14805138369260843910"
+        },
+        {
+          "file": "Polla/apps/api/check-wc-knockout.js",
+          "hash": "13538889678377075844"
+        },
+        {
           "file": "Polla/apps/api/check_round_16_output.txt",
           "hash": "6917910509200481912"
         },
         {
+          "file": "Polla/apps/api/columns_output.txt",
+          "hash": "12677416184667673561"
+        },
+        {
           "file": "Polla/apps/api/console.error(err))",
           "hash": "3244421341483603138"
+        },
+        {
+          "file": "Polla/apps/api/count-all-phases.js",
+          "hash": "15324679908515384849"
+        },
+        {
+          "file": "Polla/apps/api/count-real-users.js",
+          "hash": "883525356920215242"
+        },
+        {
+          "file": "Polla/apps/api/count-wc-phases.js",
+          "hash": "6365046501666454171"
+        },
+        {
+          "file": "Polla/apps/api/debug-output.txt",
+          "hash": "17527267738085956351"
+        },
+        {
+          "file": "Polla/apps/api/debug_out.json",
+          "hash": "17673904114586229898"
+        },
+        {
+          "file": "Polla/apps/api/diagnosis.txt",
+          "hash": "5787635469266323973"
         },
         {
           "file": "Polla/apps/api/eslint.config.mjs",
@@ -1020,6 +1759,34 @@
         {
           "file": "Polla/apps/api/find_match.ts",
           "hash": "12475787000691382722"
+        },
+        {
+          "file": "Polla/apps/api/fix-leagues.ps1",
+          "hash": "2924578350697130167"
+        },
+        {
+          "file": "Polla/apps/api/fix-ucl-phases.js",
+          "hash": "14981686546096778687"
+        },
+        {
+          "file": "Polla/apps/api/heal-r32-matches.js",
+          "hash": "14067134091413172671"
+        },
+        {
+          "file": "Polla/apps/api/list-tables.js",
+          "hash": "6586862485738208207"
+        },
+        {
+          "file": "Polla/apps/api/list-users.js",
+          "hash": "11343877598358131105"
+        },
+        {
+          "file": "Polla/apps/api/log-users.js",
+          "hash": "6754580005817455505"
+        },
+        {
+          "file": "Polla/apps/api/migrate-overrides.js",
+          "hash": "7373903019953852477"
         },
         {
           "file": "Polla/apps/api/migration_debug.txt",
@@ -1039,7 +1806,7 @@
         },
         {
           "file": "Polla/apps/api/package.json",
-          "hash": "10708958915128500345",
+          "hash": "3681836494572543979",
           "deps": [
             "npm:@eslint/eslintrc",
             "npm:@eslint/js",
@@ -1063,6 +1830,7 @@
             "npm:supertest",
             "npm:ts-jest",
             "npm:ts-loader",
+            "npm:ts-node-dev",
             "npm:typescript-eslint",
             "npm:@google/generative-ai",
             "npm:@nestjs/axios",
@@ -1105,9 +1873,9 @@
             "npm:reflect-metadata",
             "npm:rxjs",
             "npm:streamifier",
-            "npm:typeorm",
             "npm:ts-node",
             "npm:tsconfig-paths",
+            "npm:typeorm",
             "npm:typescript"
           ]
         },
@@ -1116,12 +1884,20 @@
           "hash": "1107103975087330620"
         },
         {
+          "file": "Polla/apps/api/reset-phases-railway.js",
+          "hash": "9889887504381162648"
+        },
+        {
+          "file": "Polla/apps/api/run-pending-migrations.ts",
+          "hash": "18369639012541354508"
+        },
+        {
           "file": "Polla/apps/api/src/access-codes/access-codes.module.ts",
           "hash": "2611574414894422628"
         },
         {
           "file": "Polla/apps/api/src/access-codes/access-codes.service.ts",
-          "hash": "10357788775062780969"
+          "hash": "5319079659720134951"
         },
         {
           "file": "Polla/apps/api/src/admin/admin.controller.ts",
@@ -1129,15 +1905,23 @@
         },
         {
           "file": "Polla/apps/api/src/admin/admin.module.ts",
-          "hash": "4036727415638166013"
+          "hash": "4856276965998593812"
         },
         {
           "file": "Polla/apps/api/src/admin/admin.service.ts",
-          "hash": "12843425103768181854"
+          "hash": "15407350105430667555"
+        },
+        {
+          "file": "Polla/apps/api/src/admin/broadcast.controller.ts",
+          "hash": "4017832183684701613"
+        },
+        {
+          "file": "Polla/apps/api/src/admin/broadcast.service.ts",
+          "hash": "6688905235330920550"
         },
         {
           "file": "Polla/apps/api/src/ai-prediction/ai-prediction.controller.ts",
-          "hash": "17036148598735045336"
+          "hash": "7674849509609094313"
         },
         {
           "file": "Polla/apps/api/src/ai-prediction/ai-prediction.module.ts",
@@ -1145,11 +1929,11 @@
         },
         {
           "file": "Polla/apps/api/src/ai-prediction/ai-prediction.service.ts",
-          "hash": "16307743101533486973"
+          "hash": "8092119785505344177"
         },
         {
           "file": "Polla/apps/api/src/ai-prediction/listeners/match-teams-assigned.listener.ts",
-          "hash": "10940690559897665915"
+          "hash": "10862840065718670937"
         },
         {
           "file": "Polla/apps/api/src/app.controller.spec.ts",
@@ -1161,7 +1945,7 @@
         },
         {
           "file": "Polla/apps/api/src/app.module.ts",
-          "hash": "1140648717272406227"
+          "hash": "2351790460053193694"
         },
         {
           "file": "Polla/apps/api/src/app.service.ts",
@@ -1169,19 +1953,19 @@
         },
         {
           "file": "Polla/apps/api/src/auth/auth.controller.ts",
-          "hash": "9806991365733914563"
+          "hash": "636778591474483252"
         },
         {
           "file": "Polla/apps/api/src/auth/auth.module.ts",
-          "hash": "1316234891270566214"
+          "hash": "3447452089560999409"
         },
         {
           "file": "Polla/apps/api/src/auth/auth.service.ts",
-          "hash": "1089731346479679889"
+          "hash": "5608612881838406741"
         },
         {
           "file": "Polla/apps/api/src/auth/dto/auth.dto.ts",
-          "hash": "12576579836246025176"
+          "hash": "12373653315113376667"
         },
         {
           "file": "Polla/apps/api/src/auth/dto/login-user.dto.ts",
@@ -1197,7 +1981,7 @@
         },
         {
           "file": "Polla/apps/api/src/auth/guards/jwt-auth.guard.ts",
-          "hash": "13513431271123420684"
+          "hash": "13968239972471778708"
         },
         {
           "file": "Polla/apps/api/src/auth/guards/local-auth.guard.ts",
@@ -1205,7 +1989,7 @@
         },
         {
           "file": "Polla/apps/api/src/auth/strategies/google.strategy.ts",
-          "hash": "6895018851261473163"
+          "hash": "3697730180227440710"
         },
         {
           "file": "Polla/apps/api/src/auth/strategies/jwt.strategy.ts",
@@ -1217,75 +2001,75 @@
         },
         {
           "file": "Polla/apps/api/src/bonus/bonus.controller.ts",
-          "hash": "5709847163531766561"
+          "hash": "18302975155972532606"
         },
         {
           "file": "Polla/apps/api/src/bonus/bonus.module.ts",
-          "hash": "18247307571479480442"
+          "hash": "11656484204585129992"
         },
         {
           "file": "Polla/apps/api/src/bonus/bonus.service.ts",
-          "hash": "948332020016445601"
+          "hash": "10325128132450953130"
         },
         {
           "file": "Polla/apps/api/src/bonus/dto/create-question.dto.ts",
-          "hash": "10366524977997202934"
+          "hash": "3204580132862532535"
         },
         {
           "file": "Polla/apps/api/src/bonus/dto/grade-question.dto.ts",
-          "hash": "8010660936546635042"
+          "hash": "14836641760837779954"
         },
         {
           "file": "Polla/apps/api/src/bonus/dto/save-answer.dto.ts",
-          "hash": "10311360894631287372"
+          "hash": "6005709890617784209"
         },
         {
           "file": "Polla/apps/api/src/brackets/brackets.controller.ts",
-          "hash": "16658117405570906251"
+          "hash": "2570822197822298767"
         },
         {
           "file": "Polla/apps/api/src/brackets/brackets.module.ts",
-          "hash": "7390146283761076654"
+          "hash": "1522155737903882818"
         },
         {
           "file": "Polla/apps/api/src/brackets/brackets.service.ts",
-          "hash": "1387219029071591747"
+          "hash": "2597465241335393994"
         },
         {
           "file": "Polla/apps/api/src/brackets/dto/save-bracket.dto.ts",
-          "hash": "3959755129608799638"
+          "hash": "2167184000981528664"
         },
         {
           "file": "Polla/apps/api/src/check-knockout.ts",
-          "hash": "10133125875001630551"
+          "hash": "14703019829564193388"
         },
         {
           "file": "Polla/apps/api/src/check_final_phases.ts",
-          "hash": "1062197326990811624"
+          "hash": "16330977425366147791"
         },
         {
           "file": "Polla/apps/api/src/check_phase.ts",
-          "hash": "13903477348619742079"
+          "hash": "6859276877597856930"
         },
         {
           "file": "Polla/apps/api/src/check_placeholders.ts",
-          "hash": "14311164426714511836"
+          "hash": "14607924055403872852"
         },
         {
           "file": "Polla/apps/api/src/check_quarter.ts",
-          "hash": "15515485758527355636"
+          "hash": "17084817049359829073"
         },
         {
           "file": "Polla/apps/api/src/check_round_16.ts",
-          "hash": "10156508561037200442"
+          "hash": "7520837389416281352"
         },
         {
           "file": "Polla/apps/api/src/check_thirds_count.ts",
-          "hash": "7673208052656474347"
+          "hash": "14515862455496462698"
         },
         {
           "file": "Polla/apps/api/src/cleanup_phases.ts",
-          "hash": "15782075643223988637"
+          "hash": "14812577392911128952"
         },
         {
           "file": "Polla/apps/api/src/common/decorators/public.decorator.ts",
@@ -1297,63 +2081,63 @@
         },
         {
           "file": "Polla/apps/api/src/common/guards/roles.guard.ts",
-          "hash": "3893499014306037275"
+          "hash": "1466177733181460710"
         },
         {
           "file": "Polla/apps/api/src/common/guards/time-lock.guard.ts",
-          "hash": "10757683540580114514"
+          "hash": "13925584045476969700"
         },
         {
           "file": "Polla/apps/api/src/common/pdf/pdf.module.ts",
-          "hash": "18362198679377674327"
+          "hash": "15544407407289540494"
         },
         {
           "file": "Polla/apps/api/src/common/pdf/pdf.service.ts",
-          "hash": "12694919816049503508"
+          "hash": "6438960917696959644"
         },
         {
           "file": "Polla/apps/api/src/common/teams-dictionary.ts",
-          "hash": "18392405344713998065"
+          "hash": "9545829871005862173"
         },
         {
           "file": "Polla/apps/api/src/data-source.ts",
-          "hash": "12534195090769910812"
+          "hash": "6074545686189499683"
         },
         {
           "file": "Polla/apps/api/src/database/entities/access-code.entity.ts",
-          "hash": "10234661471810461855"
+          "hash": "53756686819782226"
         },
         {
           "file": "Polla/apps/api/src/database/entities/bonus-question.entity.ts",
-          "hash": "774715224422648797"
+          "hash": "2298961539338642928"
         },
         {
           "file": "Polla/apps/api/src/database/entities/group-standing-override.entity.ts",
-          "hash": "5245455483888442020"
+          "hash": "13778989772067082590"
         },
         {
           "file": "Polla/apps/api/src/database/entities/knockout-phase-status.entity.ts",
-          "hash": "1730051461860106394"
+          "hash": "5116954304378616051"
         },
         {
           "file": "Polla/apps/api/src/database/entities/league-comment.entity.ts",
-          "hash": "2034081958072072073"
+          "hash": "18166848744969799797"
         },
         {
           "file": "Polla/apps/api/src/database/entities/league-participant.entity.ts",
-          "hash": "4820882255774062072"
+          "hash": "2787154902811185864"
         },
         {
           "file": "Polla/apps/api/src/database/entities/league.entity.ts",
-          "hash": "10863411395567032870"
+          "hash": "13363984095652422749"
         },
         {
           "file": "Polla/apps/api/src/database/entities/match.entity.ts",
-          "hash": "9439077977962423894"
+          "hash": "16348646172851628903"
         },
         {
           "file": "Polla/apps/api/src/database/entities/notification.entity.ts",
-          "hash": "3855030181841996203"
+          "hash": "9804017804334865393"
         },
         {
           "file": "Polla/apps/api/src/database/entities/organization.entity.ts",
@@ -1361,31 +2145,35 @@
         },
         {
           "file": "Polla/apps/api/src/database/entities/prediction.entity.ts",
-          "hash": "18360559316502861995"
+          "hash": "16903542870854967985"
         },
         {
           "file": "Polla/apps/api/src/database/entities/system-config.entity.ts",
-          "hash": "4415890739983048498"
+          "hash": "4353732662522172454"
         },
         {
           "file": "Polla/apps/api/src/database/entities/transaction.entity.ts",
-          "hash": "15301268647941371822"
+          "hash": "16797181596338470049"
         },
         {
           "file": "Polla/apps/api/src/database/entities/user-bonus-answer.entity.ts",
-          "hash": "11571325583531208461"
+          "hash": "13795867582730004920"
         },
         {
           "file": "Polla/apps/api/src/database/entities/user-bracket.entity.ts",
-          "hash": "1356809946281219433"
+          "hash": "14079547748984566474"
         },
         {
           "file": "Polla/apps/api/src/database/entities/user.entity.ts",
-          "hash": "6731018121795388243"
+          "hash": "1228320212637258231"
         },
         {
           "file": "Polla/apps/api/src/database/enums/access-code-status.enum.ts",
           "hash": "17292140776822744441"
+        },
+        {
+          "file": "Polla/apps/api/src/database/enums/league-participant-status.enum.ts",
+          "hash": "17828816860400634331"
         },
         {
           "file": "Polla/apps/api/src/database/enums/league-status.enum.ts",
@@ -1397,7 +2185,7 @@
         },
         {
           "file": "Polla/apps/api/src/database/enums/transaction-status.enum.ts",
-          "hash": "18198566764099392705"
+          "hash": "11129833060120301436"
         },
         {
           "file": "Polla/apps/api/src/database/enums/user-role.enum.ts",
@@ -1405,35 +2193,51 @@
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1734912000000-CreateKnockoutPhaseStatus.ts",
-          "hash": "7393825019527921043"
+          "hash": "4374877954322070948"
+        },
+        {
+          "file": "Polla/apps/api/src/database/migrations/1740000000000-FixUCLLogos.ts",
+          "hash": "4966327894175449883"
+        },
+        {
+          "file": "Polla/apps/api/src/database/migrations/1740000000001-UseLocalAssets.ts",
+          "hash": "3914091473001552526"
+        },
+        {
+          "file": "Polla/apps/api/src/database/migrations/1740000000002-AddTournamentIdToLeagues.ts",
+          "hash": "2874810024196276524"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1764649438287-ExpandSchemaForAdvancedFeatures.ts",
-          "hash": "8008944568402256601"
+          "hash": "17486002782796161427"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1765427245958-AddEnterpriseActiveManual.ts",
-          "hash": "17372433819321492850"
+          "hash": "16700089363872967995"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1765430000000-AddDepartmentToParticipant.ts",
-          "hash": "2464798027294007288"
+          "hash": "11434408022200706996"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1765484000000-AddEnterpriseBranding.ts",
-          "hash": "14793719245546956266"
+          "hash": "13336224142899765563"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1765500000000-AddBrandFontFamily.ts",
-          "hash": "10682169648393750786"
+          "hash": "15314129688379083719"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/1766900000000-AddDepartmentWarToLeague.ts",
-          "hash": "8362874816167619636"
+          "hash": "12386477032582238253"
+        },
+        {
+          "file": "Polla/apps/api/src/database/migrations/1770960863134-AddLeagueParticipantStatus.ts",
+          "hash": "9850560260707191215"
         },
         {
           "file": "Polla/apps/api/src/database/migrations/add-manual-lock-columns.ts",
-          "hash": "9107264491058635336"
+          "hash": "10090482223857580799"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/WORLD_CUP_2026_README.md",
@@ -1441,11 +2245,11 @@
         },
         {
           "file": "Polla/apps/api/src/database/seeds/bracket-playable.seeder.ts",
-          "hash": "17278592627591629129"
+          "hash": "3576443463671124393"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/check-env.ts",
-          "hash": "14154109623398272279"
+          "hash": "9671411319113777989"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/clean-all-users.sql",
@@ -1453,27 +2257,27 @@
         },
         {
           "file": "Polla/apps/api/src/database/seeds/clean-database.seeder.ts",
-          "hash": "13516939680655343795"
+          "hash": "8964365510824720778"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/complete-tournament.seeder.ts",
-          "hash": "14921641199420653790"
+          "hash": "388181662126479306"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-admin-manual.seeder.ts",
-          "hash": "8645626365695202349"
+          "hash": "6975123891121712686"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-admin.ts",
-          "hash": "17831202813623132055"
+          "hash": "13989479111569132850"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-browser-admin.seeder.ts",
-          "hash": "4529556054430758762"
+          "hash": "14651181979850270162"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-knockout-matches.seeder.ts",
-          "hash": "12007888826056060439"
+          "hash": "12717471171753262673"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-knockout-matches.sql",
@@ -1481,155 +2285,167 @@
         },
         {
           "file": "Polla/apps/api/src/database/seeds/create-racv.seeder.ts",
-          "hash": "1424306619339007878"
+          "hash": "6135550286810878520"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/debug-users.seeder.ts",
-          "hash": "16126756415067534757"
+          "hash": "7134198735197018291"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/find-all-racv.seeder.ts",
-          "hash": "8459294638491574143"
+          "hash": "1070525171741994646"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/fix-racv-role.seeder.ts",
-          "hash": "17235023352531885010"
+          "hash": "9849196679445262880"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/investigate-users.seeder.ts",
-          "hash": "16454095507152191767"
+          "hash": "2140381561413394776"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/list-users.seeder.ts",
-          "hash": "4389630232192225816"
+          "hash": "17272155622963535214"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/match.seeder.ts",
-          "hash": "16558376196022805958"
+          "hash": "10418175800345187654"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/promote-actual-user.seeder.ts",
-          "hash": "12143824341094383776"
+          "hash": "17214838449461337734"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/promote-admin.seeder.ts",
-          "hash": "14982093761595884647"
+          "hash": "8470392952840650225"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/promote-me.seeder.ts",
-          "hash": "528362835111951512"
+          "hash": "9535774628502214833"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/promote-racv.seeder.ts",
-          "hash": "10861516540418130129"
+          "hash": "2536894808549397080"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/qatar-full.seeder.ts",
-          "hash": "5403786922604655380"
+          "hash": "2356566537119422234"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/ranking.seeder.ts",
-          "hash": "11083119124657326045"
+          "hash": "18187218454820957550"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/reset-knockout.seeder.ts",
-          "hash": "9805758706482572607"
+          "hash": "15346621042513170420"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/reset-matches.seeder.ts",
-          "hash": "10343731405196617955"
+          "hash": "14437563028421709404"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/seed-ucl-beta.ts",
-          "hash": "2715077805914866432"
+          "hash": "17824992531963615680"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/shells.seeder.ts",
-          "hash": "9284598922264885334"
+          "hash": "2144464685066264313"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/update-leagues-limit.seeder.ts",
-          "hash": "10340188386002057289"
+          "hash": "10017874852307098684"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/update-user-by-id.seeder.ts",
-          "hash": "862904014732783454"
+          "hash": "382312103883220639"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/verify-user.seeder.ts",
-          "hash": "18436595100381035181"
+          "hash": "1599393793420578056"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/wc2026-real.seeder.ts",
-          "hash": "9848227215196358198"
+          "hash": "9852180041556449481"
         },
         {
           "file": "Polla/apps/api/src/database/seeds/world-cup-2026-matches.seeder.ts",
-          "hash": "3406064322662869319"
+          "hash": "6380611343765055506"
         },
         {
           "file": "Polla/apps/api/src/debug/debug.controller.ts",
-          "hash": "1043895274145572944"
+          "hash": "11270623500422154216"
         },
         {
           "file": "Polla/apps/api/src/debug/debug.module.ts",
-          "hash": "3905271901251113483"
+          "hash": "10544765250084279949"
+        },
+        {
+          "file": "Polla/apps/api/src/demo/demo.controller.ts",
+          "hash": "17618092837215453253"
+        },
+        {
+          "file": "Polla/apps/api/src/demo/demo.module.ts",
+          "hash": "8437306956360579670"
+        },
+        {
+          "file": "Polla/apps/api/src/demo/demo.service.ts",
+          "hash": "10909030281966523244"
         },
         {
           "file": "Polla/apps/api/src/diagnose_colombia.ts",
-          "hash": "18055178904411726515"
+          "hash": "18315715693460994639"
         },
         {
           "file": "Polla/apps/api/src/fix_calendar_and_phases.ts",
-          "hash": "16435225560084306075"
+          "hash": "13756677797390637344"
         },
         {
           "file": "Polla/apps/api/src/fix_calendar_quarter.ts",
-          "hash": "947251511627541088"
+          "hash": "16301890853920517195"
         },
         {
           "file": "Polla/apps/api/src/fix_calendar_round_16.ts",
-          "hash": "7502166437897591669"
+          "hash": "13380314348471072673"
         },
         {
           "file": "Polla/apps/api/src/fix_colombia.ts",
-          "hash": "10890634069913367437"
+          "hash": "16445364885622822299"
         },
         {
           "file": "Polla/apps/api/src/fix_final_calendar.ts",
-          "hash": "5649728869059678388"
+          "hash": "4899606014533639230"
         },
         {
           "file": "Polla/apps/api/src/knockout-phases/knockout-phases-init.service.ts",
-          "hash": "5854470243662419999"
+          "hash": "7059801601254791624"
         },
         {
           "file": "Polla/apps/api/src/knockout-phases/knockout-phases.controller.ts",
-          "hash": "2603075414624269483"
+          "hash": "13021171766497247641"
         },
         {
           "file": "Polla/apps/api/src/knockout-phases/knockout-phases.module.ts",
-          "hash": "11713960835046199299"
+          "hash": "16858448850596669388"
         },
         {
           "file": "Polla/apps/api/src/knockout-phases/knockout-phases.service.ts",
-          "hash": "10581526480523899984"
+          "hash": "12176678945132965476"
         },
         {
           "file": "Polla/apps/api/src/league-participants/league-participants.controller.ts",
-          "hash": "14478196622893998983"
+          "hash": "8528343748441953702"
         },
         {
           "file": "Polla/apps/api/src/league-participants/league-participants.module.ts",
-          "hash": "6997644374135342498"
+          "hash": "7474261038181230667"
         },
         {
           "file": "Polla/apps/api/src/league-participants/league-participants.service.ts",
-          "hash": "11673788857861055123"
+          "hash": "8850178190772693700"
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/create-league.dto.ts",
-          "hash": "13119589754548215806"
+          "hash": "1914940086800172846"
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/generate-access-codes.dto.ts",
@@ -1641,83 +2457,87 @@
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/transfer-owner.dto.ts",
-          "hash": "15313463075398438868"
+          "hash": "5925052191178914422"
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/update-league.dto.ts",
-          "hash": "16983456970071447283"
+          "hash": "15618550047811428490"
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/update-participant-score.dto.ts",
-          "hash": "11892370015736038257"
+          "hash": "12497402558246605332"
         },
         {
           "file": "Polla/apps/api/src/leagues/dto/update-tie-breaker.dto.ts",
-          "hash": "240777259068340247"
+          "hash": "1805113201079364531"
+        },
+        {
+          "file": "Polla/apps/api/src/leagues/global-ranking.spec.ts",
+          "hash": "18100207513458991655"
         },
         {
           "file": "Polla/apps/api/src/leagues/leagues.controller.ts",
-          "hash": "17287913931031981554"
+          "hash": "7402615316718014630"
         },
         {
           "file": "Polla/apps/api/src/leagues/leagues.module.ts",
-          "hash": "3154847423286808279"
+          "hash": "1333982963208637368"
         },
         {
           "file": "Polla/apps/api/src/leagues/leagues.service.ts",
-          "hash": "2741407664536422789"
+          "hash": "16290662852123932761"
         },
         {
           "file": "Polla/apps/api/src/lock_phases.ts",
-          "hash": "2054706876748191807"
+          "hash": "17483038687312491993"
         },
         {
           "file": "Polla/apps/api/src/mail/mail.module.ts",
-          "hash": "18435630023290086011"
+          "hash": "3400480193431864170"
         },
         {
           "file": "Polla/apps/api/src/mail/mail.service.ts",
-          "hash": "12676394034885886343"
+          "hash": "15323152369129091551"
         },
         {
           "file": "Polla/apps/api/src/main.ts",
-          "hash": "9636903109038023031"
+          "hash": "5903721986214484094"
         },
         {
           "file": "Polla/apps/api/src/matches/listeners/match.listener.ts",
-          "hash": "14589001895339773968"
+          "hash": "10590165308058052579"
         },
         {
           "file": "Polla/apps/api/src/matches/match-sync.service.ts",
-          "hash": "11260532611944568511"
+          "hash": "10873614720257751737"
         },
         {
           "file": "Polla/apps/api/src/matches/matches.controller.ts",
-          "hash": "7757510332024706566"
+          "hash": "12929703264806233460"
         },
         {
           "file": "Polla/apps/api/src/matches/matches.module.ts",
-          "hash": "17172297747612192161"
+          "hash": "9911847010357558949"
         },
         {
           "file": "Polla/apps/api/src/matches/matches.service.ts",
-          "hash": "9993209883844827021"
+          "hash": "15069070314343827087"
         },
         {
           "file": "Polla/apps/api/src/notifications/listeners/phase-completed.listener.ts",
-          "hash": "1933965912563726672"
+          "hash": "14933122875843716383"
         },
         {
           "file": "Polla/apps/api/src/notifications/notifications.controller.ts",
-          "hash": "10143889983374314847"
+          "hash": "14299143575462653704"
         },
         {
           "file": "Polla/apps/api/src/notifications/notifications.module.ts",
-          "hash": "4440084649526927929"
+          "hash": "8844661951836817787"
         },
         {
           "file": "Polla/apps/api/src/notifications/notifications.service.ts",
-          "hash": "10417908330740534202"
+          "hash": "2849299884940208076"
         },
         {
           "file": "Polla/apps/api/src/payments/dto/create-signature.dto.ts",
@@ -1729,47 +2549,47 @@
         },
         {
           "file": "Polla/apps/api/src/payments/payments.controller.ts",
-          "hash": "1162245222708650317"
+          "hash": "56608338735274966"
         },
         {
           "file": "Polla/apps/api/src/payments/payments.module.ts",
-          "hash": "6133609105419025673"
+          "hash": "9754433954292734676"
         },
         {
           "file": "Polla/apps/api/src/payments/payments.service.ts",
-          "hash": "1980477245128920743"
+          "hash": "2283373964674936194"
         },
         {
           "file": "Polla/apps/api/src/predictions/dto/create-bulk-predictions.dto.ts",
-          "hash": "11748641818456890228"
+          "hash": "1794709476062601988"
         },
         {
           "file": "Polla/apps/api/src/predictions/dto/create-prediction.dto.ts",
-          "hash": "912651149244328194"
+          "hash": "993655220158701028"
         },
         {
           "file": "Polla/apps/api/src/predictions/predictions.controller.ts",
-          "hash": "5382289494157839432"
+          "hash": "14413585756119264123"
         },
         {
           "file": "Polla/apps/api/src/predictions/predictions.module.ts",
-          "hash": "6553426232951212239"
+          "hash": "10907404168315553604"
         },
         {
           "file": "Polla/apps/api/src/predictions/predictions.service.ts",
-          "hash": "13198743703777138408"
+          "hash": "5866584400431600918"
         },
         {
           "file": "Polla/apps/api/src/promote-all.ts",
-          "hash": "9760179384977750391"
+          "hash": "7858503709176884747"
         },
         {
           "file": "Polla/apps/api/src/reset-knockout-full.ts",
-          "hash": "4457118207536855096"
+          "hash": "16894816342271261650"
         },
         {
           "file": "Polla/apps/api/src/reset-knockout.ts",
-          "hash": "18427473029726864608"
+          "hash": "1657434798101925491"
         },
         {
           "file": "Polla/apps/api/src/scoring/scoring.module.ts",
@@ -1777,95 +2597,467 @@
         },
         {
           "file": "Polla/apps/api/src/scoring/scoring.service.spec.ts",
-          "hash": "805835111025717193"
+          "hash": "8273933276339901712"
         },
         {
           "file": "Polla/apps/api/src/scoring/scoring.service.ts",
-          "hash": "4268809429881100165"
+          "hash": "14504508488254504903"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/add-ai-columns.js",
+          "hash": "15398926201210956786"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/add-minute-column.ts",
+          "hash": "11873359199713793290"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-columns.ts",
+          "hash": "3267457215342656384"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-db.js",
+          "hash": "447855633770589966"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-enterprise-league-matches.ts",
+          "hash": "10906579063072929378"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-knockout-phases.ts",
+          "hash": "12850907603143146236"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-leagues-simple.ts",
+          "hash": "12277383061670874070"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-matches-live.js",
+          "hash": "14509684275957664695"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-prod-matches.js",
+          "hash": "2083658177588959140"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-prod-phases.js",
+          "hash": "13260037327293050909"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-teams-pg.js",
+          "hash": "10030374960900551089"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-teams.ts",
+          "hash": "15714824217988767485"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-test-match.ts",
+          "hash": "5509738547140316781"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-test-matches.ts",
+          "hash": "10919191299637485742"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-thirds.ts",
+          "hash": "7025330700817714660"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-types.ts",
+          "hash": "14583005354112347123"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-ucl-phases.js",
+          "hash": "17144525852518979492"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/check-ucl-status.js",
+          "hash": "6045500336690972462"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/clean-playoffs.js",
+          "hash": "8647710963455160690"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/clean-simulated-knockout.ts",
+          "hash": "11396224914110559781"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/configure-test-matches.ts",
+          "hash": "6033903187566082123"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/control-match.ts",
+          "hash": "1167349172073961509"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/create-test-tournament.ts",
+          "hash": "4808040977145274969"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/debug-league-tournament.ts",
+          "hash": "506782114564653446"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/debug-phases.ts",
+          "hash": "847899374703046266"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/debug-test-ranking.js",
+          "hash": "12301826453974351615"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/debug-wc-matches.ts",
+          "hash": "12569464932179521784"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/delete-test-match.ts",
+          "hash": "613195853657557498"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/diagnose-enterprise-matches.ts",
+          "hash": "16242111412176944872"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/diagnose-reset.ts",
+          "hash": "14737611830805824943"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/download-assets.ts",
+          "hash": "3045268846839211703"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/dump-ucl.js",
+          "hash": "10813526911458945143"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/dump_ucl.ts",
+          "hash": "16231959210234085137"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/ensure-wc-phases.ts",
+          "hash": "8916215314014280213"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-cali-nacional.ts",
+          "hash": "2469201753245794512"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-fixture-ids.ts",
+          "hash": "9093303984423490892"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-live-matches.ts",
+          "hash": "18008618228093839590"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-live-now.ts",
+          "hash": "10908840710098094211"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-monday-matches.ts",
+          "hash": "13356080255249779726"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-real-time-matches.ts",
+          "hash": "5544806634896505720"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-specific-matches.ts",
+          "hash": "13464040186350392325"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-todays-real-matches.ts",
+          "hash": "12417893745658962723"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-todays-test-match.ts",
+          "hash": "15545395487991313422"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/find-tomorrows-ucl-matches.ts",
+          "hash": "16929030340365337600"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-league-tournament-ids.ts",
+          "hash": "16575369126491969842"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-placeholders.ts",
+          "hash": "13920408731494253359"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-test-match-display.ts",
+          "hash": "17354231988060959550"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-test-match-flags.ts",
+          "hash": "6091030799271971110"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-ucl-by-teams.ts",
+          "hash": "15831077106463824076"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/fix-ucl-logos.ts",
+          "hash": "5910598942735063846"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/force-link-monaco-psg.ts",
+          "hash": "16122216886230604131"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/force-update-test-match.ts",
+          "hash": "13162559148371083404"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/force-update-typeorm.ts",
+          "hash": "17649764961010894757"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/get-correct-logos.ts",
+          "hash": "16216216095709920860"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/insert-test-match.ts",
+          "hash": "12230025060371678591"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/insert-ucl-matches-only.ts",
+          "hash": "17312579554212309970"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/insert-ucl-playoffs.js",
+          "hash": "12135556944230392381"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/insert-ucl-raw.js",
+          "hash": "11228572860065618327"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/link-ucl-fixtures.ts",
+          "hash": "4353088475113063503"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/list-ucl-matches.ts",
+          "hash": "13380720661357775872"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/list_teams.js",
+          "hash": "1357272159577110908"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/manual-reset.ts",
+          "hash": "11509333972157432400"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/map-ucl-fixtures.ts",
+          "hash": "6818684181987566302"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/migrate-legacy.ts",
+          "hash": "8323723878437083455"
         },
         {
           "file": "Polla/apps/api/src/scripts/net-diag.js",
           "hash": "14241820213080227803"
         },
         {
+          "file": "Polla/apps/api/src/scripts/register-test-tournament.ts",
+          "hash": "4417017183598007441"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/reset-knockout-phases.ts",
+          "hash": "10344949952250860932"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/reset-wc-phases.ts",
+          "hash": "5338628334820816587"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/restore-ucl-status.js",
+          "hash": "1551368833308593603"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/restore-ucl.js",
+          "hash": "6849129223708159016"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/run-add-tournament-id.ts",
+          "hash": "7295653360297781331"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/search-girona-cagliari.ts",
+          "hash": "11564483430015254087"
+        },
+        {
           "file": "Polla/apps/api/src/scripts/seed-ai-predictions.ts",
-          "hash": "11364715508744375037"
+          "hash": "3770786203318965940"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/seed-ucl-manual.ts",
+          "hash": "7854296384595158212"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/seed-ucl-phases.js",
+          "hash": "10092089108448583725"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/test-ai.js",
+          "hash": "6352741085675630519"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/test-clear.js",
+          "hash": "11592257623046345105"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/test-dashboard.js",
+          "hash": "11719020677172902868"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/test-db-entities.ts",
+          "hash": "5064798182322996261"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/test-db.ts",
+          "hash": "8541558461124342948"
         },
         {
           "file": "Polla/apps/api/src/scripts/test-smtp-simple.js",
           "hash": "6348066208140433636"
         },
         {
+          "file": "Polla/apps/api/src/scripts/tsconfig.script.json",
+          "hash": "17219711597125674453"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/unlock-ucl-playoff.js",
+          "hash": "3886667398146776036"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/unlock-wc-phases.ts",
+          "hash": "11357529658109478318"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-correct-logos.ts",
+          "hash": "18401094483676593179"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-flags-pg.js",
+          "hash": "10787291484066130295"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-logos-api.ts",
+          "hash": "3307098485092594696"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-logos-raw.js",
+          "hash": "3846560611695547051"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-system-urls.ts",
+          "hash": "9396664817030910836"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/update-ucl-flags.ts",
+          "hash": "15953692627939149332"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-flags.js",
+          "hash": "1313276722435711312"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-flags.ts",
+          "hash": "7945290422179887140"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-isolation-manual-env.js",
+          "hash": "5516984496687969839"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-isolation.js",
+          "hash": "5957877774646421209"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-tournament-isolation-sql.ts",
+          "hash": "4581480245050522897"
+        },
+        {
+          "file": "Polla/apps/api/src/scripts/verify-tournament-isolation.ts",
+          "hash": "13173270817644749115"
+        },
+        {
           "file": "Polla/apps/api/src/seed-knockout.ts",
-          "hash": "16533436173117063311"
+          "hash": "8063117278570626463"
         },
         {
           "file": "Polla/apps/api/src/standings/standings.controller.ts",
-          "hash": "7757962064248189343"
+          "hash": "9302456813940968309"
         },
         {
           "file": "Polla/apps/api/src/standings/standings.module.ts",
-          "hash": "10796147849899503092"
+          "hash": "5277867530277635332"
         },
         {
           "file": "Polla/apps/api/src/standings/standings.service.ts",
-          "hash": "4785162631672908792"
+          "hash": "14024158510813912505"
         },
         {
           "file": "Polla/apps/api/src/system-settings/dto/create-system-setting.dto.ts",
-          "hash": "2914895370400452223"
+          "hash": "17957890103088780352"
         },
         {
           "file": "Polla/apps/api/src/system-settings/dto/update-system-setting.dto.ts",
-          "hash": "1028348960926841878"
+          "hash": "16898082071702751905"
         },
         {
           "file": "Polla/apps/api/src/system-settings/entities/system-setting.entity.ts",
-          "hash": "8751242422127540915"
+          "hash": "16190312944692613415"
         },
         {
           "file": "Polla/apps/api/src/system-settings/system-settings.controller.ts",
-          "hash": "13896594057418837119"
+          "hash": "18089182812957950343"
         },
         {
           "file": "Polla/apps/api/src/system-settings/system-settings.module.ts",
-          "hash": "5180992730201216918"
+          "hash": "13469829701684314951"
         },
         {
           "file": "Polla/apps/api/src/system-settings/system-settings.service.ts",
-          "hash": "14464791370432195763"
+          "hash": "14360323094703886028"
         },
         {
           "file": "Polla/apps/api/src/telegram/telegram.module.ts",
-          "hash": "1848409586237647264"
+          "hash": "14980128166515416317"
         },
         {
           "file": "Polla/apps/api/src/telegram/telegram.service.ts",
-          "hash": "14723675922235558294"
+          "hash": "17448836014110363225"
         },
         {
           "file": "Polla/apps/api/src/test-email.ts",
-          "hash": "12542429828745116506"
+          "hash": "13757318935077167207"
         },
         {
           "file": "Polla/apps/api/src/tournament/tournament.module.ts",
-          "hash": "4871752568308466084"
+          "hash": "11275404132552677239"
         },
         {
           "file": "Polla/apps/api/src/tournament/tournament.service.ts",
-          "hash": "7967408429965979678"
+          "hash": "9497233477556989094"
         },
         {
           "file": "Polla/apps/api/src/transactions/transactions.controller.ts",
-          "hash": "2364286405264111073"
+          "hash": "17975644810452589507"
         },
         {
           "file": "Polla/apps/api/src/transactions/transactions.module.ts",
-          "hash": "2990136027207574154"
+          "hash": "10307606926302392386"
         },
         {
           "file": "Polla/apps/api/src/transactions/transactions.service.ts",
-          "hash": "6331607026179993314"
+          "hash": "8918805338775719657"
         },
         {
           "file": "Polla/apps/api/src/types/express.d.ts",
@@ -1873,35 +3065,39 @@
         },
         {
           "file": "Polla/apps/api/src/upload/cloudinary.provider.ts",
-          "hash": "5799633408443713779"
+          "hash": "1647941411807427803"
         },
         {
           "file": "Polla/apps/api/src/upload/cloudinary.service.ts",
-          "hash": "2342940898805793929"
+          "hash": "15865055891602684563"
         },
         {
           "file": "Polla/apps/api/src/upload/upload.controller.ts",
-          "hash": "9523287314992287540"
+          "hash": "8609781732123457350"
         },
         {
           "file": "Polla/apps/api/src/upload/upload.module.ts",
-          "hash": "6017703187271898079"
+          "hash": "16816071225123720316"
         },
         {
           "file": "Polla/apps/api/src/users/dto/create-user.dto.ts",
-          "hash": "5737580022119973129"
+          "hash": "12906197236445339628"
         },
         {
           "file": "Polla/apps/api/src/users/users.controller.ts",
-          "hash": "10124452540754624739"
+          "hash": "4185775079068791410"
         },
         {
           "file": "Polla/apps/api/src/users/users.module.ts",
-          "hash": "4689748592567426936"
+          "hash": "7486458765771217427"
         },
         {
           "file": "Polla/apps/api/src/users/users.service.ts",
-          "hash": "9252670588031854501"
+          "hash": "4654428452028724816"
+        },
+        {
+          "file": "Polla/apps/api/test-league-approval.ts",
+          "hash": "3312936072705531539"
         },
         {
           "file": "Polla/apps/api/test/app.e2e-spec.ts",
@@ -1910,6 +3106,10 @@
         {
           "file": "Polla/apps/api/test/jest-e2e.json",
           "hash": "10645908491471703423"
+        },
+        {
+          "file": "Polla/apps/api/total-wc-count.js",
+          "hash": "13251606021406850570"
         },
         {
           "file": "Polla/apps/api/ts-node",
@@ -1922,6 +3122,10 @@
         {
           "file": "Polla/apps/api/tsconfig.json",
           "hash": "2253166866048263323"
+        },
+        {
+          "file": "Polla/apps/api/types_output.txt",
+          "hash": "16014448277891637189"
         },
         {
           "file": "Polla/apps/api/uploads/4b210415fdd9702c92f5b8dadda2552da.jpg",
@@ -1976,7 +3180,7 @@
       },
       {
         "file": "package-lock.json",
-        "hash": "2962812965863532609"
+        "hash": "5660498954072001645"
       },
       {
         "file": "package.json",
@@ -1984,5 +3188,5 @@
       }
     ]
   },
-  "externalNodesHash": "15324963126419309611"
+  "externalNodesHash": "2261805239357130255"
 }

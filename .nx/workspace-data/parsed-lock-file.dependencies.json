@@ -10730,6 +10730,11 @@
     "type": "static"
   },
   {
+    "source": "npm:dynamic-dedupe",
+    "target": "npm:xtend",
+    "type": "static"
+  },
+  {
     "source": "npm:ecdsa-sig-formatter",
     "target": "npm:safe-buffer",
     "type": "static"
@@ -16235,6 +16240,41 @@
     "type": "static"
   },
   {
+    "source": "npm:rimraf",
+    "target": "npm:glob@7.2.3",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:fs.realpath",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:inflight",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:inherits",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:minimatch",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:once",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob@7.2.3",
+    "target": "npm:path-is-absolute",
+    "type": "static"
+  },
+  {
     "source": "npm:rollup",
     "target": "npm:fsevents",
     "type": "static"
@@ -17665,6 +17705,131 @@
     "type": "static"
   },
   {
+    "source": "npm:ts-node-dev",
+    "target": "npm:typescript",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:chokidar@3.6.0",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:dynamic-dedupe",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:minimist",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:mkdirp@1.0.4",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:resolve",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:rimraf",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:source-map-support",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:tree-kill",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:ts-node",
+    "type": "static"
+  },
+  {
+    "source": "npm:ts-node-dev",
+    "target": "npm:tsconfig",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:anymatch",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:braces",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:glob-parent@5.1.2",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:is-binary-path",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:is-glob",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:normalize-path",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:readdirp@3.6.0",
+    "type": "static"
+  },
+  {
+    "source": "npm:chokidar@3.6.0",
+    "target": "npm:fsevents",
+    "type": "static"
+  },
+  {
+    "source": "npm:glob-parent@5.1.2",
+    "target": "npm:is-glob",
+    "type": "static"
+  },
+  {
+    "source": "npm:readdirp@3.6.0",
+    "target": "npm:picomatch@2.3.1",
+    "type": "static"
+  },
+  {
+    "source": "npm:tsconfig",
+    "target": "npm:@types/strip-bom",
+    "type": "static"
+  },
+  {
+    "source": "npm:tsconfig",
+    "target": "npm:@types/strip-json-comments",
+    "type": "static"
+  },
+  {
+    "source": "npm:tsconfig",
+    "target": "npm:strip-bom@3.0.0",
+    "type": "static"
+  },
+  {
+    "source": "npm:tsconfig",
+    "target": "npm:strip-json-comments@2.0.1",
+    "type": "static"
+  },
+  {
     "source": "npm:tsconfig-paths",
     "target": "npm:json5",
     "type": "static"
@@ -17836,11 +18001,6 @@
   },
   {
     "source": "npm:typeorm",
-    "target": "npm:reflect-metadata",
-    "type": "static"
-  },
-  {
-    "source": "npm:typeorm",
     "target": "npm:ts-node",
     "type": "static"
   },
@@ -17851,7 +18011,7 @@
   },
   {
     "source": "npm:typeorm",
-    "target": "npm:ansis@3.17.0",
+    "target": "npm:ansis",
     "type": "static"
   },
   {
@@ -17881,12 +18041,17 @@
   },
   {
     "source": "npm:typeorm",
-    "target": "npm:dotenv",
+    "target": "npm:dotenv@16.6.1",
     "type": "static"
   },
   {
     "source": "npm:typeorm",
     "target": "npm:glob@10.5.0",
+    "type": "static"
+  },
+  {
+    "source": "npm:typeorm",
+    "target": "npm:reflect-metadata",
     "type": "static"
   },
   {

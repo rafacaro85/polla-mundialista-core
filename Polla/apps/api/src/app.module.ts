@@ -63,31 +63,13 @@ import { APP_GUARD } from '@nestjs/core';
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        // Validación básica: Si no hay REDIS_HOST, usamos memoria (fallback seguro)
-        const host = configService.get<string>('REDIS_HOST');
-        if (!host) {
-          console.warn(
-            '⚠️ REDIS_HOST no definido. Usando caché en memoria (No recomendado para producción).',
-          );
-          return {
-            ttl: 10000, // 10s default
-          };
+        const redisUrl = configService.get<string>('REDIS_URL');
+        if (!redisUrl) {
+          console.warn('⚠️ REDIS_URL no definido. Usando caché en memoria.');
+          return { ttl: 10000 };
         }
-
-        const store = await redisStore({
-          socket: {
-            host: host,
-            port: parseInt(configService.get<string>('REDIS_PORT') || '6379'),
-          },
-          username: configService.get<string>('REDIS_USERNAME') || 'default',
-          password: configService.get<string>('REDIS_PASSWORD'),
-          ttl: 10000,
-        });
-
-        return {
-          store: store as any,
-          ttl: 10000, // 10 segundos de vida por defecto para todo
-        };
+        const store = await redisStore({ url: redisUrl, ttl: 10000 });
+        return { store: store as any, ttl: 10000 };
       },
       inject: [ConfigService],
     }),
@@ -125,7 +107,7 @@ import { APP_GUARD } from '@nestjs/core';
             GroupStandingOverride,
             Notification,
           ],
-          synchronize: true, // Note: synchronize: true should not be used in production
+          synchronize: false, // Note: synchronize: true should not be used in production
           ssl: url
             ? { rejectUnauthorized: false }
             : configService.get<string>('DB_SSL') === 'true'

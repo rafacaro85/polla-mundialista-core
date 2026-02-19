@@ -63,7 +63,7 @@ export function useKnockoutPhases(tournamentId?: string) {
         }
 
         // Always unlock GROUP phase for World Cup/Others
-        if (phase === 'GROUP' || !phase) return true;
+        if (phase === 'GROUP' || phase === 'GROUP_STAGE' || !phase) return true;
         
         const phaseStatus = phases.find(p => p.phase === phase);
         

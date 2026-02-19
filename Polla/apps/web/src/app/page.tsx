@@ -266,21 +266,28 @@ export default function LandingPage() {
 
   // DESHABILITADO: Auto-redirect interfiere con el flujo de onboarding empresarial
   // Los usuarios autenticados pueden ver la landing page
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const token = localStorage.getItem('token');
-  //     const onboardingBusiness = localStorage.getItem('onboarding_business');
-  //
-  //     if (token) {
-  //       if (onboardingBusiness === 'true') {
-  //         localStorage.removeItem('onboarding_business');
-  //         router.push('/business/new');
-  //       } else {
-  //         router.push('/dashboard');
-  //       }
-  //     }
-  //   }
-  // }, [router]);
+  // REDIRECT LOGIC
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isCorporate = process.env.NEXT_PUBLIC_IS_CORPORATE === 'true';
+      if (isCorporate) {
+        window.location.replace('/login');
+        return;
+      }
+      
+    //   const token = localStorage.getItem('token');
+    //   const onboardingBusiness = localStorage.getItem('onboarding_business');
+    //
+    //   if (token) {
+    //     if (onboardingBusiness === 'true') {
+    //       localStorage.removeItem('onboarding_business');
+    //       router.push('/business/new');
+    //     } else {
+    //       router.push('/dashboard');
+    //     }
+    //   }
+    }
+  }, [router]);
 
   // LÓGICA DE NEGOCIO INTEGRADA
   const onLoginClick = () => {

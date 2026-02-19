@@ -41,6 +41,7 @@ import { useTournament } from '@/hooks/useTournament';
 import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
 import { OnboardingMissions } from './dashboard/home/OnboardingMissions';
+import { CorporateWelcomeView } from '@/components/CorporateWelcomeView';
 
 interface Match {
   id: string;
@@ -117,6 +118,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // Implement useLeagues to determine smart onboarding state
   const { leagues, loading: loadingLeagues } = useLeagues();
   const hasLeagues = leagues && leagues.length > 0;
+  
+  const isCorporate = process.env.NEXT_PUBLIC_IS_CORPORATE === 'true';
 
   const handleFullRefresh = async () => {
     // Refresh both matches and tournament phases
@@ -224,6 +227,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
               {isCheckingInvite && <p className="text-slate-400 text-sm animate-pulse">Verificando invitaciones...</p>}
           </div>
       );
+  }
+
+  // CORPORATE LOBBY CHECK
+  if (isCorporate && activeTab === 'home') {
+      return <CorporateWelcomeView onEnterGame={() => setActiveTab('predictions')} />;
   }
 
   return (
@@ -471,13 +479,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           </div>
         )}
 
-        {!isEnterpriseMode && (
-          <BottomNav
+        {/* Standard Bottom Nav OR Corporate Bottom Nav */}
+        <BottomNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
-          />
-        )}
+            showLeaguesTab={!isCorporate && (!selectedLeagueId || selectedLeagueId === 'global')}
+        />
 
 
       </div >

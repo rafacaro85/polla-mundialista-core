@@ -15,7 +15,7 @@ export function useFilteredMatches(matches: any[], tournamentId?: string) {
             const phase = match.phase;
             
             // Always show GROUP phase matches
-            if (phase === 'GROUP' || !phase) {
+            if (phase === 'GROUP' || phase === 'GROUP_STAGE' || !phase) {
                 return true;
             }
 

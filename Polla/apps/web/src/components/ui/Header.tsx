@@ -82,7 +82,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
-          <Link 
+          {/* <Link 
             href="/hub" 
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
               isChampionsTheme 
@@ -92,7 +92,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
           >
             <LayoutGrid size={16} />
             <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Torneos</span>
-          </Link>
+          </Link> */}
 
           <NotificationBell />
           <UserNav />

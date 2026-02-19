@@ -52,7 +52,11 @@ export class MatchesService {
       });
       const phaseNames = unlockedPhases.map((p) => p.phase);
 
-      // Si no hay fases desbloqueadas para este torneo, devolver array vacío para evitar errores IN ()
+      // ALWAYS allow GROUP and GROUP_STAGE matches, regardless of DB status
+      if (!phaseNames.includes('GROUP')) phaseNames.push('GROUP');
+      if (!phaseNames.includes('GROUP_STAGE')) phaseNames.push('GROUP_STAGE');
+
+      // Si no hay fases desbloqueadas (y no es grupo), devolver array vacío
       if (phaseNames.length === 0) {
         return [];
       }
@@ -72,6 +76,10 @@ export class MatchesService {
       where: { isUnlocked: true, tournamentId },
     });
     const phaseNames = unlockedPhases.map((p) => p.phase);
+
+    // ALWAYS allow GROUP and GROUP_STAGE matches
+    if (!phaseNames.includes('GROUP')) phaseNames.push('GROUP');
+    if (!phaseNames.includes('GROUP_STAGE')) phaseNames.push('GROUP_STAGE');
 
     if (phaseNames.length === 0) {
       return [];

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export type TournamentId = 'WC2026' | 'UCL2526' | string;
+export type TournamentId = 'FWC2026' | 'UCL2526' | string;
 
 export const useTournament = () => {
   const searchParams = useSearchParams();
   
   // Helper to detect tournament synchronously for initial state
   const getDetectedTournament = (): TournamentId => {
-    if (typeof window === 'undefined') return 'WC2026';
+    if (typeof window === 'undefined') return 'FWC2026';
     
     // 1. URL Params
     const urlParams = new URL(window.location.href).searchParams;
@@ -26,7 +26,7 @@ export const useTournament = () => {
     // 3. Fallback: Hostname/Env
     const hostname = window.location.hostname;
     const envTheme = process.env.NEXT_PUBLIC_APP_THEME;
-    return (hostname.includes('champions') || envTheme === 'CHAMPIONS') ? 'UCL2526' : 'WC2026';
+    return (hostname.includes('champions') || envTheme === 'CHAMPIONS') ? 'UCL2526' : 'FWC2026';
   };
 
   const [tournamentId, setTournamentId] = useState<TournamentId>(getDetectedTournament());

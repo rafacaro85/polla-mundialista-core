@@ -31,7 +31,7 @@ api.interceptors.request.use(
       const hostname = window.location.hostname;
       
       // Determine default tournament based on environment context (localStorage/hostname)
-      const defaultTournamentId = storedTournament || (hostname.includes('champions') ? 'UCL2526' : 'WC2026');
+      const defaultTournamentId = storedTournament || (hostname.includes('champions') ? 'UCL2526' : 'FWC2026');
 
       // Check if the request explicitly provides a tournamentId
       if (!config.params) config.params = {};

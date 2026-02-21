@@ -12,6 +12,10 @@ import helmet from 'helmet';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+  
+  // 🔥 CRÍTICO para Railway: Confiar en el proxy para cabeceras X-Forwarded-Proto
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
 
   // 0. Seguridad HTTP Headers (Helmet)
   app.use(helmet());
@@ -65,6 +69,9 @@ async function bootstrap() {
   logger.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.log(
     `🔗 Railway URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'not set'}`,
+  );
+  logger.log(
+    `🔑 Google Auth Config: CLIENT_ID=${process.env.GOOGLE_CLIENT_ID ? '✅' : '❌'}, SECRET=${process.env.GOOGLE_SECRET ? '✅' : '❌'}`,
   );
 }
 

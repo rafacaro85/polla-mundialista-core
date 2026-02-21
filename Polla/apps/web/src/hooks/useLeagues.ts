@@ -17,6 +17,11 @@ export interface League {
     isEnterpriseActive?: boolean;
     isPaid?: boolean;
     status?: string; // PENDING, ACTIVE, REJECTED
+    tournamentId: string;
+    prizeImageUrl?: string;
+    prizeDetails?: string;
+    prizeType?: string;
+    prizeAmount?: number;
 }
 
 export const useLeagues = () => {
@@ -47,7 +52,12 @@ export const useLeagues = () => {
                 isEnterprise: l.isEnterprise,
                 isEnterpriseActive: l.isEnterpriseActive,
                 isPaid: l.isPaid,
-                status: l.status // New field
+                status: l.status,
+                tournamentId: l.tournamentId,
+                prizeImageUrl: l.prizeImageUrl,
+                prizeDetails: l.prizeDetails,
+                prizeType: l.prizeType,
+                prizeAmount: l.prizeAmount
             }));
 
             setLeagues(mappedLeagues);

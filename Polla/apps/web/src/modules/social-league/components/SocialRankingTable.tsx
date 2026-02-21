@@ -87,7 +87,7 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
     const visibleRanking = ranking.slice(0, visibleCount);
 
     return (
-        <div className="w-full max-w-md mx-auto pb-24 px-4 pt-4">
+        <div className="w-full pb-24 md:pb-8 px-0 pt-4">
             <h2 className="font-russo text-xl text-white uppercase text-center mb-4">
                 Ranking de Amigos
             </h2>

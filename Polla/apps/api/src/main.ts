@@ -1,4 +1,8 @@
 import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
+// 🔥 Forzar que el .env local sobreescriba cualquier variable de entorno global (Railway)
+dotenv.config({ override: true });
+
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
@@ -53,6 +57,8 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
 
   logger.log(`🚀 Server running on port: ${port}`);
+  logger.log(`🚀 ACTIVE DATABASE_URL: ${process.env.DATABASE_URL || 'NOT SET'}`);
+  logger.log(`🚀 ACTIVE DB_HOST: ${process.env.DB_HOST || 'NOT SET'}`);
   logger.log(`🚀 Application is accessible at: http://0.0.0.0:${port}/api`);
   logger.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.log(

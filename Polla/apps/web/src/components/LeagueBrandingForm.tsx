@@ -10,6 +10,8 @@ interface LeagueBrandingFormProps {
     initialData: {
         brandingLogoUrl?: string;
         prizeImageUrl?: string;
+        prizeType?: string;
+        prizeAmount?: number;
         prizeDetails?: string;
         welcomeMessage?: string;
         isEnterprise?: boolean;
@@ -90,6 +92,8 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
     const [formData, setFormData] = useState({
         brandingLogoUrl: initialData.brandingLogoUrl || '',
         prizeImageUrl: initialData.prizeImageUrl || '',
+        prizeType: initialData.prizeType || 'image',
+        prizeAmount: initialData.prizeAmount ?? '',
         prizeDetails: initialData.prizeDetails || '',
         welcomeMessage: initialData.welcomeMessage || '',
         isEnterprise: initialData.isEnterprise || false,
@@ -266,25 +270,101 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
 
             {/* IMAGEN DEL PREMIO */}
             <div className="mb-5">
-                <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5">Imagen del Premio Principal</label>
-                {!isFeatureEnabled('prizeImage') ? (
-                    <PlanLock featureName="Imagen del Premio" planNeeded="Parche" />
-                ) : (
-                    <>
-                        <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
-                        {formData.prizeImageUrl && (
-                            <div className="mt-3 w-full h-[140px] bg-[#0F172A] rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-[#00E676]/40 relative">
-                                <img src={formData.prizeImageUrl} alt="Premio" className="max-h-[90%] max-w-[90%] object-contain" />
-                                <button
-                                    onClick={() => handleChange('prizeImageUrl', '')}
-                                    className="absolute top-2 right-2 bg-red-500 text-white border-none rounded-full w-[30px] h-[30px] flex items-center justify-center cursor-pointer shadow-md"
-                                    title="Eliminar imagen"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                <label className="text-[#94A3B8] text-[11px] font-bold mb-3 uppercase flex items-center gap-1.5">Imagen del Premio Principal</label>
+
+                {/* === SELECTOR TIPO DE PREMIO === */}
+                <div className="mb-4 bg-[#0F172A] border border-[#334155] rounded-xl p-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">TIPO DE PREMIO</p>
+                    <div className="flex flex-col gap-2">
+                        {/* Opción Imagen */}
+                        <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                            formData.prizeType === 'image'
+                                ? 'bg-[#00E676]/10 border-[#00E676]/40 text-white'
+                                : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="prizeType"
+                                value="image"
+                                checked={formData.prizeType === 'image'}
+                                onChange={() => handleChange('prizeType', 'image')}
+                                className="accent-[#00E676] w-4 h-4"
+                            />
+                            <span className="text-sm font-bold">Imagen del premio</span>
+                        </label>
+
+                        {/* Opción Efectivo */}
+                        <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                            formData.prizeType === 'cash'
+                                ? 'bg-yellow-400/10 border-yellow-400/40 text-white'
+                                : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="prizeType"
+                                value="cash"
+                                checked={formData.prizeType === 'cash'}
+                                onChange={() => handleChange('prizeType', 'cash')}
+                                className="accent-yellow-400 w-4 h-4"
+                            />
+                            <span className="text-sm font-bold">Premio en efectivo</span>
+                        </label>
+                    </div>
+
+                    {/* Input monto en COP */}
+                    {formData.prizeType === 'cash' && (
+                        <div className="mt-4">
+                            <label className="text-[10px] text-yellow-400/80 font-bold uppercase tracking-widest block mb-2">
+                                Monto (COP)
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-400 font-black text-lg">$</span>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={formData.prizeAmount
+                                        ? Number(formData.prizeAmount).toLocaleString('es-CO', { maximumFractionDigits: 0 })
+                                        : ''}
+                                    onChange={(e) => {
+                                        // Quitar puntos y letras, conservar solo dígitos
+                                        const raw = e.target.value.replace(/\D/g, '');
+                                        handleChange('prizeAmount', raw ? Number(raw) : '');
+                                    }}
+                                    placeholder="500.000"
+                                    className="w-full pl-8 pr-4 py-3 bg-[#1E293B] border border-yellow-400/30 rounded-xl text-white font-russo text-xl focus:outline-none focus:border-yellow-400/70 placeholder-slate-600"
+                                    style={{ letterSpacing: '0.05em' }}
+                                />
                             </div>
-                        )}
-                    </>
+                            {formData.prizeAmount ? (
+                                <p className="mt-2 text-xs text-yellow-400/60 font-bold">
+                                    Valor: ${Number(formData.prizeAmount).toLocaleString('es-CO', { maximumFractionDigits: 0 })} pesos colombianos
+                                </p>
+                            ) : null}
+                        </div>
+                    )}
+                </div>
+
+                {/* Uploader — solo si prizeType === 'image' */}
+                {formData.prizeType === 'image' && (
+                    !isFeatureEnabled('prizeImage') ? (
+                        <PlanLock featureName="Imagen del Premio" planNeeded="Parche" />
+                    ) : (
+                        <>
+                            <UploadButton field="prizeImageUrl" label="SUBIR FOTO DEL PREMIO" />
+                            {formData.prizeImageUrl && (
+                                <div className="mt-3 w-full h-[140px] bg-[#0F172A] rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-[#00E676]/40 relative">
+                                    <img src={formData.prizeImageUrl} alt="Premio" className="max-h-[90%] max-w-[90%] object-contain" />
+                                    <button
+                                        onClick={() => handleChange('prizeImageUrl', '')}
+                                        className="absolute top-2 right-2 bg-red-500 text-white border-none rounded-full w-[30px] h-[30px] flex items-center justify-center cursor-pointer shadow-md"
+                                        title="Eliminar imagen"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )
                 )}
             </div>
 

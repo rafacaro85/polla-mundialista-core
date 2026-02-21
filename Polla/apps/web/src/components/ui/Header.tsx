@@ -32,8 +32,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
         <div className="flex items-center gap-3">
           {selectedLeagueId && selectedLeagueId !== 'global' ? (
             <Link
-              href="/dashboard"
-              onClick={() => setSelectedLeague('global')}
+              href="/social/mis-pollas"
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 transition-colors group"
             >
               <div className="bg-slate-800 p-2 rounded-md group-hover:bg-slate-700 transition-colors border border-slate-700">
@@ -44,7 +43,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
                 {leagueName ? (
                   <span className="text-lg font-russ text-white leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] md:max-w-xs">{leagueName}</span>
                 ) : (
-                  <span className="text-sm font-bold text-white leading-none">Global</span>
+                  <span className="text-sm font-bold text-white leading-none">Mis Pollas</span>
                 )}
               </div>
             </Link>

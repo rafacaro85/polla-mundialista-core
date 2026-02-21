@@ -62,48 +62,67 @@ const PLANS = [
 interface CreateLeagueDialogProps {
     onLeagueCreated: () => void;
     children?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 /* =============================================================================
    COMPONENTE: CREAR LIGA (TACTICAL STYLE)
    ============================================================================= */
-export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeagueCreated, children }) => {
+export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ 
+    onLeagueCreated, 
+    children,
+    open: controlledOpen,
+    onOpenChange
+}) => {
     const { tournamentId } = useTournament();
     
-    // Dynamic Plans based on Tournament
-    const availablePlans = React.useMemo(() => {
-        const basePlans = [...PLANS];
-        
-        // Special Launch Plan for Champions League
-        if (tournamentId === 'UCL2526') {
-            basePlans.unshift({
-                id: 'launch_promo',
-                name: 'Cortesía Lanzamiento',
-                price: 'GRATIS',
-                members: 15,
-                icon: <Gem size={20} />, // Unique icon
-                color: '#6366F1', // Indigo
-                features: ['Hasta 15 jugadores', 'Imagen del premio', 'Solo Champions League'],
-                recommended: true
-            });
-        }
-        
-        return basePlans;
-    }, [tournamentId]);
-
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setOpen = (val: boolean) => {
+        if (onOpenChange) onOpenChange(val);
+        setInternalOpen(val);
+    };
+    const [step, setStep] = useState(1); // Paso actual (1: Torneo, 2: Info, 3: Plan, 4: Pago/Exito)
+    const [selectedTournamentId, setSelectedTournamentId] = useState<string>(tournamentId || 'WC2026');
     const [leagueName, setLeagueName] = useState('');
     const [adminName, setAdminName] = useState('');
-    const [countryCode, setCountryCode] = useState('+57'); // Nuevo estado para indicativo
+    const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    // Default to 'launch_promo' if available (UCL), otherwise 'amigos'
-    const [selectedPlan, setSelectedPlan] = useState(tournamentId === 'UCL2526' ? 'launch_promo' : 'amigos');
+    const [selectedPlan, setSelectedPlan] = useState('amigos');
     const [loading, setLoading] = useState(false);
     const [createdLeagueId, setCreatedLeagueId] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
     const [createdLeagueName, setCreatedLeagueName] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [processingPayment, setProcessingPayment] = useState(false);
+
+    // Dynamic Plans based on SELECTED Tournament
+    const availablePlans = React.useMemo(() => {
+        const basePlans = [...PLANS];
+        if (selectedTournamentId === 'UCL2526') {
+            basePlans.unshift({
+                id: 'launch_promo',
+                name: 'Cortesía Lanzamiento',
+                price: 'GRATIS',
+                members: 15,
+                icon: <Gem size={20} />,
+                color: '#6366F1',
+                features: ['Hasta 15 jugadores', 'Imagen del premio', 'Solo Champions League'],
+                recommended: true
+            });
+        }
+        return basePlans;
+    }, [selectedTournamentId]);
+
+    // Update selectedPlan when tournament changes if current plan not available
+    React.useEffect(() => {
+        if (selectedTournamentId === 'UCL2526' && selectedPlan === 'amigos') {
+            setSelectedPlan('launch_promo');
+        } else if (selectedTournamentId === 'WC2026' && selectedPlan === 'launch_promo') {
+            setSelectedPlan('amigos');
+        }
+    }, [selectedTournamentId, selectedPlan]);
 
 
     const handleCreate = async () => {
@@ -155,16 +174,14 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                 isEnterprise: false,
                 adminName: adminName.trim(),
                 adminPhone: fullPhone,
-                tournamentId,
+                tournamentId: selectedTournamentId,
             });
 
             console.log('✅ [CreateLeague] Respuesta servidor:', response.data);
-            console.log('   -> isPaid en respuesta:', response.data.isPaid);
-            console.log('   -> packageType en respuesta:', response.data.packageType);
-
             setCreatedCode(response.data.accessCodePrefix);
             setCreatedLeagueName(leagueName.trim());
             setCreatedLeagueId(response.data.id);
+            setStep(4); // Move to final step (Success/Payment)
             toast.success('¡Polla creada exitosamente!');
             // DO NOT call onLeagueCreated() here. It triggers a re-render in parent that unmounts this dialog!
             // await onLeagueCreated(); 
@@ -186,12 +203,12 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
     };
 
     const handleClose = () => {
-        // Refresh parent list only when closing, to prevent unmounting during payment flow
         if (createdLeagueId && onLeagueCreated) {
             onLeagueCreated();
         }
         
         setOpen(false);
+        setStep(1);
         setLeagueName('');
         setAdminName('');
         setAdminPhone('');
@@ -199,7 +216,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         setCreatedLeagueName(null);
         setCreatedLeagueId(null);
         setCopied(false);
-        setSelectedPlan(tournamentId === 'UCL2526' ? 'launch_promo' : 'amigos');
+        setSelectedPlan('amigos');
+        setSelectedTournamentId(tournamentId || 'WC2026');
     };
 
     // SISTEMA DE DISEÑO BLINDADO
@@ -249,9 +267,24 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
         },
         titleGroup: {
             display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
+            flexDirection: 'column' as const,
+            gap: '8px',
+            flex: 1
         },
+        progressContainer: {
+            width: '100%',
+            height: '4px',
+            backgroundColor: '#0F172A',
+            borderRadius: '2px',
+            overflow: 'hidden',
+            marginTop: '8px'
+        },
+        progressBar: (currentStep: number) => ({
+            width: `${(currentStep / 4) * 100}%`,
+            height: '100%',
+            backgroundColor: '#00E676',
+            transition: 'width 0.3s ease'
+        }),
         iconBox: {
             width: '40px', // REDUCIDO: Antes 44px
             height: '40px', // REDUCIDO: Antes 44px
@@ -291,6 +324,26 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
             overflowY: 'auto' as const, // Scrollable body
             flex: 1 // Take remaining space
         },
+
+        // TOURNAMENT SELECTOR (Step 1)
+        tournamentGrid: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            gap: '12px'
+        },
+        tournamentCard: (isSelected: boolean, color: string) => ({
+            backgroundColor: isSelected ? `${color}10` : '#0F172A',
+            border: `2px solid ${isSelected ? color : '#334155'}`,
+            borderRadius: '20px',
+            padding: '20px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            position: 'relative' as const,
+            boxShadow: isSelected ? `0 0 20px ${color}20` : 'none'
+        }),
 
         // INPUT NOMBRE
         inputSection: {
@@ -488,13 +541,24 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                         {/* 1. HEADER */}
                         <div style={STYLES.header}>
                             <div style={STYLES.titleGroup}>
-                                <div style={STYLES.iconBox}>
-                                    <Trophy size={24} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={STYLES.iconBox}>
+                                        <Trophy size={24} />
+                                    </div>
+                                    <div>
+                                        <div style={STYLES.titleText}>
+                                            {step === 4 ? (createdCode ? '¡Polla Creada!' : 'Activación') : 'Nueva Polla'}
+                                        </div>
+                                        <div style={STYLES.subtitleText}>
+                                            {step === 4 ? 'Resumen y Activación' : `Paso ${step} de 4 - ${step === 1 ? 'Selecciona Torneo' : step === 2 ? 'Información' : 'Elige Plan'}`}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style={STYLES.titleText}>{createdCode ? '¡Polla Creada!' : 'Nueva Polla'}</div>
-                                    <div style={STYLES.subtitleText}>{createdCode ? 'Tu torneo está listo' : 'Configura tu torneo privado'}</div>
-                                </div>
+                                {!createdCode && step < 4 && (
+                                    <div style={STYLES.progressContainer}>
+                                        <div style={STYLES.progressBar(step)} />
+                                    </div>
+                                )}
                             </div>
                             <button onClick={handleClose} style={STYLES.closeBtn}>
                                 <X size={24} />
@@ -504,7 +568,43 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                         {/* 2. BODY */}
                         <div style={STYLES.body}>
 
-                            {!createdCode ? (
+                            {step === 1 && (
+                                <div style={STYLES.tournamentGrid}>
+                                    <label style={STYLES.label}>¿En qué torneo quieres tu polla?</label>
+                                    
+                                    {/* MUNDIAL */}
+                                    <div 
+                                        style={STYLES.tournamentCard(selectedTournamentId === 'WC2026', '#00E676')}
+                                        onClick={() => setSelectedTournamentId('WC2026')}
+                                    >
+                                        <div style={{ ...STYLES.iconBox, borderColor: '#00E676', backgroundColor: '#00E67610' }}>
+                                            <Trophy size={20} className="text-[#00E676]" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-white font-russo text-sm uppercase">Mundial 2026</h4>
+                                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">La máxima cita del fútbol</p>
+                                        </div>
+                                        <div className="bg-[#00E676] text-[#0F172A] px-2 py-0.5 rounded text-[8px] font-black uppercase">OFICIAL</div>
+                                    </div>
+
+                                    {/* CHAMPIONS */}
+                                    <div 
+                                        style={STYLES.tournamentCard(selectedTournamentId === 'UCL2526', '#6366F1')}
+                                        onClick={() => setSelectedTournamentId('UCL2526')}
+                                    >
+                                        <div style={{ ...STYLES.iconBox, borderColor: '#6366F1', backgroundColor: '#6366F110' }}>
+                                            <Star size={20} className="text-[#6366F1]" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-white font-russo text-sm uppercase">Champions 25/26</h4>
+                                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">La orejona espera por ti</p>
+                                        </div>
+                                        <div className="bg-[#6366F1] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase">BETA</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 2 && (
                                 <>
                                     {/* Input Nombre */}
                                     <div style={STYLES.inputSection}>
@@ -537,23 +637,21 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                         />
                                     </div>
 
-                                    {/* Input Admin Phone (Con Indicativo Separado) */}
+                                    {/* Input Admin Phone */}
                                     <div style={STYLES.inputSection}>
                                         <label style={STYLES.label}>WhatsApp de Contacto</label>
                                         <div style={{ display: 'flex', gap: '12px' }}>
-                                            {/* Indicativo */}
                                             <input
                                                 type="text"
                                                 placeholder="+57"
                                                 value={countryCode}
                                                 maxLength={5}
                                                 onChange={(e) => setCountryCode(e.target.value)}
-                                                style={{ ...STYLES.input, width: '80px', textAlign: 'center', padding: '16px 8px' }}
+                                                style={{ ...STYLES.input, width: '80px', textAlign: 'center', padding: '12px 8px' }}
                                                 onFocus={(e) => e.target.style.borderColor = '#00E676'}
                                                 onBlur={(e) => e.target.style.borderColor = '#334155'}
                                                 disabled={loading}
                                             />
-                                            {/* Número */}
                                             <input
                                                 type="tel"
                                                 placeholder="310 123 4567"
@@ -567,54 +665,48 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                                             />
                                         </div>
                                     </div>
-
-
-                                    {/* Selector de Planes */}
-                                    <div>
-                                        <div style={STYLES.plansLabel}>
-                                            <span style={STYLES.label}>Selecciona un Plan</span>
-                                            <span style={{ fontSize: '10px', color: '#00E676', fontWeight: 'bold', cursor: 'pointer' }}>Ver detalles completos</span>
-                                        </div>
-
-                                        <div style={STYLES.plansGrid}>
-                                            {availablePlans.map(plan => {
-                                                const isSelected = selectedPlan === plan.id; // Correct usage of ID as value
-                                                
-                                                // Combinar estilos base con seleccionados
-                                                const cardStyle = {
-                                                    ...STYLES.planCard,
-                                                    ...(isSelected ? STYLES.selectedPlanCard(plan.color) : {})
-                                                };
-
-                                                return (
-                                                    <div
-                                                        key={plan.id}
-                                                        style={cardStyle}
-                                                        onClick={() => !loading && setSelectedPlan(plan.id)}
-                                                    >
-                                                        {/* Badge Recomendado */}
-                                                        {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>}
-
-                                                        {/* Icono Check si seleccionado */}
-                                                        {isSelected && <Check size={16} style={{ ...STYLES.checkCircle, color: plan.color }} />}
-
-                                                        <div style={{ ...STYLES.planIcon, color: plan.color }}>
-                                                            {plan.icon}
-                                                        </div>
-
-                                                        <div style={STYLES.planName}>{plan.name}</div>
-                                                        <div style={{ ...STYLES.planPrice, color: isSelected ? 'white' : '#94A3B8' }}>{plan.price}</div>
-
-                                                        <div style={STYLES.featureList}>
-                                                            <span style={{ color: 'white', fontWeight: 'bold' }}>{plan.members}</span> Miembros
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
                                 </>
-                            ) : (
+                            )}
+
+                            {step === 3 && (
+                                <div>
+                                    <div style={STYLES.plansLabel}>
+                                        <span style={STYLES.label}>Selecciona un Plan</span>
+                                        <span style={{ fontSize: '10px', color: '#00E676', fontWeight: 'bold' }}>Precios en Pesos</span>
+                                    </div>
+
+                                    <div style={STYLES.plansGrid}>
+                                        {availablePlans.map(plan => {
+                                            const isSelected = selectedPlan === plan.id;
+                                            const cardStyle = {
+                                                ...STYLES.planCard,
+                                                ...(isSelected ? STYLES.selectedPlanCard(plan.color) : {})
+                                            };
+
+                                            return (
+                                                <div
+                                                    key={plan.id}
+                                                    style={cardStyle}
+                                                    onClick={() => !loading && setSelectedPlan(plan.id)}
+                                                >
+                                                    {plan.recommended && <div style={STYLES.recommendedBadge}>Recomendado</div>}
+                                                    {isSelected && <Check size={16} style={{ ...STYLES.checkCircle, color: plan.color }} />}
+                                                    <div style={{ ...STYLES.planIcon, color: plan.color }}>
+                                                        {plan.icon}
+                                                    </div>
+                                                    <div style={STYLES.planName}>{plan.name}</div>
+                                                    <div style={{ ...STYLES.planPrice, color: isSelected ? 'white' : '#94A3B8' }}>{plan.price}</div>
+                                                    <div style={STYLES.featureList}>
+                                                        <span style={{ color: 'white', fontWeight: 'bold' }}>{plan.members}</span> Miembros
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 4 && (
                                 <div style={STYLES.successBox}>
                                     {(() => {
                                         const selectedPlanDetails = availablePlans.find(p => p.id === selectedPlan);
@@ -698,25 +790,65 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({ onLeague
                         </div>
 
                         {/* 3. FOOTER */}
-                        {!createdCode && (
+                        {step < 4 && (
                             <div style={STYLES.footer}>
-                                <button onClick={handleClose} style={STYLES.cancelBtn} disabled={loading}>
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleCreate}
-                                    style={{
-                                        ...STYLES.createBtn,
-                                        backgroundColor: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '#00E676' : '#334155',
-                                        color: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '#0F172A' : '#94A3B8',
-                                        cursor: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) && !loading ? 'pointer' : 'not-allowed',
-                                        boxShadow: (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim()) ? '0 0 20px rgba(0, 230, 118, 0.4)' : 'none'
-                                    }}
-                                >
-                                    {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} strokeWidth={3} />}
-                                    {loading ? 'CREANDO...' : 'CREAR POLLA'}
-                                </button>
+                                {step > 1 ? (
+                                    <button 
+                                        onClick={() => setStep(step - 1)} 
+                                        style={STYLES.cancelBtn} 
+                                        disabled={loading}
+                                    >
+                                        Anterior
+                                    </button>
+                                ) : (
+                                    <button onClick={handleClose} style={STYLES.cancelBtn} disabled={loading}>
+                                        Cancelar
+                                    </button>
+                                )}
+
+                                {step < 3 ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (step === 2) {
+                                                if (!leagueName.trim() || !adminName.trim() || !adminPhone.trim() || !countryCode.trim()) {
+                                                    toast.error('Por favor completa todos los campos');
+                                                    return;
+                                                }
+                                                // Phone validation simplified for step transition, full validation in handleCreate
+                                                const cleanNumber = adminPhone.replace(/[\s-]/g, '');
+                                                if (cleanNumber.length !== 10) {
+                                                    toast.error('El número celular debe tener 10 dígitos');
+                                                    return;
+                                                }
+                                            }
+                                            setStep(step + 1);
+                                        }}
+                                        style={{
+                                            ...STYLES.createBtn,
+                                            backgroundColor: (step === 1 || (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim())) ? '#00E676' : '#334155',
+                                            color: (step === 1 || (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim())) ? '#0F172A' : '#94A3B8',
+                                            boxShadow: (step === 1 || (leagueName.trim() && adminName.trim() && adminPhone.trim() && countryCode.trim())) ? '0 0 20px rgba(0, 230, 118, 0.4)' : 'none'
+                                        }}
+                                    >
+                                        Siguiente
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleCreate}
+                                        style={{
+                                            ...STYLES.createBtn,
+                                            backgroundColor: '#00E676',
+                                            color: '#0F172A',
+                                            cursor: !loading ? 'pointer' : 'not-allowed',
+                                            boxShadow: '0 0 20px rgba(0, 230, 118, 0.4)'
+                                        }}
+                                    >
+                                        {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} strokeWidth={3} />}
+                                        {loading ? 'CREANDO...' : 'CREAR POLLA'}
+                                    </button>
+                                )}
                             </div>
                         )}
 

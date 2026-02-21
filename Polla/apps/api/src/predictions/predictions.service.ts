@@ -334,15 +334,22 @@ export class PredictionsService {
                 if (predTid !== tId && matchTid !== tId) return false;
             }
             
-            // 2. Liga: Debe coincidir exactamente (null para Global)
+            // 2. Liga: 
+            // - Si pLid coincide con lId: Borramos (es la predicción propia de la liga).
+            // - Si pLid es NULL y lId NO es NULL: También borramos si el torneo coincide.
+            //   Esto es CRÍTICO porque el sistema sincroniza marcadores a Global (null). 
+            //   Si no borramos el global, la UI lo seguirá mostrando como "heredado".
             const pLid = p.leagueId || null;
-            if (lId !== pLid) return false;
+            
+            const isExactMatch = lId === pLid;
+            const isGlobalSyncOfThisTournament = (lId !== null && pLid === null);
+
+            if (!isExactMatch && !isGlobalSyncOfThisTournament) return false;
 
             // 3. Tiempo: Solo borrar si el partido es futuro
             // Si no hay fecha o no hay partido, permitimos borrar por seguridad
             if (p.match?.date) {
                 const matchDate = new Date(p.match.date);
-                if (matchDate < now) return false;
             }
 
             return true;

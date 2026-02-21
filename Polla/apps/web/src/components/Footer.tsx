@@ -16,10 +16,10 @@ export default function Footer() {
 
     const STYLES = {
         container: {
-            backgroundColor: 'var(--brand-secondary)', // Dynamic
+            backgroundColor: '#050505',
             borderTop: '1px solid #1E293B',
-            padding: '40px 20px 140px 20px', // Extra bottom padding for mobile nav overlap
-            marginTop: 'auto', // Push to bottom if flex container
+            padding: '40px 20px 40px 20px', 
+            marginTop: 'auto', 
             color: '#94A3B8',
             fontSize: '12px',
             textAlign: 'center' as const

@@ -368,6 +368,8 @@ export class LeaguesService {
       welcomeMessage: league.welcomeMessage,
       prizeImageUrl: league.prizeImageUrl,
       prizeDetails: league.prizeDetails,
+      prizeType: league.prizeType,
+      prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
       // Social
       socialInstagram: league.socialInstagram,
       socialFacebook: league.socialFacebook,
@@ -590,11 +592,14 @@ export class LeaguesService {
       welcomeMessage: p.league.welcomeMessage,
       prizeImageUrl: p.league.prizeImageUrl,
       prizeDetails: p.league.prizeDetails,
+      prizeType: p.league.prizeType,
+      prizeAmount: p.league.prizeAmount != null ? Number(p.league.prizeAmount) : null,
       isPaid: p.league.isPaid,
       packageType: p.league.packageType,
       showAds: p.league.showAds,
       adImages: p.league.adImages,
       status: p.status, // EXPOSE STATUS
+      tournamentId: p.league.tournamentId,
     }));
 
     return result;
@@ -679,6 +684,8 @@ export class LeaguesService {
         welcomeMessage: participant.league.welcomeMessage,
         prizeImageUrl: participant.league.prizeImageUrl,
         prizeDetails: participant.league.prizeDetails,
+        prizeType: participant.league.prizeType,
+        prizeAmount: participant.league.prizeAmount != null ? Number(participant.league.prizeAmount) : null,
         status: participant.league.status,
         isPaid: participant.league.isPaid,
         maxParticipants: participant.league.maxParticipants,
@@ -729,6 +736,8 @@ export class LeaguesService {
           welcomeMessage: league.welcomeMessage,
           prizeImageUrl: league.prizeImageUrl,
           prizeDetails: league.prizeDetails,
+          prizeType: league.prizeType,
+          prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
           status: league.status,
           isPaid: league.isPaid,
           maxParticipants: league.maxParticipants,
@@ -1054,6 +1063,10 @@ export class LeaguesService {
       league.prizeImageUrl = updateLeagueDto.prizeImageUrl;
     if (updateLeagueDto.prizeDetails !== undefined)
       league.prizeDetails = updateLeagueDto.prizeDetails;
+    if (updateLeagueDto.prizeType !== undefined)
+      league.prizeType = updateLeagueDto.prizeType;
+    if (updateLeagueDto.prizeAmount !== undefined)
+      league.prizeAmount = updateLeagueDto.prizeAmount;
     if (updateLeagueDto.welcomeMessage !== undefined)
       league.welcomeMessage = updateLeagueDto.welcomeMessage;
     if (updateLeagueDto.isEnterprise !== undefined)

@@ -306,11 +306,11 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                 </Button>
             </div>
 
-            <div className="flex flex-col gap-4 pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
                 {loading ? (
-                    <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
+                    <div className="col-span-full text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
                 ) : matchesByDate.length === 0 ? (
-                    <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
+                    <div className="col-span-full text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
                 ) : (
                     matchesByDate.map((match: any) => (
                         <MatchCard

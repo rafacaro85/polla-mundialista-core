@@ -18,7 +18,7 @@ export class League {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: 'WC2026' })
+  @Column({ name: 'tournament_id', default: 'WC2026' })
   tournamentId: string;
 
   @Column()
@@ -65,6 +65,12 @@ export class League {
 
   @Column({ name: 'prize_image_url', nullable: true })
   prizeImageUrl?: string;
+
+  @Column({ name: 'prize_type', default: 'image' })
+  prizeType: string;
+
+  @Column({ name: 'prize_amount', type: 'decimal', nullable: true, precision: 15, scale: 2 })
+  prizeAmount?: number;
 
   @Column({ name: 'welcome_message', type: 'text', nullable: true })
   welcomeMessage?: string;

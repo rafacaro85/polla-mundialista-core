@@ -142,10 +142,20 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     />
                 )}
 
-                {/* MAIN CONTENT AREA - Adjusted for header */}
-                <main className={`flex-1 w-full ${showLayoutUI
-                    ? 'md:pl-64 pb-24 md:pb-0' // Layout normal (Admin) - Removed pt-16
-                    : '' // Dashboard toma control total
+                {/* SOCIAL NAVIGATION (non-Enterprise) */}
+                {showLayoutUI && !isEnterprise && (
+                    <LeagueNavigation
+                        leagueId={league.id}
+                        isAdmin={league.isAdmin || false}
+                        isEnterpriseActive={false}
+                    />
+                )}
+
+                {/* MAIN CONTENT AREA - Adjusted for header and sidebar */}
+                <main className={`flex-1 w-full ${
+                    showLayoutUI
+                        ? 'md:pl-64 pb-24 md:pb-0'
+                        : ''
                     }`}>
                     {children}
                 </main>

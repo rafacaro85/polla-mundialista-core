@@ -64,7 +64,8 @@ export const RankingView: React.FC<RankingViewProps> = ({
 
                 <TabsContent value="participants" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
                      {leagueId === 'global' ? (
-                        <GlobalRankingTable tournamentId={tournamentId} />
+                        // Ranking global deshabilitado — flujo nuevo usa mis-pollas
+                        null
                       ) : isEnterpriseMode && leagueId ? (
                         <EnterpriseRankingTable
                           leagueId={leagueId}

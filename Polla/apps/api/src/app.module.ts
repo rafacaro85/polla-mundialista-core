@@ -108,7 +108,7 @@ import { APP_GUARD } from '@nestjs/core';
             Notification,
           ],
           synchronize: false, // Note: synchronize: true should not be used in production
-          ssl: url
+          ssl: (url && !url.includes('localhost') && !url.includes('127.0.0.1'))
             ? { rejectUnauthorized: false }
             : configService.get<string>('DB_SSL') === 'true'
               ? { rejectUnauthorized: false }

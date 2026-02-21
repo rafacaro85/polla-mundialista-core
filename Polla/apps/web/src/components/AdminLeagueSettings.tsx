@@ -55,6 +55,8 @@ interface League {
     isPaid?: boolean;
     brandingLogoUrl?: string;
     prizeImageUrl?: string;
+    prizeType?: string;
+    prizeAmount?: number;
     prizeDetails?: string;
     welcomeMessage?: string;
     isEnterprise?: boolean;
@@ -430,6 +432,8 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                 initialData={{
                                                     brandingLogoUrl: currentLeague.brandingLogoUrl,
                                                     prizeImageUrl: currentLeague.prizeImageUrl,
+                                                    prizeType: currentLeague.prizeType,
+                                                    prizeAmount: currentLeague.prizeAmount,
                                                     prizeDetails: currentLeague.prizeDetails,
                                                     welcomeMessage: currentLeague.welcomeMessage,
                                                     isEnterprise: currentLeague.isEnterprise,

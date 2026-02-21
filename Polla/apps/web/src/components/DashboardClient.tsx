@@ -40,7 +40,7 @@ import { useTournament } from '@/hooks/useTournament';
 
 import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
-import { OnboardingMissions } from './dashboard/home/OnboardingMissions';
+import { SmartLeagueHome } from './dashboard/home/SmartLeagueHome';
 
 interface Match {
   id: string;
@@ -232,7 +232,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       secondaryColor={currentLeague?.brandColorSecondary}
     >
       <div
-        className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
+        className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 md:pb-0 overflow-x-hidden w-full md:pl-[68px]"
       >
         {!isEnterpriseMode && (
           <Header
@@ -316,112 +316,33 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
              </div>
         )}
 
-        <main className="flex-1 container mx-auto px-4 pt-4 max-w-md w-full overflow-hidden">
+        <main className="flex-1 w-full max-w-none px-4 pt-4 md:px-8 md:pt-6 overflow-hidden">
 
           {/* VISTAS */}
           
-          {/* 1. HOME (ONBOARDING + LAYOUT) */}
+          {/* 1. HOME */}
           {activeTab === 'home' && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300 flex flex-col gap-6 pb-20">
-                {/* A. HEADER (Reuse Header Logic or Global/Social headers without the lower parts if needed, but for now rendering existing headers at top) */}
-                {selectedLeagueId === 'global' ? (
-                     <div className="text-center py-2 animate-in fade-in slide-in-from-top-4">
-                        <h1 className="text-3xl font-russo text-white mb-2">
-                            HOLA, <span className="text-[var(--brand-primary,#00E676)]">{user?.nickname?.toUpperCase() || 'CRACK'}</span>
-                        </h1>
-                          <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                            {tournamentId === 'UCL2526' 
-                               ? 'Bienvenido a la Polla Champions 2025-26. ¡Predice, compite y diviértete!'
-                               : 'Bienvenido a la Polla Mundialista 2026. ¡Predice, compite y gana grandes premios!'}
-                        </p>
-                    </div>
-                ) : (
-                     <div className="flex flex-col gap-1 pt-2 text-center">
-                        <p className="text-[#00E676] text-xs font-black uppercase tracking-[0.3em] animate-in fade-in slide-in-from-top-2">
-                            ¡HOLA, {user?.nickname?.toUpperCase() || 'JUGADOR'}!
-                        </p>
-                        <h1 className="text-2xl font-black text-white uppercase tracking-tight leading-none italic">
-                            BIENVENIDO A LA <span className="text-[#00E676]">POLLA</span> <br />
-                            {currentLeague?.name.toUpperCase()}
-                        </h1>
-                         {/* Social League Hero Image */}
-                         <div className="relative w-full min-h-[10rem] bg-gradient-to-br from-slate-900 to-[#1e293b] border border-white/5 flex flex-col items-center justify-center p-4 gap-2 overflow-hidden rounded-3xl shadow-lg text-center mt-4">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                             {currentLeague?.brandingLogoUrl ? (
-                                <img
-                                    src={currentLeague.brandingLogoUrl}
-                                    alt={currentLeague.name}
-                                    className="w-20 h-20 object-contain mx-auto z-10"
-                                />
-                             ) : (
-                                <Shield className="w-12 h-12 text-[#00E676] mx-auto z-10" />
-                             )}
-                        </div>
-                    </div>
-                )}
-                
-                {/* B. ONBOARDING MISSIONS (ACCORDION) */}
-                <OnboardingMissions hasLeagues={hasLeagues} onNavigate={setActiveTab} currentLeague={currentLeague} />
-                
-                {/* C. ENTERPRISE BANNERS / ADS (Strategic Placement) */}
-                {currentLeague?.showAds && isEnterpriseMode && currentLeague?.adImages && currentLeague.adImages.length > 0 && (
-                     <div className="w-full animate-in fade-in zoom-in duration-700">
-                        <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative group">
-                            <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold tracking-widest backdrop-blur-sm z-10">
-                                Publicidad
-                            </div>
-                            <img 
-                                src={currentLeague.adImages[0]} 
-                                alt="Publicidad" 
-                                className="w-full h-auto object-cover"
-                            />
-                        </div>
-                    </div>
-                )}
-                
-               {/* D. SOCIAL WALL WIDGET (If Enabled) */}
-               {isWallEnabled && (!currentLeague?.isEnterprise || getPlanLevel(currentLeague?.packageType) >= 3) && (
-                   <div className="mt-2">
-                       <h3 className="text-white font-bold mb-2 ml-1 text-sm flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#00E676]"></span>
-                            Muro de la Afición
-                       </h3>
-                        <SocialWallWidget leagueId={selectedLeagueId === 'global' ? 'global' : currentLeague?.id} />
-                   </div>
-               )}
-               
-               {/* E. PRIZE CARD & PROMO */}
-               <div className="mt-4">
-                   {selectedLeagueId === 'global' ? (
-                       // Hide prize card on Champions tournament (beta)
-                       tournamentId !== 'UCL2526' && (
-                           <PrizeCard 
-                               description="Participa en la polla global y gana increíbles recompensas." 
-                               imageUrl="/images/wc2026_hero.png"
-                           />
-                       )
-                   ) : (
-                       (currentLeague?.prizeImageUrl || currentLeague?.prizeDetails) && (
-                           <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Trophy size={16} className="text-[#00E676]" />
-                                    <h3 className="text-white text-xs font-black uppercase tracking-widest italic">Premio Mayor</h3>
-                                </div>
-                                <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-4 flex flex-col gap-2">
-                                     {currentLeague.prizeImageUrl && <img src={currentLeague.prizeImageUrl} className="w-full h-32 object-cover rounded-lg" alt="Premio" />}
-                                     <p className="text-sm font-bold">{currentLeague.prizeDetails}</p>
-                                </div>
-                           </div>
-                       )
-                   )}
-               </div>
-               
-               {!isEnterpriseMode && (
-                   <PromoBanner
-                        onActionSocial={() => { setLeaguesTab('social'); setActiveTab('leagues'); }}
-                        onActionEnterprise={() => { setLeaguesTab('enterprise'); setActiveTab('leagues'); }}
-                   />
-               )}
+            <div className="animate-in fade-in duration-300">
+              {selectedLeagueId === 'global' ? (
+                // Global: saludo básico (ya no accesible desde el flujo principal)
+                <div className="text-center py-10 px-6">
+                  <h1 className="text-3xl font-russo text-white mb-2">
+                    HOLA, <span className="text-[#00E676]">{user?.nickname?.toUpperCase() || 'CRACK'}</span>
+                  </h1>
+                  <p className="text-slate-400 text-sm max-w-xs mx-auto">
+                    {tournamentId === 'UCL2526'
+                      ? 'Bienvenido a la Champions 2025-26. ¡Predice y compite!'
+                      : 'Bienvenido al Mundial 2026. ¡Predice, compite y gana!'}
+                  </p>
+                </div>
+              ) : (
+                // Liga Social: Dashboard inteligente
+                <SmartLeagueHome
+                  currentLeague={currentLeague as any}
+                  matches={matches}
+                  onNavigate={setActiveTab}
+                />
+              )}
             </div>
           )}
 

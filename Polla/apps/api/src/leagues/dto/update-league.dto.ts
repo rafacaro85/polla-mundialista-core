@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsBoolean,
   IsArray,
+  IsIn,
 } from 'class-validator';
 
 export class UpdateLeagueDto {
@@ -26,6 +27,15 @@ export class UpdateLeagueDto {
   @IsString()
   @IsOptional()
   prizeDetails?: string;
+
+  @IsString()
+  @IsIn(['image', 'cash'])
+  @IsOptional()
+  prizeType?: string;
+
+  @IsNumber()
+  @IsOptional()
+  prizeAmount?: number;
 
   @IsString()
   @IsOptional()

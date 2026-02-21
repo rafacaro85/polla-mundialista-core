@@ -1,5 +1,7 @@
-import React from 'react';
-import { Home, Trophy, ClipboardPen, BarChartBig, Star } from 'lucide-react';
+'use client';
+
+import React, { useState } from 'react';
+import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface BottomNavProps {
     activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
@@ -8,76 +10,87 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true }) => {
+    const [collapsed, setCollapsed] = useState(false);
+
+    const tabs = [
+        { id: 'home' as const, label: 'Inicio', icon: Home },
+        ...(showLeaguesTab ? [{ id: 'leagues' as const, label: 'Pollas', icon: Trophy }] : []),
+        { id: 'predictions' as const, label: 'Predicciones', icon: ClipboardPen },
+        { id: 'ranking' as const, label: 'Ranking', icon: BarChartBig },
+        { id: 'bonus' as const, label: 'Bonus', icon: Star },
+    ];
+
     return (
-        <nav
-            className="fixed bottom-0 left-0 right-0 w-full bg-[#0F172A]/95 backdrop-blur-xl border-t border-[#1E293B] z-[9999] shadow-[0_-4px_20px_rgba(0,0,0,0.5)]"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999, paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)', paddingTop: '12px' }}
-        >
-            <div className="max-w-md mx-auto flex justify-around items-center px-2">
+        <>
+            {/* ── MOBILE: barra fija inferior ── */}
+            <nav
+                className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-[#0F172A]/95 backdrop-blur-xl border-t border-[#1E293B] z-[9999] shadow-[0_-4px_20px_rgba(0,0,0,0.5)]"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)', paddingTop: '12px' }}
+            >
+                <div className="max-w-md mx-auto flex justify-around items-center px-2">
+                    {tabs.map(({ id, label, icon: Icon }) => (
+                        <button
+                            key={id}
+                            onClick={() => onTabChange(id)}
+                            className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${
+                                activeTab === id ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'
+                            }`}
+                        >
+                            {activeTab === id && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse" />
+                            )}
+                            <Icon size={22} strokeWidth={activeTab === id ? 2.5 : 2} />
+                            <span className="text-[9px] font-black tracking-widest uppercase mt-1">{label}</span>
+                        </button>
+                    ))}
+                </div>
+            </nav>
 
-                {/* 1. INICIO */}
+            {/* ── DESKTOP: sidebar vertical colapsable ── */}
+            <aside
+                className={`hidden md:flex flex-col fixed left-0 top-16 bottom-0 bg-[#0F172A] border-r border-[#1E293B] z-50 transition-all duration-300 ease-in-out ${
+                    collapsed ? 'w-[68px]' : 'w-64'
+                }`}
+            >
+                {/* Botón de colapsar */}
                 <button
-                    onClick={() => onTabChange('home')}
-                    className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${activeTab === 'home' ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'}`}
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-[#1E293B] border border-[#334155] flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#334155] transition-all z-10 shadow-lg"
+                    title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
                 >
-                    {activeTab === 'home' && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse"></div>
-                    )}
-                    <Home size={22} strokeWidth={activeTab === 'home' ? 2.5 : 2} />
-                    <span className="text-[9px] font-black tracking-widest uppercase mt-1">Inicio</span>
+                    {collapsed
+                        ? <ChevronRight size={12} />
+                        : <ChevronLeft size={12} />
+                    }
                 </button>
 
-                {/* 2. POLLAS */}
-                {showLeaguesTab && (
-                    <button
-                        onClick={() => onTabChange('leagues')}
-                        className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${activeTab === 'leagues' ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        {activeTab === 'leagues' && (
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse"></div>
-                        )}
-                        <Trophy size={22} strokeWidth={activeTab === 'leagues' ? 2.5 : 2} />
-                        <span className="text-[9px] font-black tracking-widest uppercase mt-1">Pollas</span>
-                    </button>
-                )}
-
-                {/* 3. PREDICCIONES (Centro) */}
-                <button
-                    onClick={() => onTabChange('predictions')}
-                    className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${activeTab === 'predictions' ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'}`}
-                >
-                    {activeTab === 'predictions' && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse"></div>
-                    )}
-                    <ClipboardPen size={22} strokeWidth={activeTab === 'predictions' ? 2.5 : 2} />
-                    <span className="text-[9px] font-black tracking-widest uppercase mt-1">Predicciones</span>
-                </button>
-
-                {/* 4. RANKING */}
-                <button
-                    onClick={() => onTabChange('ranking')}
-                    className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${activeTab === 'ranking' ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'}`}
-                >
-                    {activeTab === 'ranking' && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse"></div>
-                    )}
-                    <BarChartBig size={22} strokeWidth={activeTab === 'ranking' ? 2.5 : 2} />
-                    <span className="text-[9px] font-black tracking-widest uppercase mt-1">Ranking</span>
-                </button>
-
-                {/* 5. BONUS */}
-                <button
-                    onClick={() => onTabChange('bonus')}
-                    className={`relative flex flex-col items-center gap-1 transition-all duration-300 bg-transparent border-none outline-none p-0 w-14 ${activeTab === 'bonus' ? 'text-[#00E676] -translate-y-1' : 'text-slate-400 hover:text-white'}`}
-                >
-                    {activeTab === 'bonus' && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#00E676] rounded-full shadow-[0_0_15px_2px_rgba(0,230,118,0.6)] animate-pulse"></div>
-                    )}
-                    <Star size={22} strokeWidth={activeTab === 'bonus' ? 2.5 : 2} />
-                    <span className="text-[9px] font-black tracking-widest uppercase mt-1">Bonus</span>
-                </button>
-
-            </div>
-        </nav>
+                {/* Items de navegación */}
+                <div className="flex flex-col gap-1 pt-4 px-3 overflow-hidden">
+                    {tabs.map(({ id, label, icon: Icon }) => (
+                        <button
+                            key={id}
+                            onClick={() => onTabChange(id)}
+                            title={collapsed ? label : undefined}
+                            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group text-sm font-bold uppercase tracking-wide w-full ${
+                                activeTab === id
+                                    ? 'bg-[#00E676]/10 text-[#00E676]'
+                                    : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                            } ${collapsed ? 'justify-center' : 'justify-start'}`}
+                        >
+                            <Icon
+                                size={20}
+                                strokeWidth={activeTab === id ? 2.5 : 2}
+                                className={`shrink-0 transition-transform group-hover:scale-110 ${activeTab === id ? 'text-[#00E676]' : ''}`}
+                            />
+                            {!collapsed && (
+                                <span className="whitespace-nowrap overflow-hidden transition-all duration-200 opacity-100">
+                                    {label}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </aside>
+        </>
     );
 };

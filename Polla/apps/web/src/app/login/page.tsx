@@ -64,7 +64,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         // y asegurar que el panel de control se cargue con los permisos correctos.
         // if (data.user.role !== 'SUPER_ADMIN') { ... }
 
-        window.location.href = '/dashboard';
+        window.location.href = '/gateway';
 
       } else if (view === 'register') {
         // REGISTER FLOW
@@ -104,7 +104,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         }
 
         toast.success('¡Cuenta verificada exitosamente!');
-        window.location.href = '/dashboard';
+        window.location.href = '/gateway';
 
       } else if (view === 'forgot') {
         // FORGOT PASSWORD FLOW

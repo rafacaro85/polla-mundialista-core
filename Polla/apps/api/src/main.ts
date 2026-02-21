@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
-// 🔥 Forzar que el .env local sobreescriba cualquier variable de entorno global (Railway)
-dotenv.config({ override: true });
+// 🔥 Forzar que el .env local solo sobreescriba en desarrollo
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ override: true });
+}
 
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';

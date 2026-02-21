@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Plus, 
@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { HowItWorksSection } from '@/components/HowItWorksSection';
 import { MoneyCard } from '@/components/MoneyCard';
 
-export default function MisPollasSociales() {
+function MisPollasContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAppStore();
@@ -43,7 +43,7 @@ export default function MisPollasSociales() {
     l.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchParams.get('create') === 'true') {
       setIsCreateModalOpen(true);
       // Clean up URL without reload
@@ -244,3 +244,17 @@ export default function MisPollasSociales() {
     </div>
   );
 }
+
+export default function MisPollasSociales() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-[#00E676] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-russo uppercase tracking-widest text-xs animate-pulse">Cargando...</p>
+      </div>
+    }>
+      <MisPollasContent />
+    </Suspense>
+  );
+}
+

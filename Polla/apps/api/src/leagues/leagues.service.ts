@@ -238,7 +238,14 @@ export class LeaguesService {
       const participant = this.leagueParticipantsRepository.create({
         user: creator,
         league: savedLeague,
-        isAdmin: true, // Creator is admin of the league
+        isAdmin: true,
+        status: LeagueParticipantStatus.ACTIVE,
+        isPaid: false,
+        totalPoints: 0,
+        triviaPoints: 0,
+        predictionPoints: 0,
+        bracketPoints: 0,
+        jokerPoints: 0,
       });
       await this.leagueParticipantsRepository.save(participant);
 

@@ -1,4 +1,4 @@
-import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -9,5 +9,10 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async seedUCL() {
     return this.adminService.seedUCLMatches();
+  }
+
+  @Get('migrate')
+  async migrate(@Query('key') key: string) {
+    return this.adminService.runMigration(key);
   }
 }

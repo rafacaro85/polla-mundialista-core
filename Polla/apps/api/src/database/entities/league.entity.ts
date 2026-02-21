@@ -18,7 +18,7 @@ export class League {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'tournament_id', default: 'WC2026' })
+  @Column({ name: 'tournamentId', default: 'WC2026' })
   tournamentId: string;
 
   @Column()
@@ -41,7 +41,7 @@ export class League {
   @JoinColumn({ name: 'creator_id' })
   creator: User;
 
-  @Column({ default: 3 })
+  @Column({ name: 'maxParticipants', default: 3 })
   maxParticipants: number;
 
   @Column({

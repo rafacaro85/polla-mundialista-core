@@ -244,7 +244,16 @@ export class LeaguesService {
 
       return savedLeague;
     } catch (error) {
-      console.error('Error in createLeague:', error); // Log the actual error
+      // Log FULL error details including PostgreSQL-specific fields
+      console.error('❌ Error in createLeague:', {
+        message: error.message,
+        detail: error.detail,
+        code: error.code,
+        table: error.table,
+        column: error.column,
+        constraint: error.constraint,
+        stack: error.stack,
+      });
       
       if (error instanceof BadRequestException || 
           error instanceof NotFoundException || 
@@ -252,9 +261,9 @@ export class LeaguesService {
         throw error;
       }
       
+      // Return the actual PG error message so it reaches the frontend logs
       throw new InternalServerErrorException(
-        'Failed to create league.',
-        error.message,
+        `Failed to create league: ${error.message} | detail: ${error.detail || 'none'} | code: ${error.code || 'none'}`,
       );
     }
   }

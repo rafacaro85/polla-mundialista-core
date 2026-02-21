@@ -225,4 +225,110 @@ export class AdminService {
       };
     }
   }
+
+  async diagnoseSchema(key: string) {
+    const SECRET = process.env.ADMIN_SECRET || 'POLLA_ADMIN_2026_MIGRATE';
+    if (key !== SECRET) {
+      throw new Error('Unauthorized');
+    }
+
+    const results: Record<string, any> = {};
+
+    // 1. Check columns in league_participants
+    const lpCols = await this.dataSource.query(`
+      SELECT column_name, data_type, udt_name
+      FROM information_schema.columns
+      WHERE table_name = 'league_participants'
+      ORDER BY ordinal_position
+    `);
+    results.league_participants_columns = lpCols;
+
+    // 2. Check columns in leagues
+    const lCols = await this.dataSource.query(`
+      SELECT column_name, data_type, udt_name
+      FROM information_schema.columns
+      WHERE table_name = 'leagues'
+      ORDER BY ordinal_position
+    `);
+    results.leagues_columns = lCols;
+
+    // 3. Check enum types
+    const enumTypes = await this.dataSource.query(`
+      SELECT t.typname, e.enumlabel
+      FROM pg_type t
+      JOIN pg_enum e ON t.oid = e.enumtypid
+      WHERE t.typname LIKE '%league%' OR t.typname LIKE '%status%'
+      ORDER BY t.typname, e.enumsortorder
+    `);
+    results.enum_types = enumTypes;
+
+    // 4. Try a test insert/rollback to catch the exact PG error
+    try {
+      await this.dataSource.query('BEGIN');
+      await this.dataSource.query(`
+        INSERT INTO league_participants
+          (id, league_id, user_id, total_points, "isAdmin", is_blocked,
+           trivia_points, prediction_points, bracket_points, joker_points,
+           joined_at, status, is_paid)
+        VALUES
+          (gen_random_uuid(),
+           (SELECT id FROM leagues LIMIT 1),
+           (SELECT id FROM users LIMIT 1),
+           0, false, false, 0, 0, 0, 0,
+           NOW(), 'ACTIVE', false)
+      `);
+      await this.dataSource.query('ROLLBACK');
+      results.test_insert = 'SUCCESS (rolled back)';
+    } catch (err) {
+      await this.dataSource.query('ROLLBACK').catch(() => {});
+      results.test_insert = `FAILED: ${err.message} | detail: ${err.detail || 'none'} | code: ${err.code || 'none'}`;
+    }
+
+    return results;
+  }
+
+  async runMigration(key: string) {
+    const SECRET = process.env.ADMIN_SECRET || 'POLLA_ADMIN_2026_MIGRATE';
+    if (key !== SECRET) throw new Error('Unauthorized');
+
+    const sql = `
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'league_participants_status_enum') THEN
+        CREATE TYPE "league_participants_status_enum" AS ENUM ('PENDING', 'ACTIVE', 'REJECTED');
+    END IF;
+END $$;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'league_participants' AND column_name = 'status') THEN
+        ALTER TABLE "league_participants"
+        ADD COLUMN "status" "league_participants_status_enum" DEFAULT 'ACTIVE';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'league_participants' AND column_name = 'is_paid') THEN
+        ALTER TABLE "league_participants"
+        ADD COLUMN "is_paid" boolean DEFAULT false;
+    END IF;
+END $$;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'leagues' AND column_name = 'prize_type') THEN
+        ALTER TABLE "leagues" ADD COLUMN "prize_type" varchar DEFAULT 'image';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'leagues' AND column_name = 'prize_amount') THEN
+        ALTER TABLE "leagues" ADD COLUMN "prize_amount" decimal(15,2);
+    END IF;
+END $$;
+    `;
+
+    try {
+      await this.dataSource.query(sql);
+      return { success: true, message: '✅ Migration applied' };
+    } catch (error) {
+      return { success: false, message: `❌ ${error.message}` };
+    }
+  }
 }

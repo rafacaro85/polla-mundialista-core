@@ -131,32 +131,92 @@ export default function GatewayApp() {
 
 
       {/* ====================================================================
-          5. FOOTER MARQUEE (Empresas)
+          5. FOOTER MARQUEE (Países Participantes)
           ==================================================================== */}
-      <footer className="relative z-10 border-t border-white/5 bg-[#0F172A] py-10 overflow-hidden shrink-0">
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#0F172A] to-transparent z-20 pointer-events-none"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0F172A] to-transparent z-20 pointer-events-none"></div>
+      <footer className="relative z-10 border-t border-white/5 bg-[#0F172A] py-14 overflow-hidden shrink-0">
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/80 to-transparent z-20 pointer-events-none"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0F172A] via-[#0F172A]/80 to-transparent z-20 pointer-events-none"></div>
         
-        <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 mb-6">
-          PLATAFORMA RESPALDADA POR EMPRESAS LÍDERES
+        <p className="text-center text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 mb-10 opacity-70">
+          PAÍSES PARTICIPANTES — MUNDIAL FIFA 2026
         </p>
         
-        <div className="flex w-[200%] animate-marquee opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
+        <div className="flex w-[200%] animate-marquee opacity-40 hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-700 ease-in-out">
           <div className="flex w-1/2 justify-around items-center">
-            <span className="text-xl md:text-2xl font-black flex items-center gap-2 px-8"><Hexagon size={24}/> META</span>
-            <span className="text-xl md:text-2xl font-black font-serif px-8">Deloitte.</span>
-            <span className="text-xl md:text-2xl font-black tracking-tighter px-8">CBRE</span>
-            <span className="text-xl md:text-2xl font-black px-8">AMGEN</span>
-            <span className="text-xl md:text-2xl font-black italic px-8">Paychex</span>
-            <span className="text-xl md:text-2xl font-black uppercase px-8 text-blue-500">Sony</span>
+            {[
+              { iso: 'ar', name: 'Argentina' },
+              { iso: 'br', name: 'Brasil' },
+              { iso: 'mx', name: 'México' },
+              { iso: 'us', name: 'USA' },
+              { iso: 'ca', name: 'Canadá' },
+              { iso: 'fr', name: 'Francia' },
+              { iso: 'es', name: 'España' },
+              { iso: 'de', name: 'Alemania' },
+              { iso: 'co', name: 'Colombia' },
+              { iso: 'uy', name: 'Uruguay' },
+              { iso: 'gb-eng', name: 'Inglaterra' },
+              { iso: 'it', name: 'Italia' },
+              { iso: 'pt', name: 'Portugal' },
+              { iso: 'nl', name: 'Países Bajos' },
+              { iso: 'be', name: 'Bélgica' },
+              { iso: 'hr', name: 'Croacia' },
+              { iso: 'jp', name: 'Japón' },
+              { iso: 'ma', name: 'Marruecos' },
+              { iso: 'ec', name: 'Ecuador' },
+              { iso: 'cl', name: 'Chile' }
+            ].map((country, idx) => (
+              <div key={`flag-1-${idx}`} className="flex flex-col items-center gap-3 px-8 group/flag">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-white/10 rounded-lg blur opacity-0 group-hover/flag:opacity-100 transition duration-500"></div>
+                  <img 
+                    src={`/assets/flags/${country.iso}.svg`} 
+                    alt={country.name}
+                    className="relative w-12 h-8 md:w-16 md:h-11 object-cover rounded-md shadow-2xl border border-white/10 group-hover/flag:scale-110 group-hover/flag:border-[#00E676]/30 transition-all duration-500"
+                  />
+                </div>
+                <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-tighter group-hover/flag:text-[#00E676] transition-colors duration-500">
+                  {country.name}
+                </span>
+              </div>
+            ))}
           </div>
           <div className="flex w-1/2 justify-around items-center">
-            <span className="text-xl md:text-2xl font-black flex items-center gap-2 px-8"><Hexagon size={24}/> META</span>
-            <span className="text-xl md:text-2xl font-black font-serif px-8">Deloitte.</span>
-            <span className="text-xl md:text-2xl font-black tracking-tighter px-8">CBRE</span>
-            <span className="text-xl md:text-2xl font-black px-8">AMGEN</span>
-            <span className="text-xl md:text-2xl font-black italic px-8">Paychex</span>
-            <span className="text-xl md:text-2xl font-black uppercase px-8 text-blue-500">Sony</span>
+            {[
+              { iso: 'ar', name: 'Argentina' },
+              { iso: 'br', name: 'Brasil' },
+              { iso: 'mx', name: 'México' },
+              { iso: 'us', name: 'USA' },
+              { iso: 'ca', name: 'Canadá' },
+              { iso: 'fr', name: 'Francia' },
+              { iso: 'es', name: 'España' },
+              { iso: 'de', name: 'Alemania' },
+              { iso: 'co', name: 'Colombia' },
+              { iso: 'uy', name: 'Uruguay' },
+              { iso: 'gb-eng', name: 'Inglaterra' },
+              { iso: 'it', name: 'Italia' },
+              { iso: 'pt', name: 'Portugal' },
+              { iso: 'nl', name: 'Países Bajos' },
+              { iso: 'be', name: 'Bélgica' },
+              { iso: 'hr', name: 'Croacia' },
+              { iso: 'jp', name: 'Japón' },
+              { iso: 'ma', name: 'Marruecos' },
+              { iso: 'ec', name: 'Ecuador' },
+              { iso: 'cl', name: 'Chile' }
+            ].map((country, idx) => (
+              <div key={`flag-2-${idx}`} className="flex flex-col items-center gap-3 px-8 group/flag">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-white/10 rounded-lg blur opacity-0 group-hover/flag:opacity-100 transition duration-500"></div>
+                  <img 
+                    src={`/assets/flags/${country.iso}.svg`} 
+                    alt={country.name}
+                    className="relative w-12 h-8 md:w-16 md:h-11 object-cover rounded-md shadow-2xl border border-white/10 group-hover/flag:scale-110 group-hover/flag:border-[#00E676]/30 transition-all duration-500"
+                  />
+                </div>
+                <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-tighter group-hover/flag:text-[#00E676] transition-colors duration-500">
+                  {country.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </footer>

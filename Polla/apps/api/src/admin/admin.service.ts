@@ -284,6 +284,41 @@ export class AdminService {
       results.test_insert = `FAILED: ${err.message} | detail: ${err.detail || 'none'} | code: ${err.code || 'none'}`;
     }
 
+    // 5. Test the actual league SELECT query (same as getMyLeagues)
+    try {
+      const testSelect = await this.dataSource.query(`
+        SELECT 
+          l.id, l.name, l."tournamentId", l."maxParticipants",
+          l.status, l.is_paid, l.package_type, l.is_enterprise
+        FROM leagues l
+        LIMIT 1
+      `);
+      results.test_select_leagues = testSelect.length > 0 ? 'SUCCESS: ' + JSON.stringify(testSelect[0]) : 'SUCCESS: no rows';
+    } catch (err) {
+      results.test_select_leagues = `FAILED: ${err.message} | detail: ${err.detail || 'none'}`;
+    }
+
+    // 6. Test league INSERT (same as createLeague does)
+    try {
+      await this.dataSource.query('BEGIN');
+      await this.dataSource.query(`
+        INSERT INTO leagues
+          (id, name, type, "maxParticipants", creator_id, is_paid,
+           package_type, is_enterprise, is_enterprise_active,
+           "tournamentId", status, prize_type)
+        VALUES
+          (gen_random_uuid(), 'TEST_DIAG', 'FAMILIA',
+           10, (SELECT id FROM users LIMIT 1),
+           false, 'familia', false, false,
+           'WC2026', 'ACTIVE', 'image')
+      `);
+      await this.dataSource.query('ROLLBACK');
+      results.test_insert_league = 'SUCCESS (rolled back)';
+    } catch (err) {
+      await this.dataSource.query('ROLLBACK').catch(() => {});
+      results.test_insert_league = `FAILED: ${err.message} | detail: ${err.detail || 'none'} | code: ${err.code || 'none'}`;
+    }
+
     return results;
   }
 

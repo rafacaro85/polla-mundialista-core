@@ -568,6 +568,7 @@ export class LeaguesService {
   async getMyLeagues(userId: string, tournamentId?: string) {
     console.log(`[LeaguesService] getMyLeagues for user: ${userId}, tournament: ${tournamentId}`);
     
+    try {
     const query = this.leagueParticipantsRepository.createQueryBuilder('participant')
       .innerJoinAndSelect('participant.league', 'league')
       .leftJoinAndSelect('league.creator', 'creator')
@@ -612,6 +613,17 @@ export class LeaguesService {
     }));
 
     return result;
+    } catch (error) {
+      console.error('❌ Error in getMyLeagues:', {
+        message: error.message,
+        detail: error.detail,
+        code: error.code,
+        stack: error.stack,
+      });
+      throw new InternalServerErrorException(
+        `Error cargando mis pollas: ${error.message} | detail: ${error.detail || 'none'} | code: ${error.code || 'none'}`,
+      );
+    }
   }
 
   async getParticipants(leagueId: string, userId: string, userRole?: string) {

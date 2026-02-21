@@ -82,7 +82,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
           <Link 
-            href="/hub" 
+            href="/gateway" 
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
               isChampionsTheme 
                 ? 'bg-blue-800/50 hover:bg-blue-700 text-blue-200' 

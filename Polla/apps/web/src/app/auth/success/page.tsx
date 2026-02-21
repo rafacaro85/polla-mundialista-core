@@ -70,15 +70,15 @@ function SuccessLogic() {
                console.log(`🔀 [AUTH] Redirección personalizada: ${redirectPath}`);
                window.location.href = redirectPath;
             } else {
-               console.log('🏠 [AUTH] Sin flag - Redirigiendo al Hub...');
-               window.location.href = '/hub';
+               console.log('🏠 [AUTH] Sin flag - Redirigiendo al Gateway...');
+               window.location.href = '/gateway';
             }
           }
         })
         .catch(error => {
           console.error('Error obteniendo datos del usuario:', error);
-          // Aún así redirigir al hub
-          window.location.href = '/hub';
+          // Aún así redirigir al gateway
+          window.location.href = '/gateway';
         });
     } else {
       console.error('No se encontró el token en la URL.');

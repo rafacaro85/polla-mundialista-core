@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Russo_One } from "next/font/google";
@@ -42,7 +43,9 @@ export default function RootLayout({
       <body className={cn(inter.className, "bg-white text-slate-900 antialiased min-h-screen")} suppressHydrationWarning={true}>
         <GlobalThemeProvider>
           <AuthProvider>
-            {children}
+            <Suspense fallback={<div className="min-h-screen bg-[#0F172A]" />}>
+              {children}
+            </Suspense>
             <Footer />
           </AuthProvider>
         </GlobalThemeProvider>

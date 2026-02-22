@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { DataSource } from 'typeorm';
 
 @Controller('debug')
 export class DebugController {
@@ -11,7 +12,39 @@ export class DebugController {
     private bonusQuestionRepository: Repository<BonusQuestion>,
     @InjectRepository(UserBonusAnswer)
     private userBonusAnswerRepository: Repository<UserBonusAnswer>,
+    private dataSource: DataSource,
   ) {}
+
+  @Get('ping')
+  getPing() {
+    return { status: 'ok', timestamp: new Date().toISOString(), message: 'DebugController is live' };
+  }
+
+  @Get('db-schema')
+  async debugDbSchema() {
+    const queryRunner = this.dataSource.createQueryRunner();
+    try {
+      const table = await queryRunner.getTable('leagues');
+      const columns = table?.columns.map(c => ({ name: c.name, type: c.type }));
+      
+      const config = this.dataSource.options as any;
+      const maskedUrl = config.url ? config.url.replace(/:[^:@]+@/, ':***@') : 'N/A';
+      
+      return {
+        database: config.database || 'N/A',
+        host: config.host || 'N/A',
+        url: maskedUrl,
+        tableName: table?.name,
+        columnsCount: columns?.length,
+        brandColorHeadingExists: columns?.some(c => c.name === 'brand_color_heading'),
+        columns: columns
+      };
+    } catch (e) {
+      return { error: e.message };
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
   @Get('bonus-data')
   async getBonusData() {

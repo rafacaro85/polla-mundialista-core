@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Logger,
   InternalServerErrorException,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -35,17 +36,17 @@ export class UploadController {
       },
     }),
   )
-  async uploadFile(@UploadedFile() file: any) {
+  async uploadFile(@UploadedFile() file: any, @Body('folder') folder?: string) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
     this.logger.log(
-      `CLOUDINARY MODE: Attempting to upload file: ${file.originalname}`,
+      `CLOUDINARY MODE: Attempting to upload file: ${file.originalname} to folder: ${folder || 'la-polla-virtual'}`,
     );
 
     try {
-      const result = await this.cloudinaryService.uploadImage(file);
+      const result = await this.cloudinaryService.uploadImage(file, folder);
       this.logger.log(
         `SUCCESS: File uploaded to Cloudinary. URL: ${result.secure_url}`,
       );

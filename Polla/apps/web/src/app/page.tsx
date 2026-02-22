@@ -274,7 +274,7 @@ export default function LandingPage() {
   //     if (token) {
   //       if (onboardingBusiness === 'true') {
   //         localStorage.removeItem('onboarding_business');
-  //         router.push('/business/new');
+  //         router.push('/empresa/crear');
   //       } else {
   //         router.push('/dashboard');
   //       }
@@ -301,8 +301,8 @@ export default function LandingPage() {
 
       if (token && user) {
         // Usuario ya autenticado, redirigir directamente al formulario
-        console.log('🏢 [BUSINESS] Usuario ya autenticado, redirigiendo a /business/new');
-        window.location.href = '/business/new';
+        console.log('🏢 [BUSINESS] Usuario ya autenticado, redirigiendo a /empresa/crear');
+        window.location.href = '/empresa/crear';
         return;
       }
 
@@ -592,7 +592,7 @@ export default function LandingPage() {
                 <ListItemSmall text="Logo Empresa" />
                 <ListItemSmall text="Imagen Premio" />
               </ul>
-              <Link href="/business/new" className="w-full py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-center text-sm">Seleccionar</Link>
+              <Link href="/empresa/crear" className="w-full py-3 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-center text-sm">Seleccionar</Link>
             </div>
 
             {/* ENTERPRISE: DIAMANTE */}
@@ -611,7 +611,7 @@ export default function LandingPage() {
                 <ListItemSmall text="Guerra de Áreas" dark={true} />
                 <ListItemSmall text="Muro Social" dark={true} />
               </ul>
-              <Link href="/business/new" className="w-full py-3 rounded-lg bg-emerald-500 text-[#0F172A] font-bold hover:bg-emerald-400 transition-all text-center text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)]">Seleccionar</Link>
+              <Link href="/empresa/crear" className="w-full py-3 rounded-lg bg-emerald-500 text-[#0F172A] font-bold hover:bg-emerald-400 transition-all text-center text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)]">Seleccionar</Link>
             </div>
 
           </div>

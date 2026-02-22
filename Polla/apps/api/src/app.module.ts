@@ -46,6 +46,8 @@ import { KnockoutPhaseStatus } from './database/entities/knockout-phase-status.e
 import { LeagueComment } from './database/entities/league-comment.entity';
 import { GroupStandingOverride } from './database/entities/group-standing-override.entity';
 import { Notification } from './database/entities/notification.entity';
+import { LeaguePrize } from './database/entities/league-prize.entity';
+import { LeagueBanner } from './database/entities/league-banner.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -106,6 +108,8 @@ import { APP_GUARD } from '@nestjs/core';
             LeagueComment,
             GroupStandingOverride,
             Notification,
+            LeaguePrize,
+            LeagueBanner,
           ],
           synchronize: false, // Note: synchronize: true should not be used in production
           ssl: (url && !url.includes('localhost') && !url.includes('127.0.0.1'))

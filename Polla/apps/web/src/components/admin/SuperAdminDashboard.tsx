@@ -24,6 +24,7 @@ import { CommunicationPanel } from '@/components/admin/CommunicationPanel';
 import { BroadcastTab } from '@/components/admin/BroadcastTab';
 import { TournamentHeader } from '@/components/admin/TournamentHeader';
 import { Megaphone } from 'lucide-react';
+import { MainHeader } from '@/components/MainHeader';
 
 /* =============================================================================
    DATOS MOCK
@@ -34,10 +35,14 @@ const STYLES = {
     container: {
         backgroundColor: '#0F172A', // Obsidian
         minHeight: '100vh',
-        padding: '16px',
+        padding: '0px',
         paddingBottom: '100px',
         color: 'white',
         fontFamily: 'sans-serif'
+    },
+    contentWrapper: {
+        padding: '16px',
+        paddingTop: '0px'
     },
     // HEADER
     header: {
@@ -322,9 +327,11 @@ export default function SuperAdminDashboard() {
 
     return (
         <div style={STYLES.container}>
-
-            {/* 1. HEADER */}
-            <TournamentHeader tournamentId={tournamentId} />
+            <MainHeader />
+            
+            <div style={STYLES.contentWrapper}>
+                {/* 1. HEADER */}
+                <TournamentHeader tournamentId={tournamentId} />
 
             {/* 2. MENÚ DE PESTAÑAS (PILL TABS) */}
             <div style={STYLES.tabsContainer} className="no-scrollbar">
@@ -794,6 +801,7 @@ export default function SuperAdminDashboard() {
                     />
                 </div>
             )}
+            </div>
         </div>
     );
 }

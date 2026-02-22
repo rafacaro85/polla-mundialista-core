@@ -68,6 +68,14 @@ export class UpdateLeagueDto {
 
   @IsString()
   @IsOptional()
+  brandColorHeading?: string;
+
+  @IsString()
+  @IsOptional()
+  brandColorBars?: string;
+
+  @IsString()
+  @IsOptional()
   brandFontFamily?: string;
 
   @IsString()

@@ -161,18 +161,24 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                 </button>
                             ) : !league.isAdmin ? (
                                 // CASO 3: Participante (Active / Pending / Rejected)
-                                league.status === 'PENDING' ? (
-                                    <button
-                                        disabled
-                                        className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-yellow-500/50 cursor-not-allowed flex items-center justify-center bg-yellow-500/10 text-yellow-500 opacity-70"
-                                    >
-                                        PENDIENTE
-                                    </button>
+                                    league.status === 'PENDING' ? (
+                                        <button
+                                            onClick={() => router.push(`/leagues/${league.id}`)}
+                                            className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-yellow-500/50 cursor-pointer flex items-center justify-center bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-[#0F172A] transition-all"
+                                        >
+                                            {(league as any).hasPendingTransaction ? 'VALIDANDO' : 'POR PAGAR'}
+                                        </button>
                                 ) : league.status === 'REJECTED' ? (
                                     <div className="flex gap-2">
                                         <div className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-red-500/50 flex items-center justify-center bg-red-500/10 text-red-500 cursor-default">
                                             RECHAZADO
                                         </div>
+                                        <button
+                                            onClick={() => router.push(`/leagues/${league.id}`)}
+                                            className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border-none cursor-pointer flex items-center justify-center bg-[#00E676] text-[#0F172A] shadow-[0_0_10px_rgba(0,230,118,0.2)]"
+                                        >
+                                            INGRESAR
+                                        </button>
                                         <button
                                             onClick={async (e) => {
                                                 e.stopPropagation();
@@ -212,7 +218,14 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                         </button>
                                     )}
 
-                                    {!league.isPaid ? (
+                                    {league.status === 'REJECTED' ? (
+                                        <button
+                                            onClick={() => router.push(`/leagues/${league.id}`)}
+                                            className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-red-500 cursor-pointer flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                        >
+                                            RECHAZADO
+                                        </button>
+                                    ) : !league.isPaid ? (
                                         <button
                                             onClick={() => router.push(`/leagues/${league.id}`)}
                                             className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-[#FACC15] cursor-pointer flex items-center justify-center bg-[#FACC15]/20 text-[#FACC15] hover:bg-[#FACC15] hover:text-[#0F172A] transition-all"

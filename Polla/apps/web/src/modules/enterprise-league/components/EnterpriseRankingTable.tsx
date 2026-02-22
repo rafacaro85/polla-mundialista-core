@@ -122,7 +122,7 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
     const currentList = activeTab === 'departments' ? deptRanking : ranking;
 
     return (
-        <div className="w-full max-w-3xl mx-auto pb-24">
+        <div className="w-full pb-24">
             <div className="mb-6 text-center">
                 <h2 className="font-russo text-2xl text-white uppercase tracking-widest">
                     Tabla de Posiciones
@@ -131,24 +131,35 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
 
             {/* TABS DE GUERRA DE ÁREAS */}
             {enableDepartmentWar && (
-                <div className="flex mb-6 bg-black/20 p-1 rounded-xl border border-white/10">
+                <div 
+                    className="flex mb-6 p-1 rounded-xl border gap-1"
+                    style={{ 
+                        backgroundColor: 'var(--brand-secondary, #1E293B)',
+                        borderColor: 'var(--brand-accent, #334155)'
+                    }}
+                >
                     <button
                         onClick={() => setActiveTab('users')}
-                        className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'users' ? 'bg-brand-primary text-brand-secondary shadow-lg' : 'text-slate-400 hover:text-white'
-                            }`}
+                        className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'users' ? 'shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                        style={{ 
+                            backgroundColor: activeTab === 'users' ? 'var(--brand-primary, #00E676)' : 'transparent',
+                            color: activeTab === 'users' ? 'var(--brand-bg, #0F172A)' : undefined
+                        }}
                     >
                         Participantes
                     </button>
                     <button
                         onClick={() => setActiveTab('departments')}
-                        className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'departments' ? 'bg-brand-primary text-brand-secondary shadow-lg' : 'text-slate-400 hover:text-white'
-                            }`}
+                        className={`flex-1 py-2 text-sm font-bold uppercase rounded-lg transition-all ${activeTab === 'departments' ? 'shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                        style={{ 
+                            backgroundColor: activeTab === 'departments' ? 'var(--brand-primary, #00E676)' : 'transparent',
+                            color: activeTab === 'departments' ? 'var(--brand-bg, #0F172A)' : undefined
+                        }}
                     >
                         Guerra de Áreas
                     </button>
                 </div>
             )}
-
             <div className="bg-brand-secondary/50 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-xl">
                 <div className="flex justify-between p-4 bg-black/20 border-b border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span>Posición / {activeTab === 'departments' ? 'Área' : 'Usuario'}</span>
@@ -166,18 +177,33 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                         return (
                             <React.Fragment key={item.rank}>
                                 <div
-                                    className={`flex items-center p-4 relative transition-colors cursor-pointer ${item.isUser ? 'bg-brand-primary/10' : ''} ${isExpanded ? '' : 'border-b border-white/5'} hover:bg-white/5`}
+                                    className={`flex items-center p-4 relative transition-colors cursor-pointer ${isExpanded ? '' : 'border-b border-white/5'} hover:bg-white/5`}
+                                    style={{ 
+                                        backgroundColor: item.isUser ? 'color-mix(in srgb, var(--brand-primary, #00E676), transparent 90%)' : undefined 
+                                    }}
                                     onClick={() => activeTab === 'users' && setExpandedRow(isExpanded ? null : item.rank)}
                                 >
                                     {item.isUser && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary shadow-[0_0_10px_var(--brand-primary)]" />
+                                        <div 
+                                            className="absolute left-0 top-0 bottom-0 w-1" 
+                                            style={{ 
+                                                backgroundColor: 'var(--brand-primary, #00E676)',
+                                                boxShadow: '0 0 10px var(--brand-primary, #00E676)'
+                                            }} 
+                                        />
                                     )}
 
                                     <div className="w-8 flex justify-center items-center mr-3 font-russo text-lg">
                                         {rankStyle.icon}
                                     </div>
 
-                                    <div className={`w-9 h-9 rounded-${activeTab === 'departments' ? 'lg' : 'full'} bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-white mr-3`}>
+                                    <div 
+                                        className={`w-9 h-9 border flex items-center justify-center text-[10px] font-bold text-white mr-3 rounded-${activeTab === 'departments' ? 'lg' : 'full'}`}
+                                        style={{ 
+                                            backgroundColor: 'var(--brand-bg, #0F172A)',
+                                            borderColor: 'var(--brand-accent, #334155)'
+                                        }}
+                                    >
                                         {item.avatar}
                                     </div>
 
@@ -218,22 +244,34 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                                 {isExpanded && item.breakdown && activeTab === 'users' && (
                                     <div className="bg-black/30 p-4 border-b border-white/5">
                                         <div className="grid grid-cols-4 gap-2 text-center">
-                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                             <div 
+                                                className="flex flex-col items-center gap-1 p-2 rounded-lg"
+                                                style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
+                                            >
                                                 <span className="text-xl">⚽</span>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Partidos</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.matches}</span>
                                             </div>
-                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                            <div 
+                                                className="flex flex-col items-center gap-1 p-2 rounded-lg"
+                                                style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
+                                            >
                                                 <span className="text-xl">🔮</span>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
                                             </div>
-                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                            <div 
+                                                className="flex flex-col items-center gap-1 p-2 rounded-lg"
+                                                style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
+                                            >
                                                 <span className="text-xl">🃏</span>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
                                             </div>
-                                            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                            <div 
+                                                className="flex flex-col items-center gap-1 p-2 rounded-lg"
+                                                style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
+                                            >
                                                 <span className="text-xl">❓</span>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Bonus</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.bonus}</span>

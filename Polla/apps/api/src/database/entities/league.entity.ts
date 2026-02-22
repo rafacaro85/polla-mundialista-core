@@ -12,6 +12,8 @@ import { LeagueType } from '../enums/league-type.enum';
 import { LeagueStatus } from '../enums/league-status.enum';
 import { LeagueParticipant } from './league-participant.entity'; // Import LeagueParticipant entity
 import { AccessCode } from './access-code.entity';
+import { LeaguePrize } from './league-prize.entity';
+import { LeagueBanner } from './league-banner.entity';
 
 @Entity({ name: 'leagues' })
 export class League {
@@ -104,6 +106,12 @@ export class League {
   @Column({ name: 'brand_font_family', default: '"Russo One", sans-serif' })
   brandFontFamily: string;
 
+  @Column({ name: 'brand_color_heading', default: '#FFFFFF' })
+  brandColorHeading: string;
+
+  @Column({ name: 'brand_color_bars', default: '#00E676' })
+  brandColorBars: string;
+
   @Column({ name: 'brand_cover_url', nullable: true })
   brandCoverUrl?: string; // Banner Hero
 
@@ -147,4 +155,10 @@ export class League {
 
   @Column({ name: 'ad_images', type: 'simple-array', nullable: true })
   adImages?: string[];
+
+  @OneToMany(() => LeaguePrize, (prize) => prize.league)
+  prizes: LeaguePrize[];
+
+  @OneToMany(() => LeagueBanner, (banner) => banner.league)
+  banners: LeagueBanner[];
 }

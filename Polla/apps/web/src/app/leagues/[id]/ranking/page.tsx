@@ -43,17 +43,29 @@ export default function RankingPage() {
         <div className="p-0 md:p-4 h-full flex flex-col">
             <Tabs defaultValue="participants" className="w-full h-full flex flex-col">
                  <div className="px-4 pt-2">
-                    <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
+                    <TabsList 
+                        className="grid w-full grid-cols-2 mb-4 p-1 h-auto rounded-xl border gap-1"
+                        style={{ 
+                            backgroundColor: 'var(--brand-secondary, #1E293B)',
+                            borderColor: 'var(--brand-accent, #334155)'
+                        }}
+                    >
                         <TabsTrigger 
                             value="participants"
-                            className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                            className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
                         >
+                            <style>{`
+                                [data-state=active].tab-trigger-brand { 
+                                    background-color: var(--brand-primary, #00E676) !important; 
+                                    box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--brand-primary), transparent 60%) !important;
+                                }
+                            `}</style>
                             <Users size={16} />
                             Participantes
                         </TabsTrigger>
                         <TabsTrigger 
                             value="fifa"
-                            className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                            className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
                         >
                             <Globe size={16} />
                             Tabla de posiciones

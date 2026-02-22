@@ -19,6 +19,7 @@ import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from "@/components/ui/progress";
+import { useRouter } from 'next/navigation';
 import LeagueBrandingForm from '@/components/LeagueBrandingForm';
 import { LeagueBonusQuestions } from '@/components/LeagueBonusQuestions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,6 +72,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
     const { user } = useAppStore();
     const { toast } = useToast();
     const { tournamentId } = useTournament();
+    const router = useRouter();
 
 
     const [open, setOpen] = useState(false);
@@ -190,6 +192,11 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
             await api.delete(`/leagues/${currentLeague.id}`);
             toast({ title: 'Liga eliminada', description: 'La liga ha sido eliminada.' });
             setOpen(false);
+            
+            // Redirect based on league type
+            const targetPath = currentLeague.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
+            router.push(targetPath);
+
             if (onUpdate) onUpdate();
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Error al eliminar la liga';
@@ -237,6 +244,10 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
             await api.patch(`/leagues/${currentLeague.id}/transfer-owner`, { newAdminId: newOwnerId });
             toast({ title: 'Propiedad transferida', description: 'Has cedido la administración.' });
             setOpen(false);
+            
+            // Redirect to league home since user is no longer admin
+            router.push(`/leagues/${currentLeague.id}`);
+            
             onUpdate?.();
         } catch (error) {
             toast({ title: 'Error', variant: 'destructive' });
@@ -268,7 +279,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-all rounded-r-full mr-4 mb-1 uppercase tracking-wider",
                     isActive
-                        ? "bg-emerald-500/10 text-emerald-400 border-l-2 border-emerald-500"
+                        ? "bg-[var(--brand-primary,#10B981)]/10 text-[var(--brand-primary,#10B981)] border-l-2 border-[var(--brand-primary,#10B981)]"
                         : "text-slate-400 hover:text-white hover:bg-slate-800 border-l-2 border-transparent"
                 )}
             >
@@ -321,19 +332,19 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 )}
             </DialogTrigger>
 
-            <DialogContent showCloseButton={false} className="max-w-none w-screen h-screen p-0 bg-[#0F172A] border-none flex overflow-hidden sm:rounded-none z-[60]">
+            <DialogContent showCloseButton={false} className="max-w-none w-screen h-screen p-0 bg-[#0F172A] border-none flex overflow-hidden sm:rounded-none z-[60]" style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}>
                 <DialogTitle className="sr-only">Configuración</DialogTitle>
                 <DialogDescription className="sr-only">Panel de administración</DialogDescription>
                 {/* 1. SIDEBAR (Desktop) */}
-                <aside className="hidden md:flex flex-col w-64 bg-[#1E293B] border-r border-slate-800 shrink-0">
-                    <div className="p-6 border-b border-slate-800 bg-[#0F172A]/50">
+                <aside className="hidden md:flex flex-col w-64 border-r shrink-0" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
+                    <div className="p-6 border-b" style={{ backgroundColor: 'var(--brand-bg, #0F172A)', opacity: 0.8, borderColor: 'rgba(255,255,255,0.05)' }}>
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded flex items-center justify-center font-russo text-[#0F172A]" style={{ backgroundColor: brandColor }}>P</div>
+                            <div className="w-8 h-8 rounded flex items-center justify-center font-russo text-[#0F172A]" style={{ backgroundColor: 'var(--brand-primary, #10B981)' }}>P</div>
                             <h2 className="text-sm font-russo text-white uppercase tracking-wider">
                                 POLA 2026
                             </h2>
                         </div>
-                        <p className="text-[10px] font-bold uppercase mt-1 truncate pl-1" style={{ color: brandColor }}>
+                        <p className="text-[10px] font-bold uppercase mt-1 truncate pl-1" style={{ color: 'var(--brand-primary, #10B981)' }}>
                             {currentLeague?.name}
                         </p>
                     </div>
@@ -354,22 +365,22 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                 </aside>
 
                 {/* 2. AREA PRINCIPAL */}
-                <div className="flex-1 flex flex-col h-full bg-[#0F172A] relative min-w-0">
+                <div className="flex-1 flex flex-col h-full relative min-w-0" style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}>
 
                     {/* MOBILE HEADER */}
-                    <header className="md:hidden h-14 border-b border-slate-800 bg-[#1E293B] flex items-center justify-between px-4 shrink-0 z-50">
+                    <header className="md:hidden h-14 border-b flex items-center justify-between px-4 shrink-0 z-50" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <div className="flex items-center gap-2 overflow-hidden flex-1">
-                            <div className="w-6 h-6 rounded flex items-center justify-center font-russo text-[#0F172A] text-xs shrink-0" style={{ backgroundColor: brandColor }}>P</div>
-                            <span className="font-russo uppercase text-sm truncate text-white" style={{ color: brandColor }}>{currentLeague?.name}</span>
+                            <div className="w-6 h-6 rounded flex items-center justify-center font-russo text-[#0F172A] text-xs shrink-0" style={{ backgroundColor: 'var(--brand-primary, #10B981)' }}>P</div>
+                            <span className="font-russo uppercase text-sm truncate text-white" style={{ color: 'var(--brand-primary, #10B981)' }}>{currentLeague?.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700 shrink-0" onClick={() => setOpen(false)}>
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 shrink-0" onClick={() => setOpen(false)}>
                             <X className="w-6 h-6" />
                         </Button>
                     </header>
 
                     {/* MOBILE NAVIGATION BAR */}
                     {currentLeague && (
-                        <div className="md:hidden h-14 bg-[#1E293B] border-b border-slate-800 flex overflow-x-auto items-center no-scrollbar sticky top-0 z-40">
+                        <div className="md:hidden h-14 border-b flex overflow-x-auto items-center no-scrollbar sticky top-0 z-40" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                             {currentLeague?.isAdmin && (
                                 <>
                                     <MobileNavItem value="branding" icon={Palette} label="Marca" />

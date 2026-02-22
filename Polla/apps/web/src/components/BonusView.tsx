@@ -110,22 +110,19 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
 
     // SISTEMA DE DISEÑO
     const COLORS = {
-        bg: '#0F172A',
-        card: '#1E293B',
-        signal: '#00E676',
+        bg: 'var(--brand-bg, #0F172A)',
+        card: 'var(--brand-secondary, #1E293B)',
+        signal: 'var(--brand-primary, #00E676)',
         gold: '#FACC15',
         alert: '#FF1744',
-        text: '#F8FAFC',
-        dim: '#94A3B8',
-        border: '#334155'
+        text: 'var(--brand-text, #F8FAFC)',
+        dim: 'color-mix(in srgb, var(--brand-text), transparent 40%)',
+        border: 'var(--brand-accent, #334155)'
     };
 
     const STYLES = {
         container: {
-            padding: '16px',
             paddingBottom: '120px',
-            backgroundColor: COLORS.bg,
-            minHeight: '100vh',
             fontFamily: 'sans-serif'
         },
         headerSection: {
@@ -412,7 +409,7 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
                     border: '1px dashed #334155',
                     borderRadius: '16px',
                     color: '#94A3B8',
-                    backgroundColor: '#1E293B',
+                    backgroundColor: 'var(--brand-secondary, #1E293B)',
                     marginTop: '20px'
                 }}>
                     <Award size={40} style={{ margin: '0 auto 16px', opacity: 0.3 }} />

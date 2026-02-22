@@ -8,14 +8,22 @@ export const useImageUpload = () => {
 
     const handleImageUpload = async (
         key: string,
-        e: React.ChangeEvent<HTMLInputElement>,
-        onSuccess: (url: string) => void
+        e: React.ChangeEvent<HTMLInputElement> | File,
+        onSuccess: (url: string) => void,
+        folder: string = 'la-polla-virtual'
     ) => {
-        const file = e.target.files?.[0];
+        let file: File | undefined;
+        
+        if (e instanceof File) {
+            file = e;
+        } else {
+            file = e.target.files?.[0];
+        }
+
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            toast({ title: 'Archivo muy pesado', description: 'Máximo 5MB.', variant: 'destructive' });
+        if (file.size > 10 * 1024 * 1024) { // matching 10MB api limit
+            toast({ title: 'Archivo muy pesado', description: 'Máximo 10MB.', variant: 'destructive' });
             return;
         }
 
@@ -23,6 +31,7 @@ export const useImageUpload = () => {
             setUploadingState(prev => ({ ...prev, [key]: true }));
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('folder', folder);
 
             // Upload to centralized endpoint
             const { data } = await api.post('/upload', formData);

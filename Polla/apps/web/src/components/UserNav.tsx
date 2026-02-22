@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid, HelpCircle, ChevronDown } from 'lucide-react';
+import { User, LogOut, ChevronRight, Shield, HelpCircle, ChevronDown, Settings } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -52,10 +52,6 @@ export function UserNav() {
     router.push('/profile');
   };
 
-  const handleAdmin = () => {
-    router.push('/admin');
-  };
-
   const handleSuperAdmin = () => {
     router.push('/super-admin');
   };
@@ -67,7 +63,7 @@ export function UserNav() {
     // Contenedor Relativo para el Dropdown
     wrapper: {
       position: 'relative' as const,
-      zIndex: 50
+      zindex: 50
     },
     // Contenedor que agrupa Avatar + Flecha
     triggerContainer: {
@@ -278,28 +274,29 @@ export function UserNav() {
             hasArrow
           />
 
-          {selectedLeagueId && selectedLeagueId !== 'global' ? (
+          {isAdmin && (
             <>
               <MenuItem
-                icon={Settings}
-                label="Administrar Polla"
-                onClick={() => router.push(`/leagues/${selectedLeagueId}/admin`)}
-                hasArrow
+                icon={Shield}
+                label="Super Admin"
+                onClick={handleSuperAdmin}
                 isSpecial
+                hasArrow
+              />
+              
+              <MenuItem
+                icon={Settings}
+                label={selectedLeagueId && selectedLeagueId !== 'global' ? "Administrar Polla" : "Admin. Pollas Sociales"}
+                onClick={() => {
+                  if (selectedLeagueId && selectedLeagueId !== 'global') {
+                    router.push(`/leagues/${selectedLeagueId}/admin`);
+                  } else {
+                    router.push('/leagues-admin');
+                  }
+                }}
+                hasArrow
               />
             </>
-          ) : (
-            <></>
-          )}
-
-          {isAdmin && (
-            <MenuItem
-              icon={Shield}
-              label="Super Admin"
-              onClick={handleSuperAdmin}
-              isSpecial
-              hasArrow
-            />
           )}
 
           <div style={STYLES.divider} />

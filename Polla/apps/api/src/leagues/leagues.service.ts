@@ -235,11 +235,13 @@ export class LeaguesService {
       }
 
       // Automatically add the creator as a participant
+      const isActuallyPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
+      
       const participant = this.leagueParticipantsRepository.create({
         user: creator,
         league: savedLeague,
         isAdmin: true,
-        status: LeagueParticipantStatus.ACTIVE,
+        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING,
         isPaid: false,
         totalPoints: 0,
         triviaPoints: 0,
@@ -306,8 +308,13 @@ export class LeaguesService {
   ): Promise<{ league: League; availableSlots: number }> {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
-      relations: ['participants', 'participants.user', 'creator'],
+      relations: ['participants', 'participants.user', 'creator', 'prizes', 'banners'],
     });
+
+    if (league) {
+      if (league.prizes) league.prizes.sort((a, b) => a.order - b.order);
+      if (league.banners) league.banners.sort((a, b) => a.order - b.order);
+    }
 
     if (!league) {
       throw new NotFoundException(`League with ID ${leagueId} not found.`);
@@ -322,8 +329,13 @@ export class LeaguesService {
   async getLeagueDetails(leagueId: string, userId?: string) {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
-      relations: ['participants', 'participants.user', 'creator'],
+      relations: ['participants', 'participants.user', 'creator', 'prizes', 'banners'],
     });
+
+    if (league) {
+      if (league.prizes) league.prizes.sort((a, b) => a.order - b.order);
+      if (league.banners) league.banners.sort((a, b) => a.order - b.order);
+    }
 
     if (!league) {
       console.log(`[DEBUG] League ${leagueId} not found`);
@@ -396,6 +408,8 @@ export class LeaguesService {
       socialWebsite: league.socialWebsite,
       enableDepartmentWar: league.enableDepartmentWar,
       isPaid: league.isPaid,
+      banners: league.banners || [],
+      prizes: league.prizes || [],
     };
   }
 
@@ -619,7 +633,14 @@ export class LeaguesService {
       tournamentId: p.league.tournamentId,
     }));
 
-    return result;
+    // OPTIMIZACION: Fetch pending transactions for all leagues at once or in parallel
+    const finalResult = await Promise.all(result.map(async (l) => {
+      const hasPendingTransaction = await this.transactionsService.findLatestLeagueTransaction(userId, l.id)
+        .then(tx => tx?.status === TransactionStatus.PENDING);
+      return { ...l, hasPendingTransaction };
+    }));
+
+    return finalResult;
     } catch (error) {
       console.error('❌ Error in getMyLeagues:', {
         message: error.message,
@@ -684,7 +705,7 @@ export class LeaguesService {
   async getLeagueForUser(leagueId: string, userId: string) {
     const participant = await this.leagueParticipantsRepository.findOne({
       where: { league: { id: leagueId }, user: { id: userId } },
-      relations: ['league', 'league.creator', 'league.participants'],
+      relations: ['league', 'league.creator', 'league.participants', 'league.prizes', 'league.banners'],
     });
 
     // 2. If participant found, return standard format
@@ -729,20 +750,26 @@ export class LeaguesService {
         socialWebsite: participant.league.socialWebsite,
         showAds: participant.league.showAds,
         adImages: participant.league.adImages,
+        banners: participant.league.banners || [],
+        prizes: participant.league.prizes || [],
         userStatus: participant.status, // EXPOSE USER STATUS
+        // check for pending transaction
+        hasPendingTransaction: await this.transactionsService.findLatestLeagueTransaction(userId, leagueId).then(tx => tx?.status === TransactionStatus.PENDING),
       };
     }
 
     // 3. If not participant, check if SUPER_ADMIN
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user?.role === UserRole.SUPER_ADMIN) {
-      // Fetch league directly
       const league = await this.leaguesRepository.findOne({
         where: { id: leagueId },
-        relations: ['creator', 'participants'],
+        relations: ['creator', 'participants', 'participants.user', 'prizes', 'banners'],
       });
 
       if (league) {
+        // Even for Super Admin, try to find if they are a participant to get their actual status (e.g. REJECTED)
+        const actualParticipant = league.participants?.find(p => p.user?.id === userId);
+        
         return {
           id: league.id,
           name: league.name,
@@ -781,6 +808,9 @@ export class LeaguesService {
           socialWebsite: league.socialWebsite,
           showAds: league.showAds,
           adImages: league.adImages,
+          banners: league.banners || [],
+          prizes: league.prizes || [],
+          userStatus: actualParticipant ? actualParticipant.status : 'ACTIVE',
         };
       }
     }

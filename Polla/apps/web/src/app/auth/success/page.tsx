@@ -59,10 +59,10 @@ function SuccessLogic() {
           console.log('🔍 [AUTH] Flag onboarding_business:', isBusinessOnboarding);
 
             if (isBusinessOnboarding) {
-            console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /business/new');
+            console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /empresa/crear');
             localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
             document.cookie = `${BUSINESS_ONBOARDING_KEY}=; path=/; max-age=0`;
-            window.location.href = '/business/new';
+            window.location.href = '/empresa/crear';
           } else {
             // Check for custom redirect param
             const redirectPath = searchParams.get('redirect');

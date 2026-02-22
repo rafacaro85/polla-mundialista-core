@@ -67,7 +67,7 @@ const MatchNode = ({
         // Loose comparison: Ensure both are strings and trimmed
         const isSelected = winner && String(winner).trim() === String(team).trim();
         
-        if (!isSelected) return 'bg-[#1E293B]/80 text-slate-300'; // No selected or other team
+        if (!isSelected) return 'bg-[var(--brand-secondary,#1E293B)]/80 text-slate-300'; // No selected or other team
         
         if (isFinished && correctWinner) {
             return correctWinner === team 
@@ -75,7 +75,7 @@ const MatchNode = ({
                 : 'bg-red-500/20 text-red-400 border-red-500/50'; // LOST
         }
         
-        return 'bg-[#00E676]/20 text-[#00E676]'; // Pending/Selected
+        return 'bg-[var(--brand-primary,#00E676)]/20 text-[var(--brand-primary,#00E676)]'; // Pending/Selected
     };
 
     return (
@@ -118,7 +118,13 @@ const MatchNode = ({
 
             {/* CONECTOR (Línea hacia la derecha) */}
             {nextId && (
-                <div className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? (isFinished && correctWinner && winner === correctWinner ? 'bg-emerald-500' : 'bg-[#00E676] shadow-[0_0_2px_rgba(0,230,118,0.5)]') : 'bg-slate-700'}`}></div>
+                <div 
+                    className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? (isFinished && correctWinner && winner === correctWinner ? 'bg-emerald-500' : '') : 'bg-slate-700'}`}
+                    style={{ 
+                        backgroundColor: (winner && !(isFinished && correctWinner && winner === correctWinner)) ? 'var(--brand-primary, #00E676)' : undefined,
+                        boxShadow: (winner && !(isFinished && correctWinner && winner === correctWinner)) ? '0 0 2px var(--brand-primary)' : undefined
+                    }}
+                ></div>
             )}
         </div>
     );
@@ -338,10 +344,19 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     const champion = winners[finalMatches[0]?.id || ''];
 
     return (
-        <div className="bg-[#0F172A] min-h-screen text-white font-sans pb-32">
+        <div 
+            className="min-h-screen text-white font-sans pb-32"
+            style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
+        >
 
             {/* HEADER INSTRUCCIONES & ACCIONES */}
-            <div className="p-6 pt-24 sticky top-0 bg-[#0F172A]/95 backdrop-blur z-30 border-b border-slate-800">
+            <div 
+                className="p-6 pt-24 sticky top-0 backdrop-blur z-30 border-b"
+                style={{ 
+                    backgroundColor: 'color-mix(in srgb, var(--brand-bg, #0F172A), transparent 5%)',
+                    borderColor: 'var(--brand-accent, #334155)'
+                }}
+            >
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="font-russo text-xl uppercase text-white mb-1">Llaves del Torneo</h2>
@@ -355,7 +370,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     {/* INFO PUNTOS BRACKET */}
                     <div className="bg-slate-800/50 border border-slate-700 px-3 py-2 rounded-lg text-center">
                         <span className="text-[9px] text-[#94A3B8] block font-bold uppercase tracking-widest">Puntos</span>
-                        <span className="font-russo text-lg text-[#00E676]">{bracketPoints}</span>
+                        <span className="font-russo text-lg" style={{ color: 'var(--brand-primary, #00E676)' }}>{bracketPoints}</span>
                     </div>
                 </div>
 
@@ -371,7 +386,12 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
                     <div className="flex gap-3">
                         <button
                             onClick={handleSaveBracket}
-                            className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-[#0F172A] py-2 rounded-lg font-black text-xs uppercase flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,230,118,0.2)] transition-all active:scale-95"
+                            className="flex-1 py-2 rounded-lg font-black text-xs uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
+                            style={{ 
+                                backgroundColor: 'var(--brand-primary, #00E676)',
+                                color: 'var(--brand-bg, #0F172A)',
+                                boxShadow: '0 0 15px rgba(0,230,118,0.2)'
+                            }}
                         >
                             <Save size={14} /> Guardar ({Object.keys(winners).length})
                         </button>

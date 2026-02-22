@@ -84,20 +84,41 @@ export class TransactionsController {
         throw new BadRequestException('Image file is required');
       }
 
-      const tid = body.tournamentId || queryTournamentId || 'WC2026';
-      console.log(`[Transactions] Uploading for tournament: ${tid}, league: ${body.leagueId}`);
+      // Handle potential arrays if params are duplicated in query and body
+      const getFirst = (val: any) => Array.isArray(val) ? val[0] : val;
+
+      const rawTid = body.tournamentId || queryTournamentId || 'WC2026';
+      const tid = getFirst(rawTid);
+      
+      // Defensive check for amount
+      let amount = 50000;
+      const rawAmount = getFirst(body.amount);
+      if (rawAmount) {
+        amount = Number(rawAmount);
+        if (isNaN(amount)) {
+            throw new BadRequestException('Monto de transacción inválido');
+        }
+      }
+
+      // Defensive check for leagueId (ensure it's a UUID if provided)
+      let leagueId = getFirst(body.leagueId);
+      if (leagueId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leagueId)) {
+        console.warn(`[Transactions] Invalid leagueId received: ${leagueId}, ignoring.`);
+        leagueId = undefined;
+      }
+
+      const referenceCode = getFirst(body.referenceCode);
+
+      console.log(`[Transactions] Uploading for tournament: ${tid}, league: ${leagueId}, amount: ${amount}`);
       
       const uploadResult = await this.cloudinaryService.uploadImage(file);
-
-      // Ensure amount is a number
-      const amount = body.amount ? Number(body.amount) : 50000;
 
       return await this.transactionsService.uploadTransaction(
         req.user,
         uploadResult.secure_url,
         amount,
-        body.referenceCode,
-        body.leagueId,
+        referenceCode,
+        leagueId,
         tid,
       );
     } catch (error: any) {

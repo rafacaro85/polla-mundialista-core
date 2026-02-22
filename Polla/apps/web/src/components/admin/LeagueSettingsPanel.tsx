@@ -156,7 +156,8 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                     title: 'Liga eliminada',
                     description: data.message || 'La liga ha sido eliminada correctamente.'
                 });
-                router.push('/dashboard');
+                const targetPath = currentLeague.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
+                router.push(targetPath);
             } else {
                 toast({
                     title: 'Error',
@@ -182,7 +183,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
         try {
             await api.patch(`/leagues/${currentLeague.id}/transfer-owner`, { newAdminId: newOwnerId });
             toast({ title: 'Propiedad transferida', description: 'Has cedido la administración.' });
-            router.push('/');
+            router.push(`/leagues/${currentLeague.id}`);
         } catch (error) {
             toast({ title: 'Error', variant: 'destructive' });
         } finally {
@@ -229,22 +230,22 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
     // STYLES
     const STYLES = {
-        card: { backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginBottom: '16px' }
+        card: { backgroundColor: 'var(--brand-secondary, #1E293B)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }
     };
 
     if (!leagueId || leagueId === 'global') return null;
 
     return (
-        <div className="flex flex-col bg-[#0F172A] min-h-screen text-white">
+        <div className="flex flex-col min-h-screen text-[var(--brand-text,white)]" style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}>
             {/* HEADLINE */}
-            <div className="p-6 pb-2 bg-[#1E293B] border-b border-slate-700 sticky top-0 z-10 shadow-md">
+            <div className="p-6 pb-2 border-b sticky top-0 z-10 shadow-md" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                 <div className="max-w-4xl mx-auto w-full">
                     <h2 className="text-xl font-russo uppercase text-white flex items-center gap-2">
-                        <Settings className="text-emerald-500" /> Gestión de Polla
+                        <Settings className="text-[var(--brand-primary,#00E676)]" /> Gestión de Polla
                     </h2>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <Link href={`/leagues/${leagueId}/admin`} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase underline">
+                        <Link href={`/leagues/${leagueId}/admin`} className="text-[10px] font-bold uppercase underline" style={{ color: 'var(--brand-primary,#00E676)' }}>
                             Regresar
                         </Link>
                     </div>
@@ -257,21 +258,21 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                 <div className="flex-1 overflow-visible flex flex-col w-full max-w-4xl mx-auto p-4 sm:p-6 mb-20">
                     <Tabs defaultValue={defaultTab} className="flex-1">
                         {!hideTabs && (
-                            <div className="sticky top-0 z-10 bg-[#0F172A] pb-4">
-                                <TabsList className="w-full bg-[#1E293B] p-1 rounded-full border border-slate-700">
-                                    <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                            <div className="sticky top-0 z-10 pb-4" style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}>
+                                <TabsList className="w-full p-1 rounded-full border" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
+                                    <TabsTrigger value="editar" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F1729)]">
                                         <Edit className="w-3 h-3 mr-1 inline-block" /> Editar
                                     </TabsTrigger>
-                                    <TabsTrigger value="bonus" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <TabsTrigger value="bonus" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F1729)]">
                                         <Trophy className="w-3 h-3 mr-1 inline-block" /> Bonus
                                     </TabsTrigger>
-                                    <TabsTrigger value="usuarios" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <TabsTrigger value="usuarios" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F1729)]">
                                         <Users className="w-3 h-3 mr-1 inline-block" /> Usuarios
                                     </TabsTrigger>
-                                    <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <TabsTrigger value="plan" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F1729)]">
                                         <Gem className="w-3 h-3 mr-1 inline-block" /> Plan
                                     </TabsTrigger>
-                                    <TabsTrigger value="analytics" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F1729]">
+                                    <TabsTrigger value="analytics" className="flex-1 rounded-full text-[10px] sm:text-xs font-bold uppercase py-2 data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F1729)]">
                                         <BarChart3 className="w-3 h-3 mr-1 inline-block" /> Data
                                     </TabsTrigger>
                                 </TabsList>
@@ -289,9 +290,9 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                         <input
                                             value={editedName}
                                             onChange={e => setEditedName(e.target.value)}
-                                            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold"
+                                            className="flex-1 bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white font-bold"
                                         />
-                                        <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="text-slate-900 hover:opacity-90 transition-opacity" style={{ backgroundColor: currentLeague.brandColorPrimary || '#10B981' }}>
+                                        <Button onClick={handleUpdateName} disabled={loading || editedName === currentLeague.name} className="text-[var(--brand-bg,#0F1729)] hover:opacity-90 transition-opacity" style={{ backgroundColor: 'var(--brand-primary, #00E676)' }}>
                                             <Save className="w-4 h-4" />
                                         </Button>
                                     </div>
@@ -337,17 +338,17 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                         <div style={STYLES.card}>
                                             <div className="flex items-center justify-between mb-4">
                                                 <h3 className="text-xs font-bold text-slate-400 uppercase">Estado del Plan</h3>
-                                                <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">
+                                                <span className="bg-[var(--brand-primary,#00E676)]/10 text-[var(--brand-primary,#00E676)] text-[10px] font-bold px-2 py-1 rounded border border-[var(--brand-primary,#00E676)]/20">
                                                     {participants.length} / {currentLeague.maxParticipants} Cupos
                                                 </span>
                                             </div>
-                                            <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-slate-700 mb-4" />
+                                            <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-white/10 mb-4" />
 
-                                            <div className="bg-slate-900 rounded-lg p-4 border border-dashed border-slate-700 text-center">
+                                            <div className="bg-black/20 rounded-lg p-4 border border-dashed border-white/10 text-center">
                                                 <p className="text-xs text-slate-400 mb-1">CÓDIGO DE INVITACIÓN</p>
-                                                <p className="text-2xl font-mono text-emerald-400 font-bold tracking-widest my-2">{currentLeague.code}</p>
+                                                <p className="text-2xl font-mono text-[var(--brand-primary,#00E676)] font-bold tracking-widest my-2">{currentLeague.code}</p>
                                                 <div className="flex gap-2 justify-center mt-3">
-                                                    <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-slate-600 hover:bg-slate-800 text-white">
+                                                    <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-white/10 hover:bg-white/5 text-white">
                                                         {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />} Copiar
                                                     </Button>
                                                     <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
@@ -367,14 +368,15 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                             </div>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 rounded-xl p-5 border border-emerald-500/30">
-                                            <h3 className="text-emerald-400 font-bold uppercase text-sm mb-2 flex items-center gap-2">
+                                        <div className="bg-gradient-to-br from-[var(--brand-primary,#00E676)]/10 to-transparent rounded-xl p-5 border border-[var(--brand-primary,#00E676)]/20">
+                                            <h3 className="text-[var(--brand-primary,#00E676)] font-bold uppercase text-sm mb-2 flex items-center gap-2">
                                                 <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
                                             </h3>
                                             <p className="text-xs text-slate-300 mb-4">
                                                 Solicita una ampliación de tu plan actual para invitar a más amigos.
                                             </p>
-                                            <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                                            <Button className="w-full text-[var(--brand-bg,#0F1729)] font-bold"
+                                                style={{ backgroundColor: 'var(--brand-primary, #00E676)' }}
                                                 onClick={() => {
                                                     const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
                                                     window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
@@ -420,12 +422,12 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
                                 <div className="border-t border-slate-700 pt-6">
                                     <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4 text-emerald-500" /> Consolidado de Puntos
+                                        <BarChart3 className="w-4 h-4 text-[var(--brand-primary,#00E676)]" /> Consolidado de Puntos
                                     </h3>
-                                    <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900/30">
+                                    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/10">
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs text-left">
-                                                <thead className="bg-[#1E293B] text-slate-400 font-bold uppercase">
+                                                <thead className="text-slate-400 font-bold uppercase" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)' }}>
                                                     <tr>
                                                         <th className="p-3">Usuario</th>
                                                         <th className="p-3 text-right">Partidos</th>
@@ -433,12 +435,12 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                                         <th className="p-3 text-right text-white">Total</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-700">
+                                                <tbody className="divide-y divide-white/5">
                                                     {participants.map((p) => (
-                                                        <tr key={p.user.id} className="hover:bg-slate-800/50">
+                                                        <tr key={p.user.id} className="hover:bg-white/5">
                                                             <td className="p-3 font-medium text-slate-300">{p.user.nickname}</td>
                                                             <td className="p-3 text-right text-slate-400">{p.predictionPoints}</td>
-                                                            <td className="p-3 text-right text-emerald-400 font-bold">{p.bonusPoints}</td>
+                                                            <td className="p-3 text-right text-[var(--brand-primary,#00E676)] font-bold">{p.bonusPoints}</td>
                                                             <td className="p-3 text-right font-bold text-white">{p.totalPoints}</td>
                                                         </tr>
                                                     ))}
@@ -475,7 +477,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
                                             </div>
 
                                             <div className="flex items-center gap-1">
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-400 hover:bg-emerald-500/10"
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--brand-primary,#00E676)] hover:bg-[var(--brand-primary,#00E676)]/10"
                                                     onClick={() => setSelectedUser({ id: p.user.id, name: p.user.nickname, avatar: p.user.avatarUrl })}
                                                 >
                                                     <Eye className="h-4 w-4" />

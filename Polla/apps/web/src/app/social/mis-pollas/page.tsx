@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { HowItWorksSection } from '@/components/HowItWorksSection';
 import { MoneyCard } from '@/components/MoneyCard';
+import { MainHeader } from '@/components/MainHeader';
 
 function MisPollasContent() {
   const router = useRouter();
@@ -63,6 +64,8 @@ function MisPollasContent() {
   return (
     <div className="min-h-screen bg-[#0F172A] text-[#F8FAFC] font-sans flex flex-col pb-20">
       
+      <MainHeader />
+
       {/* Header Premium */}
       <header className="px-6 py-8 flex flex-col gap-6 relative z-10">
         <div className="flex items-center justify-between">
@@ -78,14 +81,6 @@ function MisPollasContent() {
             <div className="w-10"></div> {/* Spacer for symmetry */}
         </div>
 
-        <div className="flex flex-col gap-2">
-            <p className="text-slate-300 text-lg font-medium leading-tight max-w-sm">
-                Recuerda que puedes armar todas las pollas que quieras con amigos, familiares, compañeros de trabajo y más.
-            </p>
-            <p className="text-[#00E676] text-xs font-bold uppercase tracking-widest opacity-80">
-                ¡Sin límites! Cada grupo, su propia batalla.
-            </p>
-        </div>
 
         {/* Acciones Rápidas */}
         <div className="flex gap-3">
@@ -126,17 +121,28 @@ function MisPollasContent() {
             {filteredLeagues.map((league) => (
               <div 
                 key={league.id} 
-                className="group relative bg-[#1E293B] border border-white/5 rounded-[2rem] overflow-hidden flex flex-col p-5 hover:border-[#00E676]/30 transition-all duration-500 shadow-xl"
+                className={`group relative bg-[#1E293B] border rounded-[2rem] overflow-hidden flex flex-col p-5 transition-all duration-500 shadow-xl ${
+                    league.status === 'PENDING'
+                    ? 'border-red-500/50 hover:border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.05)]'
+                    : league.status === 'REJECTED'
+                    ? 'border-red-600 hover:border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.15)]'
+                    : 'border-white/5 hover:border-[#00E676]/30'
+                }`}
               >
-                {/* Badges Superiores (Fuera del contenedor de imagen) */}
                 <div className="flex items-center justify-between mb-3 px-1">
                     <div className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] backdrop-blur-md border border-white/5 flex items-center gap-1 ${league.tournamentId === 'WC2026' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
                          {league.tournamentId === 'WC2026' ? 'Mundial 2026' : 'Champions 25/26'}
                     </div>
 
                     {league.status === 'PENDING' && (
-                        <div className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-yellow-500/10">
+                        <div className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500/20">
                             Pendiente
+                        </div>
+                    )}
+
+                    {league.status === 'REJECTED' && (
+                        <div className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500 animate-pulse">
+                            Rechazado
                         </div>
                     )}
                 </div>
@@ -185,6 +191,17 @@ function MisPollasContent() {
                                     <span className="text-[9px] font-black uppercase tracking-tighter">Compartir</span>
                                 </button>
                             )}
+                            {league.status === 'PENDING' && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/leagues/${league.id}`);
+                                    }}
+                                    className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-yellow-500/50 cursor-pointer flex items-center justify-center bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-[#0F172A] transition-all"
+                                >
+                                    PENDIENTE
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -192,15 +209,22 @@ function MisPollasContent() {
                 {/* Botón de Ingreso */}
                 <button 
                     onClick={() => router.push(`/leagues/${league.id}`)}
-                    disabled={league.status === 'PENDING'}
                     className={`w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all ${
                         league.status === 'PENDING' 
-                        ? 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5' 
+                        ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 hover:bg-yellow-500 hover:text-[#050505]' 
+                        : league.status === 'REJECTED'
+                        ? 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white'
                         : 'bg-white/5 border border-white/10 text-white hover:bg-[#00E676] hover:text-[#050505] hover:border-[#00E676]'
                     }`}
                 >
                     {league.status === 'PENDING' ? (
-                        <>Espere Aprobación</>
+                        league.hasPendingTransaction ? (
+                            <>Validando Pago <ChevronRight size={16} /></>
+                        ) : (
+                            <>Pagar para Activar <ChevronRight size={16} /></>
+                        )
+                    ) : league.status === 'REJECTED' ? (
+                        <>Reintentar Pago <ChevronRight size={16} /></>
                     ) : (
                         <>Ingresar <ChevronRight size={16} /></>
                     )}

@@ -11,10 +11,14 @@ import {
     Settings,
     TrendingUp,
     Shield,
-    ChevronRight
+    ChevronRight,
+    Trophy,
+    Megaphone,
+    LayoutGrid
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
+import { useLeagues } from '@/hooks/useLeagues';
 
 interface DashboardCardProps {
     icon: React.ReactNode;
@@ -222,6 +226,20 @@ export default function AdminDashboardPage() {
             disabled: !league.isEnterpriseActive,
             hidden: !isEnterprise,
         },
+        {
+            icon: <Trophy size={24} />,
+            title: 'Premios',
+            description: 'Configura los premios por posición (Imagen o Efectivo)',
+            href: `/leagues/${params.id}/admin/prizes`,
+            hidden: !isEnterprise,
+        },
+        {
+            icon: <Megaphone size={24} />,
+            title: 'Publicidad',
+            description: 'Gestiona los banners y anuncios de la landing',
+            href: `/leagues/${params.id}/admin/advertising`,
+            hidden: !isEnterprise,
+        },
     ];
 
     const modules = allModules.filter(m => !m.hidden);
@@ -233,11 +251,11 @@ export default function AdminDashboardPage() {
                 <div className="mb-8">
                     {/* Back Button */}
                     <button
-                        onClick={() => router.push(`/leagues/${params.id}`)}
-                        className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-brand-primary transition-colors mb-6 group"
+                        onClick={() => router.push(isEnterprise ? '/empresa/mis-pollas' : `/leagues/${params.id}`)}
+                        className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary transition-colors mb-6 group"
                     >
-                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        Volver a la Polla
+                        <LayoutGrid size={16} className="group-hover:-translate-x-1 transition-transform" />
+                        {isEnterprise ? 'Lista de Pollas' : 'Volver a la Polla'}
                     </button>
 
                     {/* Title & Subtitle */}

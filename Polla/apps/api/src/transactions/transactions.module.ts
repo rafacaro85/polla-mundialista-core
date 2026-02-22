@@ -11,9 +11,11 @@ import { UploadModule } from '../upload/upload.module';
 import { User } from '../database/entities/user.entity';
 import { TelegramModule } from '../telegram/telegram.module';
 
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Transaction, League, User]),
+    TypeOrmModule.forFeature([Transaction, League, User, LeagueParticipant]),
     PdfModule,
     UploadModule,
     TelegramModule,

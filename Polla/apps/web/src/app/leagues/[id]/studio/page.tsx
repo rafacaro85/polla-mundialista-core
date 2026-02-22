@@ -67,6 +67,8 @@ export default function StudioPage() {
         brandColorSecondary: '#1E293B',
         brandColorBg: '#0F172A',
         brandColorText: '#F8FAFC',
+        brandColorHeading: '#FFFFFF',
+        brandColorBars: '#00E676',
         companyName: 'Mi Empresa S.A.',
         welcomeMessage: '¡Bienvenidos a la polla corporativa! El ganador se llevará un premio sorpresa.',
         brandingLogoUrl: '',
@@ -90,14 +92,6 @@ export default function StudioPage() {
         adImages: [] as string[]
     });
 
-    // Font Options
-    const fontOptions = [
-        { name: 'Deportiva (Russo)', value: '"Russo One", sans-serif' },
-        { name: 'Moderna (Inter)', value: 'Inter, sans-serif' },
-        { name: 'Geométrica (Poppins)', value: 'Poppins, sans-serif' },
-        { name: 'Elegante (Slab)', value: '"Roboto Slab", serif' },
-    ];
-
     // Mock Data for Preview
     const [participantsMock] = useState([
         { id: '1', nickname: 'Campeón', rank: 1, points: 150, avatarUrl: '' },
@@ -109,10 +103,10 @@ export default function StudioPage() {
     const { uploadingState, handleImageUpload: uploadImage } = useImageUpload();
 
     // WRAPPER FOR UPLOAD
-    const handleImageUpload = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (key: string, e: React.ChangeEvent<HTMLInputElement>, folder: string = 'la-polla-virtual') => {
         await uploadImage(key, e, (url) => {
             setConfig(prev => ({ ...prev, [key]: url }));
-        });
+        }, folder);
     };
 
     // ADVERTISING HANDLERS
@@ -177,6 +171,19 @@ export default function StudioPage() {
         load();
     }, [params.id, toast]);
 
+    // Sync local config with CSS variables for real-time preview of the STUDIO itself
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--brand-primary', config.brandColorPrimary);
+        root.style.setProperty('--brand-secondary', config.brandColorSecondary);
+        root.style.setProperty('--brand-bg', config.brandColorBg);
+        root.style.setProperty('--brand-text', config.brandColorText);
+        root.style.setProperty('--brand-heading', config.brandColorHeading);
+        root.style.setProperty('--brand-bars', config.brandColorBars);
+        
+        // Clean up or reset on unmount if needed, but Layout usually handles it
+    }, [config]);
+
     // Helper para limpiar el payload y enviar SOLO lo que el DTO espera
     const getCleanPayload = (cfg: any) => ({
         companyName: cfg.companyName,
@@ -184,6 +191,8 @@ export default function StudioPage() {
         brandColorSecondary: cfg.brandColorSecondary,
         brandColorBg: cfg.brandColorBg,
         brandColorText: cfg.brandColorText,
+        brandColorHeading: cfg.brandColorHeading,
+        brandColorBars: cfg.brandColorBars,
         brandFontFamily: cfg.brandFontFamily,
         brandingLogoUrl: cfg.brandingLogoUrl,
         brandCoverUrl: cfg.brandCoverUrl,
@@ -270,20 +279,20 @@ export default function StudioPage() {
         window.open(`https://wa.me/573102345678?text=${message}`, '_blank');
     };
 
-    if (loading) return <div className="h-screen flex items-center justify-center bg-[#0B1120]"><Loader2 className="animate-spin text-[#00E676]" /></div>;
+    if (loading) return <div className="h-screen flex items-center justify-center bg-[#0B1120]" style={{ backgroundColor: 'var(--brand-bg, #0B1120)' }}><Loader2 className="animate-spin text-[var(--brand-primary,#00E676)]" /></div>;
 
     return (
-        <div className="min-h-screen bg-[#0B1120] text-slate-200 font-sans flex flex-col pt-16 md:pt-20">
+        <div className="min-h-screen font-sans flex flex-col pt-16 md:pt-20" style={{ backgroundColor: 'var(--brand-bg, #0F172A)', color: 'var(--brand-text, #F8FAFC)' }}>
 
             {/* HEADER SUPERIOR (FIXED) */}
-            <header className="fixed top-0 left-0 right-0 h-16 md:h-20 border-b border-[#1E293B] bg-[#0F172A]/95 backdrop-blur-md px-4 md:px-8 flex items-center justify-between z-50 shadow-md">
+            <header className="fixed top-0 left-0 right-0 h-16 md:h-20 border-b bg-opacity-95 backdrop-blur-md px-4 md:px-8 flex items-center justify-between z-50 shadow-md" style={{ backgroundColor: 'var(--brand-secondary, #0F172A)', borderColor: 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                     <button onClick={() => router.back()} className="hover:bg-white/10 p-2 rounded-full transition-colors shrink-0">
                         <ArrowLeft size={20} className="md:w-6 md:h-6" />
                     </button>
                     <div className="min-w-0">
                         <h1 className="font-russo text-lg md:text-2xl text-white tracking-wide truncate">STUDIO</h1>
-                        <p className="text-[10px] md:text-xs text-[#00E676] uppercase tracking-wider font-bold truncate hidden sm:block">Editor Corporativo</p>
+                        <p className="text-[10px] md:text-xs uppercase tracking-wider font-bold truncate hidden sm:block" style={{ color: 'var(--brand-primary, #00E676)' }}>Editor Corporativo</p>
                     </div>
                 </div>
 
@@ -291,7 +300,12 @@ export default function StudioPage() {
                     {/* BOTÓN VISTA PREVIA */}
                     <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
                         <DialogTrigger asChild>
-                            <button className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-3 rounded-xl bg-[#1E293B] border border-[#334155] hover:border-[#00E676] hover:text-[#00E676] transition-all font-bold uppercase text-[10px] md:text-xs tracking-widest">
+                            <button className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-3 rounded-xl border transition-all font-bold uppercase text-[10px] md:text-xs tracking-widest hover:brightness-110 active:scale-95" 
+                                style={{ 
+                                    backgroundColor: 'var(--brand-secondary, #1E293B)', 
+                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    color: 'white'
+                                }}>
                                 <Eye size={16} /> <span className="hidden md:inline">Vista Previa</span>
                             </button>
                         </DialogTrigger>
@@ -307,7 +321,8 @@ export default function StudioPage() {
                     <button
                         onClick={handleSaveChanges}
                         disabled={saving}
-                        className="px-3 md:px-6 py-2 md:py-3 rounded-xl bg-[#1E293B] text-white font-bold uppercase text-[10px] md:text-xs tracking-widest hover:bg-[#334155] transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="px-3 md:px-6 py-2 md:py-3 rounded-xl text-white font-bold uppercase text-[10px] md:text-xs tracking-widest hover:opacity-80 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                        style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', border: '1px solid rgba(255,255,255,0.1)' }}
                     >
                         {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} <span className="hidden md:inline">Guardar</span>
                     </button>
@@ -315,7 +330,8 @@ export default function StudioPage() {
                     <button
                         onClick={handlePublish}
                         disabled={saving}
-                        className="px-4 md:px-8 py-2 md:py-3 rounded-xl bg-gradient-to-r from-[#00E676] to-emerald-600 text-[#0F172A] font-black uppercase text-[10px] md:text-xs tracking-widest hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(0,230,118,0.3)] disabled:opacity-50"
+                        className="px-4 md:px-8 py-2 md:py-3 rounded-xl text-white font-black uppercase text-[10px] md:text-xs tracking-widest hover:scale-105 transition-transform flex items-center gap-2 shadow-lg disabled:opacity-50"
+                        style={{ background: `linear-gradient(to right, ${config.brandColorPrimary}, #059669)`, color: 'var(--brand-bg, #0F172A)' }}
                     >
                         {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} <span className="hidden lg:inline">Publicar</span>
                     </button>
@@ -323,47 +339,41 @@ export default function StudioPage() {
             </header>
 
             {/* CONTENIDO PRINCIPAL CENTRADO */}
-            <main className="flex-1 overflow-y-auto bg-gradient-to-b from-[#0B1120] to-[#0F172A] p-4 md:p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8" style={{ background: 'linear-gradient(to bottom, var(--brand-bg, #0B1120), var(--brand-secondary, #0F172A))' }}>
                 <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 pb-20">
 
                     {/* TABS DE NAVEGACIÓN */}
-                    <div className="flex gap-2 md:gap-4 p-2 bg-[#0F172A] rounded-2xl border border-[#1E293B] shadow-xl sticky top-2 z-40 backdrop-blur-md bg-opacity-90 overflow-x-auto">
+                    <div className="flex gap-2 md:gap-4 p-2 rounded-2xl border shadow-xl sticky top-2 z-40 backdrop-blur-md bg-opacity-90 overflow-x-auto" style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <TabButton icon={Palette} label="Identidad" isActive={activeTab === 'branding'} onClick={() => setActiveTab('branding')} />
                         <TabButton icon={ImageIcon} label="Visuales" isActive={activeTab === 'assets'} onClick={() => setActiveTab('assets')} />
-                        <TabButton icon={Megaphone} label="Publicidad" isActive={activeTab === 'ads'} onClick={() => setActiveTab('ads')} />
                         <TabButton icon={Share2} label="Redes Sociales" isActive={activeTab === 'social'} onClick={() => setActiveTab('social')} />
                         <TabButton icon={Type} label="Contenido" isActive={activeTab === 'content'} onClick={() => setActiveTab('content')} />
                     </div>
 
                     {/* CONTENIDO DE LOS TABS */}
-                    <div className="bg-[#151F32] border border-[#1E293B] rounded-3xl p-4 md:p-8 shadow-2xl min-h-[500px] animate-in slide-in-from-bottom-4 fade-in duration-500">
+                    <div className="border rounded-3xl p-4 md:p-8 shadow-2xl min-h-[500px] animate-in slide-in-from-bottom-4 fade-in duration-500" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
 
                         {activeTab === 'branding' && (
                             <BrandingTab
                                 config={config}
                                 setConfig={setConfig}
-                                fontOptions={fontOptions}
+                                fontOptions={[]}
                             />
                         )}
 
                         {activeTab === 'assets' && (
                             <AssetsTab
                                 config={config}
-                                handleImageUpload={handleImageUpload}
+                                handleImageUpload={(key, e) => {
+                                    let folder = 'la-polla-virtual';
+                                    if (key === 'brandingLogoUrl') folder = 'polla-virtual/logos';
+                                    if (key === 'brandCoverUrl') folder = 'polla-virtual/heroes';
+                                    return handleImageUpload(key, e, folder);
+                                }}
                                 uploadingState={uploadingState}
                             />
                         )}
 
-                        {activeTab === 'ads' && (
-                            <AdsTab
-                                config={config}
-                                setConfig={setConfig}
-                                onUploadAdImage={handleAdImageUpload}
-                                onRemoveAdImage={handleRemoveAdImage}
-                                uploadingAd={uploadingState['ad_loading']}
-                                planLevel={currentPlanLevel}
-                            />
-                        )}
 
                         {activeTab === 'social' && (
                             <SocialTab

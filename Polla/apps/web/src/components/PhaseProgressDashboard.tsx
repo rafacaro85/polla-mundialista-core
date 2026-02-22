@@ -78,10 +78,14 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full p-2 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+                style={{ 
+                    backgroundColor: 'var(--brand-secondary, #1E293B)',
+                    borderColor: 'var(--brand-accent, #334155)'
+                }}
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-signal/10 rounded-lg flex items-center justify-center">
-                        <Trophy className="w-4 h-4 text-signal" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 90%)' }}>
+                        <Trophy className="w-4 h-4" style={{ color: 'var(--brand-primary, #00E676)' }} />
                     </div>
                     <div className="text-left">
                         <h3 className="text-base font-bold text-white">Progreso del Torneo</h3>

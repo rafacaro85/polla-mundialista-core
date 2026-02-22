@@ -253,18 +253,33 @@ export const EnterpriseFixture = () => {
     const mainContent = (
         <div className="min-h-screen bg-transparent pb-24 md:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <Tabs defaultValue="matches" className="w-full">
-                    <div className="w-full max-w-lg mx-auto px-4 pt-4 mb-6">
-                         <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
+                    <div className="w-full pt-4 mb-6">
+                         <TabsList 
+                            className="grid w-full grid-cols-2 mb-4 p-1 h-auto rounded-xl border gap-1"
+                            style={{ 
+                                backgroundColor: 'var(--brand-secondary, #1E293B)',
+                                borderColor: 'var(--brand-accent, #334155)'
+                            }}
+                        >
                             <TabsTrigger 
                                 value="matches"
-                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                                className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
+                                style={{ 
+                                    backgroundColor: 'transparent',
+                                }}
                             >
+                                <style>{`
+                                    [data-state=active].tab-trigger-brand { 
+                                        background-color: var(--brand-primary, #00E676) !important; 
+                                        box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--brand-primary), transparent 60%) !important;
+                                    }
+                                `}</style>
                                 <Calendar size={16} />
                                 Partidos
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="bracket"
-                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                                className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
                             >
                                 <Activity size={16} />
                                 Llaves
@@ -302,7 +317,7 @@ export const EnterpriseFixture = () => {
                                             DESCARTAR
                                         </Button>
                                     ) : (
-                                        <Button
+                                         <Button
                                             onClick={async () => {
                                                 if (confirm('¿Estás seguro de que deseas borrar TODAS tus predicciones en esta liga? Esta acción no se puede deshacer.')) {
                                                     await clearAllPredictions(leagueMetadata?.tournamentId);
@@ -311,7 +326,11 @@ export const EnterpriseFixture = () => {
                                                     }
                                                 }
                                             }}
-                                            className="flex-1 gap-2 bg-slate-800 hover:bg-red-900/20 text-slate-400 hover:text-red-400 border border-slate-700 font-bold transition-all"
+                                            className="flex-1 gap-2 hover:bg-red-900/20 text-slate-400 hover:text-red-400 border font-bold transition-all"
+                                            style={{ 
+                                                backgroundColor: 'var(--brand-secondary, #1E293B)',
+                                                borderColor: 'var(--brand-accent, #334155)'
+                                            }}
                                         >
                                             <Eraser className="w-4 h-4" />
                                             LIMPIAR
@@ -322,7 +341,7 @@ export const EnterpriseFixture = () => {
                         </TabsContent>
                     </div>
 
-                    <TabsContent value="matches" className="w-full max-w-lg mx-auto px-4 mt-0">
+                    <TabsContent value="matches" className="w-full mt-0">
                         <div className="flex items-center justify-between gap-2 mb-2">
                             <div className="flex-1 overflow-x-auto">
                                 <DateFilter
@@ -342,7 +361,7 @@ export const EnterpriseFixture = () => {
                             </Button>
                         </div>
 
-                        <div className="flex flex-col gap-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
                             {matchesByDate.length > 0 ? (
                                 matchesByDate.map((match: any) => (
                                     <MatchCard
@@ -364,7 +383,7 @@ export const EnterpriseFixture = () => {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="bracket" className="max-w-md mx-auto px-4 mt-0">
+                    <TabsContent value="bracket" className="w-full mt-0 overflow-x-auto">
                          <BracketView
                             matches={matches.map((m: any) => ({
                                 ...m,
@@ -385,7 +404,7 @@ export const EnterpriseFixture = () => {
     // Only wrap with DynamicPredictionsWrapper for Champions League
     if (isChampionsLeague) {
         return (
-            <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
+            <DynamicPredictionsWrapper tournamentId={leagueMetadata?.tournamentId}>
                 {mainContent}
             </DynamicPredictionsWrapper>
         );

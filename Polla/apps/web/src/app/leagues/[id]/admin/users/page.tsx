@@ -219,7 +219,7 @@ export default function AdminUsersPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
+                    <div className="border rounded-xl p-4 md:p-6" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-slate-400 text-xs md:text-sm mb-1">Total</p>
@@ -231,7 +231,7 @@ export default function AdminUsersPage() {
                         </div>
                     </div>
 
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
+                    <div className="border rounded-xl p-4 md:p-6" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-slate-400 text-xs md:text-sm mb-1">Activos</p>
@@ -243,7 +243,7 @@ export default function AdminUsersPage() {
                         </div>
                     </div>
 
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6">
+                    <div className="border rounded-xl p-4 md:p-6" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-slate-400 text-xs md:text-sm mb-1">Bloqueados</p>
@@ -255,7 +255,7 @@ export default function AdminUsersPage() {
                         </div>
                     </div>
 
-                    <div className="bg-brand-secondary border border-slate-700 rounded-xl p-4 md:p-6 relative overflow-hidden">
+                    <div className="border rounded-xl p-4 md:p-6 relative overflow-hidden" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
                          {stats.pending > 0 && <div className="absolute top-0 right-0 w-3 h-3 bg-orange-500 rounded-full animate-ping"></div>}
                         <div className="flex items-center justify-between">
                             <div>
@@ -391,7 +391,8 @@ export default function AdminUsersPage() {
                                     <>
                                         <button
                                             onClick={() => handleApproveRequest(participant)}
-                                            className="flex-1 h-10 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                                            className="flex-1 h-10 rounded-lg text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg"
+                                            style={{ backgroundColor: 'var(--brand-primary, #10B981)', color: 'var(--brand-bg, #0F1729)' }}
                                         >
                                             <Check size={18} /> Aprobar
                                         </button>
@@ -461,8 +462,8 @@ export default function AdminUsersPage() {
             {/* Edit Participant Modal */}
             {editingParticipant && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between p-6 border-b border-[#334155]">
+                    <div className="border rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                             <h2 className="text-xl font-bold text-white">Editar Participante</h2>
                             <button
                                 onClick={() => setEditingParticipant(null)}
@@ -479,7 +480,8 @@ export default function AdminUsersPage() {
                                     type="text"
                                     value={editForm.fullName}
                                     onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    className="w-full border rounded-lg p-3 text-white outline-none"
+                                    style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.1)' }}
                                     required
                                 />
                             </div>
@@ -490,7 +492,8 @@ export default function AdminUsersPage() {
                                     type="email"
                                     value={editForm.email}
                                     onChange={e => setEditForm({ ...editForm, email: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    className="w-full border rounded-lg p-3 text-white outline-none"
+                                    style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.1)' }}
                                     required
                                 />
                             </div>
@@ -501,7 +504,8 @@ export default function AdminUsersPage() {
                                     type="text"
                                     value={editForm.department}
                                     onChange={e => setEditForm({ ...editForm, department: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    className="w-full border rounded-lg p-3 text-white outline-none"
+                                    style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.1)' }}
                                     placeholder="Ej. Ventas"
                                 />
                             </div>
@@ -512,7 +516,8 @@ export default function AdminUsersPage() {
                                     type="text"
                                     value={editForm.phoneNumber}
                                     onChange={e => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg p-3 text-white focus:border-[#00E676] outline-none"
+                                    className="w-full border rounded-lg p-3 text-white outline-none"
+                                    style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.1)' }}
                                     placeholder="+57..."
                                 />
                             </div>
@@ -528,7 +533,8 @@ export default function AdminUsersPage() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex-1 py-3 bg-[#00E676] text-[#0F172A] font-bold rounded-xl hover:bg-[#00C853] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="flex-1 py-3 font-bold rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                                    style={{ backgroundColor: 'var(--brand-primary, #00E676)', color: 'var(--brand-bg, #0F1729)' }}
                                 >
                                     {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                                 </button>

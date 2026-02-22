@@ -1,397 +1,543 @@
-import React from 'react';
-import { Shield, Trophy, Users, PlayCircle, Trophy as RankingIcon, ArrowLeft, ArrowRight, Lock, Megaphone, MessageCircle, Swords, Instagram, Facebook, Linkedin, Zap, CheckCircle2, Crown, Youtube, Globe, Music2 } from 'lucide-react';
+'use client';
+
+import React, { useMemo, useState, useEffect } from 'react';
+import { 
+  Trophy, 
+  Users, 
+  PlayCircle, 
+  ArrowRight, 
+  Shield, 
+  Swords, 
+  Medal, 
+  TrendingUp, 
+  Clock,
+  Crown,
+  ChevronRight,
+  ExternalLink,
+  LogOut,
+  Settings,
+  User as UserIcon,
+  Facebook,
+  Instagram,
+  Youtube,
+  Globe,
+  Linkedin,
+  MessageCircle
+} from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { PrizeHero } from '@/components/PrizeHero';
 import { useRouter } from 'next/navigation';
-import { SocialWallWidget } from '@/components/SocialWallWidget';
-import { OnboardingMissions } from '@/components/dashboard/home/OnboardingMissions';
+import { useAppStore } from '@/store/useAppStore';
+import { UserStatusBlock } from '@/components/UserStatusBlock';
+import { MoneyCard } from '@/components/MoneyCard';
+import { Progress } from '@/components/ui/progress';
 
 interface EnterpriseLeagueHomeProps {
     league: any;
     participants: any[];
     analytics?: any;
+    matches: any[];
 }
 
-import { useAppStore } from '@/store/useAppStore';
-
-// ...
-
-// Helper for Plan Levels
-const getPlanLevel = (type?: string) => {
-    if (!type) return 1;
-    const t = type.toUpperCase();
-    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
-    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
-    if (t.includes('BUSINESS_CORP')) return 4; // Legacy
-    if (t.includes('GOLD') || t.includes('ORO')) return 3;
-    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
-    if (t.includes('BUSINESS_GROWTH')) return 2; // Legacy
-    return 1;
+const getPlanIncludesAreaWar = (packageType?: string) => {
+    if (!packageType) return false;
+    const t = packageType.toUpperCase();
+    if (t === 'ENTERPRISE_BRONZE' || t === 'STARTER' || t === 'BASIC') return false;
+    return true;
 };
 
-const EnterpriseFeatureLock = ({ title, minPlanName, icon: Icon }: any) => {
+const PLACEHOLDER_BANNERS = [
+    { title: 'Publica aquí\ntu anuncio', description: 'Comunica novedades, promociones o mensajes importantes a tus colaboradores.', tag: 'ESPACIO DISPONIBLE', imageUrl: 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1200' },
+    { title: 'Impulsa tu\nMarca', description: 'Utiliza este espacio para reforzar la cultura organizacional de tu empresa.', tag: 'PUBLICIDAD', imageUrl: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1200' },
+    { title: 'Premios\nExclusivos', description: 'Recuerda a los participantes los increíbles beneficios de liderar el ranking.', tag: 'MOTIVACIÓN', imageUrl: 'https://images.unsplash.com/photo-1557683311-eac922347aa1?q=80&w=1200' }
+];
+
+/* =============================================================================
+   BLOQUE C: CARTELERA (SLIDER)
+   ============================================================================= */
+const CarteleraSlider = ({ banners, showAds }: { banners: any[], showAds?: boolean }) => {
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    const displayBanners = useMemo(() => {
+        if (banners && banners.length > 0) return banners;
+        return PLACEHOLDER_BANNERS;
+    }, [banners]);
+
+    useEffect(() => {
+        if (!emblaApi) return;
+        emblaApi.on('select', () => {
+            setSelectedIndex(emblaApi.selectedScrollSnap());
+        });
+    }, [emblaApi]);
+
+    if (showAds === false && (banners && banners.length === 0)) return null;
+
     return (
-        <div className="w-full bg-slate-900/40 border border-slate-800 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 relative overflow-hidden group hover:border-slate-700 transition-colors">
-            <div className="absolute inset-0 bg-[#0F172A]/60 z-10 backdrop-blur-[1px]"></div>
-            <div className="relative z-20 flex flex-col items-center">
-                <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center mb-3 border border-slate-700 shadow-xl group-hover:scale-110 transition-transform">
-                    <Icon size={24} className="text-slate-500" />
-                    <div className="absolute -bottom-1 -right-1 bg-slate-700 rounded-full p-1 border border-slate-900">
-                        <Lock size={12} className="text-[#FACC15]" />
+        <div className="relative w-full h-[350px] md:h-[300px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes instaprogress {
+                    from { width: 0%; }
+                    to { width: 100%; }
+                }
+            `}} />
+
+            {/* Progress Bars (Instagram Style) */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex gap-1.5 p-4">
+                {displayBanners.map((_, idx) => (
+                    <div key={idx} className="h-[3px] flex-1 bg-white/20 rounded-full overflow-hidden">
+                        <div
+                            key={`${idx}-${selectedIndex}`}
+                            className="h-full bg-[var(--brand-bars,#00E676)]"
+                            style={{
+                                width: idx < selectedIndex ? '100%' : '0%',
+                                animation: selectedIndex === idx ? 'instaprogress 5s linear forwards' : 'none'
+                            }}
+                        />
                     </div>
+                ))}
+            </div>
+
+            <div className="overflow-hidden h-full" ref={emblaRef}>
+                <div className="flex h-full">
+                    {displayBanners.map((banner, index) => (
+                        <div key={banner.id || index} className="flex-[0_0_100%] relative h-full">
+                            <img
+                              src={banner.imageUrl}
+                              alt={banner.title}
+                              className="w-full h-full object-cover object-center"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-bg,#0F172A)] via-[var(--brand-bg,#0F172A)]/20 to-transparent" />
+
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-start gap-2">
+                                {banner.tag && (
+                                    <span className="bg-[var(--brand-primary,#00E676)] text-[var(--brand-bg,#0F172A)] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                                        {banner.tag}
+                                    </span>
+                                )}
+                                <h3 className="text-2xl md:text-4xl font-black uppercase leading-[0.85] italic drop-shadow-2xl">
+                                    {banner.title?.split('\n')[0]} <br />
+                                    <span className="text-[var(--brand-primary,#00E676)]">{banner.title?.split('\n')[1] || ''}</span>
+                                </h3>
+                                <p className="text-slate-200 text-xs md:text-base max-w-lg line-clamp-2 mt-2 font-medium drop-shadow-lg">
+                                    {banner.description}
+                                </p>
+                                {banner.buttonText && (
+                                    <button
+                                        onClick={() => banner.buttonUrl && window.open(banner.buttonUrl, '_blank')}
+                                        className="mt-4 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10"
+                                    >
+                                        {banner.buttonText} <ChevronRight size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <h3 className="text-slate-200 font-bold uppercase tracking-wider text-sm">{title}</h3>
-                <p className="text-slate-400 text-xs max-w-[250px] mt-2 leading-relaxed">
-                    Funcionalidad exclusiva del plan <span className="text-[#00E676] font-bold">{minPlanName}</span>.
-                    <br />Actualiza tu plan para desbloquear.
-                </p>
-                <button
-                    onClick={() => window.open(`https://wa.me/573100000000?text=Hola,%20quiero%20mejorar%20el%20plan%20de%20mi%20empresa`, '_blank')}
-                    className="mt-5 px-6 py-2 bg-slate-800 hover:bg-[#00E676] text-white hover:text-[#0F172A] border border-slate-600 hover:border-[#00E676] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg cursor-pointer"
-                >
-                    Mejorar Plan
-                </button>
             </div>
         </div>
     );
 };
 
-const AdBanner = ({ league }: { league: any }) => {
-    // 1. Logic: If disabled or no images, HIDE completely (User Request: "vamos a quitarlo")
-    if (!league.showAds || !league.adImages || league.adImages.length === 0) {
-        return null;
-    }
+const PLACEHOLDER_PRIZES = [
+    { badge: '1ER PUESTO', name: 'Gran Botín', type: 'cash', amount: 1000000 },
+    { badge: '2DO PUESTO', name: 'Celular de Alta Gama', type: 'image', imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600' },
+    { badge: '3ER PUESTO', name: 'Kit de Bienvenida', type: 'image', imageUrl: 'https://images.unsplash.com/photo-1549443591-325b9d5a7304?q=80&w=600' }
+];
 
-    // 2. Carousel Setup
-    const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
+/* =============================================================================
+   BLOQUE D: PREMIOS (CARRUSEL)
+   ============================================================================= */
+const PrizesCarousel = ({ prizes }: { prizes: any[] }) => {
+    const displayPrizes = useMemo(() => {
+        if (prizes && prizes.length > 0) return prizes;
+        return PLACEHOLDER_PRIZES;
+    }, [prizes]);
 
     return (
-        <div className="w-full md:rounded-xl md:mt-4 max-w-4xl mx-auto h-[120px] md:h-[160px] relative shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 bg-[#0F172A] mb-6 md:mb-0 overflow-hidden group">
-            
-            {/* Carousel Viewport */}
-            <div className="overflow-hidden h-full" ref={emblaRef}>
-                <div className="flex h-full touch-pan-y">
-                    {league.adImages.map((src: string, index: number) => (
-                        <div className="flex-[0_0_100%] min-w-0 relative h-full" key={index}>
-                            <img 
-                                src={src} 
-                                alt={`Publicidad ${index + 1}`} 
-                                className="w-full h-full object-cover"
-                            />
-                            {/* Gradient Overlay for premium feel */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent opacity-60"></div>
+        <div className="w-full max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 mb-6 px-1">
+                <Medal size={20} className="text-[var(--brand-primary,#00E676)]" />
+                <h3 className="text-base font-black uppercase tracking-[0.2em] italic text-[var(--brand-heading,#FFFFFF)]">
+                    Premios en disputa
+                </h3>
+            </div>
+
+            {/* Contenedor Padre (Regla 1) */}
+            <div className="w-full max-w-full overflow-hidden">
+                {/* Scroll Interno (Regla 2) */}
+                <div
+                    className="flex overflow-x-auto gap-6 md:gap-10 px-6 md:px-2 py-6 mb-4 snap-x snap-mandatory no-scrollbar"
+                    style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        scrollPaddingLeft: '1.5rem'
+                    }}
+                >
+                    {displayPrizes.map((prize, idx) => (
+                        <div
+                            key={prize.id || idx}
+                            className="flex-shrink-0 w-[320px] md:w-[380px] snap-center md:snap-start"
+                        >
+                            <div className="bg-[var(--brand-secondary,#1E293B)] border-2 border-white/5 rounded-[2rem] overflow-hidden relative shadow-2xl group hover:border-[var(--brand-primary)]/40 hover:translate-y-[-4px] transition-all duration-500">
+                                {/* Badge de Posición */}
+                                <div className="absolute top-4 left-4 z-10 bg-[var(--brand-primary,#00E676)] text-[var(--brand-bg,#0F172A)] text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg uppercase tracking-tight">
+                                    {prize.badge || `${idx + 1}º PUESTO`}
+                                </div>
+
+                                {prize.type === 'image' ? (
+                                    <div className="h-60 relative">
+                                        <img src={prize.imageUrl} alt={prize.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
+                                        <div className="absolute bottom-6 left-6">
+                                            <p className="text-white font-black uppercase italic text-2xl tracking-tighter leading-none">{prize.name}</p>
+                                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Gana por ranking</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="h-60 flex items-center justify-center bg-[#0F172A] p-2">
+                                        <MoneyCard
+                                            amount={Number(prize.amount)}
+                                            variant="full"
+                                            label=""
+                                            topLabel={prize.topLabel}
+                                            bottomLabel={prize.bottomLabel}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* "Publicidad" Badge */}
-            <div className="absolute top-2 right-2 z-10 bg-black/40 backdrop-blur-sm border border-white/10 px-2 py-0.5 rounded text-[9px] text-white/50 font-bold uppercase tracking-widest pointer-events-none">
-                Publicidad
-            </div>
+            {/* Ocultamos scrollbar con estilo local */}
+            <style dangerouslySetInnerHTML={{ __html: `
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+            `}} />
         </div>
     );
 };
 
-export function EnterpriseLeagueHome({ league, participants, analytics }: EnterpriseLeagueHomeProps) {
+/* =============================================================================
+   BLOQUE F: GUERRA DE ÁREAS
+   ============================================================================= */
+const GuerraDeAreas = ({ analytics, leagueId }: { analytics: any, leagueId: string }) => {
     const router = useRouter();
-    const { user } = useAppStore();
-    const nickname = (user?.nickname || user?.fullName?.split(' ')[0] || 'JUGADOR').toUpperCase();
-    const planLevel = getPlanLevel(league.packageType);
+    const ranking = analytics?.departmentRanking || [];
 
     return (
-        <div className="flex flex-col gap-2 font-sans pb-48 min-h-screen bg-[#0F172A] px-4 md:px-0">
-
-            {/* 1. WELCOME HEADER (Premium Custom) */}
-            <div className="flex flex-col gap-1 pt-2 text-center animate-in slide-in-from-top-4 duration-700">
-                <p className="text-[#00E676] text-xs font-black uppercase tracking-[0.3em] mb-2">
-                    ¡HOLA, {nickname}!
-                </p>
-                <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-none italic drop-shadow-2xl flex flex-col items-center">
-                    BIENVENIDO A LA POLLA <br />
-                    <span className="text-[#00E676] text-2xl md:text-3xl block mt-1">{league.companyName || league.name}</span>
-                    
-                    {/* FIFA WORLD CUP TEXT */}
-                    <span className="text-slate-500 text-xs italic tracking-[0.2em] font-russo uppercase mt-3 block opacity-80">FIFA WORLD CUP 2026</span>
-                </h1>
+        <div className="bg-[var(--brand-secondary,#1E293B)] border border-white/10 rounded-3xl p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <Swords size={20} className="text-red-500" />
+                    <h3 className="text-sm font-black uppercase tracking-widest text-[var(--brand-heading,#FFFFFF)] italic">Guerra de Áreas</h3>
+                </div>
+                <Users size={16} className="text-slate-500" />
             </div>
 
-            {/* 2. HERO HEADER (Identity Card) - MOVED HERE */}
-            <div className="max-w-md mx-auto w-full mt-6 px-4 md:px-0">
-                <header className="relative w-full min-h-[14rem] bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 flex flex-col items-center justify-center p-6 gap-4 overflow-hidden rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center animate-in zoom-in-95 duration-500">
-                    {/* Background Decor */}
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                    <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#00E676] opacity-[0.07] blur-[80px] rounded-full pointer-events-none"></div>
+            <div className="space-y-6">
+                {ranking.slice(0, 3).map((dept: any, idx: number) => {
+                    const maxPoints = ranking[0]?.avgPoints || 100;
+                    const progress = (dept.avgPoints / maxPoints) * 100;
 
-                    {/* Icono de la Empresa */}
-                    <div className="relative z-10 flex flex-col items-center gap-4">
-                        <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-500 overflow-hidden p-4">
-                            {league.brandingLogoUrl ? (
-                                <img
-                                    src={league.brandingLogoUrl}
-                                    alt={league.companyName}
-                                    className="w-full h-full object-contain"
+                    return (
+                        <div key={dept.department} className="space-y-2">
+                            <div className="flex justify-between items-end">
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xl font-black italic ${idx === 0 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                                        {idx + 1}º
+                                    </span>
+                                    <div>
+                                        <p className="text-xs font-bold text-white uppercase truncate max-w-[120px]">{dept.department}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{dept.members} Participantes</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm font-black text-[var(--brand-primary,#00E676)]">{Math.round(dept.avgPoints)}</p>
+                                    <p className="text-[8px] text-slate-500 font-bold">PTS AVG</p>
+                                </div>
+                            </div>
+                            <div className="h-2 bg-black/20 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[var(--brand-bars,#00E676)] rounded-full transition-all duration-1000"
+                                    style={{
+                                        width: `${progress}%`,
+                                        opacity: idx === 0 ? 1 : 0.4
+                                    }}
                                 />
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {ranking.length === 0 && (
+                    <div className="text-center py-8 opacity-40 italic text-xs text-slate-500">
+                        La competencia aún no ha comenzado
+                    </div>
+                )}
+            </div>
+
+            <button
+                onClick={() => router.push(`/leagues/${leagueId}/ranking?tab=departments`)}
+                className="w-full mt-6 py-3 border border-white/5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all flex items-center justify-center gap-2"
+            >
+                Ver Ranking Áreas <ArrowRight size={12} />
+            </button>
+        </div>
+    );
+};
+
+/* =============================================================================
+   COMPONENTE PRINCIPAL
+   ============================================================================= */
+export function EnterpriseLeagueHome({ league, participants, analytics, matches }: EnterpriseLeagueHomeProps) {
+    const router = useRouter();
+    const { user, logout } = useAppStore();
+    const [showMenu, setShowMenu] = useState(false);
+
+    // Check if user has admin/management rights (simpler check for the landing)
+    const canManageLeague = league.isAdmin || user?.role === 'SUPER_ADMIN' || league.creatorId === user?.id;
+
+    // Find my participant data
+    const myParticipant = participants.find(p => p.userId === user?.id || p.id === user?.id);
+    const myDepartment = myParticipant?.department || 'General';
+    const nickname = (user?.nickname || user?.fullName?.split(' ')[0] || 'CRACK').toUpperCase();
+
+    const banners = league.banners || [];
+    const prizes = league.prizes || [];
+    const showAreaWar = getPlanIncludesAreaWar(league.packageType);
+
+    return (
+        <div className="min-h-screen pb-32 animate-in fade-in duration-1000" style={{ backgroundColor: 'var(--brand-bg,#0F172A)', fontFamily: 'var(--brand-font, sans-serif)' }}>
+
+            {/* BLOQUE A: CABECERA CORPORATIVA FINAL */}
+            <header className="border-b border-white/5 bg-[var(--brand-bg,#0F172A)] sticky top-0 z-50">
+                {/* Fila 1: Branding y Perfil Estilo Círculo */}
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 bg-white rounded-2xl shadow-2xl flex items-center justify-center border-2 border-white/10 overflow-hidden shrink-0">
+                            {league.brandingLogoUrl ? (
+                                <img src={league.brandingLogoUrl} alt={league.companyName} className="w-full h-full object-cover" />
                             ) : (
-                                <Shield className="w-12 h-12 text-[#00E676]" strokeWidth={1.5} />
+                                <div className="p-2 w-full h-full flex items-center justify-center">
+                                    <Shield className="w-full h-full text-[var(--brand-primary)]" />
+                                </div>
                             )}
                         </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <h2 className="text-2xl font-black text-white uppercase tracking-wider font-russo">{league.companyName || league.name}</h2>
-                            <span className="px-3 py-1 bg-[#00E676] text-[#0F172A] text-[10px] font-black rounded-full uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(0,230,118,0.4)]">
-                                Polla Activa
-                            </span>
+                        <div className="flex flex-col">
+                            <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter text-[var(--brand-heading,#FFFFFF)] leading-none italic">
+                                {league.companyName || league.name}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className="w-2.5 h-2.5 bg-[var(--brand-primary,#00E676)] rounded-full animate-pulse shadow-[0_0_10px_var(--brand-primary)]" />
+                                <p className="text-[11px] text-[var(--brand-primary,#00E676)] font-black uppercase tracking-[0.2em]">
+                                    Canal Corporativo
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                            {/* SOCIAL MEDIA SECTION */}
-                            {planLevel >= 2 ? (
-                                <div className="flex flex-wrap justify-center gap-3 mt-4 animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
+                            <p className="text-sm font-black text-white italic">{nickname}</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{myDepartment}</p>
+                        </div>
+
+                        {/* Perfil con estilo circular y Menú Desplegable */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowMenu(!showMenu)}
+                                className="relative group block"
+                            >
+                                <div className="absolute -inset-1 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                                <Avatar className="h-14 w-14 border-2 border-[var(--brand-primary)] shadow-2xl relative bg-[#0F172A] transition-transform active:scale-90">
+                                    <AvatarImage src={user?.avatarUrl} />
+                                    <AvatarFallback className="bg-[#0F172A] text-[var(--brand-primary)] text-sm font-black border border-[var(--brand-primary)]/20">
+                                        {nickname.substring(0,2)}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </button>
+
+                            {/* Dropdown Menu Corporativo */}
+                            {showMenu && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                                    <div
+                                        className="absolute right-0 mt-4 w-60 rounded-2xl shadow-2xl border z-50 overflow-hidden animate-in fade-in zoom-in duration-200"
+                                        style={{
+                                            backgroundColor: 'var(--brand-secondary, #1E293B)',
+                                            borderColor: 'rgba(255,255,255,0.05)'
+                                        }}
+                                    >
+                                        <div className="px-5 py-4 border-b border-white/5 bg-black/20">
+                                            <p className="text-xs font-black text-white italic truncate">{user?.nickname || user?.fullName}</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate mt-0.5">{user?.email}</p>
+                                        </div>
+
+                                        <div className="p-2">
+                                            <button
+                                                onClick={() => { setShowMenu(false); router.push('/profile'); }}
+                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
+                                            >
+                                                <UserIcon size={14} /> Mi Perfil
+                                            </button>
+
+                                            {canManageLeague && (
+                                                <button
+                                                    onClick={() => { setShowMenu(false); router.push(`/leagues/${league.id}/admin`); }}
+                                                    className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
+                                                >
+                                                    <Settings size={14} /> Panel de Control
+                                                </button>
+                                            )}
+
+                                            <div className="my-2 border-t border-white/5" />
+
+                                            <button
+                                                onClick={() => { logout(); router.push('/'); }}
+                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-red-500/80 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
+                                            >
+                                                <LogOut size={14} /> Cerrar Sesión
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fila 2: Navegación */}
+                <div className="bg-black/20 border-t border-white/5">
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 py-2">
+                        <button
+                            onClick={() => router.push('/empresa/mis-pollas')}
+                            className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"
+                        >
+                            <span className="group-hover:translate-x-[-2px] transition-transform">←</span> VOLVER
+                        </button>
+                  </div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-6 md:px-12 py-8 space-y-8">
+
+                {/* FILA 1: HERO (2/3) + TU ESTADO (1/3) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* BLOQUE B: HERO */}
+                    <div className="lg:col-span-2 relative h-[500px] rounded-3xl overflow-hidden shadow-2xl group border border-white/5">
+                        <img 
+                            src={league.brandCoverUrl || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000'} 
+                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                            alt="Hero" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-bg,#0F172A)] via-[var(--brand-bg,#0F172A)]/60 to-transparent" />
+                        
+                        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col items-start gap-4">
+                            <h2 className="text-4xl md:text-6xl font-black italic uppercase text-white leading-[0.9] tracking-tighter">
+                                ¡BIENVENIDO A LA <br /> 
+                                <span className="text-[var(--brand-primary,#00E676)]">POLLA {league.companyName || league.name}!</span>
+                            </h2>
+                            <p className="text-slate-300 text-sm md:text-lg max-w-lg leading-relaxed">
+                                {league.welcomeMessage || 'Únete a la emoción del fútbol corporativo. ¡Pronostica, compite y gana premios exclusivos con tus compañeros de equipo!'}
+                            </p>
+                            <div className="mt-4 flex flex-wrap items-center gap-4">
+                                <button
+                                    onClick={() => router.push(`/leagues/${league.id}/predictions`)}
+                                    className="bg-[var(--brand-primary,#00E676)] text-[var(--brand-bg,#0F172A)] px-10 py-5 rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-[0_10px_40px_rgba(0,230,118,0.3)] hover:scale-105 hover:translate-y-[-2px] active:scale-95 transition-all flex items-center gap-3"
+                                >
+                                    <PlayCircle size={20} fill="currentColor" /> INGRESAR A JUGAR
+                                </button>
+
+                                {/* Redes Sociales Corporativas */}
+                                <div className="flex items-center gap-2">
                                     {league.socialInstagram && (
-                                        <a href={league.socialInstagram} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-pink-600/20 hover:text-pink-500 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Instagram size={20} className="text-slate-300 group-hover:text-pink-500 transition-colors" />
+                                        <a href={league.socialInstagram} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="Instagram">
+                                            <Instagram size={18} />
                                         </a>
                                     )}
                                     {league.socialFacebook && (
-                                        <a href={league.socialFacebook} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-blue-600/20 hover:text-blue-500 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Facebook size={20} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-                                        </a>
-                                    )}
-                                    {league.socialLinkedin && (
-                                        <a href={league.socialLinkedin} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-blue-700/20 hover:text-blue-600 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Linkedin size={20} className="text-slate-300 group-hover:text-blue-600 transition-colors" />
+                                        <a href={league.socialFacebook} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="Facebook">
+                                            <Facebook size={18} />
                                         </a>
                                     )}
                                     {league.socialWhatsapp && (
-                                        <a href={league.socialWhatsapp} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-green-600/20 hover:text-green-500 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <MessageCircle size={20} className="text-slate-300 group-hover:text-green-500 transition-colors" />
+                                        <a href={`https://wa.me/${league.socialWhatsapp.replace(/\D/g, '')}`} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="WhatsApp">
+                                            <MessageCircle size={18} />
+                                        </a>
+                                    )}
+                                    {league.socialLinkedin && (
+                                        <a href={league.socialLinkedin} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="LinkedIn">
+                                            <Linkedin size={18} />
                                         </a>
                                     )}
                                     {league.socialYoutube && (
-                                        <a href={league.socialYoutube} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-red-600/20 hover:text-red-500 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Youtube size={20} className="text-slate-300 group-hover:text-red-500 transition-colors" />
+                                        <a href={league.socialYoutube} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="YouTube">
+                                            <Youtube size={18} />
                                         </a>
                                     )}
                                     {league.socialTiktok && (
-                                        <a href={league.socialTiktok} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-black/40 hover:text-white hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Music2 size={20} className="text-slate-300 group-hover:text-white transition-colors" />
+                                        <a href={league.socialTiktok} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="TikTok">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+                                            </svg>
                                         </a>
                                     )}
                                     {league.socialWebsite && (
-                                        <a href={league.socialWebsite} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 hover:bg-purple-600/20 hover:text-purple-500 hover:scale-110 transition-all border border-white/5 shadow-lg group">
-                                            <Globe size={20} className="text-slate-300 group-hover:text-purple-500 transition-colors" />
+                                        <a href={league.socialWebsite} target="_blank" className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all border border-white/10 shadow-xl" title="Sitio Web">
+                                            <Globe size={18} />
                                         </a>
                                     )}
                                 </div>
-                            ) : (
-                                <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-slate-900/60 rounded-xl border border-slate-700/50 backdrop-blur-sm">
-                                    <Lock size={12} className="text-slate-500" />
-                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Redes Soc. Bloqueadas</span>
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
-                </header>
-            </div>
 
-            {/* ONBOARDING MISSIONS */}
-            <div className="max-w-md mx-auto w-full mt-6 px-4 md:px-0">
-                 <OnboardingMissions 
-                    hasLeagues={true} 
-                    currentLeague={{
-                        ...league,
-                        isAdmin: true // DEBUG: FORCING TRUE TO VERIFY BUTTON
-                    }}
-                    onNavigate={(tab) => {
-                        if (tab === 'predictions') router.push(`/leagues/${league.id}/predictions`);
-                        else if (tab === 'ranking') router.push(`/leagues/${league.id}/ranking`);
-                        else if (tab === 'bonus') router.push(`/leagues/${league.id}/bonus`);
-                        else if (tab === 'leagues') router.push(`/leagues/${league.id}`); 
-                    }} 
-                />
-            </div>
-
-            <div className="max-w-md mx-auto w-full flex flex-col gap-8 mt-4">
-                {/* 2. HERO HEADER (Identity Card) - Moved to top */}
-
-                {/* 3. SHORTCUT CARDS - REMOVED AS PER USER REQUEST */}
-
-                {/* 4. ADS BANNER (Now Below Cards) */}
-                <AdBanner league={league} />
-
-                {/* 5. PREMIO (Full Width) */}
-                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="flex items-center gap-2 mb-4 pl-2">
-                        <Trophy size={18} className="text-[#00E676]" />
-                        <h3 className="text-white text-sm font-black uppercase tracking-[0.2em] italic">Premio Mayor</h3>
+                    {/* BLOQUE E: TU ESTADO (SIDEBAR MODE) */}
+                    <div className="lg:col-span-1">
+                        <UserStatusBlock 
+                            currentLeagueId={league.id}
+                            matches={matches}
+                            variant="side"
+                            onNavigate={(tab) => {
+                                 if (tab === 'predictions') router.push(`/leagues/${league.id}/predictions`);
+                                 else if (tab === 'ranking') router.push(`/leagues/${league.id}/ranking`);
+                            }}
+                        />
                     </div>
-                    {/* PrizeHero handles the image display. If no image, it shows a trophy placeholder. */}
-                    <PrizeHero league={league} />
-                    
-                    {(league.prizeDetails || league.welcomeMessage) && (
-                        <div className="mt-4 bg-[#1E293B] border border-white/5 rounded-xl p-6 text-center shadow-lg">
-                             {league.prizeDetails && <p className="text-white text-sm leading-relaxed mb-4 font-medium">{league.prizeDetails}</p>}
-                             {league.welcomeMessage && <p className="text-white text-base font-bold italic drop-shadow-sm leading-relaxed">"{league.welcomeMessage}"</p>}
-                        </div>
+                </div>
+
+                {/* BLOQUE C: CARTELERA (AJUSTE DE ALTURA) */}
+                <div className="w-full h-[350px] md:h-[300px]">
+                    <CarteleraSlider banners={banners} showAds={league.showAds} />
+                </div>
+
+                {/* FILA 2: PREMIOS (ANCHO COMPLETO) */}
+                <div className="w-full">
+                    <PrizesCarousel prizes={prizes} />
+                </div>
+
+                {/* FILA 3: GUERRA DE ÁREAS (DEBAJO DE PREMIOS) */}
+                <div className="w-full max-w-2xl mx-auto">
+                    {showAreaWar && (
+                        <GuerraDeAreas analytics={analytics} leagueId={league.id} />
+                    )}
+                    {!showAreaWar && (
+                         <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 opacity-40">
+                            <Swords size={32} className="text-slate-500" />
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-slate-400">Guerra de Áreas</p>
+                                <p className="text-[10px] text-slate-500 font-bold max-w-[150px] mt-1">Disponible en planes Silver en adelante</p>
+                            </div>
+                         </div>
                     )}
                 </div>
 
-                {/* 6. PARTICIPANTS OVERVIEW (Reordered) */}
-                <div className="bg-[#1E293B] border border-white/5 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden">
-                    <div className="flex items-center justify-between z-10">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/10 rounded-lg">
-                                <Users size={20} className="text-indigo-400" />
-                            </div>
-                            <div>
-                                <h4 className="text-white font-black text-xs uppercase tracking-wide">Participantes</h4>
-                                <p className="text-slate-400 text-[10px] font-bold">{participants.length} usuarios compitiendo</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex -space-x-3 overflow-hidden relative z-10 pl-2">
-                        {participants.slice(0, 5).map((p, i) => (
-                            <Avatar key={p.id} className="inline-block h-10 w-10 border-2 border-[#1E293B] ring-2 ring-white/5" style={{ zIndex: 10 - i }}>
-                                <AvatarImage src={p.avatarUrl} />
-                                <AvatarFallback className="bg-slate-700 text-[10px] font-bold text-white">{p.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                        ))}
-                        {participants.length > 5 && (
-                            <div className="h-10 w-10 border-2 border-[#1E293B] bg-slate-800 flex items-center justify-center text-[10px] text-[#00E676] font-black rounded-full shadow-lg z-0">
-                                +{participants.length - 5}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* 7. TOP RANKING TABLE */}
-                <div id="ranking-list" className="bg-[#1E293B] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                    <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
-                        <h3 className="font-russo italic text-white uppercase text-xs flex items-center gap-2 tracking-widest">
-                            <RankingIcon size={14} className="text-yellow-500" />
-                            TOP Líderes
-                        </h3>
-                    </div>
-                    <Table>
-                        <TableBody>
-                            {participants.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-8 text-slate-500 text-xs">Aún no hay puntos registrados</TableCell>
-                                </TableRow>
-                            ) : (
-                                participants.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 5).map((participant, index) => (
-                                    <TableRow key={participant.id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                        <TableCell className="w-10 text-center py-4">
-                                            <span className={`font-russo text-lg ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-300' : index === 2 ? 'text-amber-600' : 'text-slate-600'}`}>
-                                                {index + 1}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={participant.avatarUrl} />
-                                                    <AvatarFallback className="text-[10px]">{participant.nickname?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="font-bold text-white text-xs truncate max-w-[120px]">{participant.nickname}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right px-6">
-                                            <div className="flex flex-col items-end">
-                                                <span className="font-russo text-[#00E676] text-sm">{participant.points || 0}</span>
-                                                <span className="text-[8px] text-slate-500 uppercase font-bold">PTS</span>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-
-                {/* 8. GUERRA DE ÁREAS (Moved down as per flow) */}
-                {planLevel >= 4 ? (
-                    <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-6 relative shadow-xl">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-russo text-white uppercase text-xs flex items-center gap-2 tracking-widest">
-                                <Swords size={14} className="text-red-500" /> Guerra de Áreas
-                            </h3>
-                            <span className="text-[9px] bg-red-900/30 text-red-400 px-2 py-0.5 rounded border border-red-800/30 font-bold uppercase">Competencia Activa</span>
-                        </div>
-                        <div className="space-y-4">
-                            {(analytics?.departmentRanking || []).length > 0 ? (
-                                (analytics.departmentRanking.slice(0, 3)).map((dept: any, index: number) => {
-                                    const maxPoints = parseFloat(analytics.departmentRanking[0].avgPoints) || 100;
-                                    const currentPoints = parseFloat(dept.avgPoints);
-                                    const percentage = (currentPoints / maxPoints) * 100;
-                                    
-                                    let color = "bg-blue-500";
-                                    let shadow = "";
-                                    let textColor = "text-blue-500";
-                                    
-                                    if (index === 0) { color = "bg-[#00E676]"; textColor = "text-[#00E676]"; shadow = "shadow-[0_0_10px_rgba(0,230,118,0.5)]"; }
-                                    if (index === 1) { color = "bg-yellow-500"; textColor = "text-yellow-500"; }
-                                    
-                                    return (
-                                        <div key={dept.department}>
-                                            <div className="flex items-center justify-between text-[10px] text-slate-300 mb-1">
-                                                <span className="font-bold flex items-center gap-1">
-                                                    {index + 1}. {dept.department} 
-                                                    {index === 0 && <Crown className="w-3 h-3 text-yellow-500" />}
-                                                </span>
-                                                <span className={`font-black ${textColor}`}>{Math.round(parseFloat(dept.avgPoints))} pts</span>
-                                            </div>
-                                            <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
-                                                <div 
-                                                    className={`h-full ${color} ${shadow} transition-all duration-1000`} 
-                                                    style={{ width: `${percentage}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="text-center py-6">
-                                    <p className="text-slate-500 text-xs italic">Aún no hay datos de competencia por áreas.</p>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <div className="mt-4 text-center">
-                            <button
-                                onClick={() => router.push(`/leagues/${league.id}/ranking?tab=departments`)}
-                                className="text-[10px] text-slate-400 hover:text-white hover:underline uppercase tracking-widest flex items-center justify-center gap-1 mx-auto transition-colors"
-                            >
-                                Ver Tabla Completa <ArrowRight size={12} />
-                            </button>
-                        </div>
-
-                    </div>
-                ) : (
-                    <EnterpriseFeatureLock title="Guerra de Áreas" minPlanName="PLATINO" icon={Swords} />
-                )}
-
-                {/* 9. SOCIAL WALL (Feature Level 3+) */}
-                {planLevel >= 3 && (
-                     <div className="mt-2">
-                        <h3 className="text-white font-bold mb-2 ml-1 text-sm flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#00E676]"></span>
-                            Muro de la Afición
-                        </h3>
-                        <SocialWallWidget leagueId={league.id} />
-                    </div>
-                )}
-
-
-                {/* Lock for Ads if needed */}
-                {planLevel < 5 && (
-                    <div className="opacity-70 hover:opacity-100 transition-opacity">
-                        <EnterpriseFeatureLock title="Publicidad Exclusiva" minPlanName="DIAMANTE" icon={Megaphone} />
-                    </div>
-                )}
-
-            </div>
+            </main>
         </div>
     );
 }

@@ -16,8 +16,8 @@ export default function Footer() {
 
     const STYLES = {
         container: {
-            backgroundColor: '#050505',
-            borderTop: '1px solid #1E293B',
+            backgroundColor: 'var(--brand-bg, #0F172A)',
+            borderTop: '1px solid rgba(255,255,255,0.07)',
             padding: '40px 20px 40px 20px', 
             marginTop: 'auto', 
             color: '#94A3B8',

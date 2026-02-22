@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Trophy } from 'lucide-react';
+import { Building2, Image as ImageIcon } from 'lucide-react';
 import { SectionTitle, ImageUploader } from './StudioUI';
 
 interface AssetsTabProps {
@@ -21,15 +21,14 @@ export const AssetsTab: React.FC<AssetsTabProps> = ({ config, handleImageUpload,
                     placeholderIcon={Building2}
                 />
             </div>
-            {/* Nueva sección para imagen del premio */}
             <div className="md:col-span-2">
-                <SectionTitle title="Imagen del Premio" subtitle="Muestra el gran premio (16:9)." />
+                <SectionTitle title="Fondo del Hero" subtitle="Imagen de fondo para la cabecera (Full HD recomendado)." />
                 <ImageUploader
-                    label="Premio Mayor"
-                    preview={config.prizeImageUrl}
-                    onChange={(e: any) => handleImageUpload('prizeImageUrl', e)}
-                    uploading={uploadingState['prizeImageUrl']}
-                    placeholderIcon={Trophy}
+                    label="Fondo Principal"
+                    preview={config.brandCoverUrl}
+                    onChange={(e: any) => handleImageUpload('brandCoverUrl', e)}
+                    uploading={uploadingState['brandCoverUrl']}
+                    placeholderIcon={ImageIcon}
                     aspect="video"
                 />
             </div>

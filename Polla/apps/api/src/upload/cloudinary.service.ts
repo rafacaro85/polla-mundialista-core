@@ -32,6 +32,7 @@ export class CloudinaryService {
 
   async uploadImage(
     file: any,
+    folder: string = 'la-polla-virtual',
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     const cloudName = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
     const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim();
@@ -46,7 +47,7 @@ export class CloudinaryService {
 
     try {
       this.logger.log(
-        `Uploading to Cloudinary [Direct Mode]: ${file.originalname}`,
+        `Uploading to Cloudinary [Direct Mode] folder [${folder}]: ${file.originalname}`,
       );
 
       // Convertir Buffer a Base64 para máxima compatibilidad
@@ -57,7 +58,7 @@ export class CloudinaryService {
         cloud_name: cloudName,
         api_key: apiKey,
         api_secret: apiSecret,
-        folder: 'la-polla-virtual',
+        folder,
         resource_type: 'auto',
         transformation: [
           { width: 1000, crop: 'limit', quality: 'auto', fetch_format: 'auto' },

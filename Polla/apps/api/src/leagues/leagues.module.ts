@@ -14,6 +14,10 @@ import { TelegramModule } from '../telegram/telegram.module';
 
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
+import { LeaguePrize } from '../database/entities/league-prize.entity';
+import { LeagueBanner } from '../database/entities/league-banner.entity';
+import { LeagueExtraService } from './league-extra.service';
+import { LeagueExtraController } from './league-extra.controller';
 
 @Module({
   imports: [
@@ -24,13 +28,15 @@ import { LeagueComment } from '../database/entities/league-comment.entity';
       AccessCode,
       Prediction,
       LeagueComment,
+      LeaguePrize,
+      LeagueBanner,
     ]),
     TransactionsModule,
     PdfModule,
     TelegramModule,
   ],
-  providers: [LeaguesService, AccessCodesService, LeagueParticipantsService],
-  controllers: [LeaguesController],
+  providers: [LeaguesService, AccessCodesService, LeagueParticipantsService, LeagueExtraService],
+  controllers: [LeaguesController, LeagueExtraController],
   exports: [LeaguesService],
 })
 export class LeaguesModule {}

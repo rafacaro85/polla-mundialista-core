@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 import { PendingInviteBanner } from '@/components/dashboard/PendingInviteBanner';
 import { PaymentLockOverlay } from '@/components/dashboard/PaymentLockOverlay';
+import { PaymentMethods } from '@/components/dashboard/PaymentMethods';
 import PaymentStatusCard from '@/components/dashboard/PaymentStatusCard';
 import { EnterpriseRankingTable } from '@/modules/enterprise-league/components/EnterpriseRankingTable';
 
@@ -307,6 +308,60 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                         <Button 
                             variant="outline" 
                             className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
+                            onClick={() => setSelectedLeague('global')}
+                        >
+                            Volver al Inicio
+                        </Button>
+                    </div>
+                </div>
+             </div>
+        )}
+
+        {/* REJECTED STATUS LOCK */}
+        {currentLeague && currentLeague.userStatus === 'REJECTED' && selectedLeagueId !== 'global' && (
+             <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
+                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden flex flex-col items-center justify-center">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50"></div>
+                    
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                        <Shield className="w-8 h-8 text-red-500" />
+                    </div>
+                    
+                    <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
+                        PAGO <span className="text-red-500">RECHAZADO</span>
+                    </h2>
+                    
+                    <p className="text-slate-400 mb-6 leading-relaxed text-xs">
+                        Hubo un problema con tu comprobante para la polla <span className="text-white font-bold">{currentLeague.name}</span>. Por favor, intenta subirlo de nuevo.
+                    </p>
+                    
+                    <div className="w-full flex flex-col gap-4">
+                        <PaymentMethods 
+                            leagueId={currentLeague.id} 
+                            amount={
+                                (() => {
+                                  const type = (currentLeague.packageType || '').toLowerCase();
+                                  // Social Plans
+                                  if (type === 'parche' || type === 'amateur') return 30000;
+                                  if (type === 'amigos' || type === 'semi-pro') return 80000;
+                                  if (type === 'lider' || type === 'pro') return 180000;
+                                  if (type === 'influencer' || type === 'elite') return 350000;
+
+                                  // Enterprise Plans
+                                  if (type === 'bronze' || type === 'enterprise_bronze') return 100000;
+                                  if (type === 'silver' || type === 'enterprise_silver') return 175000;
+                                  if (type === 'gold' || type === 'enterprise_gold') return 450000;
+                                  if (type === 'platinum' || type === 'enterprise_platinum') return 750000;
+                                  if (type === 'diamond' || type === 'enterprise_diamond') return 1000000;
+
+                                  return 50000;
+                                })()
+                            }
+                            onSuccess={() => window.location.reload()} 
+                        />
+                        <Button 
+                            variant="ghost" 
+                            className="text-slate-500 hover:text-white text-xs underline"
                             onClick={() => setSelectedLeague('global')}
                         >
                             Volver al Inicio

@@ -48,12 +48,12 @@ interface GroupStageViewProps {
 export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
 
     const COLORS = {
-        bg: '#0F172A',
-        card: '#1E293B',
-        signal: '#00E676',
-        text: '#F8FAFC',
-        dim: '#64748B',
-        border: '#334155'
+        bg: 'var(--brand-bg, #0F172A)',
+        card: 'var(--brand-secondary, #1E293B)',
+        signal: 'var(--brand-primary, #00E676)',
+        text: 'var(--brand-text, #F8FAFC)',
+        dim: 'color-mix(in srgb, var(--brand-text), transparent 40%)',
+        border: 'var(--brand-accent, #334155)'
     };
 
     const STYLES = {
@@ -339,7 +339,10 @@ export const GroupStageView: React.FC<GroupStageViewProps> = ({ matches }) => {
             {/* TABLA DE MEJORES TERCEROS */}
             {groups.bestThirds.length > 0 && (
                 <div style={{ marginTop: '40px', maxWidth: '600px', margin: '40px auto 0' }}>
-                    <div style={{ ...STYLES.groupHeader, borderRadius: '12px 12px 0 0', backgroundColor: '#1E293B' }}>
+                    <div 
+                        style={{ ...STYLES.groupHeader, borderRadius: '12px 12px 0 0' }}
+                        className="bg-brand-secondary"
+                    >
                         <span style={STYLES.groupTitle}>RANKING MEJORES TERCEROS (TOP 8 CLASIFICAN)</span>
                     </div>
                     <div style={{ ...STYLES.groupCard, borderRadius: '0 0 16px 16px', borderTop: 'none' }}>

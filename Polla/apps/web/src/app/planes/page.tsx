@@ -162,7 +162,7 @@ const PlanCard = ({ plan, isEnterprise = false }: { plan: any, isEnterprise?: bo
                 ))}
             </ul>
 
-            <Link href={isEnterprise ? "/business/new" : "/login"} className="relative z-10">
+            <Link href={isEnterprise ? "/empresa/crear" : "/login"} className="relative z-10">
                 <Button
                     className={`w-full py-6 rounded-xl font-black uppercase tracking-widest transition-all
                     ${isEnterprise

@@ -178,10 +178,13 @@ export function EnterpriseSocialWallWidget({ leagueId, limit, isLocked = false }
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-brand-primary transition-colors uppercase tracking-widest"
+                                    className="flex items-center gap-2 text-[10px] font-bold text-slate-400 transition-colors uppercase tracking-widest"
+                                    style={{ ['--hover-color' as any]: 'var(--brand-primary)' }}
                                 >
-                                    <Camera size={14} className="text-brand-primary" />
-                                    {selectedImage ? 'Cambiar Foto' : 'Subir Imagen'}
+                                    <Camera size={14} style={{ color: 'var(--brand-primary, #00E676)' }} />
+                                    <span className="hover:text-[var(--brand-primary)]">
+                                        {selectedImage ? 'Cambiar Foto' : 'Subir Imagen'}
+                                    </span>
                                     <input
                                         type="file"
                                         ref={fileInputRef}
@@ -194,7 +197,11 @@ export function EnterpriseSocialWallWidget({ leagueId, limit, isLocked = false }
                                 <button
                                     type="submit"
                                     disabled={posting || (!newComment.trim() && !selectedImage)}
-                                    className="bg-brand-primary hover:bg-brand-primary/80 text-[var(--brand-bg,#000)] font-black text-[10px] px-6 py-2 rounded-full flex items-center gap-2 transition-all uppercase tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="font-black text-[10px] px-6 py-2 rounded-full flex items-center gap-2 transition-all uppercase tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{ 
+                                        backgroundColor: 'var(--brand-primary, #00E676)',
+                                        color: 'var(--brand-bg, #0F172A)'
+                                    }}
                                 >
                                     {posting ? <Loader2 className="animate-spin" size={12} /> : <Send size={12} />}
                                     Publicar

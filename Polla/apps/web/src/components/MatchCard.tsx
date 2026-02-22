@@ -231,9 +231,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       marginBottom: '16px',
     },
     card: {
-      backgroundColor: '#1E293B',
+      backgroundColor: 'var(--brand-secondary, #1E293B)',
       borderRadius: '16px',
-      border: '1px solid #334155',
+      border: '1px solid var(--brand-accent, #334155)',
       overflow: 'hidden',
       width: '100%',
       maxWidth: '340px',
@@ -249,9 +249,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       padding: '12px 16px 0 16px',
     },
     infoBtn: {
-      color: '#94A3B8',
+      color: 'var(--brand-text, #94A3B8)',
       cursor: 'pointer',
-      padding: '4px'
+      padding: '4px',
+      opacity: 0.6
     },
     metaData: {
       textAlign: 'right' as const,
@@ -277,7 +278,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       fontFamily: 'sans-serif',
       fontWeight: '900',
       fontSize: '22px',
-      color: '#F8FAFC',
+      color: 'var(--brand-heading, #F8FAFC)',
       textShadow: '0 2px 4px rgba(0,0,0,0.5)',
     },
     flag: {
@@ -302,10 +303,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     inputBox: {
       width: '40px',
       height: '40px',
-      backgroundColor: '#0F172A',
+      backgroundColor: 'var(--brand-bg, #0F172A)',
       border: `2px solid ${inputBorderColor}`,
       borderRadius: '8px',
-      color: 'white',
+      color: 'var(--brand-text, white)',
       textAlign: 'center' as const,
       fontSize: '18px',
       fontWeight: 'bold',
@@ -321,7 +322,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     footerBar: {
       width: '100%',
       backgroundColor: resultColor,
-      color: '#0F172A',
+      color: 'var(--brand-bg, #0F172A)',
       display: 'flex',
       flexDirection: 'column' as const,
       justifyContent: 'center',
@@ -352,8 +353,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       padding: '5px 10px',
       borderRadius: '12px',
       backgroundColor: isJoker ? '#FFD700' : 'rgba(255, 255, 255, 0.05)',
-      border: isJoker ? '1px solid #FFD700' : '1px solid #334155',
-      color: isJoker ? '#0F172A' : '#64748B',
+      border: isJoker ? '1px solid #FFD700' : '1px solid var(--brand-accent, #334155)',
+      color: isJoker ? '#0F172A' : 'var(--brand-text, #64748B)',
       fontSize: '10px',
       fontWeight: 'bold',
       cursor: isFinished ? 'default' : 'pointer',

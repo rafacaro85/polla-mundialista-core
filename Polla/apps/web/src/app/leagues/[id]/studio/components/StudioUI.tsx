@@ -5,9 +5,10 @@ export const TabButton = ({ icon: Icon, label, isActive, onClick }: any) => (
     <button
         onClick={onClick}
         className={`flex-1 min-w-[100px] py-3 md:py-4 flex flex-col items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all rounded-xl border-2 ${isActive
-            ? 'border-[#00E676] text-[#00E676] bg-[#00E676]/10 shadow-[0_0_15px_rgba(0,230,118,0.1)]'
-            : 'border-transparent bg-[#1E293B] text-slate-400 hover:text-white hover:bg-[#334155]'
+            ? 'border-[var(--brand-primary,#00E676)] text-[var(--brand-primary,#00E676)] bg-[var(--brand-primary,#00E676)]/10 shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.1)]'
+            : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'
             }`}
+        style={!isActive ? { backgroundColor: 'var(--brand-secondary, #1E293B)' } : {}}
     >
         <Icon size={20} className="md:w-6 md:h-6" />
         <span className="text-center leading-tight">{label}</span>
@@ -35,7 +36,8 @@ export const ColorPicker = ({ label, value, onChange }: any) => {
     };
 
     return (
-        <div className="flex items-center justify-between p-3 md:p-4 rounded-2xl bg-[#1E293B] border border-[#334155] group hover:border-[#00E676]/50 transition-colors">
+        <div className="flex items-center justify-between p-3 md:p-4 rounded-2xl border group transition-colors" 
+            style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
             <div className="flex items-center gap-4 flex-1 overflow-hidden">
                 {/* Muestra de color + Input Nativo Oculto */}
                 <div className="relative w-12 h-12 rounded-xl shadow-lg border-2 border-white/10 shrink-0 overflow-hidden cursor-pointer group/picker">
@@ -55,7 +57,8 @@ export const ColorPicker = ({ label, value, onChange }: any) => {
                     <span className="text-sm font-bold text-slate-200 truncate">{label}</span>
 
                     {/* Input Hexadecimal Unificado */}
-                    <div className="flex items-center bg-[#0F172A] rounded-lg border border-[#334155] focus-within:border-[#00E676] px-3 py-1.5 w-full max-w-[140px] transition-colors">
+                    <div className="flex items-center rounded-lg border px-3 py-1.5 w-full max-w-[140px] transition-colors"
+                        style={{ backgroundColor: 'var(--brand-bg, #0F172A)', borderColor: 'rgba(255,255,255,0.05)' }}>
                         <span className="text-xs font-mono text-slate-500 font-bold mr-1 select-none">#</span>
                         <input
                             type="text"
@@ -75,12 +78,12 @@ export const ColorPicker = ({ label, value, onChange }: any) => {
 export const ImageUploader = ({ label, preview, onChange, uploading, placeholderIcon: Icon, aspect = "square" }: any) => (
     <div className="space-y-3">
         <label className="text-sm font-bold text-slate-300 ml-1 uppercase tracking-wide">{label}</label>
-        <label className={`relative block w-full border-2 border-dashed border-[#334155] hover:border-[#00E676] hover:bg-[#00E676]/5 rounded-2xl cursor-pointer transition-all group overflow-hidden ${aspect === 'video' ? 'aspect-video' : 'h-32 md:h-40'}`}>
+        <label className={`relative block w-full border-2 border-dashed border-white/10 hover:border-[var(--brand-primary,#00E676)] hover:bg-[var(--brand-primary,#00E676)]/5 rounded-2xl cursor-pointer transition-all group overflow-hidden ${aspect === 'video' ? 'aspect-video' : 'h-32 md:h-40'}`}>
             <input type="file" className="hidden" accept="image/*" onChange={onChange} disabled={uploading} />
             {uploading ? (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-black/50">
-                    <Loader2 className="animate-spin text-[#00E676]" size={32} />
-                    <span className="text-xs text-[#00E676] font-bold uppercase tracking-widest">Subiendo...</span>
+                    <Loader2 className="animate-spin text-[var(--brand-primary,#00E676)]" size={32} />
+                    <span className="text-xs text-[var(--brand-primary,#00E676)] font-bold uppercase tracking-widest">Subiendo...</span>
                 </div>
             ) : preview ? (
                 <div className="w-full h-full relative">
@@ -93,10 +96,11 @@ export const ImageUploader = ({ label, preview, onChange, uploading, placeholder
                 </div>
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-3 group-hover:scale-105 transition-transform p-4 text-center">
-                    <div className="p-3 md:p-4 bg-[#1E293B] rounded-full group-hover:bg-[#00E676] group-hover:text-[#0F172A] transition-colors">
+                    <div className="p-3 md:p-4 rounded-full group-hover:text-[var(--brand-bg,#0F172A)] transition-colors"
+                        style={{ backgroundColor: 'var(--brand-bg, #1E293B)' }}>
                         <Icon size={24} className="md:w-8 md:h-8" />
                     </div>
-                    <span className="text-[10px] md:text-xs uppercase font-bold tracking-widest group-hover:text-[#00E676] transition-colors">Click para subir</span>
+                    <span className="text-[10px] md:text-xs uppercase font-bold tracking-widest group-hover:text-[var(--brand-primary,#00E676)] transition-colors">Click para subir</span>
                 </div>
             )}
         </label>

@@ -16,9 +16,9 @@ export const useLeague = (id: string | undefined | null) => {
             setIsLoading(true);
             setError(null);
             try {
-                const { data } = await api.get(`/leagues/${id}/metadata`);
-                if (data && data.league) {
-                    setLeague(data.league);
+                const { data } = await api.get(`/leagues/${id}`);
+                if (data) {
+                    setLeague(data);
                 } else {
                     throw new Error('League not found');
                 }

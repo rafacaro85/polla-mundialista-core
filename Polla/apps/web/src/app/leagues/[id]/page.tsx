@@ -1,9 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useLeague } from '@/shared/hooks/useLeague';
+import { useAppStore } from '@/store/useAppStore';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
+import { Timer } from 'lucide-react';
 
 // 1. IMPORTACIÓN DINÁMICA (Lazy Loading) con Named Exports
 const SocialLeagueView = dynamic(
@@ -26,6 +28,8 @@ const EnterpriseLeagueView = dynamic(
 
 export default function LeagueDispatcherPage() {
     const params = useParams();
+    const router = useRouter();
+    const { user } = useAppStore();
     const leagueId = (Array.isArray(params?.id) ? params?.id[0] : params?.id) as string;
 
     const { league, isLoading, error } = useLeague(leagueId);
@@ -52,9 +56,8 @@ export default function LeagueDispatcherPage() {
     }
 
     // 3. EL DISPATCHER (Switch)
-    console.log('League Loaded:', league.type);
-
     const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
     if (isEnterprise) {
         return <EnterpriseLeagueView leagueId={leagueId} />;

@@ -6,6 +6,8 @@ import { User } from '../database/entities/user.entity';
 import { League } from '../database/entities/league.entity';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { LeagueType } from '../database/enums/league-type.enum';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
 import { TelegramService } from '../telegram/telegram.service';
 
@@ -18,6 +20,8 @@ export class TransactionsService {
     private leaguesRepository: Repository<League>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(LeagueParticipant)
+    private leagueParticipantsRepository: Repository<LeagueParticipant>,
     private dataSource: DataSource,
     private telegramService: TelegramService,
   ) {}
@@ -78,7 +82,7 @@ export class TransactionsService {
         `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     });
 
-    // 📢 Admin Alert (💰)
+    // 📣 Notify admin via Telegram
     this.telegramService
       .notifyPayment(
         amount,
@@ -89,7 +93,26 @@ export class TransactionsService {
       )
       .catch((e) => console.error('Telegram Error:', e));
 
-    return this.transactionsRepository.save(transaction);
+    const saved = await this.transactionsRepository.save(transaction);
+
+    // 🔄 Si el participante tenía estado REJECTED, resetear a PENDING
+    if (league) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: {
+          league: { id: league.id },
+          user: { id: user.id },
+        },
+      });
+
+      if (participant && participant.status === LeagueParticipantStatus.REJECTED) {
+        participant.status = LeagueParticipantStatus.PENDING;
+        participant.isPaid = false;
+        await this.leagueParticipantsRepository.save(participant);
+        console.log(`🔄 Participant status reset from REJECTED to PENDING for league ${league.id}`);
+      }
+    }
+
+    return saved;
   }
 
   async updateStatus(
@@ -171,6 +194,40 @@ export class TransactionsService {
         }
 
         await queryRunner.manager.save(league);
+
+        // ✅ Activate participant who made the payment
+        const participant = await this.leagueParticipantsRepository.findOne({
+          where: {
+            league: { id: league.id },
+            user: { id: transaction.user.id }
+          }
+        });
+        if (participant) {
+            participant.status = LeagueParticipantStatus.ACTIVE;
+            participant.isPaid = true;
+            await queryRunner.manager.save(participant);
+            console.log(`✅ Participant ${transaction.user.id} activated for league ${league.id}`);
+        }
+      }
+
+      // Handle REJECTED Transaction (Update participant status)
+      if (status === TransactionStatus.REJECTED && transaction.league && transaction.user) {
+        console.log(`❌ Rejecting transaction for league ${transaction.league.id} and user ${transaction.user.id}`);
+        const participant = await this.leagueParticipantsRepository.findOne({
+          where: {
+            league: { id: transaction.league.id },
+            user: { id: transaction.user.id }
+          }
+        });
+
+        if (participant) {
+            participant.status = LeagueParticipantStatus.REJECTED;
+            participant.isPaid = false;
+            await queryRunner.manager.save(participant);
+            console.log(`✅ Participant status updated to REJECTED`);
+        } else {
+            console.warn(`⚠️ Participant record not found for rejection`);
+        }
       }
 
       await queryRunner.commitTransaction();

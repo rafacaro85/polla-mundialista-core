@@ -141,8 +141,8 @@ export default function WallPage() {
     }
 
     return (
-        <div className="min-h-screen bg-brand-bg text-brand-text p-4 pb-24 md:pb-8 pt-6">
-            <div className="max-w-2xl mx-auto bg-brand-secondary/50 border border-white/5 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-500">
+        <div className="min-h-screen bg-brand-bg text-brand-text py-6 pb-24 md:pb-8">
+            <div className="w-full mx-auto bg-brand-secondary/50 border border-white/5 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-500">
 
                 {/* Header */}
                 <div className="bg-black/20 p-4 border-b border-white/5 flex items-center justify-between">
@@ -291,7 +291,7 @@ export default function WallPage() {
                 {comments.length > 0 && (
                     <div className="bg-black/20 p-3 text-center border-t border-white/5">
                         <button
-                            onClick={fetchComments}
+                            onClick={() => fetchComments(true)}
                             className="text-[10px] font-black text-slate-500 hover:text-brand-primary transition-colors uppercase tracking-[0.2em]"
                         >
                             Actualizar Muro

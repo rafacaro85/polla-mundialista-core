@@ -84,21 +84,30 @@ export function LeagueHeader() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
-                            const backUrl = leagueData?.isEnterprise ? '/dashboard' : '/social/mis-pollas';
+                            const backUrl = leagueData?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
                             router.push(backUrl);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E293B] hover:bg-[#334155] border border-white/10 text-white transition-all group shadow-lg"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border transition-all group shadow-lg"
+                        style={{ 
+                            backgroundColor: 'var(--brand-secondary, #1E293B)',
+                            borderColor: 'var(--brand-accent, rgba(255,255,255,0.1))',
+                            color: 'var(--brand-text, white)'
+                        }}
                     >
-                        <ChevronDown size={16} className="rotate-90 text-[#00E676] group-hover:-translate-x-1 transition-transform" />
+                        <ChevronDown 
+                            size={16} 
+                            className="rotate-90 group-hover:-translate-x-1 transition-transform" 
+                            style={{ color: 'var(--brand-primary, #00E676)' }}
+                        />
                         <span className="text-[10px] font-black uppercase tracking-widest">VOLVER</span>
                     </button>
 
                     {brand.brandingLogoUrl ? (
-                        <div className="h-10 w-auto p-1 bg-white rounded-md overflow-hidden flex items-center justify-center">
+                        <div className="h-12 w-12 bg-white rounded-xl overflow-hidden flex items-center justify-center border border-white/10 shadow-lg shrink-0">
                             <img
                                 src={brand.brandingLogoUrl}
                                 alt={brand.companyName || 'Logo'}
-                                className="h-full w-auto object-contain"
+                                className="h-full w-full object-cover"
                             />
                         </div>
                     ) : (

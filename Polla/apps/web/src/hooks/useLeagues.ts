@@ -5,6 +5,7 @@ import { useTournament } from './useTournament';
 export interface League {
     id: string;
     name: string;
+    companyName?: string;
     members: number;
     admin: string;
     isAdmin: boolean;
@@ -13,6 +14,7 @@ export interface League {
     maxParticipants: number;
     participantCount?: number;
     type?: string;
+    packageType?: string;
     isEnterprise?: boolean;
     isEnterpriseActive?: boolean;
     isPaid?: boolean;
@@ -22,6 +24,8 @@ export interface League {
     prizeDetails?: string;
     prizeType?: string;
     prizeAmount?: number;
+    brandingLogoUrl?: string;
+    hasPendingTransaction?: boolean;
 }
 
 export const useLeagues = () => {
@@ -42,6 +46,7 @@ export const useLeagues = () => {
             const mappedLeagues = data.map((l: any) => ({
                 id: l.id,
                 name: l.name,
+                companyName: l.companyName,
                 members: l.participantCount || 0,
                 admin: l.isAdmin ? 'Tú' : (l.admin?.nickname || 'Admin'),
                 isAdmin: l.isAdmin,
@@ -49,6 +54,7 @@ export const useLeagues = () => {
                 code: l.code,
                 maxParticipants: l.maxParticipants,
                 type: l.type,
+                packageType: l.packageType,
                 isEnterprise: l.isEnterprise,
                 isEnterpriseActive: l.isEnterpriseActive,
                 isPaid: l.isPaid,
@@ -57,7 +63,9 @@ export const useLeagues = () => {
                 prizeImageUrl: l.prizeImageUrl,
                 prizeDetails: l.prizeDetails,
                 prizeType: l.prizeType,
-                prizeAmount: l.prizeAmount
+                prizeAmount: l.prizeAmount,
+                brandingLogoUrl: l.brandingLogoUrl,
+                hasPendingTransaction: l.hasPendingTransaction
             }));
 
             setLeagues(mappedLeagues);

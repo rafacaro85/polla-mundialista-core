@@ -6,6 +6,8 @@ interface MoneyCardProps {
   amount: number;
   label?: string;
   variant?: 'full' | 'compact';
+  topLabel?: string;
+  bottomLabel?: string;
 }
 
 /** Formatea un número al estilo COP: 500000 → "500.000" */
@@ -43,7 +45,15 @@ function useCountUp(target: number, duration = 1500) {
 /* ──────────────────────────────────────────────────────────────
    VARIANTE FULL — Home de la polla (bloque Premio Mayor)
 ────────────────────────────────────────────────────────────── */
-function MoneyCardFull({ amount, label = 'AL GANADOR' }: { amount: number; label?: string }) {
+function MoneyCardFull({ 
+  amount, 
+  topLabel = 'PREMIO MAYOR', 
+  bottomLabel = 'AL GANADOR' 
+}: { 
+  amount: number; 
+  topLabel?: string; 
+  bottomLabel?: string 
+}) {
   const animated = useCountUp(amount);
 
   return (
@@ -72,31 +82,30 @@ function MoneyCardFull({ amount, label = 'AL GANADOR' }: { amount: number; label
       <div className="relative z-10 flex flex-col items-start justify-center h-full w-full gap-1 overflow-hidden">
         {/* Header */}
         <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400/70 whitespace-nowrap">
-          PREMIO MAYOR
+          {topLabel}
         </p>
-
-        {/* Símbolo $ */}
-        <span className="text-yellow-400 text-sm sm:text-lg font-black leading-none -mb-1">$</span>
 
         {/* Cifra animada */}
         <p
           className="font-russo text-white leading-none whitespace-nowrap"
           style={{
-            fontSize: 'clamp(1.5rem, 8vw, 3.5rem)',
-            color: '#00E676',
-            textShadow: '0 0 20px rgba(0,230,118,0.5), 0 0 40px rgba(0,230,118,0.3)',
+            fontSize: 'clamp(2rem, 8vw, 3.5rem)',
+            color: 'var(--brand-primary, #00E676)',
+            textShadow: '0 0 20px var(--brand-primary, #00E676)80',
           }}
         >
+          <span className="text-xl sm:text-2xl align-top mr-1">$</span>
           {formatCOP(animated)}
         </p>
 
         {/* Línea separadora */}
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent my-1" />
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-[var(--brand-primary,#00E676)]/40 to-transparent my-2" />
 
-        {/* Subtexto */}
-        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 whitespace-nowrap">
-          {label}
-        </p>
+        {bottomLabel && (
+           <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 whitespace-nowrap">
+             {bottomLabel}
+           </p>
+        )}
       </div>
     </div>
   );
@@ -151,7 +160,7 @@ function Sparkle({ top, bottom, left, right }: { top?: string; bottom?: string; 
 /* ──────────────────────────────────────────────────────────────
    Export principal
 ────────────────────────────────────────────────────────────── */
-export function MoneyCard({ amount, label, variant = 'full' }: MoneyCardProps) {
+export function MoneyCard({ amount, label, variant = 'full', topLabel, bottomLabel }: MoneyCardProps) {
   if (variant === 'compact') return <MoneyCardCompact amount={amount} />;
-  return <MoneyCardFull amount={amount} label={label} />;
+  return <MoneyCardFull amount={amount} topLabel={topLabel} bottomLabel={bottomLabel || label} />;
 }

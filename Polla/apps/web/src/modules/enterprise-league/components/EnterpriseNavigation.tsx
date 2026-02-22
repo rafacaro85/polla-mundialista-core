@@ -45,8 +45,8 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
 
     return (
         <>
-            {/* DESKTOP SIDEBAR - ENTERPRISE COLORS (Keep original layout but updated items) */}
-            <aside className="hidden md:flex flex-col w-64 fixed left-0 top-0 bottom-0 bg-brand-bg border-r border-brand-secondary z-50 pt-20 px-4">
+            {/* DESKTOP SIDEBAR - FIXED ENTERPRISE MENU */}
+            <aside className="hidden md:flex flex-col w-64 fixed left-0 top-0 bottom-0 bg-[var(--brand-bg,#0F172A)] border-r border-white/5 z-[100] pt-20 px-4 shadow-2xl">
                 <div className="space-y-2">
                     {items.map((item) => (
                         <Link
@@ -59,10 +59,12 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                     : "text-slate-400 hover:bg-brand-secondary hover:text-brand-text"
                             )}
                         >
-                            <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
+                            <div className={cn("min-w-[40px] flex items-center justify-center transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
                                 {item.icon}
+                            </div>
+                            <span className="flex-1 font-bold">
+                                {item.label}
                             </span>
-                            {item.label}
                         </Link>
                     ))}
                 </div>

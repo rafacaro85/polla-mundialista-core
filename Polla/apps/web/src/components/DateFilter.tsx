@@ -28,7 +28,7 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
       alignItems: 'center',
       background: 'rgba(15, 23, 42, 0.6)', // Un fondo sutil Obsidian
       backdropFilter: 'blur(4px)',
-      borderBottom: '1px solid #1E293B',
+      borderBottom: '1px solid var(--brand-secondary, #1E293B)',
       position: 'sticky' as const,
       top: '0',
       zIndex: 20,
@@ -51,18 +51,18 @@ export default function DateFilter({ dates = [], selectedDate, onSelect }: DateF
     },
     // Estado ACTIVO (El seleccionado)
     active: {
-      backgroundColor: '#00E676', // Signal Green
-      color: '#0F172A',           // Obsidian Text
-      borderColor: '#00E676',
+      backgroundColor: 'var(--brand-primary, #00E676)', // Signal Green
+      color: 'var(--brand-bg, #0F172A)',           // Obsidian Text
+      borderColor: 'var(--brand-primary, #00E676)',
       fontFamily: "'Russo One', sans-serif", // Fuente deportiva
       boxShadow: '0 0 15px rgba(0, 230, 118, 0.4)', // GLOW
       transform: 'scale(1.05)'
     },
     // Estado INACTIVO (Los demás)
     inactive: {
-      backgroundColor: '#1E293B', // Carbon
-      color: '#94A3B8',           // Tactical Grey
-      borderColor: '#334155',     // Slate Border
+      backgroundColor: 'var(--brand-secondary, #1E293B)', // Carbon
+      color: 'var(--brand-text, #94A3B8)',           // Tactical Grey
+      borderColor: 'var(--brand-accent, #334155)',     // Slate Border
       fontFamily: 'sans-serif',
       boxShadow: 'none',
       transform: 'scale(1)'

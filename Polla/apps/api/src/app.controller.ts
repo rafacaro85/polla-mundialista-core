@@ -8,7 +8,14 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     @InjectDataSource() private dataSource: DataSource,
-  ) {}
+  ) {
+    console.log('--- AppController initialized with Debug Routes ---');
+  }
+
+  @Get('ping')
+  getPing() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  }
 
   @Get()
   getHello(): string {

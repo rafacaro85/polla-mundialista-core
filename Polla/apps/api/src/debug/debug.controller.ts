@@ -46,6 +46,29 @@ export class DebugController {
     }
   }
 
+  @Get('db-repair')
+  async repairDb() {
+    const queryRunner = this.dataSource.createQueryRunner();
+    try {
+      console.log('--- Intentando reparación de emergencia desde el API ---');
+      await queryRunner.query('ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT \'#FFFFFF\'');
+      await queryRunner.query('ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT \'#00E676\'');
+      
+      return { 
+        success: true, 
+        message: 'Columnas creadas/verificadas con éxito desde el proceso del API.' 
+      };
+    } catch (e) {
+      return { 
+        success: false, 
+        error: e.message,
+        hint: 'Es posible que el usuario de la DB no tenga permisos de ALTER TABLE, pero usualmente en Railway el usuario postgres tiene todo.'
+      };
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   @Get('bonus-data')
   async getBonusData() {
     const questions = await this.bonusQuestionRepository.find({

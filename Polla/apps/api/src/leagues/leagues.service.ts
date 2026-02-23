@@ -768,7 +768,13 @@ export class LeaguesService {
     try {
       const participant = await this.leagueParticipantsRepository.findOne({
         where: { league: { id: leagueId }, user: { id: userId } },
-        relations: ['league', 'league.creator', 'league.participants'],
+        relations: [
+          'league',
+          'league.creator',
+          'league.participants',
+          'league.prizes',
+          'league.banners',
+        ],
       });
 
       // 2. If participant found, return standard format
@@ -841,7 +847,13 @@ export class LeaguesService {
       if (user?.role === UserRole.SUPER_ADMIN) {
         const league = await this.leaguesRepository.findOne({
           where: { id: leagueId },
-          relations: ['creator', 'participants', 'participants.user'],
+          relations: [
+            'creator',
+            'participants',
+            'participants.user',
+            'prizes',
+            'banners',
+          ],
         });
 
         if (league) {

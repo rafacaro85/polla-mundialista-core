@@ -59,8 +59,9 @@ import { APP_GUARD } from '@nestjs/core';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env', '.env.local', '.env.production'],
       ignoreEnvFile: process.env.NODE_ENV === 'production',
+      cache: true,
     }),
     CacheModule.registerAsync({
       isGlobal: true,

@@ -18,10 +18,16 @@ import { TelegramModule } from '../telegram/telegram.module';
     TelegramModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '24h' },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          console.warn('⚠️ [AuthModule] JWT_SECRET missing in ConfigService. Using fallback.');
+        }
+        return {
+          secret: secret || 'temporary_unsafe_fallback_secret_change_immediately',
+          signOptions: { expiresIn: '24h' },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

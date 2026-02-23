@@ -112,7 +112,11 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
         } catch (error: any) {
             console.error('Join Error:', error);
-            const msg = error.response?.data?.message || 'Error desconocido';
+            const responseData = error.response?.data;
+            const msg = responseData?.message || 'Error desconocido';
+            
+            console.log('🔍 [InviteHandler] Error Message:', msg);
+            console.log('🔍 [InviteHandler] Error Response Data:', responseData);
 
             // Handle "Already joined"
             if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
@@ -120,7 +124,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 const dataToUse = explicitPreviewData || previewData;
                 let leagueTournamentId = dataToUse?.tournamentId;
                 
-                console.log('🔄 [InviteHandler] Already joined. Silent redirection. Tournament ID:', leagueTournamentId);
+                console.log('🔄 [InviteHandler] Already joined. Silent redirection.');
+                console.log('🔍 [InviteHandler] tournamentId from preview:', leagueTournamentId);
 
                 if (leagueTournamentId) {
                     leagueTournamentId = String(leagueTournamentId).trim();
@@ -129,12 +134,13 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                     }
                 }
                 
-                // CRITICAL FIX: Extraction of league ID for already joined users
                 const targetId = dataToUse?.id || dataToUse?.league?.id;
                 const targetUrl = targetId ? `/leagues/${targetId}` : '/dashboard';
                 const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
 
-                console.log('🚀 [InviteHandler] Redirecting (Already Joined) to:', redirectUrl);
+                console.log('🔍 [InviteHandler] targetId:', targetId);
+                console.log('🚀 [InviteHandler] redirecting to:', redirectUrl);
+                
                 window.location.href = redirectUrl; 
                 return;
             }

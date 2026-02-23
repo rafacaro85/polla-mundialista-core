@@ -115,13 +115,11 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
 
             // Handle "Already joined"
             if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
-                toast.info('Ya eres miembro de esta polla.');
-
                 // Redirect anyway, ensuring tournament context
                 const dataToUse = explicitPreviewData || previewData;
                 let leagueTournamentId = dataToUse?.tournamentId;
                 
-                console.log('🔄 [InviteHandler] Already joined. Tournament ID:', leagueTournamentId);
+                console.log('🔄 [InviteHandler] Already joined. Silent redirection. Tournament ID:', leagueTournamentId);
 
                 if (leagueTournamentId) {
                     leagueTournamentId = String(leagueTournamentId).trim();

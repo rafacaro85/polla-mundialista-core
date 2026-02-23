@@ -42,12 +42,11 @@ function SuccessLogic() {
           };
 
           const pendingInviteCode = getCookie('pendingInviteCode') || localStorage.getItem('pendingInviteCode');
+          
           if (pendingInviteCode) {
             console.log('🎟️ [AUTH] Invitación pendiente detectada:', pendingInviteCode);
-            // NO borrar aquí. Dejar que la página de destino lo gestione para asegurar persistencia.
-            // localStorage.removeItem('pendingInviteCode'); 
-
-            /* Use window.location.href to force full reload/redirect ensuring clean state */
+            // Aseguramos que el código persista en localStorage por si acaso se pierde la cookie
+            localStorage.setItem('pendingInviteCode', pendingInviteCode);
             window.location.href = `/invite/${pendingInviteCode}`;
             return;
           }

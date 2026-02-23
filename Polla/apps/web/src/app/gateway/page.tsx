@@ -13,6 +13,21 @@ import { PromoBanner } from '@/components/PromoBanner';
 export default function GatewayApp() {
   const router = useRouter();
 
+  React.useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const code = getCookie('pendingInviteCode') || localStorage.getItem('pendingInviteCode');
+    if (code) {
+      console.log('🚀 [Gateway] Pending Invite Found. Redirecting to invite processor:', code);
+      window.location.href = `/invite/${code}`;
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0F172A] text-[#F8FAFC] font-sans selection:bg-[#00E676] selection:text-[#0F172A] flex flex-col overflow-x-hidden">
       

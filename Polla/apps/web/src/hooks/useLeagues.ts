@@ -58,7 +58,7 @@ export const useLeagues = () => {
                 isEnterprise: l.isEnterprise,
                 isEnterpriseActive: l.isEnterpriseActive,
                 isPaid: l.isPaid,
-                status: l.status,
+                status: l.userStatus || l.status,
                 tournamentId: l.tournamentId,
                 prizeImageUrl: l.prizeImageUrl,
                 prizeDetails: l.prizeDetails,

@@ -138,6 +138,8 @@ export class LeaguesService {
         }
       }
 
+      console.log(`🏢 [LeaguesService] createLeague: name=${name}, type=${type}, isEnterprise=${isEnterprise}, pkg=${packageType}`);
+      
       // --- LIMIT CHECK: 1 Free League Per User Per Tournament ---
       const targetTournamentId = tournamentId || 'WC2026';
       const isFreePlan = [

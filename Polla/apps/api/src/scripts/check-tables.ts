@@ -12,23 +12,16 @@ async function checkTables() {
 
   try {
     await client.connect();
-    console.log('--- Verificando Tablas Críticas ---');
+    console.log('--- Transacciones de Ligas ---');
 
-    const tables = ['league_prizes', 'league_banners', 'leagues', 'league_participants'];
-    for (const table of tables) {
-      const res = await client.query(`
-        SELECT count(*) FROM information_schema.tables 
-        WHERE table_schema = 'public' AND table_name = $1
-      `, [table]);
-      const exists = parseInt(res.rows[0].count) > 0;
-      console.log(`Tabla ${table}: ${exists ? '✅ EXISTE' : '❌ NO EXISTE'}`);
+    const res = await client.query('SELECT id, status, league_id, user_id FROM transactions WHERE league_id IS NOT NULL');
+    if (res.rows.length === 0) {
+        console.log('No hay transacciones asociadas a ligas.');
+    } else {
+        res.rows.forEach(r => {
+            console.log(`TX: ${r.id} | S: ${r.status} | L: ${r.league_id} | U: ${r.user_id}`);
+        });
     }
-
-    console.log('--- Listando Ligas Recientes ---');
-    const allLeaguesRes = await client.query('SELECT id, name, status FROM leagues ORDER BY id LIMIT 10');
-    allLeaguesRes.rows.forEach(l => {
-        console.log(`Liga: ${l.id} - ${l.name} (${l.status})`);
-    });
 
   } catch (err) {
     console.error('❌ Error:', err);

@@ -138,6 +138,8 @@ export class TransactionsService {
       return transaction;
     }
 
+    console.log(`[TransactionsService] updateStatus called for ${id} with status ${status}`);
+    
     // Transactional operation
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -218,28 +220,32 @@ export class TransactionsService {
       }
 
       // Handle REJECTED Transaction (Update participant status)
-      if (
-        status === TransactionStatus.REJECTED &&
-        transaction.league &&
-        transaction.user
-      ) {
-        console.log(
-          `❌ Rejecting transaction for league ${transaction.league.id} and user ${transaction.user.id}`,
-        );
-        const participant = await this.leagueParticipantsRepository.findOne({
-          where: {
-            league: { id: transaction.league.id },
-            user: { id: transaction.user.id },
-          },
-        });
+      if (status === TransactionStatus.REJECTED) {
+        console.log(`[TransactionsService] ❌ Rejecting transaction ${transaction.id}`);
+        
+        // Use IDs directly to avoid issues with relation hydration
+        const leagueId = transaction.league?.id;
+        const userId = transaction.user?.id;
 
-        if (participant) {
-          participant.status = LeagueParticipantStatus.REJECTED;
-          participant.isPaid = false;
-          await queryRunner.manager.save(participant);
-          console.log(`✅ Participant status updated to REJECTED`);
+        if (leagueId && userId) {
+          console.log(`[TransactionsService] Found league ${leagueId} and user ${userId} for rejection`);
+          const participant = await this.leagueParticipantsRepository.findOne({
+            where: {
+              league: { id: leagueId },
+              user: { id: userId },
+            },
+          });
+
+          if (participant) {
+            participant.status = LeagueParticipantStatus.REJECTED;
+            participant.isPaid = false;
+            await queryRunner.manager.save(participant);
+            console.log(`[TransactionsService] ✅ Participant status updated to REJECTED for user ${userId} in league ${leagueId}`);
+          } else {
+            console.warn(`[TransactionsService] ⚠️ Participant record not found for rejection (League: ${leagueId}, User: ${userId})`);
+          }
         } else {
-          console.warn(`⚠️ Participant record not found for rejection`);
+          console.warn(`[TransactionsService] ⚠️ Transaction missing league (${leagueId}) or user (${userId}) for rejection logic`);
         }
       }
 

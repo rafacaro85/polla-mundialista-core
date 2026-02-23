@@ -10,9 +10,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
   ) {
+    const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = configService.get<string>('GOOGLE_SECRET');
+
+    if (!clientID || !clientSecret) {
+      console.error('❌❌❌ CRITICAL: GOOGLE_CLIENT_ID or GOOGLE_SECRET not found! ❌❌❌');
+    }
+
     super({
-      clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
-      clientSecret: configService.get<string>('GOOGLE_SECRET')!,
+      clientID: clientID || 'missing_client_id',
+      clientSecret: clientSecret || 'missing_client_secret',
       callbackURL:
         configService.get<string>('GOOGLE_CALLBACK_URL') ||
         'https://api.lapollavirtual.com/api/auth/google/redirect',

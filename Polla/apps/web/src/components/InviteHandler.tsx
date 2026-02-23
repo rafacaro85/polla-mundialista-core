@@ -99,12 +99,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 toast.success(`¡Bienvenido a ${previewData?.name || explicitPreviewData?.name || 'la polla'}!`);
             }
 
-            // Clean up invite
-            localStorage.removeItem('pendingInviteCode');
-            document.cookie = "pendingInviteCode=; path=/; max-age=0";
-
             // Redirect with context
-            const targetId = data.league?.id || data.leagueId;
+            const targetId = data.league?.id || data.leagueId || previewData?.id || explicitPreviewData?.id;
             const targetUrl = targetId ? `/leagues/${targetId}` : '/dashboard';
             
             // Force tournament param to ensure context switch
@@ -122,7 +118,8 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                 toast.info('Ya eres miembro de esta polla.');
 
                 // Redirect anyway, ensuring tournament context
-                let leagueTournamentId = explicitPreviewData?.tournamentId || previewData?.tournamentId;
+                const dataToUse = explicitPreviewData || previewData;
+                let leagueTournamentId = dataToUse?.tournamentId;
                 
                 console.log('🔄 [InviteHandler] Already joined. Tournament ID:', leagueTournamentId);
 
@@ -133,8 +130,9 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
                     }
                 }
                 
-                const dataToUse = explicitPreviewData || previewData;
-                const targetUrl = dataToUse?.id ? `/leagues/${dataToUse.id}` : '/dashboard';
+                // CRITICAL FIX: Extraction of league ID for already joined users
+                const targetId = dataToUse?.id || dataToUse?.league?.id;
+                const targetUrl = targetId ? `/leagues/${targetId}` : '/dashboard';
                 const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
 
                 console.log('🚀 [InviteHandler] Redirecting (Already Joined) to:', redirectUrl);

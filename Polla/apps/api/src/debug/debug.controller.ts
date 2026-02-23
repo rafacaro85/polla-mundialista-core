@@ -7,6 +7,12 @@ import { DataSource } from 'typeorm';
 
 @Controller('debug')
 export class DebugController {
+  // Last updated: 2026-02-22T21:28:00Z - Forced deploy for leage detail fix
+  @Get('version')
+  getVersion() {
+    return { version: '2.0.debug-leagues-fix', timestamp: '2026-02-22T21:28:00Z' };
+  }
+
   constructor(
     @InjectRepository(BonusQuestion)
     private bonusQuestionRepository: Repository<BonusQuestion>,
@@ -56,7 +62,7 @@ export class DebugController {
         : [];
 
       const specificLeague = tables.includes('leagues')
-        ? await queryRunner.query('SELECT * FROM leagues WHERE id = $1', ['4b5f5caf-4f5c-49e6-9800-409f29081a46'])
+        ? await queryRunner.query('SELECT * FROM leagues WHERE id = $1', ['4b5f5caf-4f5c-49e6-9600-409f29081a46'])
         : [];
 
       return {

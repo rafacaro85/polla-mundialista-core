@@ -36,6 +36,7 @@ import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class LeaguesService {
+  // Forced redeploy: 2026-02-22T21:30:00Z
   constructor(
     @InjectRepository(League)
     private leaguesRepository: Repository<League>,

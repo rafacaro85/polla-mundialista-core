@@ -11,6 +11,7 @@ import {
   InternalServerErrorException,
   ForbiddenException,
   NotFoundException,
+  UnauthorizedException,
   Res,
   Put,
   Query,
@@ -95,10 +96,14 @@ export class LeaguesController {
     return this.leaguesService.getAllLeagues(tournamentId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getLeague(@Param('id') leagueId: string, @Req() req: Request) {
-    const userPayload = req.user as { id: string; userId?: string };
-    const userId = userPayload.userId || userPayload.id;
+    const userPayload = (req as any).user as { id: string; userId?: string };
+    const userId = userPayload?.userId || userPayload?.id;
+    if (!userId) {
+      throw new UnauthorizedException('Usuario no autenticado para esta operación');
+    }
     return this.leaguesService.getLeagueForUser(leagueId, userId);
   }
 
@@ -405,12 +410,13 @@ export class LeaguesController {
   }
 
 
+  @UseGuards(JwtAuthGuard)
   @Post('join')
   async joinLeague(@Req() req: Request, @Body() joinLeagueDto: JoinLeagueDto) {
-    const userPayload = req.user as { id: string; userId?: string }; // Explicitly cast
-    const userId = userPayload.userId || userPayload.id;
+    const userPayload = (req as any).user as { id: string; userId?: string };
+    const userId = userPayload?.userId || userPayload?.id;
     if (!userId) {
-      throw new InternalServerErrorException(
+      throw new UnauthorizedException(
         'User ID not found in request after authentication.',
       );
     }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import LeagueThemeProvider from './LeagueThemeProvider';
@@ -95,7 +96,7 @@ const getPlanLevel = (type?: string) => {
 };
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
-
+  const router = useRouter();
   const { tournamentId, isReady } = useTournament();
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
@@ -284,9 +285,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                         <Button 
                             variant="outline" 
                             className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
-                            onClick={() => setSelectedLeague('global')}
+                            onClick={() => {
+                                const url = currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
+                                router.push(url);
+                            }}
                         >
-                            Ir al Inicio
+                            Ir a Mis Pollas
                         </Button>
                     </div>
                 </div>
@@ -339,9 +343,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                         <Button 
                             variant="ghost" 
                             className="text-slate-500 hover:text-white text-xs underline"
-                            onClick={() => setSelectedLeague('global')}
+                            onClick={() => {
+                                const url = currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
+                                router.push(url);
+                            }}
                         >
-                            Volver al Inicio
+                            Volver a Mis Pollas
                         </Button>
                     </div>
                 </div>

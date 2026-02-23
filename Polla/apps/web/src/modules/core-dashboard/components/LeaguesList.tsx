@@ -166,7 +166,7 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                             onClick={() => router.push(`/leagues/${league.id}`)}
                                             className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-yellow-500/50 cursor-pointer flex items-center justify-center bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-[#0F172A] transition-all"
                                         >
-                                            {(league as any).hasPendingTransaction ? 'VALIDANDO' : 'POR PAGAR'}
+                                            {(league as any).hasPendingTransaction ? 'VALIDANDO' : 'PENDIENTE'}
                                         </button>
                                 ) : league.status === 'REJECTED' ? (
                                     <div className="flex gap-2">

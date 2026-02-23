@@ -303,10 +303,14 @@ function MisPollasContent() {
                       }`}
                   >
                       {league.status === 'PENDING' ? (
-                          league.hasPendingTransaction ? (
-                              <>Validando Pago <ChevronRight size={16} /></>
+                          league.admin === 'Tú' ? (
+                              league.hasPendingTransaction ? (
+                                  <>Validando Pago <ChevronRight size={16} /></>
+                              ) : (
+                                  <>Pagar para Activar <ChevronRight size={16} /></>
+                              )
                           ) : (
-                              <>Pagar para Activar <ChevronRight size={16} /></>
+                              <>Pendiente de Activación <ChevronRight size={16} /></>
                           )
                       ) : league.status === 'REJECTED' ? (
                           <>Reintentar Pago <ChevronRight size={16} /></>

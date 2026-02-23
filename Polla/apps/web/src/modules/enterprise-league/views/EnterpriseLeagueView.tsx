@@ -142,7 +142,7 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
                             className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
                             onClick={() => window.location.href = '/empresa/mis-pollas'}
                         >
-                            Ir al Inicio
+                            Ir a Mis Pollas
                         </Button>
                     </div>
                 </div>

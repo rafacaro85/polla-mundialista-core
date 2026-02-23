@@ -21,6 +21,7 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        console.log('🔥 INVITE HANDLER v4 - NUEVO CODIGO ACTIVO');
         // Consumir el invite pendiente inmediatamente para evitar bucles infinitos
         // si el dashboard redirige automáticamente aquí.
         if (typeof window !== 'undefined') {

@@ -13,7 +13,13 @@ import {
   Timer,
   ExternalLink,
   ChevronLeft,
-  Share2
+  Share2,
+  MoreVertical,
+  LayoutDashboard,
+  BarChart3,
+  Settings,
+  LogIn,
+  Trash2
 } from 'lucide-react';
 import { useLeagues } from '@/hooks/useLeagues';
 import { useAppStore } from '@/store/useAppStore';
@@ -24,6 +30,15 @@ import Link from 'next/link';
 import { HowItWorksSection } from '@/components/HowItWorksSection';
 import { MoneyCard } from '@/components/MoneyCard';
 import { MainHeader } from '@/components/MainHeader';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import api from '@/lib/api';
 
 function MisPollasContent() {
   const router = useRouter();
@@ -34,7 +49,7 @@ function MisPollasContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleShare = (league: any) => {
-    const shareUrl = `${window.location.origin}/leagues/join?code=${league.code}`;
+    const shareUrl = `${window.location.origin}/invite/${league.code}`;
     const message = `¡Hola! Te invito a unirte a mi polla *${league.name.toUpperCase()}* en La Polla Virtual. 🏆\n\nUsa este enlace para unirte directamente: ${shareUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -206,29 +221,88 @@ function MisPollasContent() {
                     </div>
                 </div>
 
-                {/* Botón de Ingreso */}
-                <button 
-                    onClick={() => router.push(`/leagues/${league.id}`)}
-                    className={`w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all ${
-                        league.status === 'PENDING' 
-                        ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 hover:bg-yellow-500 hover:text-[#050505]' 
-                        : league.status === 'REJECTED'
-                        ? 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white'
-                        : 'bg-white/5 border border-white/10 text-white hover:bg-[#00E676] hover:text-[#050505] hover:border-[#00E676]'
-                    }`}
-                >
-                    {league.status === 'PENDING' ? (
-                        league.hasPendingTransaction ? (
-                            <>Validando Pago <ChevronRight size={16} /></>
-                        ) : (
-                            <>Pagar para Activar <ChevronRight size={16} /></>
-                        )
-                    ) : league.status === 'REJECTED' ? (
-                        <>Reintentar Pago <ChevronRight size={16} /></>
-                    ) : (
-                        <>Ingresar <ChevronRight size={16} /></>
-                    )}
-                </button>
+                {/* Botón de Ingreso o Menú de Admin */}
+                {league.admin === 'Tú' ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest bg-[#00E676] text-[#050505] hover:bg-[#00C853] transition-all shadow-lg shadow-[#00E676]/10">
+                        Opciones de Admin <MoreVertical size={16} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[#1E293B] border-white/10 text-white w-56 p-2 rounded-2xl shadow-2xl z-[100]" align="end" side="top">
+                            <DropdownMenuLabel className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em] px-2 py-1.5">Acciones de la Polla</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            
+                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                <Link href={`/leagues/${league.id}`} className="flex items-center gap-3 w-full">
+                                    <LogIn size={16} /> <span className="font-bold">INGRESAR</span>
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full">
+                                    <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                <Link href={`/leagues/${league.id}/admin/analytics`} className="flex items-center gap-3 w-full">
+                                    <BarChart3 size={16} /> <span className="font-bold">ANALÍTICAS</span>
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                <Link href={`/leagues/${league.id}/admin/settings`} className="flex items-center gap-3 w-full">
+                                    <Settings size={16} /> <span className="font-bold">CONFIGURACIÓN</span>
+                                </Link>
+                            </DropdownMenuItem>
+
+                            {league.status === 'REJECTED' && (
+                                <>
+                                    <DropdownMenuSeparator className="bg-white/5" />
+                                    <DropdownMenuItem 
+                                        onClick={async () => {
+                                            if (!confirm('¿Eliminar esta liga?')) return;
+                                            try {
+                                                await api.delete(`/leagues/${league.id}`);
+                                                window.location.reload();
+                                            } catch (err) {
+                                                console.error('Error deleting league', err);
+                                                alert('Error al eliminar la liga');
+                                            }
+                                        }}
+                                        className="focus:bg-red-500 focus:text-white text-red-400 rounded-xl cursor-pointer py-3 flex items-center gap-3"
+                                    >
+                                        <Trash2 size={16} /> <span className="font-bold">ELIMINAR</span>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <button 
+                      onClick={() => router.push(`/leagues/${league.id}`)}
+                      className={`w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all ${
+                          league.status === 'PENDING' 
+                          ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 hover:bg-yellow-500 hover:text-[#050505]' 
+                          : league.status === 'REJECTED'
+                          ? 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white'
+                          : 'bg-white/5 border border-white/10 text-white hover:bg-[#00E676] hover:text-[#050505] hover:border-[#00E676]'
+                      }`}
+                  >
+                      {league.status === 'PENDING' ? (
+                          league.hasPendingTransaction ? (
+                              <>Validando Pago <ChevronRight size={16} /></>
+                          ) : (
+                              <>Pagar para Activar <ChevronRight size={16} /></>
+                          )
+                      ) : league.status === 'REJECTED' ? (
+                          <>Reintentar Pago <ChevronRight size={16} /></>
+                      ) : (
+                          <>Ingresar <ChevronRight size={16} /></>
+                      )}
+                  </button>
+                )}
               </div>
             ))}
           </div>

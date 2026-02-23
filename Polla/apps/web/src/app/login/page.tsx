@@ -42,6 +42,24 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
     }
     setLoading(true);
 
+    const getRedirectPath = () => {
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get('callbackUrl');
+      if (callbackUrl) return callbackUrl;
+
+      const cookieValue = (name: string) => {
+        const val = `; ${document.cookie}`;
+        const parts = val.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
+      };
+
+      const inviteCode = cookieValue('pendingInviteCode') || localStorage.getItem('pendingInviteCode');
+      if (inviteCode) return `/invite/${inviteCode}`;
+
+      return '/gateway';
+    };
+
     try {
       if (view === 'login') {
         // LOGIN FLOW
@@ -57,14 +75,8 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         }
 
         toast.success('¡Bienvenido de nuevo!');
-        toast.success('¡Bienvenido de nuevo!');
 
-        // LÓGICA DE REDIRECCIÓN INTELIGENTE (REVERTIDA)
-        // El usuario solicitó desbloquear esto para poder ver el dashboard
-        // y asegurar que el panel de control se cargue con los permisos correctos.
-        // if (data.user.role !== 'SUPER_ADMIN') { ... }
-
-        window.location.href = '/gateway';
+        window.location.href = getRedirectPath();
 
       } else if (view === 'register') {
         // REGISTER FLOW
@@ -104,7 +116,7 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
         }
 
         toast.success('¡Cuenta verificada exitosamente!');
-        window.location.href = '/gateway';
+        window.location.href = getRedirectPath();
 
       } else if (view === 'forgot') {
         // FORGOT PASSWORD FLOW
@@ -684,11 +696,16 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     // Limpiar completamente el localStorage y sessionStorage antes de iniciar sesión
+    // EXCEPTO el pendingInviteCode que es vital para la redirección post-login
+    const invite = localStorage.getItem('pendingInviteCode');
     localStorage.clear();
     sessionStorage.clear();
+    if (invite) localStorage.setItem('pendingInviteCode', invite);
 
     // Usar la función signInWithGoogle que tiene la URL correcta del backend
-    signInWithGoogle();
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get('callbackUrl');
+    signInWithGoogle(callbackUrl);
   };
 
   return <LoginScreen onGoogleLogin={handleGoogleLogin} />;

@@ -12,12 +12,21 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
     useEffect(() => {
         const load = async () => {
             try {
-                const [metaRes, rankRes, analyticsRes, matchesRes] = await Promise.all([
+                const results = await Promise.allSettled([
                     api.get(`/leagues/${leagueId}`),
                     api.get(`/leagues/${leagueId}/ranking`),
-                    api.get(`/leagues/${leagueId}/analytics`).catch(() => ({ data: { departmentRanking: [] } })),
-                    api.get(`/leagues/${leagueId}/matches`).catch(() => ({ data: [] }))
+                    api.get(`/leagues/${leagueId}/analytics`),
+                    api.get(`/leagues/${leagueId}/matches`)
                 ]);
+
+                const metaRes = results[0].status === 'fulfilled' ? results[0].value : null;
+                const rankRes = results[1].status === 'fulfilled' ? results[1].value : { data: [] };
+                const analyticsRes = results[2].status === 'fulfilled' ? results[2].value : { data: { departmentRanking: [] } };
+                const matchesRes = results[3].status === 'fulfilled' ? results[3].value : { data: { matches: [] } };
+
+                if (!metaRes) {
+                    throw new Error('No se pudo cargar la información core de la liga');
+                }
 
                 const participants = Array.isArray(rankRes.data) ? rankRes.data.map((item: any, index: number) => ({
                     id: item.userId || item.id || item.user?.id,
@@ -32,10 +41,10 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
                     league: metaRes.data, 
                     participants, 
                     analytics: analyticsRes.data,
-                    matches: matchesRes.data.matches || matchesRes.data || []
+                    matches: (matchesRes.data?.matches || matchesRes.data || [])
                 });
             } catch (e) {
-                console.error(e);
+                console.error('❌ [EnterpriseLeagueView] Error fatídico:', e);
             }
         };
         load();

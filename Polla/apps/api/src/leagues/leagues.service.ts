@@ -393,6 +393,8 @@ export class LeaguesService {
       brandColorText: league.brandColorText,
       brandFontFamily: league.brandFontFamily,
       brandCoverUrl: league.brandCoverUrl,
+      brandColorHeading: league.brandColorHeading,
+      brandColorBars: league.brandColorBars,
       welcomeMessage: league.welcomeMessage,
       prizeImageUrl: league.prizeImageUrl,
       prizeDetails: league.prizeDetails,
@@ -739,6 +741,8 @@ export class LeaguesService {
         isPaid: participant.league.isPaid,
         maxParticipants: participant.league.maxParticipants,
         packageType: participant.league.packageType,
+        brandColorHeading: participant.league.brandColorHeading,
+        brandColorBars: participant.league.brandColorBars,
         // Missing fields essential for Admin Panels Hydration
         enableDepartmentWar: participant.league.enableDepartmentWar,
         socialInstagram: participant.league.socialInstagram,
@@ -797,6 +801,8 @@ export class LeaguesService {
           isPaid: league.isPaid,
           maxParticipants: league.maxParticipants,
           packageType: league.packageType,
+          brandColorHeading: league.brandColorHeading,
+          brandColorBars: league.brandColorBars,
           // Missing fields essential for Admin Panels Hydration
           enableDepartmentWar: league.enableDepartmentWar,
           socialInstagram: league.socialInstagram,
@@ -1143,6 +1149,10 @@ export class LeaguesService {
       league.brandFontFamily = updateLeagueDto.brandFontFamily;
     if (updateLeagueDto.brandCoverUrl !== undefined)
       league.brandCoverUrl = updateLeagueDto.brandCoverUrl;
+    if (updateLeagueDto.brandColorHeading !== undefined)
+      league.brandColorHeading = updateLeagueDto.brandColorHeading;
+    if (updateLeagueDto.brandColorBars !== undefined)
+      league.brandColorBars = updateLeagueDto.brandColorBars;
     if (updateLeagueDto.enableDepartmentWar !== undefined)
       league.enableDepartmentWar = updateLeagueDto.enableDepartmentWar;
 

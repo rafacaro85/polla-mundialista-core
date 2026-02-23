@@ -30,6 +30,23 @@ export class DebugController {
       const config = this.dataSource.options as any;
       const maskedUrl = config.url ? config.url.replace(/:[^:@]+@/, ':***@') : 'N/A';
       
+      const tablesRaw = await queryRunner.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+      `);
+      const tables = tablesRaw.map((t: any) => t.table_name);
+
+      const counts: Record<string, number> = {};
+      if (tables.includes('leagues')) {
+        const leagueCount = await queryRunner.query('SELECT COUNT(*) FROM leagues');
+        counts['leagues'] = Number(leagueCount[0].count);
+      }
+      if (tables.includes('users')) {
+        const userCount = await queryRunner.query('SELECT COUNT(*) FROM users');
+        counts['users'] = Number(userCount[0].count);
+      }
+
       return {
         database: config.database || 'N/A',
         host: config.host || 'N/A',
@@ -37,6 +54,8 @@ export class DebugController {
         tableName: table?.name,
         columnsCount: columns?.length,
         brandColorHeadingExists: columns?.some(c => c.name === 'brand_color_heading'),
+        tables: tables,
+        counts: counts,
         columns: columns
       };
     } catch (e) {

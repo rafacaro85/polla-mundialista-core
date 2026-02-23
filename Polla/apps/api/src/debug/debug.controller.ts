@@ -114,10 +114,35 @@ export class DebugController {
         "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'",
       );
 
+      // EMERGENCY: Create missing tables for prizes and banners
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS league_prizes (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          league_id UUID NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          image_url VARCHAR(255),
+          position INT DEFAULT 1,
+          CONSTRAINT fk_league_prize FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+        )
+      `);
+
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS league_banners (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          league_id UUID NOT NULL,
+          image_url VARCHAR(255) NOT NULL,
+          link_url VARCHAR(255),
+          position INT DEFAULT 1,
+          is_active BOOLEAN DEFAULT true,
+          CONSTRAINT fk_league_banner FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+        )
+      `);
+
       return {
         success: true,
         message:
-          'Columnas creadas/verificadas con éxito desde el proceso del API.',
+          'Columnas y tablas (prizes/banners) verificadas/creadas con éxito.',
       };
     } catch (e) {
       return {

@@ -661,38 +661,46 @@ export class LeaguesService {
 
       const participants = await query.getMany();
 
-      const result = participants.map((p) => ({
-        id: p.league.id,
-        name: p.league.name,
-        code: p.league.accessCodePrefix,
-        type: p.league.type,
-        isAdmin: p.isAdmin,
-        creatorName:
-          p.league.creator?.nickname || p.league.creator?.fullName || 'Admin',
-        participantCount: p.league.participants?.length || 0,
-        isEnterprise: p.league.isEnterprise,
-        isEnterpriseActive: p.league.isEnterpriseActive,
-        companyName: p.league.companyName,
-        brandingLogoUrl: p.league.brandingLogoUrl,
-        brandColorPrimary: p.league.brandColorPrimary,
-        brandColorSecondary: p.league.brandColorSecondary,
-        brandColorBg: p.league.brandColorBg,
-        brandColorText: p.league.brandColorText,
-        brandFontFamily: p.league.brandFontFamily,
-        brandCoverUrl: p.league.brandCoverUrl,
-        welcomeMessage: p.league.welcomeMessage,
-        prizeImageUrl: p.league.prizeImageUrl,
-        prizeDetails: p.league.prizeDetails,
-        prizeType: p.league.prizeType,
-        prizeAmount:
-          p.league.prizeAmount != null ? Number(p.league.prizeAmount) : null,
-        isPaid: p.league.isPaid,
-        packageType: p.league.packageType,
-        showAds: p.league.showAds,
-        adImages: p.league.adImages,
-        userStatus: p.status, // EXPOSE STATUS with consistent name
-        tournamentId: p.league.tournamentId,
-      }));
+      const result = participants.map((p) => {
+        // Calculate pending requests only if user is Admin of the league
+        const pendingRequestsCount = p.isAdmin 
+          ? p.league.participants?.filter(lp => lp.status === LeagueParticipantStatus.PENDING).length || 0
+          : 0;
+
+        return {
+          id: p.league.id,
+          name: p.league.name,
+          code: p.league.accessCodePrefix,
+          type: p.league.type,
+          isAdmin: p.isAdmin,
+          creatorName:
+            p.league.creator?.nickname || p.league.creator?.fullName || 'Admin',
+          participantCount: p.league.participants?.length || 0,
+          pendingRequestsCount, // NEW FIELD
+          isEnterprise: p.league.isEnterprise,
+          isEnterpriseActive: p.league.isEnterpriseActive,
+          companyName: p.league.companyName,
+          brandingLogoUrl: p.league.brandingLogoUrl,
+          brandColorPrimary: p.league.brandColorPrimary,
+          brandColorSecondary: p.league.brandColorSecondary,
+          brandColorBg: p.league.brandColorBg,
+          brandColorText: p.league.brandColorText,
+          brandFontFamily: p.league.brandFontFamily,
+          brandCoverUrl: p.league.brandCoverUrl,
+          welcomeMessage: p.league.welcomeMessage,
+          prizeImageUrl: p.league.prizeImageUrl,
+          prizeDetails: p.league.prizeDetails,
+          prizeType: p.league.prizeType,
+          prizeAmount:
+            p.league.prizeAmount != null ? Number(p.league.prizeAmount) : null,
+          isPaid: p.league.isPaid,
+          packageType: p.league.packageType,
+          showAds: p.league.showAds,
+          adImages: p.league.adImages,
+          userStatus: p.status, // EXPOSE STATUS with consistent name
+          tournamentId: p.league.tournamentId,
+        };
+      });
 
       // OPTIMIZACION: Fetch pending transactions for all leagues at once or in parallel
       const finalResult = await Promise.all(

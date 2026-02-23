@@ -26,6 +26,7 @@ export interface League {
     prizeAmount?: number;
     brandingLogoUrl?: string;
     hasPendingTransaction?: boolean;
+    pendingRequestsCount?: number;
 }
 
 export const useLeagues = () => {
@@ -65,7 +66,8 @@ export const useLeagues = () => {
                 prizeType: l.prizeType,
                 prizeAmount: l.prizeAmount,
                 brandingLogoUrl: l.brandingLogoUrl,
-                hasPendingTransaction: l.hasPendingTransaction
+                hasPendingTransaction: l.hasPendingTransaction,
+                pendingRequestsCount: l.pendingRequestsCount || 0
             }));
 
             setLeagues(mappedLeagues);

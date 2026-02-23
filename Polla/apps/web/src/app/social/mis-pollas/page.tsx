@@ -225,8 +225,13 @@ function MisPollasContent() {
                 {league.admin === 'Tú' ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest bg-[#00E676] text-[#050505] hover:bg-[#00C853] transition-all shadow-lg shadow-[#00E676]/10">
+                      <button className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest bg-[#00E676] text-[#050505] hover:bg-[#00C853] transition-all shadow-lg shadow-[#00E676]/10 relative">
                         Opciones de Admin <MoreVertical size={16} />
+                        {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-[#1E293B] animate-bounce">
+                            {league.pendingRequestsCount}
+                          </span>
+                        )}
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-[#1E293B] border-white/10 text-white w-56 p-2 rounded-2xl shadow-2xl z-[100]" align="end" side="top">
@@ -240,8 +245,15 @@ function MisPollasContent() {
                             </DropdownMenuItem>
 
                             <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full">
-                                    <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                    </div>
+                                    {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
+                                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                                            {league.pendingRequestsCount}
+                                        </span>
+                                    )}
                                 </Link>
                             </DropdownMenuItem>
 

@@ -155,8 +155,13 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                 {league.isAdmin ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)]">
+                            <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)] relative">
                                 Opciones de Admin <MoreVertical size={14} />
+                                {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
+                                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border-2 border-[#1E293B] animate-bounce">
+                                    {league.pendingRequestsCount}
+                                  </span>
+                                )}
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-[#1E293B] border-white/10 text-white w-56 p-2 rounded-2xl shadow-2xl z-[100]" align="end" side="top">
@@ -176,8 +181,15 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                             </DropdownMenuItem>
 
                             <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full">
-                                    <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                    </div>
+                                    {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
+                                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                                            {league.pendingRequestsCount}
+                                        </span>
+                                    )}
                                 </Link>
                             </DropdownMenuItem>
 

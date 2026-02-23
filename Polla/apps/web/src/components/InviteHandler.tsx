@@ -101,12 +101,14 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             }
 
             // Redirect with context
-            const targetId = data.league?.id || data.leagueId || previewData?.id || explicitPreviewData?.id;
+            // RECOMIENDO: Priorizar previewData.id si el join no devuelve la liga cargada
+            const targetId = data.league?.id || data.leagueId || previewData?.id || explicitPreviewData?.id || data.id;
             const targetUrl = targetId ? `/leagues/${targetId}` : '/dashboard';
             
             // Force tournament param to ensure context switch
             const redirectUrl = leagueTournamentId ? `${targetUrl}?tournament=${leagueTournamentId}` : targetUrl;
             
+            console.log('🔍 [InviteHandler] Success join. targetId:', targetId);
             console.log('🚀 [InviteHandler] Redirecting to:', redirectUrl);
             window.location.href = redirectUrl; 
 

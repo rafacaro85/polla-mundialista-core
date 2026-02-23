@@ -114,15 +114,21 @@ export class DebugController {
         "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'",
       );
 
-      // EMERGENCY: Create missing tables for prizes and banners
+      // EMERGENCY: Create missing tables for prizes and banners with correct schema
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS league_prizes (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           league_id UUID NOT NULL,
-          name VARCHAR(255) NOT NULL,
-          description TEXT,
-          image_url VARCHAR(255),
-          position INT DEFAULT 1,
+          type VARCHAR(50) DEFAULT 'image',
+          badge VARCHAR(255),
+          name VARCHAR(255),
+          image_url TEXT,
+          amount DECIMAL(15,2),
+          top_label VARCHAR(255),
+          bottom_label VARCHAR(255),
+          "order" INT DEFAULT 0,
+          created_at TIMESTAMP DEFAULT now(),
+          updated_at TIMESTAMP DEFAULT now(),
           CONSTRAINT fk_league_prize FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
         )
       `);
@@ -131,18 +137,42 @@ export class DebugController {
         CREATE TABLE IF NOT EXISTS league_banners (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           league_id UUID NOT NULL,
-          image_url VARCHAR(255) NOT NULL,
-          link_url VARCHAR(255),
-          position INT DEFAULT 1,
-          is_active BOOLEAN DEFAULT true,
+          image_url TEXT NOT NULL,
+          title VARCHAR(255),
+          description TEXT,
+          tag VARCHAR(100),
+          button_text VARCHAR(100),
+          button_url TEXT,
+          "order" INT DEFAULT 0,
+          created_at TIMESTAMP DEFAULT now(),
+          updated_at TIMESTAMP DEFAULT now(),
           CONSTRAINT fk_league_banner FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
         )
       `);
 
+      // Add missing columns to leagues if they don't exist (from previous fix)
+      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT '#FFFFFF'");
+      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'");
+
+      // ALSO: Alter existing tables if they were created with the wrong schema
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'image'");
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS badge VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS amount DECIMAL(15,2)");
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS top_label VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS bottom_label VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS \"order\" INT DEFAULT 0");
+      
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS title VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS description TEXT");
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS tag VARCHAR(100)");
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS button_text VARCHAR(100)");
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS button_url TEXT");
+      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS \"order\" INT DEFAULT 0");
+
       return {
         success: true,
         message:
-          'Columnas y tablas (prizes/banners) verificadas/creadas con éxito.',
+          'Columnas y tablas (prizes/banners) verificadas/reparadas con éxito.',
       };
     } catch (e) {
       return {

@@ -688,7 +688,7 @@ export class LeaguesService {
         packageType: p.league.packageType,
         showAds: p.league.showAds,
         adImages: p.league.adImages,
-        status: p.status, // EXPOSE STATUS
+        userStatus: p.status, // EXPOSE STATUS with consistent name
         tournamentId: p.league.tournamentId,
       }));
 

@@ -112,6 +112,44 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
         );
     }
 
+    if (data.league.userStatus === 'PENDING') {
+        const currentLeague = data.league;
+        return (
+            <div className="absolute inset-0 z-50 bg-[#0F172A] flex items-start justify-center pt-24 p-6 text-center animate-in fade-in duration-500">
+                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden flex flex-col items-center justify-center">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50"></div>
+                    
+                    <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                        <Shield className="w-8 h-8 text-orange-500" />
+                    </div>
+                    
+                    <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
+                        SOLICITUD <span className="text-orange-500">RECIBIDA</span>
+                    </h2>
+                    
+                    <p className="text-slate-400 mb-6 text-sm leading-relaxed">
+                        Tu solicitud para unirte a <span className="text-white font-bold">{currentLeague.name}</span> ha sido recibida exitosamente.
+                    </p>
+
+                    <div className="bg-orange-500/5 border border-orange-500/10 rounded-2xl p-4 mb-6">
+                        <p className="text-xs text-orange-500 font-bold uppercase tracking-widest">Estado: Pendiente de Activación</p>
+                        <p className="text-[10px] text-slate-500 mt-1">El administrador debe confirmar tu ingreso para que puedas empezar a jugar.</p>
+                    </div>
+                    
+                    <div className="flex flex-col gap-3 w-full">
+                        <Button 
+                            variant="outline" 
+                            className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
+                            onClick={() => window.location.href = '/empresa/mis-pollas'}
+                        >
+                            Ir al Inicio
+                        </Button>
+                    </div>
+                </div>
+             </div>
+        );
+    }
+
     return (
         <div className="w-full min-h-screen bg-[#0F172A]">
             <EnterpriseLeagueHome 

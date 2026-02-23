@@ -134,7 +134,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const isRejected = userStatus === 'REJECTED';
     const isPendingApproval = userStatus === 'PENDING' && !isEnterprise; // Enterprise has its own timer screen
 
-    if (isRejected || isPendingApproval) {
+    if (isRejected) {
         const getAmount = () => {
             const type = (league.packageType || '').toLowerCase();
             if (type === 'bronze' || type === 'enterprise_bronze') return 100000;

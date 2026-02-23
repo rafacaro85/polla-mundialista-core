@@ -47,15 +47,28 @@ export class DebugController {
         counts['users'] = Number(userCount[0].count);
       }
 
+      const sampleLeagues = tables.includes('leagues') 
+        ? await queryRunner.query('SELECT id, name FROM leagues LIMIT 5')
+        : [];
+      
+      const sampleUsers = tables.includes('users')
+        ? await queryRunner.query('SELECT id, email FROM users LIMIT 5')
+        : [];
+
+      const specificLeague = tables.includes('leagues')
+        ? await queryRunner.query('SELECT * FROM leagues WHERE id = $1', ['4b5f5caf-4f5c-49e6-9800-409f29081a46'])
+        : [];
+
       return {
         database: config.database || 'N/A',
         host: config.host || 'N/A',
         url: maskedUrl,
         tableName: table?.name,
-        columnsCount: columns?.length,
-        brandColorHeadingExists: columns?.some(c => c.name === 'brand_color_heading'),
-        tables: tables,
         counts: counts,
+        sampleLeagues,
+        sampleUsers,
+        specificLeague: specificLeague[0] || 'NOT_FOUND',
+        brandColorHeadingExists: columns?.some(c => c.name === 'brand_color_heading'),
         columns: columns
       };
     } catch (e) {

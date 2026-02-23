@@ -11,8 +11,8 @@ async function run() {
     await client.connect();
     console.log('--- Inspeccionando Liga y Creador ---');
     
-    const leagueId = 'ac6b7be9-d19a-4bd5-948b-1ae59c67696e';
-    const res = await client.query('SELECT id, name, creator_id, status, is_paid FROM leagues WHERE id = $1', [leagueId]);
+    const leagueId = '4b5f5caf-4f5c-49e6-9800-409f29081a46';
+    const res = await client.query('SELECT id, name, creator_id, status FROM leagues WHERE id = $1', [leagueId]);
 
     if (res.rows.length > 0) {
       const league = res.rows[0];

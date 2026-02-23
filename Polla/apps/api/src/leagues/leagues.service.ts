@@ -229,7 +229,7 @@ export class LeaguesService {
           0,
           packageType,
           savedLeague.id,
-          targetTournamentId,
+          tournamentId || 'WC2026',
           TransactionStatus.PAID,
         );
       }
@@ -705,125 +705,138 @@ export class LeaguesService {
   }
 
   async getLeagueForUser(leagueId: string, userId: string) {
-    const participant = await this.leagueParticipantsRepository.findOne({
-      where: { league: { id: leagueId }, user: { id: userId } },
-      relations: ['league', 'league.creator', 'league.participants', 'league.prizes', 'league.banners'],
-    });
-
-    // 2. If participant found, return standard format
-    if (participant) {
-      return {
-        id: participant.league.id,
-        name: participant.league.name,
-        code: participant.league.accessCodePrefix,
-        type: participant.league.type,
-        isAdmin: participant.isAdmin,
-        creatorName:
-          participant.league.creator.nickname ||
-          participant.league.creator.fullName,
-        participantCount: participant.league.participants?.length || 0,
-        isEnterprise: participant.league.isEnterprise,
-        isEnterpriseActive: participant.league.isEnterpriseActive,
-        companyName: participant.league.companyName,
-        brandingLogoUrl: participant.league.brandingLogoUrl,
-        brandColorPrimary: participant.league.brandColorPrimary,
-        brandColorSecondary: participant.league.brandColorSecondary,
-        brandColorBg: participant.league.brandColorBg,
-        brandColorText: participant.league.brandColorText,
-        brandFontFamily: participant.league.brandFontFamily,
-        brandCoverUrl: participant.league.brandCoverUrl,
-        welcomeMessage: participant.league.welcomeMessage,
-        prizeImageUrl: participant.league.prizeImageUrl,
-        prizeDetails: participant.league.prizeDetails,
-        prizeType: participant.league.prizeType,
-        prizeAmount: participant.league.prizeAmount != null ? Number(participant.league.prizeAmount) : null,
-        status: participant.league.status,
-        isPaid: participant.league.isPaid,
-        maxParticipants: participant.league.maxParticipants,
-        packageType: participant.league.packageType,
-        brandColorHeading: participant.league.brandColorHeading,
-        brandColorBars: participant.league.brandColorBars,
-        // Missing fields essential for Admin Panels Hydration
-        enableDepartmentWar: participant.league.enableDepartmentWar,
-        socialInstagram: participant.league.socialInstagram,
-        socialFacebook: participant.league.socialFacebook,
-        socialWhatsapp: participant.league.socialWhatsapp,
-        socialYoutube: participant.league.socialYoutube,
-        socialTiktok: participant.league.socialTiktok,
-        socialLinkedin: participant.league.socialLinkedin,
-        socialWebsite: participant.league.socialWebsite,
-        showAds: participant.league.showAds,
-        adImages: participant.league.adImages,
-        banners: participant.league.banners || [],
-        prizes: participant.league.prizes || [],
-        userStatus: participant.status, // EXPOSE USER STATUS
-        // check for pending transaction
-        hasPendingTransaction: await this.transactionsService.findLatestLeagueTransaction(userId, leagueId).then(tx => tx?.status === TransactionStatus.PENDING),
-      };
-    }
-
-    // 3. If not participant, check if SUPER_ADMIN
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (user?.role === UserRole.SUPER_ADMIN) {
-      const league = await this.leaguesRepository.findOne({
-        where: { id: leagueId },
-        relations: ['creator', 'participants', 'participants.user', 'prizes', 'banners'],
+    try {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: userId } },
+        relations: ['league', 'league.creator', 'league.participants', 'league.prizes', 'league.banners'],
       });
 
-      if (league) {
-        // Even for Super Admin, try to find if they are a participant to get their actual status (e.g. REJECTED)
-        const actualParticipant = league.participants?.find(p => p.user?.id === userId);
-        
+      // 2. If participant found, return standard format
+      if (participant) {
+        if (!participant.league) {
+          throw new NotFoundException('Detalles de la polla asociados al participante no encontrados');
+        }
+
         return {
-          id: league.id,
-          name: league.name,
-          code: league.accessCodePrefix,
-          type: league.type,
-          isAdmin: true, // Super Admin is effectively an admin
-          creatorName: league.creator.nickname || league.creator.fullName,
-          participantCount: league.participants?.length || 0,
-          isEnterprise: league.isEnterprise,
-          isEnterpriseActive: league.isEnterpriseActive,
-          companyName: league.companyName,
-          brandingLogoUrl: league.brandingLogoUrl,
-          brandColorPrimary: league.brandColorPrimary,
-          brandColorSecondary: league.brandColorSecondary,
-          brandColorBg: league.brandColorBg,
-          brandColorText: league.brandColorText,
-          brandFontFamily: league.brandFontFamily,
-          brandCoverUrl: league.brandCoverUrl,
-          welcomeMessage: league.welcomeMessage,
-          prizeImageUrl: league.prizeImageUrl,
-          prizeDetails: league.prizeDetails,
-          prizeType: league.prizeType,
-          prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
-          status: league.status,
-          isPaid: league.isPaid,
-          maxParticipants: league.maxParticipants,
-          packageType: league.packageType,
-          brandColorHeading: league.brandColorHeading,
-          brandColorBars: league.brandColorBars,
+          id: participant.league.id,
+          name: participant.league.name,
+          code: participant.league.accessCodePrefix,
+          type: participant.league.type,
+          isAdmin: participant.isAdmin,
+          creatorName:
+            participant.league.creator?.nickname ||
+            participant.league.creator?.fullName || 'N/A',
+          participantCount: participant.league.participants?.length || 0,
+          isEnterprise: participant.league.isEnterprise,
+          isEnterpriseActive: participant.league.isEnterpriseActive,
+          companyName: participant.league.companyName,
+          brandingLogoUrl: participant.league.brandingLogoUrl,
+          brandColorPrimary: participant.league.brandColorPrimary,
+          brandColorSecondary: participant.league.brandColorSecondary,
+          brandColorBg: participant.league.brandColorBg,
+          brandColorText: participant.league.brandColorText,
+          brandFontFamily: participant.league.brandFontFamily,
+          brandCoverUrl: participant.league.brandCoverUrl,
+          welcomeMessage: participant.league.welcomeMessage,
+          prizeImageUrl: participant.league.prizeImageUrl,
+          prizeDetails: participant.league.prizeDetails,
+          prizeType: participant.league.prizeType,
+          prizeAmount: participant.league.prizeAmount != null ? Number(participant.league.prizeAmount) : null,
+          status: participant.league.status,
+          isPaid: participant.league.isPaid,
+          maxParticipants: participant.league.maxParticipants,
+          packageType: participant.league.packageType,
+          brandColorHeading: participant.league.brandColorHeading,
+          brandColorBars: participant.league.brandColorBars,
           // Missing fields essential for Admin Panels Hydration
-          enableDepartmentWar: league.enableDepartmentWar,
-          socialInstagram: league.socialInstagram,
-          socialFacebook: league.socialFacebook,
-          socialWhatsapp: league.socialWhatsapp,
-          socialYoutube: league.socialYoutube,
-          socialTiktok: league.socialTiktok,
-          socialLinkedin: league.socialLinkedin,
-          socialWebsite: league.socialWebsite,
-          showAds: league.showAds,
-          adImages: league.adImages,
-          banners: league.banners || [],
-          prizes: league.prizes || [],
-          userStatus: actualParticipant ? actualParticipant.status : 'ACTIVE',
+          enableDepartmentWar: participant.league.enableDepartmentWar,
+          socialInstagram: participant.league.socialInstagram,
+          socialFacebook: participant.league.socialFacebook,
+          socialWhatsapp: participant.league.socialWhatsapp,
+          socialYoutube: participant.league.socialYoutube,
+          socialTiktok: participant.league.socialTiktok,
+          socialLinkedin: participant.league.socialLinkedin,
+          socialWebsite: participant.league.socialWebsite,
+          showAds: participant.league.showAds,
+          adImages: participant.league.adImages,
+          banners: participant.league.banners || [],
+          prizes: participant.league.prizes || [],
+          userStatus: participant.status,
+          // check for pending transaction with safety
+          hasPendingTransaction: await this.transactionsService
+            .findLatestLeagueTransaction(userId, leagueId)
+            .then((tx) => tx?.status === TransactionStatus.PENDING)
+            .catch(() => false),
         };
       }
-    }
 
-    throw new NotFoundException(
-      'League not found or user is not a participant',
-    );
+      // 3. If not participant, check if SUPER_ADMIN
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (user?.role === UserRole.SUPER_ADMIN) {
+        const league = await this.leaguesRepository.findOne({
+          where: { id: leagueId },
+          relations: ['creator', 'participants', 'participants.user', 'prizes', 'banners'],
+        });
+
+        if (league) {
+          // Even for Super Admin, try to find if they are a participant to get their actual status (e.g. REJECTED)
+          const actualParticipant = league.participants?.find(p => p.user?.id === userId);
+          
+          return {
+            id: league.id,
+            name: league.name,
+            code: league.accessCodePrefix,
+            type: league.type,
+            isAdmin: true, // Super Admin is effectively an admin
+            creatorName: league.creator?.nickname || league.creator?.fullName || 'N/A',
+            participantCount: league.participants?.length || 0,
+            isEnterprise: league.isEnterprise,
+            isEnterpriseActive: league.isEnterpriseActive,
+            companyName: league.companyName,
+            brandingLogoUrl: league.brandingLogoUrl,
+            brandColorPrimary: league.brandColorPrimary,
+            brandColorSecondary: league.brandColorSecondary,
+            brandColorBg: league.brandColorBg,
+            brandColorText: league.brandColorText,
+            brandFontFamily: league.brandFontFamily,
+            brandCoverUrl: league.brandCoverUrl,
+            welcomeMessage: league.welcomeMessage,
+            prizeImageUrl: league.prizeImageUrl,
+            prizeDetails: league.prizeDetails,
+            prizeType: league.prizeType,
+            prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
+            status: league.status,
+            isPaid: league.isPaid,
+            maxParticipants: league.maxParticipants,
+            packageType: league.packageType,
+            brandColorHeading: league.brandColorHeading,
+            brandColorBars: league.brandColorBars,
+            // Missing fields essential for Admin Panels Hydration
+            enableDepartmentWar: league.enableDepartmentWar,
+            socialInstagram: league.socialInstagram,
+            socialFacebook: league.socialFacebook,
+            socialWhatsapp: league.socialWhatsapp,
+            socialYoutube: league.socialYoutube,
+            socialTiktok: league.socialTiktok,
+            socialLinkedin: league.socialLinkedin,
+            socialWebsite: league.socialWebsite,
+            showAds: league.showAds,
+            adImages: league.adImages,
+            banners: league.banners || [],
+            prizes: league.prizes || [],
+            userStatus: actualParticipant ? actualParticipant.status : 'ACTIVE',
+          };
+        }
+      }
+
+      throw new NotFoundException(
+        'League not found or user is not a participant',
+      );
+    } catch (error) {
+      console.error(`❌ Error in getLeagueForUser (ID: ${leagueId}, User: ${userId}):`, error);
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException(`Error al cargar los detalles de la polla: ${error.message}`);
+    }
   }
 
   async getLeagueRanking(leagueId: string, userId: string) {

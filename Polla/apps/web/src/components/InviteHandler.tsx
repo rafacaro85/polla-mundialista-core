@@ -118,13 +118,19 @@ export default function InviteHandler({ code }: InviteHandlerProps) {
             console.log('🔍 [InviteHandler] Error Message:', msg);
             console.log('🔍 [InviteHandler] Error Response Data:', responseData);
 
-            // Handle "Already joined"
-            if (msg.includes('ya eres miembro') || msg.includes('already a member')) {
+            // Handle "Already joined" or "Already participant"
+            const lowercaseMsg = String(msg).toLowerCase();
+            if (
+                lowercaseMsg.includes('ya eres miembro') || 
+                lowercaseMsg.includes('already a member') || 
+                lowercaseMsg.includes('ya eres participante') ||
+                error.response?.status === 409
+            ) {
                 // Redirect anyway, ensuring tournament context
                 const dataToUse = explicitPreviewData || previewData;
                 let leagueTournamentId = dataToUse?.tournamentId;
                 
-                console.log('🔄 [InviteHandler] Already joined. Silent redirection.');
+                console.log('🔄 [InviteHandler] Already joined/participant. Silent redirection.');
                 console.log('🔍 [InviteHandler] tournamentId from preview:', leagueTournamentId);
 
                 if (leagueTournamentId) {

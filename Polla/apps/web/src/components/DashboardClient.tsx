@@ -250,72 +250,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           />
         )}
 
-        {/* ESTATUS DE PAGO (NUEVO) */}
-        {user && !isEnterpriseMode && currentLeague && !currentLeague.isPaid && (
-          <PaymentStatusCard
-            user={user}
-            pendingTransaction={latestTransaction}
-          />
-        )}
+        {/* ESTATUS DE PAGO (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
 
-        {/* BLOQUEO DE PAGO PENDIENTE (Payment Lock) */}
-        {currentLeague && currentLeague.isPaid === false && !currentLeague.isEnterpriseActive && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (
-          <PaymentLockOverlay
-            leagueName={currentLeague.name}
-            leagueId={currentLeague.id}
-            amount={
-              // Map packageType to price
-              (() => {
-                const type = currentLeague.packageType?.toLowerCase();
-                // Social Plans
-                if (type === 'parche' || type === 'amateur') return 30000;
-                if (type === 'amigos' || type === 'semi-pro') return 80000;
-                if (type === 'lider' || type === 'pro') return 180000;
-                if (type === 'influencer' || type === 'elite') return 350000;
 
-                // Enterprise Plans
-                if (type === 'enterprise_bronze' || type === 'bronze') return 100000;
-                if (type === 'enterprise_silver' || type === 'silver') return 175000;
-                if (type === 'enterprise_gold' || type === 'gold') return 450000;
-                if (type === 'enterprise_platinum' || type === 'platinum') return 750000;
-                if (type === 'enterprise_diamond' || type === 'diamond') return 1000000;
+        {/* BLOQUEO DE PAGO PENDIENTE (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
+        {/* El usuario prefiere que se pueda ingresar y ver el banner de estado en lugar de un bloqueo total */}
 
-                return 50000; // Default fallback
-              })()
-            }
-          />
-        )}
 
-        {/* PENDING APPROVAL LOCK */}
-        {currentLeague && currentLeague.userStatus === 'PENDING' && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (
-             <div className="absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-sm flex items-start justify-center pt-24 p-6 text-center animate-in fade-in duration-500">
-                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden flex flex-col items-center justify-center">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50"></div>
-                    
-                    <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
-                        <Shield className="w-8 h-8 text-orange-500" />
-                    </div>
-                    
-                    <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
-                        SOLICITUD <span className="text-orange-500">ENVIADA</span>
-                    </h2>
-                    
-                    <p className="text-slate-400 mb-6 text-sm leading-relaxed">
-                        Tu solicitud para unirte a la polla <span className="text-white font-bold">{currentLeague.name}</span> está pendiente de aprobación por el administrador.
-                    </p>
-                    
-                    <div className="flex flex-col gap-3">
-                        <Button 
-                            variant="outline" 
-                            className="bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
-                            onClick={() => setSelectedLeague('global')}
-                        >
-                            Volver al Inicio
-                        </Button>
-                    </div>
-                </div>
-             </div>
-        )}
+        {/* PENDING APPROVAL LOCK (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
+
 
         {/* REJECTED STATUS LOCK */}
         {currentLeague && currentLeague.userStatus === 'REJECTED' && selectedLeagueId !== 'global' && (

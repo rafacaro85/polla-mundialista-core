@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
+// [REDEPLOY FORCE] v1.0.1 - Triggering build for invitation fixes
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);

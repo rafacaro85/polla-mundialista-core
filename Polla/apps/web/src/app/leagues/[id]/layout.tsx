@@ -216,17 +216,37 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     // 3c. Check if pending activation (only for non-rejected enterprise)
     const isSuperAdmin = user?.role === 'SUPER_ADMIN';
     if (isEnterprise && !league.isEnterpriseActive && !isSuperAdmin) {
+        const getAmount = () => {
+            const type = (league.packageType || '').toLowerCase();
+            if (type === 'bronze' || type === 'enterprise_bronze') return 100000;
+            if (type === 'silver' || type === 'enterprise_silver') return 175000;
+            if (type === 'gold' || type === 'enterprise_gold') return 450000;
+            if (type === 'platinum' || type === 'enterprise_platinum') return 750000;
+            if (type === 'diamond' || type === 'enterprise_diamond') return 1000000;
+            return 100000;
+        };
+
         return (
-            <div className="flex h-screen w-full flex-col items-center justify-center p-6 text-center bg-[#0F172A] text-white">
+            <div className="flex h-screen w-full flex-col items-center justify-center p-6 text-center bg-[#0F172A] text-white overflow-y-auto">
                 <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center mb-6 border border-yellow-500/20">
                     <Timer size={40} className="text-yellow-500 animate-pulse" />
                 </div>
                 <h2 className="text-2xl font-russo uppercase mb-2 italic tracking-tight">Polla en Revisión</h2>
-                <p className="text-slate-400 max-w-sm mb-8 leading-relaxed text-sm">
+                <p className="text-slate-400 max-w-sm mb-6 leading-relaxed text-sm">
                     Esta polla empresarial está en proceso de activación. 
                     Estamos validando tu pago y configurando los servidores. 
                     Normalmente toma menos de 2 horas. Te avisaremos.
                 </p>
+
+                {/* Status Box */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-8 w-full max-w-xs text-left">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Estado del Pago</p>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-bold text-yellow-500 uppercase">Validando Comprobante</span>
+                    </div>
+                </div>
+
                 <div className="flex flex-col gap-3 w-full max-w-xs">
                     <button 
                         onClick={() => router.push('/empresa/mis-pollas')}
@@ -234,10 +254,21 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     >
                         Volver a Mis Empresas
                     </button>
+                    
+                    {/* Retry Drawer for PENDING Enterprise */}
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                        <p className="text-[10px] text-slate-500 mb-4 italic">¿Subiste el comprobante equivocado?</p>
+                        <PaymentMethods
+                            leagueId={league.id}
+                            amount={getAmount()}
+                            onSuccess={() => window.location.reload()}
+                        />
+                    </div>
+
                     <a 
                         href="https://wa.me/573105973421" 
                         target="_blank" 
-                        className="text-[#00E676] text-[10px] font-black uppercase tracking-widest hover:underline font-russo mt-2"
+                        className="text-[#00E676] text-[10px] font-black uppercase tracking-widest hover:underline font-russo mt-4"
                     >
                         Contactar Soporte WhatsApp
                     </a>

@@ -66,7 +66,9 @@ export class LeagueParticipantsService {
       if (isAlreadyParticipant) {
         // If they are REJECTED, maybe allow re-join? Or throw error?
         // Current logic throws Conflict. We can stick to this.
-        throw new ConflictException('Ya eres participante de esta liga (o tu solicitud está pendiente/rechazada).');
+        throw new ConflictException(
+          'Ya eres participante de esta liga (o tu solicitud está pendiente/rechazada).',
+        );
       }
 
       // 4. Verificar capacidad
@@ -81,13 +83,15 @@ export class LeagueParticipantsService {
       // 5. Determine Initial Status
       // Logic: PENDING unless user is the Creator
       let initialStatus = LeagueParticipantStatus.PENDING;
-      
+
       const isCreator = league.creator && league.creator.id === userId;
       if (isCreator) {
-          initialStatus = LeagueParticipantStatus.ACTIVE;
+        initialStatus = LeagueParticipantStatus.ACTIVE;
       }
-      
-      console.log(`joinLeague - Setting status to ${initialStatus} (isCreator: ${isCreator})`);
+
+      console.log(
+        `joinLeague - Setting status to ${initialStatus} (isCreator: ${isCreator})`,
+      );
 
       // 6. Crear participante
       const leagueParticipant = this.leagueParticipantRepository.create({
@@ -95,7 +99,7 @@ export class LeagueParticipantsService {
         league: league,
         isAdmin: isCreator, // Usually creator is admin
         department: department,
-        status: initialStatus
+        status: initialStatus,
       });
 
       const savedParticipant =
@@ -347,109 +351,125 @@ export class LeagueParticipantsService {
 
   // --- APPROVAL SYSTEM METHODS ---
 
-  async getPendingRequests(leagueId: string, requesterId: string, requesterRole: string) {
+  async getPendingRequests(
+    leagueId: string,
+    requesterId: string,
+    requesterRole: string,
+  ) {
     const league = await this.leagueRepository.findOne({
-        where: { id: leagueId },
-        relations: ['creator']
+      where: { id: leagueId },
+      relations: ['creator'],
     });
 
     if (!league) throw new NotFoundException('League not found');
 
     const isAdmin = league.creator.id === requesterId;
     if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
-        throw new ForbiddenException('Only admins can view pending requests');
+      throw new ForbiddenException('Only admins can view pending requests');
     }
 
     return this.leagueParticipantRepository.find({
-        where: { 
-            league: { id: leagueId }, 
-            status: LeagueParticipantStatus.PENDING 
-        },
-        relations: ['user']
+      where: {
+        league: { id: leagueId },
+        status: LeagueParticipantStatus.PENDING,
+      },
+      relations: ['user'],
     });
   }
 
-  async approveParticipant(leagueId: string, participantUserId: string, requesterId: string, requesterRole: string) {
-      const league = await this.leagueRepository.findOne({
-          where: { id: leagueId },
-          relations: ['creator']
-      });
+  async approveParticipant(
+    leagueId: string,
+    participantUserId: string,
+    requesterId: string,
+    requesterRole: string,
+  ) {
+    const league = await this.leagueRepository.findOne({
+      where: { id: leagueId },
+      relations: ['creator'],
+    });
 
-      if (!league) throw new NotFoundException('League not found');
+    if (!league) throw new NotFoundException('League not found');
 
-      const isAdmin = league.creator.id === requesterId;
-      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
-          throw new ForbiddenException('Only admins can approve requests');
-      }
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can approve requests');
+    }
 
-      const participant = await this.leagueParticipantRepository.findOne({
-          where: { 
-              league: { id: leagueId },
-              user: { id: participantUserId }
-          },
-          relations: ['user']
-      });
+    const participant = await this.leagueParticipantRepository.findOne({
+      where: {
+        league: { id: leagueId },
+        user: { id: participantUserId },
+      },
+      relations: ['user'],
+    });
 
-      if (!participant) throw new NotFoundException('Participant request not found');
+    if (!participant)
+      throw new NotFoundException('Participant request not found');
 
-      participant.status = LeagueParticipantStatus.ACTIVE;
-      return this.leagueParticipantRepository.save(participant);
+    participant.status = LeagueParticipantStatus.ACTIVE;
+    return this.leagueParticipantRepository.save(participant);
   }
 
-  async rejectParticipant(leagueId: string, participantUserId: string, requesterId: string, requesterRole: string) {
-      const league = await this.leagueRepository.findOne({
-          where: { id: leagueId },
-          relations: ['creator']
-      });
+  async rejectParticipant(
+    leagueId: string,
+    participantUserId: string,
+    requesterId: string,
+    requesterRole: string,
+  ) {
+    const league = await this.leagueRepository.findOne({
+      where: { id: leagueId },
+      relations: ['creator'],
+    });
 
-      if (!league) throw new NotFoundException('League not found');
+    if (!league) throw new NotFoundException('League not found');
 
-      const isAdmin = league.creator.id === requesterId;
-      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
-          throw new ForbiddenException('Only admins can reject requests');
-      }
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can reject requests');
+    }
 
-      const participant = await this.leagueParticipantRepository.findOne({
-          where: { 
-              league: { id: leagueId },
-              user: { id: participantUserId }
-          }
-      });
+    const participant = await this.leagueParticipantRepository.findOne({
+      where: {
+        league: { id: leagueId },
+        user: { id: participantUserId },
+      },
+    });
 
-      if (!participant) throw new NotFoundException('Participant request not found');
+    if (!participant)
+      throw new NotFoundException('Participant request not found');
 
-      participant.status = LeagueParticipantStatus.REJECTED;
-      return this.leagueParticipantRepository.save(participant);
+    participant.status = LeagueParticipantStatus.REJECTED;
+    return this.leagueParticipantRepository.save(participant);
   }
 
   async togglePaymentStatus(
     leagueId: string,
     participantUserId: string,
     requesterId: string,
-    requesterRole: string
+    requesterRole: string,
   ) {
-      const league = await this.leagueRepository.findOne({
-          where: { id: leagueId },
-          relations: ['creator']
-      });
+    const league = await this.leagueRepository.findOne({
+      where: { id: leagueId },
+      relations: ['creator'],
+    });
 
-      if (!league) throw new NotFoundException('League not found');
+    if (!league) throw new NotFoundException('League not found');
 
-      const isAdmin = league.creator.id === requesterId;
-      if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
-          throw new ForbiddenException('Only admins can manage payment status');
-      }
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can manage payment status');
+    }
 
-      const participant = await this.leagueParticipantRepository.findOne({
-          where: { 
-              league: { id: leagueId },
-              user: { id: participantUserId }
-          }
-      });
+    const participant = await this.leagueParticipantRepository.findOne({
+      where: {
+        league: { id: leagueId },
+        user: { id: participantUserId },
+      },
+    });
 
-      if (!participant) throw new NotFoundException('Participant not found');
+    if (!participant) throw new NotFoundException('Participant not found');
 
-      participant.isPaid = !participant.isPaid;
-      return this.leagueParticipantRepository.save(participant);
+    participant.isPaid = !participant.isPaid;
+    return this.leagueParticipantRepository.save(participant);
   }
 }

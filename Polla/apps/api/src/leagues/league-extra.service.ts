@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LeaguePrize } from '../database/entities/league-prize.entity';
@@ -34,7 +38,9 @@ export class LeagueExtraService {
   }
 
   async updatePrize(prizeId: string, data: any) {
-    const prize = await this.prizeRepository.findOne({ where: { id: prizeId } });
+    const prize = await this.prizeRepository.findOne({
+      where: { id: prizeId },
+    });
     if (!prize) throw new NotFoundException('Prize not found');
     Object.assign(prize, data);
     return this.prizeRepository.save(prize);
@@ -65,7 +71,8 @@ export class LeagueExtraService {
   async createBanner(leagueId: string, data: any) {
     // Max 5 banners check
     const count = await this.bannerRepository.count({ where: { leagueId } });
-    if (count >= 5) throw new ForbiddenException('Maximum 5 banners allowed per league');
+    if (count >= 5)
+      throw new ForbiddenException('Maximum 5 banners allowed per league');
 
     const banner = this.bannerRepository.create({
       ...data,
@@ -75,7 +82,9 @@ export class LeagueExtraService {
   }
 
   async updateBanner(bannerId: string, data: any) {
-    const banner = await this.bannerRepository.findOne({ where: { id: bannerId } });
+    const banner = await this.bannerRepository.findOne({
+      where: { id: bannerId },
+    });
     if (!banner) throw new NotFoundException('Banner not found');
     Object.assign(banner, data);
     return this.bannerRepository.save(banner);

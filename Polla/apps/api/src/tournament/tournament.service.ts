@@ -288,7 +288,8 @@ export class TournamentService {
     );
 
     // Obtener ranking de mejores terceros
-    const bestThirds = await this.standingsService.calculateBestThirdsRanking(tournamentId);
+    const bestThirds =
+      await this.standingsService.calculateBestThirdsRanking(tournamentId);
 
     // Tomamos solo los 8 mejores terceros
     const qualifiers = bestThirds.slice(0, 8);
@@ -327,17 +328,39 @@ export class TournamentService {
     });
 
     // Identificar slots de terceros (que empiecen por 3 o contengan 3RD)
-    const slots: { match: Match; side: 'home' | 'away'; placeholder: string }[] = [];
+    const slots: {
+      match: Match;
+      side: 'home' | 'away';
+      placeholder: string;
+    }[] = [];
     for (const m of knockoutMatches) {
-      if (!m.homeTeam && (m.homeTeamPlaceholder?.startsWith('3') || m.homeTeamPlaceholder?.includes('3RD'))) {
-        slots.push({ match: m, side: 'home', placeholder: m.homeTeamPlaceholder });
+      if (
+        !m.homeTeam &&
+        (m.homeTeamPlaceholder?.startsWith('3') ||
+          m.homeTeamPlaceholder?.includes('3RD'))
+      ) {
+        slots.push({
+          match: m,
+          side: 'home',
+          placeholder: m.homeTeamPlaceholder,
+        });
       }
-      if (!m.awayTeam && (m.awayTeamPlaceholder?.startsWith('3') || m.awayTeamPlaceholder?.includes('3RD'))) {
-        slots.push({ match: m, side: 'away', placeholder: m.awayTeamPlaceholder });
+      if (
+        !m.awayTeam &&
+        (m.awayTeamPlaceholder?.startsWith('3') ||
+          m.awayTeamPlaceholder?.includes('3RD'))
+      ) {
+        slots.push({
+          match: m,
+          side: 'away',
+          placeholder: m.awayTeamPlaceholder,
+        });
       }
     }
 
-    this.logger.log(`🔍 Found ${slots.length} third-place slots in R32 for ${tournamentId}.`);
+    this.logger.log(
+      `🔍 Found ${slots.length} third-place slots in R32 for ${tournamentId}.`,
+    );
 
     let updatedCount = 0;
 
@@ -346,7 +369,7 @@ export class TournamentService {
       const qualifier = qualifiers[i];
       const slot = slots[i];
       const match = slot.match;
-      
+
       let updated = false;
 
       if (slot.side === 'home') {
@@ -354,14 +377,18 @@ export class TournamentService {
           match.homeTeam = qualifier.team;
           match.homeFlag = teamFlags[qualifier.team] || '';
           updated = true;
-          this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Home) - Placeholder: ${slot.placeholder}`);
+          this.logger.log(
+            `   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Home) - Placeholder: ${slot.placeholder}`,
+          );
         }
       } else {
         if (match.awayTeam !== qualifier.team) {
           match.awayTeam = qualifier.team;
           match.awayFlag = teamFlags[qualifier.team] || '';
           updated = true;
-          this.logger.log(`   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Away) - Placeholder: ${slot.placeholder}`);
+          this.logger.log(
+            `   ✅ Assigned ${qualifier.team} to Match ${match.bracketId} (Away) - Placeholder: ${slot.placeholder}`,
+          );
         }
       }
 
@@ -381,7 +408,7 @@ export class TournamentService {
       }
     }
 
-      if (updatedCount > 0) {
+    if (updatedCount > 0) {
       this.logger.log(
         `🎉 Best Thirds promotion complete. Updated ${updatedCount} Round 32 matches.`,
       );
@@ -434,7 +461,8 @@ export class TournamentService {
       }
 
       // Calcular marcador global
-      const stats: Record<string, { gf: number; ga: number; flag: string }> = {};
+      const stats: Record<string, { gf: number; ga: number; flag: string }> =
+        {};
 
       for (const m of concurrentMatches) {
         const h = m.homeTeam;
@@ -450,7 +478,9 @@ export class TournamentService {
 
       const teams = Object.keys(stats);
       if (teams.length < 2) {
-        this.logger.warn(`Not enough teams to determine winner in bracket ${match.bracketId}`);
+        this.logger.warn(
+          `Not enough teams to determine winner in bracket ${match.bracketId}`,
+        );
         return;
       }
       const team1 = teams[0];
@@ -477,11 +507,11 @@ export class TournamentService {
             winnerTeam === penaltyMatch.homeTeam
               ? penaltyMatch.homeFlag
               : penaltyMatch.awayFlag;
-          loserTeam = 
+          loserTeam =
             winnerTeam === penaltyMatch.homeTeam
               ? penaltyMatch.awayTeam
               : penaltyMatch.homeTeam;
-          loserFlag = 
+          loserFlag =
             winnerTeam === penaltyMatch.homeTeam
               ? penaltyMatch.awayFlag
               : penaltyMatch.homeFlag;
@@ -530,10 +560,12 @@ export class TournamentService {
       this.logger.warn(`No winner team found for match ${match.id}`);
       return;
     }
-    
+
     // Allow promotion even without flag (for placeholder teams like PLA_X)
     if (!winnerFlag) {
-      this.logger.log(`⚠️  Winner team "${winnerTeam}" has no flag, promoting anyway`);
+      this.logger.log(
+        `⚠️  Winner team "${winnerTeam}" has no flag, promoting anyway`,
+      );
     }
 
     const nextPhaseMap: Record<string, string> = {
@@ -548,9 +580,11 @@ export class TournamentService {
 
     // Intentar encontrar el próximo partido por nextMatchId o por placeholder "Ganador X"
     let nextMatch: Match | null = null;
-    
+
     if (match.nextMatchId) {
-      nextMatch = await this.matchesRepository.findOne({ where: { id: match.nextMatchId } });
+      nextMatch = await this.matchesRepository.findOne({
+        where: { id: match.nextMatchId },
+      });
     }
 
     if (!nextMatch) {
@@ -559,25 +593,43 @@ export class TournamentService {
       const searchPlaceholder = `Ganador ${match.bracketId}`;
       const searchPlaceholderAlt = `Winner ${match.bracketId}`;
       const searchNumber = `${match.bracketId}`;
-      
+
       nextMatch = await this.matchesRepository.findOne({
         where: [
-          { homeTeamPlaceholder: searchPlaceholder, phase: nextPhase, tournamentId: match.tournamentId },
-          { awayTeamPlaceholder: searchPlaceholder, phase: nextPhase, tournamentId: match.tournamentId },
-          { homeTeamPlaceholder: searchPlaceholderAlt, phase: nextPhase, tournamentId: match.tournamentId },
-          { awayTeamPlaceholder: searchPlaceholderAlt, phase: nextPhase, tournamentId: match.tournamentId },
-        ]
+          {
+            homeTeamPlaceholder: searchPlaceholder,
+            phase: nextPhase,
+            tournamentId: match.tournamentId,
+          },
+          {
+            awayTeamPlaceholder: searchPlaceholder,
+            phase: nextPhase,
+            tournamentId: match.tournamentId,
+          },
+          {
+            homeTeamPlaceholder: searchPlaceholderAlt,
+            phase: nextPhase,
+            tournamentId: match.tournamentId,
+          },
+          {
+            awayTeamPlaceholder: searchPlaceholderAlt,
+            phase: nextPhase,
+            tournamentId: match.tournamentId,
+          },
+        ],
       });
 
       // Si aún no se encuentra, buscar por el número del partido (algunos calendarios usan "Ganador Match X")
       if (!nextMatch) {
-         const matches = await this.matchesRepository.find({
-            where: { phase: nextPhase, tournamentId: match.tournamentId }
-         });
-         nextMatch = matches.find(m => 
-            m.homeTeamPlaceholder?.includes(searchNumber) || 
-            m.awayTeamPlaceholder?.includes(searchNumber)
-         ) || null;
+        const matches = await this.matchesRepository.find({
+          where: { phase: nextPhase, tournamentId: match.tournamentId },
+        });
+        nextMatch =
+          matches.find(
+            (m) =>
+              m.homeTeamPlaceholder?.includes(searchNumber) ||
+              m.awayTeamPlaceholder?.includes(searchNumber),
+          ) || null;
       }
     }
 
@@ -604,7 +656,7 @@ export class TournamentService {
     // Buscamos si el placeholder del siguiente partido coincide con "Ganador [bracketId]"
     let isHomeSlot = true;
     const currentBracketPlaceholder = `Ganador ${match.bracketId}`;
-    
+
     if (nextMatch.homeTeamPlaceholder === currentBracketPlaceholder) {
       isHomeSlot = true;
     } else if (nextMatch.awayTeamPlaceholder === currentBracketPlaceholder) {
@@ -613,7 +665,9 @@ export class TournamentService {
       // Fallback: buscar si el bracketId está contenido en el placeholder (para compatibilidad con formatos antiguos)
       if (nextMatch.homeTeamPlaceholder?.includes(`${match.bracketId}`)) {
         isHomeSlot = true;
-      } else if (nextMatch.awayTeamPlaceholder?.includes(`${match.bracketId}`)) {
+      } else if (
+        nextMatch.awayTeamPlaceholder?.includes(`${match.bracketId}`)
+      ) {
         isHomeSlot = false;
       } else {
         // Último fallback a par/impar si no hay pista en el placeholder
@@ -642,11 +696,11 @@ export class TournamentService {
       // Use UPDATE to avoid race conditions (e.g. concurrent updates to home and away slots)
       const updateData: Partial<Match> = {};
       if (isHomeSlot) {
-          updateData.homeTeam = winnerTeam;
-          updateData.homeFlag = winnerFlag;
+        updateData.homeTeam = winnerTeam;
+        updateData.homeFlag = winnerFlag;
       } else {
-          updateData.awayTeam = winnerTeam;
-          updateData.awayFlag = winnerFlag;
+        updateData.awayTeam = winnerTeam;
+        updateData.awayFlag = winnerFlag;
       }
 
       await this.matchesRepository.update(nextMatch.id, updateData);

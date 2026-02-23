@@ -112,11 +112,12 @@ import { APP_GUARD } from '@nestjs/core';
             LeagueBanner,
           ],
           synchronize: false, // Note: synchronize: true should not be used in production
-          ssl: (url && !url.includes('localhost') && !url.includes('127.0.0.1'))
-            ? { rejectUnauthorized: false }
-            : configService.get<string>('DB_SSL') === 'true'
+          ssl:
+            url && !url.includes('localhost') && !url.includes('127.0.0.1')
               ? { rejectUnauthorized: false }
-              : undefined,
+              : configService.get<string>('DB_SSL') === 'true'
+                ? { rejectUnauthorized: false }
+                : undefined,
           extra: {
             max: 50, // Aumentado para soportar alta concurrencia
             connectionTimeoutMillis: 5000,

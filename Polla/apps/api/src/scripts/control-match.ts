@@ -50,7 +50,7 @@ Ejemplo Flujo:
 
 async function controlMatch() {
   const args = process.argv.slice(2);
-  
+
   if (args.length < 2) {
     console.log(HELP_TEXT);
     process.exit(0);
@@ -67,34 +67,52 @@ async function controlMatch() {
     let finalId = matchId;
     // Check if numeric (externalId) or uuid
     if (!isNaN(Number(matchId))) {
-        const res = await AppDataSource.query(`SELECT id, "homeTeam", "awayTeam" FROM matches WHERE "externalId" = $1`, [matchId]);
-        if (res.length > 0) finalId = res[0].id;
-        else {
-             // Try ID directly just in case
-             const resId = await AppDataSource.query(`SELECT id FROM matches WHERE id = $1`, [matchId]);
-             if (resId.length === 0) throw new Error("Match not found");
-        }
+      const res = await AppDataSource.query(
+        `SELECT id, "homeTeam", "awayTeam" FROM matches WHERE "externalId" = $1`,
+        [matchId],
+      );
+      if (res.length > 0) finalId = res[0].id;
+      else {
+        // Try ID directly just in case
+        const resId = await AppDataSource.query(
+          `SELECT id FROM matches WHERE id = $1`,
+          [matchId],
+        );
+        if (resId.length === 0) throw new Error('Match not found');
+      }
     }
 
     if (action === 'live') {
-        let currentMinute = args[2] ? parseInt(args[2]) : 1;
-        console.log(`🔴 MODO LIVE ACTIVO para partido ID: ${finalId}`);
-        console.log(`⏱️  Iniciando reloj en minuto: ${currentMinute}'`);
-        console.log(`📝 (Presiona Ctrl+C para detener el reloj en el entretiempo o final)\n`);
+      let currentMinute = args[2] ? parseInt(args[2]) : 1;
+      console.log(`🔴 MODO LIVE ACTIVO para partido ID: ${finalId}`);
+      console.log(`⏱️  Iniciando reloj en minuto: ${currentMinute}'`);
+      console.log(
+        `📝 (Presiona Ctrl+C para detener el reloj en el entretiempo o final)\n`,
+      );
 
-        // Set initial state
-        await AppDataSource.query(`UPDATE matches SET status = 'LIVE', minute = $1 WHERE id = $2`, [currentMinute.toString(), finalId]);
-        console.log(`[${new Date().toLocaleTimeString()}] Actualizado a ${currentMinute}'`);
+      // Set initial state
+      await AppDataSource.query(
+        `UPDATE matches SET status = 'LIVE', minute = $1 WHERE id = $2`,
+        [currentMinute.toString(), finalId],
+      );
+      console.log(
+        `[${new Date().toLocaleTimeString()}] Actualizado a ${currentMinute}'`,
+      );
 
-        // Loop every 60 seconds
-        setInterval(async () => {
-            currentMinute++;
-            await AppDataSource.query(`UPDATE matches SET minute = $1 WHERE id = $2`, [currentMinute.toString(), finalId]);
-            console.log(`[${new Date().toLocaleTimeString()}] ⏱️  Minuto ${currentMinute}'`);
-        }, 60 * 1000); // 60 segundos
+      // Loop every 60 seconds
+      setInterval(async () => {
+        currentMinute++;
+        await AppDataSource.query(
+          `UPDATE matches SET minute = $1 WHERE id = $2`,
+          [currentMinute.toString(), finalId],
+        );
+        console.log(
+          `[${new Date().toLocaleTimeString()}] ⏱️  Minuto ${currentMinute}'`,
+        );
+      }, 60 * 1000); // 60 segundos
 
-        // Keep process alive
-        return; 
+      // Keep process alive
+      return;
     }
 
     let updateQuery = '';
@@ -112,12 +130,13 @@ async function controlMatch() {
       case 'score':
         const home = args[2];
         const away = args[3];
-        if (home === undefined || away === undefined) throw new Error('Falta marcador (H A)');
+        if (home === undefined || away === undefined)
+          throw new Error('Falta marcador (H A)');
         console.log(`🥅  GOL! Marcador actualizado a ${home}-${away}`);
         updateQuery = `UPDATE matches SET "homeScore" = $1, "awayScore" = $2 WHERE id = $3`;
         params = [home, away, finalId];
         break;
-      
+
       case 'ht':
         console.log('⏸️  Medio Tiempo (HT)...');
         updateQuery = `UPDATE matches SET minute = 'HT' WHERE id = $1`;
@@ -142,12 +161,11 @@ async function controlMatch() {
     }
 
     if (updateQuery) {
-        await AppDataSource.query(updateQuery, params);
-        console.log('✅ Actualización enviada.');
+      await AppDataSource.query(updateQuery, params);
+      console.log('✅ Actualización enviada.');
     }
-    
-    process.exit(0);
 
+    process.exit(0);
   } catch (error: any) {
     console.error('❌ Error:', error.message);
     process.exit(1);

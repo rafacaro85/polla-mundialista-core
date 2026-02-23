@@ -40,21 +40,29 @@ async function checkTestMatch() {
     console.log(`   ID: ${match.id}`);
     console.log(`   Match: ${match.homeTeam} vs ${match.awayTeam}`);
     console.log(`   Date (DB): ${match.date}`);
-    console.log(`   Date (Local): ${new Date(match.date).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`);
+    console.log(
+      `   Date (Local): ${new Date(match.date).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`,
+    );
     console.log(`   Group: ${match.group}`);
     console.log(`   External ID: ${match.externalId}`);
 
     const now = new Date();
     const matchDate = new Date(match.date);
     const hoursUntil = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+
     console.log(`\n⏰ Time Check:`);
-    console.log(`   Current time: ${now.toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`);
-    console.log(`   Match time: ${matchDate.toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`);
+    console.log(
+      `   Current time: ${now.toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`,
+    );
+    console.log(
+      `   Match time: ${matchDate.toLocaleString('es-CO', { timeZone: 'America/Bogota' })}`,
+    );
     console.log(`   Hours until kickoff: ${hoursUntil.toFixed(2)}`);
 
     if (hoursUntil < 0) {
-      console.log(`\n⚠️  WARNING: Match time is in the past! This is why it shows "TIEMPO AGOTADO"`);
+      console.log(
+        `\n⚠️  WARNING: Match time is in the past! This is why it shows "TIEMPO AGOTADO"`,
+      );
     } else {
       console.log(`\n✅ Match time is correct (in the future)`);
     }

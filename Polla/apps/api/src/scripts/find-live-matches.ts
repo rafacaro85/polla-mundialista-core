@@ -9,7 +9,9 @@ const BASE_URL = 'https://v3.football.api-sports.io';
 
 async function findLiveOrUpcomingMatches() {
   try {
-    console.log('🔍 Searching for LIVE or UPCOMING matches (next 6 hours)...\n');
+    console.log(
+      '🔍 Searching for LIVE or UPCOMING matches (next 6 hours)...\n',
+    );
 
     // First, check for live matches
     const liveResponse = await axios.get(`${BASE_URL}/fixtures`, {
@@ -28,9 +30,15 @@ async function findLiveOrUpcomingMatches() {
       console.log('⚽ LIVE MATCHES RIGHT NOW:\n');
       liveFixtures.slice(0, 5).forEach((fixture: any, index: number) => {
         console.log(`${index + 1}. 🔴 [ID: ${fixture.fixture.id}] LIVE`);
-        console.log(`   ${fixture.teams.home.name} ${fixture.goals.home} - ${fixture.goals.away} ${fixture.teams.away.name}`);
-        console.log(`   League: ${fixture.league.name} (${fixture.league.country})`);
-        console.log(`   Status: ${fixture.fixture.status.long} - ${fixture.fixture.status.elapsed}'`);
+        console.log(
+          `   ${fixture.teams.home.name} ${fixture.goals.home} - ${fixture.goals.away} ${fixture.teams.away.name}`,
+        );
+        console.log(
+          `   League: ${fixture.league.name} (${fixture.league.country})`,
+        );
+        console.log(
+          `   Status: ${fixture.fixture.status.long} - ${fixture.fixture.status.elapsed}'`,
+        );
         console.log(`   Venue: ${fixture.fixture.venue.name || 'TBD'}\n`);
       });
     }
@@ -38,7 +46,7 @@ async function findLiveOrUpcomingMatches() {
     // Get today's date
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    
+
     console.log(`📅 Checking all matches for today (${todayStr})...\n`);
 
     const todayResponse = await axios.get(`${BASE_URL}/fixtures`, {
@@ -57,8 +65,13 @@ async function findLiveOrUpcomingMatches() {
     const now = new Date();
     const upcoming = allToday.filter((fixture: any) => {
       const matchDate = new Date(fixture.fixture.date);
-      const hoursUntil = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      return hoursUntil >= 1 && hoursUntil <= 6 && fixture.fixture.status.short === 'NS';
+      const hoursUntil =
+        (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      return (
+        hoursUntil >= 1 &&
+        hoursUntil <= 6 &&
+        fixture.fixture.status.short === 'NS'
+      );
     });
 
     console.log(`⏰ Matches starting in 1-6 hours: ${upcoming.length}\n`);
@@ -67,33 +80,42 @@ async function findLiveOrUpcomingMatches() {
       console.log('🎯 UPCOMING MATCHES (Good for testing):\n');
       upcoming.slice(0, 10).forEach((fixture: any, index: number) => {
         const matchDate = new Date(fixture.fixture.date);
-        const hoursUntil = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-        const localTime = matchDate.toLocaleString('es-CO', { 
+        const hoursUntil =
+          (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+        const localTime = matchDate.toLocaleString('es-CO', {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
-        
+
         console.log(`${index + 1}. ⭐ [ID: ${fixture.fixture.id}]`);
-        console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
-        console.log(`   League: ${fixture.league.name} (${fixture.league.country})`);
-        console.log(`   Time: ${localTime} (Colombia) - Starts in ${hoursUntil.toFixed(1)}h`);
+        console.log(
+          `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+        );
+        console.log(
+          `   League: ${fixture.league.name} (${fixture.league.country})`,
+        );
+        console.log(
+          `   Time: ${localTime} (Colombia) - Starts in ${hoursUntil.toFixed(1)}h`,
+        );
         console.log(`   Venue: ${fixture.fixture.venue.name || 'TBD'}\n`);
       });
 
       const best = upcoming[0];
       const bestDate = new Date(best.fixture.date);
-      const bestTime = bestDate.toLocaleString('es-CO', { 
+      const bestTime = bestDate.toLocaleString('es-CO', {
         timeZone: 'America/Bogota',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hour12: false,
       });
-      
+
       console.log('\n🚀 RECOMMENDED FOR TESTING:');
       console.log(`\n   Fixture ID: ${best.fixture.id}`);
-      console.log(`   Match: ${best.teams.home.name} vs ${best.teams.away.name}`);
+      console.log(
+        `   Match: ${best.teams.home.name} vs ${best.teams.away.name}`,
+      );
       console.log(`   League: ${best.league.name}`);
       console.log(`   Time: ${bestTime} (Colombia)`);
       console.log(`\n   Use this ID in the injection script!`);
@@ -101,13 +123,21 @@ async function findLiveOrUpcomingMatches() {
       const best = liveFixtures[0];
       console.log('\n🔴 RECOMMENDED: Use a LIVE match for immediate testing:');
       console.log(`\n   Fixture ID: ${best.fixture.id}`);
-      console.log(`   Match: ${best.teams.home.name} vs ${best.teams.away.name}`);
+      console.log(
+        `   Match: ${best.teams.home.name} vs ${best.teams.away.name}`,
+      );
       console.log(`   League: ${best.league.name}`);
-      console.log(`   Status: ${best.fixture.status.long} - ${best.fixture.status.elapsed}'`);
-      console.log(`\n   This match is LIVE RIGHT NOW! Perfect for sync testing!`);
+      console.log(
+        `   Status: ${best.fixture.status.long} - ${best.fixture.status.elapsed}'`,
+      );
+      console.log(
+        `\n   This match is LIVE RIGHT NOW! Perfect for sync testing!`,
+      );
     } else {
       console.log('\n⚠️  No suitable matches found.');
-      console.log('Try running this script later when matches are about to start.');
+      console.log(
+        'Try running this script later when matches are about to start.',
+      );
     }
 
     process.exit(0);

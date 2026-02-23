@@ -27,20 +27,26 @@ async function configureTestMatches() {
     const MATCH_1_AWAY = 'FC Barcelona';
     const MATCH_1_TIME = '2026-02-16T20:00:00Z'; // UTC
     const MATCH_1_STADIUM = 'Estadi Montilivi';
-    const MATCH_1_HOME_LOGO = 'https://media.api-sports.io/football/teams/547.png';
-    const MATCH_1_AWAY_LOGO = 'https://media.api-sports.io/football/teams/529.png';
+    const MATCH_1_HOME_LOGO =
+      'https://media.api-sports.io/football/teams/547.png';
+    const MATCH_1_AWAY_LOGO =
+      'https://media.api-sports.io/football/teams/529.png';
 
     const MATCH_2_FIXTURE_ID = 0; // Cagliari vs Lecce
     const MATCH_2_HOME = 'Cagliari';
     const MATCH_2_AWAY = 'Lecce';
     const MATCH_2_TIME = '2026-02-16T19:45:00Z'; // UTC
     const MATCH_2_STADIUM = 'Unipol Domus';
-    const MATCH_2_HOME_LOGO = 'https://media.api-sports.io/football/teams/488.png';
-    const MATCH_2_AWAY_LOGO = 'https://media.api-sports.io/football/teams/867.png';
+    const MATCH_2_HOME_LOGO =
+      'https://media.api-sports.io/football/teams/488.png';
+    const MATCH_2_AWAY_LOGO =
+      'https://media.api-sports.io/football/teams/867.png';
 
     if (MATCH_1_FIXTURE_ID === 0 || MATCH_2_FIXTURE_ID === 0) {
       console.error('❌ ERROR: Debes configurar los Fixture IDs primero!');
-      console.error('   Edita este archivo y actualiza MATCH_1_FIXTURE_ID y MATCH_2_FIXTURE_ID');
+      console.error(
+        '   Edita este archivo y actualiza MATCH_1_FIXTURE_ID y MATCH_2_FIXTURE_ID',
+      );
       console.error('\n💡 Para obtener los IDs:');
       console.error('   1. Ve a https://www.api-football.com/');
       console.error('   2. Busca "Girona vs Barcelona" y "Cagliari vs Lecce"');
@@ -61,14 +67,17 @@ async function configureTestMatches() {
     `);
 
     if (matches.length < 2) {
-      console.error('❌ No se encontraron suficientes partidos en TEST_LIVE_MONDAY');
+      console.error(
+        '❌ No se encontraron suficientes partidos en TEST_LIVE_MONDAY',
+      );
       process.exit(1);
     }
 
     console.log('🔄 Actualizando partidos...\n');
 
     // Update Match 1 (Girona vs Barcelona)
-    await AppDataSource.query(`
+    await AppDataSource.query(
+      `
       UPDATE matches 
       SET 
         "externalId" = $1,
@@ -80,16 +89,18 @@ async function configureTestMatches() {
         "awayFlag" = $7,
         "group" = 'LALIGA TEST'
       WHERE id = $8
-    `, [
-      MATCH_1_FIXTURE_ID,
-      MATCH_1_HOME,
-      MATCH_1_AWAY,
-      MATCH_1_TIME,
-      MATCH_1_STADIUM,
-      MATCH_1_HOME_LOGO,
-      MATCH_1_AWAY_LOGO,
-      matches[0].id,
-    ]);
+    `,
+      [
+        MATCH_1_FIXTURE_ID,
+        MATCH_1_HOME,
+        MATCH_1_AWAY,
+        MATCH_1_TIME,
+        MATCH_1_STADIUM,
+        MATCH_1_HOME_LOGO,
+        MATCH_1_AWAY_LOGO,
+        matches[0].id,
+      ],
+    );
 
     console.log(`✅ Partido 1 actualizado:`);
     console.log(`   ${MATCH_1_HOME} vs ${MATCH_1_AWAY}`);
@@ -97,7 +108,8 @@ async function configureTestMatches() {
     console.log(`   Hora: ${MATCH_1_TIME}\n`);
 
     // Update Match 2 (Cagliari vs Lecce)
-    await AppDataSource.query(`
+    await AppDataSource.query(
+      `
       UPDATE matches 
       SET 
         "externalId" = $1,
@@ -109,16 +121,18 @@ async function configureTestMatches() {
         "awayFlag" = $7,
         "group" = 'SERIE A TEST'
       WHERE id = $8
-    `, [
-      MATCH_2_FIXTURE_ID,
-      MATCH_2_HOME,
-      MATCH_2_AWAY,
-      MATCH_2_TIME,
-      MATCH_2_STADIUM,
-      MATCH_2_HOME_LOGO,
-      MATCH_2_AWAY_LOGO,
-      matches[1].id,
-    ]);
+    `,
+      [
+        MATCH_2_FIXTURE_ID,
+        MATCH_2_HOME,
+        MATCH_2_AWAY,
+        MATCH_2_TIME,
+        MATCH_2_STADIUM,
+        MATCH_2_HOME_LOGO,
+        MATCH_2_AWAY_LOGO,
+        matches[1].id,
+      ],
+    );
 
     console.log(`✅ Partido 2 actualizado:`);
     console.log(`   ${MATCH_2_HOME} vs ${MATCH_2_AWAY}`);

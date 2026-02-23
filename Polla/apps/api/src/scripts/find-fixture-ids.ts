@@ -33,7 +33,7 @@ async function findTodayMatches() {
       // Try with system date
       const today = new Date();
       const systemDate = today.toISOString().split('T')[0];
-      
+
       const response2 = await axios.get(`${BASE_URL}/fixtures`, {
         headers: {
           'x-apisports-key': API_KEY,
@@ -44,7 +44,9 @@ async function findTodayMatches() {
       });
 
       const systemFixtures = response2.data.response;
-      console.log(`📅 Total partidos en ${systemDate}: ${systemFixtures.length}\n`);
+      console.log(
+        `📅 Total partidos en ${systemDate}: ${systemFixtures.length}\n`,
+      );
 
       if (systemFixtures.length > 0) {
         console.log('✅ Partidos encontrados en la fecha del sistema:\n');
@@ -53,9 +55,11 @@ async function findTodayMatches() {
             timeZone: 'America/Bogota',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false
+            hour12: false,
           });
-          console.log(`${i + 1}. [ID: ${f.fixture.id}] ${f.teams.home.name} vs ${f.teams.away.name}`);
+          console.log(
+            `${i + 1}. [ID: ${f.fixture.id}] ${f.teams.home.name} vs ${f.teams.away.name}`,
+          );
           console.log(`   Liga: ${f.league.name} | Hora: ${time} COT`);
           console.log(`   Estado: ${f.fixture.status.long}\n`);
         });
@@ -65,15 +69,21 @@ async function findTodayMatches() {
     }
 
     // Look for Girona vs Barcelona
-    const girona = allFixtures.find((f: any) =>
-      (f.teams.home.name.toLowerCase().includes('girona') && f.teams.away.name.toLowerCase().includes('barcelona')) ||
-      (f.teams.away.name.toLowerCase().includes('girona') && f.teams.home.name.toLowerCase().includes('barcelona'))
+    const girona = allFixtures.find(
+      (f: any) =>
+        (f.teams.home.name.toLowerCase().includes('girona') &&
+          f.teams.away.name.toLowerCase().includes('barcelona')) ||
+        (f.teams.away.name.toLowerCase().includes('girona') &&
+          f.teams.home.name.toLowerCase().includes('barcelona')),
     );
 
     // Look for Cagliari vs Lecce
-    const cagliari = allFixtures.find((f: any) =>
-      (f.teams.home.name.toLowerCase().includes('cagliari') && f.teams.away.name.toLowerCase().includes('lecce')) ||
-      (f.teams.away.name.toLowerCase().includes('cagliari') && f.teams.home.name.toLowerCase().includes('lecce'))
+    const cagliari = allFixtures.find(
+      (f: any) =>
+        (f.teams.home.name.toLowerCase().includes('cagliari') &&
+          f.teams.away.name.toLowerCase().includes('lecce')) ||
+        (f.teams.away.name.toLowerCase().includes('cagliari') &&
+          f.teams.home.name.toLowerCase().includes('lecce')),
     );
 
     const foundMatches = [girona, cagliari].filter(Boolean);
@@ -87,11 +97,13 @@ async function findTodayMatches() {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
 
         console.log(`⚽ [ID: ${fixture.fixture.id}]`);
-        console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
+        console.log(
+          `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+        );
         console.log(`   Liga: ${fixture.league.name}`);
         console.log(`   Hora: ${colombiaTime} (Colombia)`);
         console.log(`   Estadio: ${fixture.fixture.venue.name || 'TBD'}`);
@@ -101,18 +113,24 @@ async function findTodayMatches() {
       });
 
       console.log('\n📋 CONFIGURACIÓN PARA EL SCRIPT:\n');
-      
+
       if (girona) {
-        console.log(`MATCH_1_FIXTURE_ID = ${girona.fixture.id}; // ${girona.teams.home.name} vs ${girona.teams.away.name}`);
+        console.log(
+          `MATCH_1_FIXTURE_ID = ${girona.fixture.id}; // ${girona.teams.home.name} vs ${girona.teams.away.name}`,
+        );
       }
-      
+
       if (cagliari) {
-        console.log(`MATCH_2_FIXTURE_ID = ${cagliari.fixture.id}; // ${cagliari.teams.home.name} vs ${cagliari.teams.away.name}`);
+        console.log(
+          `MATCH_2_FIXTURE_ID = ${cagliari.fixture.id}; // ${cagliari.teams.home.name} vs ${cagliari.teams.away.name}`,
+        );
       }
 
       process.exit(0);
     } else {
-      console.log('❌ No se encontraron Girona vs Barcelona ni Cagliari vs Lecce.\n');
+      console.log(
+        '❌ No se encontraron Girona vs Barcelona ni Cagliari vs Lecce.\n',
+      );
       console.log('💡 Mostrando primeros 20 partidos del día:\n');
 
       allFixtures.slice(0, 20).forEach((f: any, i: number) => {
@@ -120,9 +138,11 @@ async function findTodayMatches() {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
-        console.log(`${i + 1}. [ID: ${f.fixture.id}] ${f.teams.home.name} vs ${f.teams.away.name}`);
+        console.log(
+          `${i + 1}. [ID: ${f.fixture.id}] ${f.teams.home.name} vs ${f.teams.away.name}`,
+        );
         console.log(`   Liga: ${f.league.name} | Hora: ${time} COT\n`);
       });
     }

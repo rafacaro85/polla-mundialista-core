@@ -53,13 +53,17 @@ async function verify() {
     console.log('---------------------');
 
     if (anomalies > 0) {
-      console.error(`⚠️  ALERTA: Se encontraron ${anomalies} partidos con IDs desconocidos!`);
+      console.error(
+        `⚠️  ALERTA: Se encontraron ${anomalies} partidos con IDs desconocidos!`,
+      );
     } else {
       console.log('✅ Integridad de IDs: PERFECTA (0 anomalías)');
     }
 
     if (wcCount > 0 && uclCount > 0) {
-      console.log('\n✅ CONCLUSIÓN: Coexistencia Exitosa. Los torneos están aislados.');
+      console.log(
+        '\n✅ CONCLUSIÓN: Coexistencia Exitosa. Los torneos están aislados.',
+      );
     } else if (uclCount === 0) {
       console.log('\n⚠️  CONCLUSIÓN: Champions aún no inyectada.');
     }

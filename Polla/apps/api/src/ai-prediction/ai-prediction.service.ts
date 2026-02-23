@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, IsNull } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
@@ -24,7 +29,7 @@ export class AiPredictionService {
         const genAI = new GoogleGenerativeAI(apiKey);
         this.genAI = genAI;
         this.model = genAI.getGenerativeModel({
-            model: 'models/gemini-flash-latest',
+          model: 'models/gemini-flash-latest',
         });
         this.logger.log('✅ Gemini AI initialized');
       } catch (err) {
@@ -74,15 +79,17 @@ export class AiPredictionService {
     // ✅ CACHE HIT - Return immediately
     if (match.aiPredictionScore) {
       try {
-          const analysis = match.aiPrediction ? JSON.parse(match.aiPrediction) : null;
-          return {
-            cached: true,
-            generatedAt: match.aiPredictionGeneratedAt,
-            score: match.aiPredictionScore,
-            analysis: analysis || { predictedScore: match.aiPredictionScore },
-          };
+        const analysis = match.aiPrediction
+          ? JSON.parse(match.aiPrediction)
+          : null;
+        return {
+          cached: true,
+          generatedAt: match.aiPredictionGeneratedAt,
+          score: match.aiPredictionScore,
+          analysis: analysis || { predictedScore: match.aiPredictionScore },
+        };
       } catch (e) {
-          this.logger.warn(`Failed to parse AI prediction for match ${matchId}`);
+        this.logger.warn(`Failed to parse AI prediction for match ${matchId}`);
       }
     }
 
@@ -104,57 +111,59 @@ export class AiPredictionService {
    */
   async getBulkPredictions(matchIds: string[]) {
     try {
-        const predictions: Record<string, [number, number]> = {};
-        if (!matchIds || !matchIds.length) return predictions;
+      const predictions: Record<string, [number, number]> = {};
+      if (!matchIds || !matchIds.length) return predictions;
 
-        // Ensure we have a valid list of UUIDs to avoid DB errors
-        const validIds = matchIds.filter(id => id && id.length === 36);
-        if (!validIds.length) return predictions;
+      // Ensure we have a valid list of UUIDs to avoid DB errors
+      const validIds = matchIds.filter((id) => id && id.length === 36);
+      if (!validIds.length) return predictions;
 
-        const matches = await this.matchRepository.find({
-            where: { id: In(validIds) }
-        });
+      const matches = await this.matchRepository.find({
+        where: { id: In(validIds) },
+      });
 
-        await this.ensureAiInitialized();
+      await this.ensureAiInitialized();
 
-        for (const matchId of validIds) {
-            const match = matches.find((m) => m.id === matchId);
+      for (const matchId of validIds) {
+        const match = matches.find((m) => m.id === matchId);
 
-            // 1. Check Cache
-            if (match && match.aiPredictionScore) {
-                const score = match.aiPredictionScore.split('-').map(Number);
-                if (score.length === 2 && !isNaN(score[0]) && !isNaN(score[1])) {
-                    predictions[matchId] = [score[0], score[1]] as [number, number];
-                    continue;
-                }
-            }
-
-            // 2. Generate or Fallback
-            if (match && match.homeTeam && match.awayTeam) {
-                try {
-                    if (this.model) {
-                        const gen = await this.generatePrediction(match);
-                        await this.savePredictionToCache(match, gen);
-                        const score = gen.predictedScore.split('-').map(Number);
-                        predictions[matchId] = [score[0], score[1]] as [number, number];
-                    } else {
-                        throw new Error('AI Service Unavailable');
-                    }
-                } catch (e) {
-                    this.logger.warn(`Using fallback for match ${matchId}: ${e.message}`);
-                    const fallback = this.handleFallback(e, match);
-                    const score = fallback.score.split('-').map(Number);
-                    predictions[matchId] = [score[0], score[1]] as [number, number];
-                }
-            } else {
-                predictions[matchId] = [0, 0];
-            }
+        // 1. Check Cache
+        if (match && match.aiPredictionScore) {
+          const score = match.aiPredictionScore.split('-').map(Number);
+          if (score.length === 2 && !isNaN(score[0]) && !isNaN(score[1])) {
+            predictions[matchId] = [score[0], score[1]] as [number, number];
+            continue;
+          }
         }
 
-        return predictions;
+        // 2. Generate or Fallback
+        if (match && match.homeTeam && match.awayTeam) {
+          try {
+            if (this.model) {
+              const gen = await this.generatePrediction(match);
+              await this.savePredictionToCache(match, gen);
+              const score = gen.predictedScore.split('-').map(Number);
+              predictions[matchId] = [score[0], score[1]] as [number, number];
+            } else {
+              throw new Error('AI Service Unavailable');
+            }
+          } catch (e) {
+            this.logger.warn(
+              `Using fallback for match ${matchId}: ${e.message}`,
+            );
+            const fallback = this.handleFallback(e, match);
+            const score = fallback.score.split('-').map(Number);
+            predictions[matchId] = [score[0], score[1]] as [number, number];
+          }
+        } else {
+          predictions[matchId] = [0, 0];
+        }
+      }
+
+      return predictions;
     } catch (error) {
-        this.logger.error(`🔥 Fatal in getBulkPredictions: ${error.message}`);
-        throw error;
+      this.logger.error(`🔥 Fatal in getBulkPredictions: ${error.message}`);
+      throw error;
     }
   }
 
@@ -249,7 +258,11 @@ Respuesta JSON:
     }
 
     // Skip if already has VALID prediction (not a fallback)
-    if (match.aiPrediction && match.aiPredictionScore && !match.aiPrediction.includes('error en servicio de IA')) {
+    if (
+      match.aiPrediction &&
+      match.aiPredictionScore &&
+      !match.aiPrediction.includes('error en servicio de IA')
+    ) {
       this.logger.log(
         `[GENERATE_AND_SAVE] Match ${matchId} already has valid prediction. Skipping.`,
       );
@@ -282,24 +295,25 @@ Respuesta JSON:
         this.logger.warn(
           `[GENERATE_AND_SAVE] Attempt ${attempts} failed: ${error.message}`,
         );
-        
+
         if (attempts >= maxRetries) {
-           // Let it fall to the catch block below for random fallback
-           break; 
+          // Let it fall to the catch block below for random fallback
+          break;
         }
-        
+
         // Wait before retrying (1s, 2s, 4s...)
         const delay = Math.pow(2, attempts) * 1000;
-        this.logger.log(`[GENERATE_AND_SAVE] Waiting ${delay}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        this.logger.log(
+          `[GENERATE_AND_SAVE] Waiting ${delay}ms before retry...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
     try {
-        // This block is just to define the scope for the fallback logic which uses 'error' variable from the catch
-        throw new Error('Max retries exceeded');
+      // This block is just to define the scope for the fallback logic which uses 'error' variable from the catch
+      throw new Error('Max retries exceeded');
     } catch (error) {
-
       this.logger.error(
         `[GENERATE_AND_SAVE] ❌ Error for match ${matchId}:`,
         error.message,
@@ -309,12 +323,12 @@ Respuesta JSON:
       // 🎲 RANDOM FALLBACK - Generate random score (0-3 goals each team)
       const homeGoals = Math.floor(Math.random() * 4);
       let awayGoals = Math.floor(Math.random() * 4);
-      
+
       // In knockout phases, avoid draws
       if (match.phase && match.phase !== 'GROUP' && homeGoals === awayGoals) {
         awayGoals = homeGoals === 0 ? 1 : homeGoals - 1;
       }
-      
+
       const randomScore = `${homeGoals}-${awayGoals}`;
 
       const fallback = {

@@ -120,7 +120,9 @@ async function insertTestMatch() {
     console.log(`   External ID: ${testMatch.externalId}`);
     console.log(`   Date: ${testMatch.date}`);
     console.log(`   Tournament: ${testMatch.tournamentId}`);
-    console.log('\n✅ The match should now appear in UCL2526 tournament cards!');
+    console.log(
+      '\n✅ The match should now appear in UCL2526 tournament cards!',
+    );
     console.log('✅ Live sync will work automatically when the match starts.');
 
     process.exit(0);

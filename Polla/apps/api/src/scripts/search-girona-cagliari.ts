@@ -17,7 +17,7 @@ async function searchGironaAndCagliari() {
 
     // Strategy 1: Try LaLiga fixtures for Girona
     console.log('🔎 Estrategia 1: Buscando en LaLiga (ID: 140)...\n');
-    
+
     try {
       const laligaResponse = await axios.get(`${BASE_URL}/fixtures`, {
         headers: {
@@ -33,9 +33,10 @@ async function searchGironaAndCagliari() {
       const gironaMatches = laligaResponse.data.response;
       console.log(`   Partidos de Girona encontrados: ${gironaMatches.length}`);
 
-      const gironaVsBarca = gironaMatches.find((f: any) =>
-        f.teams.away.name.toLowerCase().includes('barcelona') ||
-        f.teams.home.name.toLowerCase().includes('barcelona')
+      const gironaVsBarca = gironaMatches.find(
+        (f: any) =>
+          f.teams.away.name.toLowerCase().includes('barcelona') ||
+          f.teams.home.name.toLowerCase().includes('barcelona'),
       );
 
       if (gironaVsBarca) {
@@ -45,11 +46,13 @@ async function searchGironaAndCagliari() {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
 
         console.log(`⚽ [ID: ${gironaVsBarca.fixture.id}]`);
-        console.log(`   ${gironaVsBarca.teams.home.name} vs ${gironaVsBarca.teams.away.name}`);
+        console.log(
+          `   ${gironaVsBarca.teams.home.name} vs ${gironaVsBarca.teams.away.name}`,
+        );
         console.log(`   Liga: ${gironaVsBarca.league.name}`);
         console.log(`   Fecha: ${matchDate.toISOString().split('T')[0]}`);
         console.log(`   Hora: ${colombiaTime} (Colombia)`);
@@ -78,11 +81,14 @@ async function searchGironaAndCagliari() {
       });
 
       const cagliariMatches = serieaResponse.data.response;
-      console.log(`   Partidos de Cagliari encontrados: ${cagliariMatches.length}`);
+      console.log(
+        `   Partidos de Cagliari encontrados: ${cagliariMatches.length}`,
+      );
 
-      const cagliariVsLecce = cagliariMatches.find((f: any) =>
-        f.teams.away.name.toLowerCase().includes('lecce') ||
-        f.teams.home.name.toLowerCase().includes('lecce')
+      const cagliariVsLecce = cagliariMatches.find(
+        (f: any) =>
+          f.teams.away.name.toLowerCase().includes('lecce') ||
+          f.teams.home.name.toLowerCase().includes('lecce'),
       );
 
       if (cagliariVsLecce) {
@@ -92,11 +98,13 @@ async function searchGironaAndCagliari() {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
 
         console.log(`⚽ [ID: ${cagliariVsLecce.fixture.id}]`);
-        console.log(`   ${cagliariVsLecce.teams.home.name} vs ${cagliariVsLecce.teams.away.name}`);
+        console.log(
+          `   ${cagliariVsLecce.teams.home.name} vs ${cagliariVsLecce.teams.away.name}`,
+        );
         console.log(`   Liga: ${cagliariVsLecce.league.name}`);
         console.log(`   Fecha: ${matchDate.toISOString().split('T')[0]}`);
         console.log(`   Hora: ${colombiaTime} (Colombia)`);
@@ -109,8 +117,12 @@ async function searchGironaAndCagliari() {
       console.log(`   Error: ${e.message}`);
     }
 
-    console.log('\n💡 Nota: Si no se encontraron, es porque estos partidos no existen en la temporada 2023-2024.');
-    console.log('   Intenta buscar partidos que estén ocurriendo HOY en tiempo real.');
+    console.log(
+      '\n💡 Nota: Si no se encontraron, es porque estos partidos no existen en la temporada 2023-2024.',
+    );
+    console.log(
+      '   Intenta buscar partidos que estén ocurriendo HOY en tiempo real.',
+    );
 
     process.exit(0);
   } catch (error: any) {

@@ -37,7 +37,13 @@ export class TransactionsController {
   @Post()
   async createTransaction(
     @Request() req: any,
-    @Body() body: { packageType: string; amount: number; leagueId: string; tournamentId?: string },
+    @Body()
+    body: {
+      packageType: string;
+      amount: number;
+      leagueId: string;
+      tournamentId?: string;
+    },
     @Query('tournamentId') queryTournamentId?: string,
   ) {
     const tid = body.tournamentId || queryTournamentId || 'WC2026';
@@ -76,7 +82,12 @@ export class TransactionsController {
     @Request() req: any,
     @UploadedFile() file: Express.Multer.File,
     @Body()
-    body: { amount?: any; referenceCode?: string; leagueId?: string; tournamentId?: string },
+    body: {
+      amount?: any;
+      referenceCode?: string;
+      leagueId?: string;
+      tournamentId?: string;
+    },
     @Query('tournamentId') queryTournamentId?: string,
   ) {
     try {
@@ -85,32 +96,41 @@ export class TransactionsController {
       }
 
       // Handle potential arrays if params are duplicated in query and body
-      const getFirst = (val: any) => Array.isArray(val) ? val[0] : val;
+      const getFirst = (val: any) => (Array.isArray(val) ? val[0] : val);
 
       const rawTid = body.tournamentId || queryTournamentId || 'WC2026';
       const tid = getFirst(rawTid);
-      
+
       // Defensive check for amount
       let amount = 50000;
       const rawAmount = getFirst(body.amount);
       if (rawAmount) {
         amount = Number(rawAmount);
         if (isNaN(amount)) {
-            throw new BadRequestException('Monto de transacción inválido');
+          throw new BadRequestException('Monto de transacción inválido');
         }
       }
 
       // Defensive check for leagueId (ensure it's a UUID if provided)
       let leagueId = getFirst(body.leagueId);
-      if (leagueId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leagueId)) {
-        console.warn(`[Transactions] Invalid leagueId received: ${leagueId}, ignoring.`);
+      if (
+        leagueId &&
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          leagueId,
+        )
+      ) {
+        console.warn(
+          `[Transactions] Invalid leagueId received: ${leagueId}, ignoring.`,
+        );
         leagueId = undefined;
       }
 
       const referenceCode = getFirst(body.referenceCode);
 
-      console.log(`[Transactions] Uploading for tournament: ${tid}, league: ${leagueId}, amount: ${amount}`);
-      
+      console.log(
+        `[Transactions] Uploading for tournament: ${tid}, league: ${leagueId}, amount: ${amount}`,
+      );
+
       const uploadResult = await this.cloudinaryService.uploadImage(file);
 
       return await this.transactionsService.uploadTransaction(
@@ -124,7 +144,9 @@ export class TransactionsController {
     } catch (error: any) {
       console.error('[Transactions] Error in uploadTransaction:', error);
       if (error instanceof BadRequestException) throw error;
-      throw new InternalServerErrorException(error.message || 'Error uploading transaction');
+      throw new InternalServerErrorException(
+        error.message || 'Error uploading transaction',
+      );
     }
   }
 

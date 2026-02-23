@@ -41,7 +41,9 @@ export class UsersService {
 
   async getUserDetails(userId: string) {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
       if (!user) throw new NotFoundException('Usuario no encontrado');
 
       const participants = await this.leagueParticipantRepository.find({
@@ -102,7 +104,7 @@ export class UsersService {
       );
 
       // Filter out nulls if any league was missing
-      const validLeaguesData = leaguesData.filter(l => l !== null);
+      const validLeaguesData = leaguesData.filter((l) => l !== null);
 
       // GLOBAL STATS (To catch points from predictions without leagueId or across all leagues)
       const allPredictions = await this.predictionRepository.find({
@@ -231,10 +233,7 @@ export class UsersService {
         throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
       }
     } catch (error) {
-      console.error(
-        `❌ [UsersService] Error eliminando usuario ${id}:`,
-        error,
-      );
+      console.error(`❌ [UsersService] Error eliminando usuario ${id}:`, error);
       throw error;
     }
   }

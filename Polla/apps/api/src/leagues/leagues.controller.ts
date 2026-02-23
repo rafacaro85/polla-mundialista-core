@@ -67,7 +67,9 @@ export class LeaguesController {
   }
 
   @Get('global/ranking')
-  async getGlobalRanking(@Query('tournamentId') tournamentId: string = 'WC2026') {
+  async getGlobalRanking(
+    @Query('tournamentId') tournamentId: string = 'WC2026',
+  ) {
     return this.leaguesService.getGlobalRanking(tournamentId);
   }
 
@@ -102,7 +104,9 @@ export class LeaguesController {
     const userPayload = (req as any).user as { id: string; userId?: string };
     const userId = userPayload?.userId || userPayload?.id;
     if (!userId) {
-      throw new UnauthorizedException('Usuario no autenticado para esta operación');
+      throw new UnauthorizedException(
+        'Usuario no autenticado para esta operación',
+      );
     }
     return this.leaguesService.getLeagueForUser(leagueId, userId);
   }
@@ -409,7 +413,6 @@ export class LeaguesController {
     res.send(csvContent);
   }
 
-
   @UseGuards(JwtAuthGuard)
   @Post('join')
   async joinLeague(@Req() req: Request, @Body() joinLeagueDto: JoinLeagueDto) {
@@ -432,32 +435,59 @@ export class LeaguesController {
   @UseGuards(JwtAuthGuard)
   @Get(':id/requests')
   async getPendingRequests(@Param('id') leagueId: string, @Req() req: Request) {
-      const userPayload = req.user as { id: string; role: string };
-      return this.leagueParticipantsService.getPendingRequests(leagueId, userPayload.id, userPayload.role);
+    const userPayload = req.user as { id: string; role: string };
+    return this.leagueParticipantsService.getPendingRequests(
+      leagueId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/approve')
-  async approveRequest(@Param('id') leagueId: string, @Body() body: { userId: string }, @Req() req: Request) {
-      const userPayload = req.user as { id: string; role: string };
-      return this.leagueParticipantsService.approveParticipant(leagueId, body.userId, userPayload.id, userPayload.role);
+  async approveRequest(
+    @Param('id') leagueId: string,
+    @Body() body: { userId: string },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string; role: string };
+    return this.leagueParticipantsService.approveParticipant(
+      leagueId,
+      body.userId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/reject')
-  async rejectRequest(@Param('id') leagueId: string, @Body() body: { userId: string }, @Req() req: Request) {
-      const userPayload = req.user as { id: string; role: string };
-      return this.leagueParticipantsService.rejectParticipant(leagueId, body.userId, userPayload.id, userPayload.role);
+  async rejectRequest(
+    @Param('id') leagueId: string,
+    @Body() body: { userId: string },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string; role: string };
+    return this.leagueParticipantsService.rejectParticipant(
+      leagueId,
+      body.userId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/participants/:userId/toggle-payment')
   async togglePayment(
-      @Param('id') leagueId: string,
-      @Param('userId') participantId: string,
-      @Req() req: Request
+    @Param('id') leagueId: string,
+    @Param('userId') participantId: string,
+    @Req() req: Request,
   ) {
-      const userPayload = req.user as { id: string; role: string };
-      return this.leagueParticipantsService.togglePaymentStatus(leagueId, participantId, userPayload.id, userPayload.role);
+    const userPayload = req.user as { id: string; role: string };
+    return this.leagueParticipantsService.togglePaymentStatus(
+      leagueId,
+      participantId,
+      userPayload.id,
+      userPayload.role,
+    );
   }
 }

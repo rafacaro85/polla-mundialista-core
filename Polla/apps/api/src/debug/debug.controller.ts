@@ -10,7 +10,10 @@ export class DebugController {
   // Last updated: 2026-02-22T21:28:00Z - Forced deploy for leage detail fix
   @Get('version')
   getVersion() {
-    return { version: '2.0.debug-leagues-fix', timestamp: '2026-02-22T21:28:00Z' };
+    return {
+      version: '2.0.debug-leagues-fix',
+      timestamp: '2026-02-22T21:28:00Z',
+    };
   }
 
   constructor(
@@ -23,7 +26,11 @@ export class DebugController {
 
   @Get('ping')
   getPing() {
-    return { status: 'ok', timestamp: new Date().toISOString(), message: 'DebugController is live' };
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      message: 'DebugController is live',
+    };
   }
 
   @Get('db-schema')
@@ -31,11 +38,16 @@ export class DebugController {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       const table = await queryRunner.getTable('leagues');
-      const columns = table?.columns.map(c => ({ name: c.name, type: c.type }));
-      
+      const columns = table?.columns.map((c) => ({
+        name: c.name,
+        type: c.type,
+      }));
+
       const config = this.dataSource.options as any;
-      const maskedUrl = config.url ? config.url.replace(/:[^:@]+@/, ':***@') : 'N/A';
-      
+      const maskedUrl = config.url
+        ? config.url.replace(/:[^:@]+@/, ':***@')
+        : 'N/A';
+
       const tablesRaw = await queryRunner.query(`
         SELECT table_name 
         FROM information_schema.tables 
@@ -45,7 +57,9 @@ export class DebugController {
 
       const counts: Record<string, number> = {};
       if (tables.includes('leagues')) {
-        const leagueCount = await queryRunner.query('SELECT COUNT(*) FROM leagues');
+        const leagueCount = await queryRunner.query(
+          'SELECT COUNT(*) FROM leagues',
+        );
         counts['leagues'] = Number(leagueCount[0].count);
       }
       if (tables.includes('users')) {
@@ -53,16 +67,18 @@ export class DebugController {
         counts['users'] = Number(userCount[0].count);
       }
 
-      const sampleLeagues = tables.includes('leagues') 
+      const sampleLeagues = tables.includes('leagues')
         ? await queryRunner.query('SELECT id, name FROM leagues LIMIT 5')
         : [];
-      
+
       const sampleUsers = tables.includes('users')
         ? await queryRunner.query('SELECT id, email FROM users LIMIT 5')
         : [];
 
       const specificLeague = tables.includes('leagues')
-        ? await queryRunner.query('SELECT * FROM leagues WHERE id = $1', ['4b5f5caf-4f5c-49e6-9600-409f29081a46'])
+        ? await queryRunner.query('SELECT * FROM leagues WHERE id = $1', [
+            '4b5f5caf-4f5c-49e6-9600-409f29081a46',
+          ])
         : [];
 
       return {
@@ -74,8 +90,10 @@ export class DebugController {
         sampleLeagues,
         sampleUsers,
         specificLeague: specificLeague[0] || 'NOT_FOUND',
-        brandColorHeadingExists: columns?.some(c => c.name === 'brand_color_heading'),
-        columns: columns
+        brandColorHeadingExists: columns?.some(
+          (c) => c.name === 'brand_color_heading',
+        ),
+        columns: columns,
       };
     } catch (e) {
       return { error: e.message };
@@ -89,18 +107,23 @@ export class DebugController {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       console.log('--- Intentando reparación de emergencia desde el API ---');
-      await queryRunner.query('ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT \'#FFFFFF\'');
-      await queryRunner.query('ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT \'#00E676\'');
-      
-      return { 
-        success: true, 
-        message: 'Columnas creadas/verificadas con éxito desde el proceso del API.' 
+      await queryRunner.query(
+        "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT '#FFFFFF'",
+      );
+      await queryRunner.query(
+        "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'",
+      );
+
+      return {
+        success: true,
+        message:
+          'Columnas creadas/verificadas con éxito desde el proceso del API.',
       };
     } catch (e) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: e.message,
-        hint: 'Es posible que el usuario de la DB no tenga permisos de ALTER TABLE, pero usualmente en Railway el usuario postgres tiene todo.'
+        hint: 'Es posible que el usuario de la DB no tenga permisos de ALTER TABLE, pero usualmente en Railway el usuario postgres tiene todo.',
       };
     } finally {
       await queryRunner.release();

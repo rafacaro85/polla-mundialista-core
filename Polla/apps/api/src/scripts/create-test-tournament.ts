@@ -74,7 +74,7 @@ async function createTestTournament() {
     if (existing.length > 0) {
       console.log('⚠️  TEST_LIVE_MONDAY tournament already exists!');
       console.log(`   Found ${existing.length} match(es).\n`);
-      
+
       existing.forEach((match, index) => {
         console.log(`${index + 1}. ${match.homeTeam} vs ${match.awayTeam}`);
         console.log(`   ID: ${match.id}`);
@@ -82,7 +82,9 @@ async function createTestTournament() {
         console.log(`   Status: ${match.status}\n`);
       });
 
-      console.log('Delete these matches first or use a different tournament ID.');
+      console.log(
+        'Delete these matches first or use a different tournament ID.',
+      );
       process.exit(1);
     }
 
@@ -125,14 +127,20 @@ async function createTestTournament() {
       await matchRepo.save(match);
       console.log(`✅ Created: ${match.homeTeam} vs ${match.awayTeam}`);
       console.log(`   ID: ${match.id}`);
-      console.log(`   ⚠️  External ID: NOT SET (must be configured manually)\n`);
+      console.log(
+        `   ⚠️  External ID: NOT SET (must be configured manually)\n`,
+      );
     }
 
     console.log('\n🎯 TEST_LIVE_MONDAY Tournament Created!\n');
     console.log('📋 Next Steps:');
-    console.log('1. Find real fixture IDs from API-SPORTS (use find-real-time-matches.ts)');
+    console.log(
+      '1. Find real fixture IDs from API-SPORTS (use find-real-time-matches.ts)',
+    );
     console.log('2. Update externalId for each match using SQL or a script');
-    console.log('3. Navigate to: /dashboard (select TEST_LIVE_MONDAY from dropdown)');
+    console.log(
+      '3. Navigate to: /dashboard (select TEST_LIVE_MONDAY from dropdown)',
+    );
     console.log('\n💡 Tournament Name: ⚙️ System Config (Admin Only)');
     console.log('   (This name will deter regular users from selecting it)');
 

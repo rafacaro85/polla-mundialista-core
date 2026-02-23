@@ -140,7 +140,13 @@ export class LeaguesService {
 
       // --- LIMIT CHECK: 1 Free League Per User Per Tournament ---
       const targetTournamentId = tournamentId || 'WC2026';
-      const isFreePlan = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
+      const isFreePlan = [
+        'familia',
+        'starter',
+        'FREE',
+        'launch_promo',
+        'ENTERPRISE_LAUNCH',
+      ].includes(packageType);
 
       if (isFreePlan) {
         // Count existing leagues for this user in this tournament
@@ -183,11 +189,17 @@ export class LeaguesService {
         // luego el admin la activa con el bot  n de pago si es necesario, O si es Enterprise activarla.
         // ACTUALIZACI  N: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aqu   isPaid se rige por type.
         // Vamos a dejar la l  gica actual: solo FREE es paid auto. Enterprise se paga manual o por bot  n.
-        isPaid: ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType),
+        isPaid: [
+          'familia',
+          'starter',
+          'FREE',
+          'launch_promo',
+          'ENTERPRISE_LAUNCH',
+        ].includes(packageType),
         packageType,
         isEnterprise: !!isEnterprise,
         // Auto-activate enterprise features for launch promo
-        isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH', 
+        isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH',
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,
@@ -197,7 +209,13 @@ export class LeaguesService {
       const savedLeague = await this.leaguesRepository.save(league);
 
       //      Admin Alert (    ) - New League
-      const isPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType); // Logic copied from isPaid above
+      const isPaid = [
+        'familia',
+        'starter',
+        'FREE',
+        'launch_promo',
+        'ENTERPRISE_LAUNCH',
+      ].includes(packageType); // Logic copied from isPaid above
       const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
       const creatorName = adminName || creator.fullName;
 
@@ -224,7 +242,15 @@ export class LeaguesService {
       }
 
       // Create Transaction only for FREE plans
-      if (['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType)) {
+      if (
+        [
+          'familia',
+          'starter',
+          'FREE',
+          'launch_promo',
+          'ENTERPRISE_LAUNCH',
+        ].includes(packageType)
+      ) {
         await this.transactionsService.createTransaction(
           creator,
           0,
@@ -236,13 +262,21 @@ export class LeaguesService {
       }
 
       // Automatically add the creator as a participant
-      const isActuallyPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
-      
+      const isActuallyPaid = [
+        'familia',
+        'starter',
+        'FREE',
+        'launch_promo',
+        'ENTERPRISE_LAUNCH',
+      ].includes(packageType);
+
       const participant = this.leagueParticipantsRepository.create({
         user: creator,
         league: savedLeague,
         isAdmin: true,
-        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING,
+        status: isActuallyPaid
+          ? LeagueParticipantStatus.ACTIVE
+          : LeagueParticipantStatus.PENDING,
         isPaid: false,
         totalPoints: 0,
         triviaPoints: 0,
@@ -264,13 +298,15 @@ export class LeaguesService {
         constraint: error.constraint,
         stack: error.stack,
       });
-      
-      if (error instanceof BadRequestException || 
-          error instanceof NotFoundException || 
-          error instanceof ForbiddenException) {
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      
+
       // Return the actual PG error message so it reaches the frontend logs
       throw new InternalServerErrorException(
         `Failed to create league: ${error.message} | detail: ${error.detail || 'none'} | code: ${error.code || 'none'}`,
@@ -309,7 +345,13 @@ export class LeaguesService {
   ): Promise<{ league: League; availableSlots: number }> {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
-      relations: ['participants', 'participants.user', 'creator', 'prizes', 'banners'],
+      relations: [
+        'participants',
+        'participants.user',
+        'creator',
+        'prizes',
+        'banners',
+      ],
     });
 
     if (league) {
@@ -330,7 +372,13 @@ export class LeaguesService {
   async getLeagueDetails(leagueId: string, userId?: string) {
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
-      relations: ['participants', 'participants.user', 'creator', 'prizes', 'banners'],
+      relations: [
+        'participants',
+        'participants.user',
+        'creator',
+        'prizes',
+        'banners',
+      ],
     });
 
     if (league) {
@@ -400,7 +448,8 @@ export class LeaguesService {
       prizeImageUrl: league.prizeImageUrl,
       prizeDetails: league.prizeDetails,
       prizeType: league.prizeType,
-      prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
+      prizeAmount:
+        league.prizeAmount != null ? Number(league.prizeAmount) : null,
       // Social
       socialInstagram: league.socialInstagram,
       socialFacebook: league.socialFacebook,
@@ -462,9 +511,9 @@ export class LeaguesService {
     const cacheKey = `ranking:global:${tournamentId}`;
     const cached = await this.cacheManager.get<any[]>(cacheKey);
     if (cached) {
-        return cached;
+      return cached;
     }
-    
+
     console.log(`   Iniciando Global Ranking para: ${tournamentId}`);
 
     const rawQuery = `
@@ -517,8 +566,10 @@ export class LeaguesService {
     `;
 
     // REMOVED TRY-CATCH TO EXPOSE ERRORS IN PROD
-    const results = await this.userRepository.manager.query(rawQuery, [tournamentId]);
-      
+    const results = await this.userRepository.manager.query(rawQuery, [
+      tournamentId,
+    ]);
+
     console.log(`   Global Ranking Count (${tournamentId}):`, results.length);
     if (results.length > 0) {
       console.log('Sample User:', results[0]);
@@ -527,22 +578,22 @@ export class LeaguesService {
     }
 
     const finalResults = results.map((user: any, index: number) => ({
-        position: index + 1,
-        id: user.id,
-        fullName: user.fullName || user.nickname || 'Anonimo', // Frontend expects fullName
-        nickname: user.nickname,
-        avatarUrl: user.avatarUrl,
-        regularPoints: Number(user.regularPoints),
-        jokerPoints: Number(user.jokerPoints),
-        bracketPoints: Number(user.bracketPoints),
-        bonusPoints: Number(user.bonusPoints),
-        totalPoints: Number(user.totalPoints),
-        breakdown: {
-            matches: Number(user.regularPoints),
-            phases: Number(user.bracketPoints),
-            wildcard: Number(user.jokerPoints),
-            bonus: Number(user.bonusPoints),
-        },
+      position: index + 1,
+      id: user.id,
+      fullName: user.fullName || user.nickname || 'Anonimo', // Frontend expects fullName
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+      regularPoints: Number(user.regularPoints),
+      jokerPoints: Number(user.jokerPoints),
+      bracketPoints: Number(user.bracketPoints),
+      bonusPoints: Number(user.bonusPoints),
+      totalPoints: Number(user.totalPoints),
+      breakdown: {
+        matches: Number(user.regularPoints),
+        phases: Number(user.bracketPoints),
+        wildcard: Number(user.jokerPoints),
+        bonus: Number(user.bonusPoints),
+      },
     }));
 
     await this.cacheManager.set(cacheKey, finalResults, 30 * 1000); // 30 seconds
@@ -590,60 +641,68 @@ export class LeaguesService {
   }
 
   async getMyLeagues(userId: string, tournamentId?: string) {
-    console.log(`[LeaguesService] getMyLeagues for user: ${userId}, tournament: ${tournamentId}`);
-    
+    console.log(
+      `[LeaguesService] getMyLeagues for user: ${userId}, tournament: ${tournamentId}`,
+    );
+
     try {
-    const query = this.leagueParticipantsRepository.createQueryBuilder('participant')
-      .innerJoinAndSelect('participant.league', 'league')
-      .leftJoinAndSelect('league.creator', 'creator')
-      .leftJoinAndSelect('league.participants', 'leagueParticipants')
-      .where('participant.user_id = :userId', { userId });
+      const query = this.leagueParticipantsRepository
+        .createQueryBuilder('participant')
+        .innerJoinAndSelect('participant.league', 'league')
+        .leftJoinAndSelect('league.creator', 'creator')
+        .leftJoinAndSelect('league.participants', 'leagueParticipants')
+        .where('participant.user_id = :userId', { userId });
 
-    if (tournamentId && tournamentId !== 'all') {
-      query.andWhere('league.tournamentId = :tournamentId', { tournamentId });
-    }
+      if (tournamentId && tournamentId !== 'all') {
+        query.andWhere('league.tournamentId = :tournamentId', { tournamentId });
+      }
 
-    const participants = await query.getMany();
-    
-    const result = participants.map((p) => ({
-      id: p.league.id,
-      name: p.league.name,
-      code: p.league.accessCodePrefix,
-      type: p.league.type,
-      isAdmin: p.isAdmin,
-      creatorName: p.league.creator?.nickname || p.league.creator?.fullName || 'Admin',
-      participantCount: p.league.participants?.length || 0,
-      isEnterprise: p.league.isEnterprise,
-      isEnterpriseActive: p.league.isEnterpriseActive,
-      companyName: p.league.companyName,
-      brandingLogoUrl: p.league.brandingLogoUrl,
-      brandColorPrimary: p.league.brandColorPrimary,
-      brandColorSecondary: p.league.brandColorSecondary,
-      brandColorBg: p.league.brandColorBg,
-      brandColorText: p.league.brandColorText,
-      brandFontFamily: p.league.brandFontFamily,
-      brandCoverUrl: p.league.brandCoverUrl,
-      welcomeMessage: p.league.welcomeMessage,
-      prizeImageUrl: p.league.prizeImageUrl,
-      prizeDetails: p.league.prizeDetails,
-      prizeType: p.league.prizeType,
-      prizeAmount: p.league.prizeAmount != null ? Number(p.league.prizeAmount) : null,
-      isPaid: p.league.isPaid,
-      packageType: p.league.packageType,
-      showAds: p.league.showAds,
-      adImages: p.league.adImages,
-      status: p.status, // EXPOSE STATUS
-      tournamentId: p.league.tournamentId,
-    }));
+      const participants = await query.getMany();
 
-    // OPTIMIZACION: Fetch pending transactions for all leagues at once or in parallel
-    const finalResult = await Promise.all(result.map(async (l) => {
-      const hasPendingTransaction = await this.transactionsService.findLatestLeagueTransaction(userId, l.id)
-        .then(tx => tx?.status === TransactionStatus.PENDING);
-      return { ...l, hasPendingTransaction };
-    }));
+      const result = participants.map((p) => ({
+        id: p.league.id,
+        name: p.league.name,
+        code: p.league.accessCodePrefix,
+        type: p.league.type,
+        isAdmin: p.isAdmin,
+        creatorName:
+          p.league.creator?.nickname || p.league.creator?.fullName || 'Admin',
+        participantCount: p.league.participants?.length || 0,
+        isEnterprise: p.league.isEnterprise,
+        isEnterpriseActive: p.league.isEnterpriseActive,
+        companyName: p.league.companyName,
+        brandingLogoUrl: p.league.brandingLogoUrl,
+        brandColorPrimary: p.league.brandColorPrimary,
+        brandColorSecondary: p.league.brandColorSecondary,
+        brandColorBg: p.league.brandColorBg,
+        brandColorText: p.league.brandColorText,
+        brandFontFamily: p.league.brandFontFamily,
+        brandCoverUrl: p.league.brandCoverUrl,
+        welcomeMessage: p.league.welcomeMessage,
+        prizeImageUrl: p.league.prizeImageUrl,
+        prizeDetails: p.league.prizeDetails,
+        prizeType: p.league.prizeType,
+        prizeAmount:
+          p.league.prizeAmount != null ? Number(p.league.prizeAmount) : null,
+        isPaid: p.league.isPaid,
+        packageType: p.league.packageType,
+        showAds: p.league.showAds,
+        adImages: p.league.adImages,
+        status: p.status, // EXPOSE STATUS
+        tournamentId: p.league.tournamentId,
+      }));
 
-    return finalResult;
+      // OPTIMIZACION: Fetch pending transactions for all leagues at once or in parallel
+      const finalResult = await Promise.all(
+        result.map(async (l) => {
+          const hasPendingTransaction = await this.transactionsService
+            .findLatestLeagueTransaction(userId, l.id)
+            .then((tx) => tx?.status === TransactionStatus.PENDING);
+          return { ...l, hasPendingTransaction };
+        }),
+      );
+
+      return finalResult;
     } catch (error) {
       console.error('❌ Error in getMyLeagues:', {
         message: error.message,
@@ -709,13 +768,21 @@ export class LeaguesService {
     try {
       const participant = await this.leagueParticipantsRepository.findOne({
         where: { league: { id: leagueId }, user: { id: userId } },
-        relations: ['league', 'league.creator', 'league.participants', 'league.prizes', 'league.banners'],
+        relations: [
+          'league',
+          'league.creator',
+          'league.participants',
+          'league.prizes',
+          'league.banners',
+        ],
       });
 
       // 2. If participant found, return standard format
       if (participant) {
         if (!participant.league) {
-          throw new NotFoundException('Detalles de la polla asociados al participante no encontrados');
+          throw new NotFoundException(
+            'Detalles de la polla asociados al participante no encontrados',
+          );
         }
 
         return {
@@ -726,7 +793,8 @@ export class LeaguesService {
           isAdmin: participant.isAdmin,
           creatorName:
             participant.league.creator?.nickname ||
-            participant.league.creator?.fullName || 'N/A',
+            participant.league.creator?.fullName ||
+            'N/A',
           participantCount: participant.league.participants?.length || 0,
           isEnterprise: participant.league.isEnterprise,
           isEnterpriseActive: participant.league.isEnterpriseActive,
@@ -742,7 +810,10 @@ export class LeaguesService {
           prizeImageUrl: participant.league.prizeImageUrl,
           prizeDetails: participant.league.prizeDetails,
           prizeType: participant.league.prizeType,
-          prizeAmount: participant.league.prizeAmount != null ? Number(participant.league.prizeAmount) : null,
+          prizeAmount:
+            participant.league.prizeAmount != null
+              ? Number(participant.league.prizeAmount)
+              : null,
           status: participant.league.status,
           isPaid: participant.league.isPaid,
           maxParticipants: participant.league.maxParticipants,
@@ -776,20 +847,29 @@ export class LeaguesService {
       if (user?.role === UserRole.SUPER_ADMIN) {
         const league = await this.leaguesRepository.findOne({
           where: { id: leagueId },
-          relations: ['creator', 'participants', 'participants.user', 'prizes', 'banners'],
+          relations: [
+            'creator',
+            'participants',
+            'participants.user',
+            'prizes',
+            'banners',
+          ],
         });
 
         if (league) {
           // Even for Super Admin, try to find if they are a participant to get their actual status (e.g. REJECTED)
-          const actualParticipant = league.participants?.find(p => p.user?.id === userId);
-          
+          const actualParticipant = league.participants?.find(
+            (p) => p.user?.id === userId,
+          );
+
           return {
             id: league.id,
             name: league.name,
             code: league.accessCodePrefix,
             type: league.type,
             isAdmin: true, // Super Admin is effectively an admin
-            creatorName: league.creator?.nickname || league.creator?.fullName || 'N/A',
+            creatorName:
+              league.creator?.nickname || league.creator?.fullName || 'N/A',
             participantCount: league.participants?.length || 0,
             isEnterprise: league.isEnterprise,
             isEnterpriseActive: league.isEnterpriseActive,
@@ -805,7 +885,8 @@ export class LeaguesService {
             prizeImageUrl: league.prizeImageUrl,
             prizeDetails: league.prizeDetails,
             prizeType: league.prizeType,
-            prizeAmount: league.prizeAmount != null ? Number(league.prizeAmount) : null,
+            prizeAmount:
+              league.prizeAmount != null ? Number(league.prizeAmount) : null,
             status: league.status,
             isPaid: league.isPaid,
             maxParticipants: league.maxParticipants,
@@ -834,9 +915,14 @@ export class LeaguesService {
         'League not found or user is not a participant',
       );
     } catch (error) {
-      console.error(`❌ Error in getLeagueForUser (ID: ${leagueId}, User: ${userId}):`, error);
+      console.error(
+        `❌ Error in getLeagueForUser (ID: ${leagueId}, User: ${userId}):`,
+        error,
+      );
       if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException(`Error al cargar los detalles de la polla: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Error al cargar los detalles de la polla: ${error.message}`,
+      );
     }
   }
 
@@ -847,22 +933,24 @@ export class LeaguesService {
     });
 
     if (!participant) {
-        // Allow if Super Admin? Or maybe not.
-        // For now, if not participant, maybe they can't see private league ranking?
-        // But if it's GLOBAL or LIBRE?
+      // Allow if Super Admin? Or maybe not.
+      // For now, if not participant, maybe they can't see private league ranking?
+      // But if it's GLOBAL or LIBRE?
     }
-    
+
     // If pending, BLOCK
     if (participant && participant.status === LeagueParticipantStatus.PENDING) {
-       throw new ForbiddenException('Tu solicitud de union esta pendiente. No puedes ver el ranking aun.');
+      throw new ForbiddenException(
+        'Tu solicitud de union esta pendiente. No puedes ver el ranking aun.',
+      );
     }
-    
+
     const cacheKey = `ranking:league:${leagueId}`;
     const cached = await this.cacheManager.get<any[]>(cacheKey);
     if (cached) {
-        return cached;
+      return cached;
     }
-    
+
     // ... rest of logic
 
     const league = await this.leaguesRepository.findOne({
@@ -930,7 +1018,7 @@ export class LeaguesService {
       if (!userPointsMap.has(uId)) {
         userPointsMap.set(uId, new Map());
       }
-      
+
       const userMatches = userPointsMap.get(uId)!;
 
       // FIX RANKING: Independencia de Comodines.
@@ -938,11 +1026,11 @@ export class LeaguesService {
       // ignoramos su Joker para el calculo de puntos de esta liga.
       let effectiveIsJoker = isJoker;
       if (!isGlobal && pLeagueId === null) {
-          effectiveIsJoker = false;
-          // CRITICAL FIX: If we ignore the joker, we must also revert the points multiplier!
-          if (isJoker) {
-              points = points / 2;
-          }
+        effectiveIsJoker = false;
+        // CRITICAL FIX: If we ignore the joker, we must also revert the points multiplier!
+        if (isJoker) {
+          points = points / 2;
+        }
       }
 
       // Si no existe prediccion para este partido aun en el mapa, o la que hay es global y la nueva es especifica de liga
@@ -979,7 +1067,9 @@ export class LeaguesService {
       .addSelect('MAX(b.points)', 'points')
       .where('b.userId IN (:...userIds)', { userIds })
       .andWhere('(b.leagueId = :leagueId OR b.leagueId IS NULL)', { leagueId })
-      .andWhere('b.tournamentId = :tournamentId', { tournamentId: league.tournamentId }) // FIX: Filter by Tournament
+      .andWhere('b.tournamentId = :tournamentId', {
+        tournamentId: league.tournamentId,
+      }) // FIX: Filter by Tournament
       .groupBy('b.userId')
       .getRawMany();
 
@@ -1289,7 +1379,9 @@ export class LeaguesService {
   }
 
   async deleteLeague(leagueId: string, userId: string, userRole: string) {
-    console.log(`    [deleteLeague] Solicitud de eliminacion para leagueId: ${leagueId}`);
+    console.log(
+      `    [deleteLeague] Solicitud de eliminacion para leagueId: ${leagueId}`,
+    );
     console.log(`   User ID: ${userId}`);
     console.log(`   User Role: ${userRole}`);
 
@@ -1303,13 +1395,15 @@ export class LeaguesService {
     }
 
     console.log(`   Creator ID: ${league.creator?.id}`);
-    
+
     // Check permissions: Only SUPER_ADMIN (any casing) or League Admin (Creator)
     const isSuperAdmin = userRole?.toUpperCase() === 'SUPER_ADMIN';
     const isCreator = league.creator?.id === userId;
 
     if (!isSuperAdmin && !isCreator) {
-      console.error(`  [deleteLeague] Permiso denegado. No es Super Admin ni Creador.`);
+      console.error(
+        `  [deleteLeague] Permiso denegado. No es Super Admin ni Creador.`,
+      );
       throw new ForbiddenException(
         'No tienes permisos para eliminar esta liga',
       );
@@ -1408,12 +1502,17 @@ export class LeaguesService {
 
         // PASO 8: FINALMENTE eliminar la liga
         console.log(`      Paso 8: Eliminando la liga...`);
-        const deleteResult = await transactionalEntityManager.delete(League, leagueId);
-        
+        const deleteResult = await transactionalEntityManager.delete(
+          League,
+          leagueId,
+        );
+
         if (deleteResult.affected === 0) {
-            console.warn(`   [deleteLeague] No se encontro la liga en el paso final (Ya fue eliminada?)`);
+          console.warn(
+            `   [deleteLeague] No se encontro la liga en el paso final (Ya fue eliminada?)`,
+          );
         } else {
-            console.log(`     Liga eliminada`);
+          console.log(`     Liga eliminada`);
         }
       });
 
@@ -1423,13 +1522,16 @@ export class LeaguesService {
       return { success: true, message: 'Liga eliminada correctamente' };
     } catch (error: any) {
       console.error('  [deleteLeague] Error FATAL eliminando liga:', error);
-      
+
       // Si ya es Forbidden, relanzar
       if (error instanceof ForbiddenException) throw error;
-      
+
       // Si es error de base de datos (clave foranea), envolverlo
-      if (error.code === '23503') { // PostgreSQL Foreign Key Violation
-          throw new BadRequestException(`No se pudo eliminar la liga por dependencias activas (Error DB: ${error.detail})`);
+      if (error.code === '23503') {
+        // PostgreSQL Foreign Key Violation
+        throw new BadRequestException(
+          `No se pudo eliminar la liga por dependencias activas (Error DB: ${error.detail})`,
+        );
       }
 
       throw new InternalServerErrorException(

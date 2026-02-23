@@ -24,13 +24,15 @@ async function findCaliNacionalFixture() {
     });
 
     const allFixtures = response.data.response || [];
-    console.log(`📊 Found ${allFixtures.length} total fixtures for Feb 15, 2026\n`);
+    console.log(
+      `📊 Found ${allFixtures.length} total fixtures for Feb 15, 2026\n`,
+    );
 
     // Filter for matches containing "Cali" or "Nacional"
     const matches = allFixtures.filter((f: any) => {
       const homeName = f.teams.home.name.toLowerCase();
       const awayName = f.teams.away.name.toLowerCase();
-      
+
       return (
         homeName.includes('cali') ||
         homeName.includes('nacional') ||
@@ -39,18 +41,24 @@ async function findCaliNacionalFixture() {
       );
     });
 
-    console.log(`🎯 Found ${matches.length} match(es) with Cali or Nacional:\n`);
+    console.log(
+      `🎯 Found ${matches.length} match(es) with Cali or Nacional:\n`,
+    );
 
     if (matches.length === 0) {
       console.log('❌ No matches found for Cali or Nacional on this date.');
       console.log('\n💡 Showing first 10 fixtures to help debug:');
       allFixtures.slice(0, 10).forEach((f: any, idx: number) => {
-        console.log(`   ${idx + 1}. ${f.teams.home.name} vs ${f.teams.away.name} (League: ${f.league.name})`);
+        console.log(
+          `   ${idx + 1}. ${f.teams.home.name} vs ${f.teams.away.name} (League: ${f.league.name})`,
+        );
       });
     } else {
       matches.forEach((fixture: any, idx: number) => {
         console.log(`${idx + 1}. 🎯 FOUND MATCH:`);
-        console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
+        console.log(
+          `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+        );
         console.log(`   -> ID: ${fixture.fixture.id}`);
         console.log(`   League: ${fixture.league.name}`);
         console.log(`   Date: ${fixture.fixture.date}`);

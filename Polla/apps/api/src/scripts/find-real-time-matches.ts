@@ -9,12 +9,14 @@ const BASE_URL = 'https://v3.football.api-sports.io';
 
 async function findRealTimeMatches() {
   try {
-    console.log('🔍 Searching for matches happening RIGHT NOW (real date)...\n');
+    console.log(
+      '🔍 Searching for matches happening RIGHT NOW (real date)...\n',
+    );
 
     // Get today's REAL date
     const realToday = new Date();
     const realTodayStr = realToday.toISOString().split('T')[0];
-    
+
     console.log(`📅 Real date: ${realTodayStr}\n`);
 
     const response = await axios.get(`${BASE_URL}/fixtures`, {
@@ -38,29 +40,39 @@ async function findRealTimeMatches() {
     const now = new Date();
     const goodMatches = allFixtures.filter((fixture: any) => {
       const matchDate = new Date(fixture.fixture.date);
-      const hoursUntil = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      
+      const hoursUntil =
+        (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
       // Live matches or starting in next 4 hours
-      return fixture.fixture.status.short !== 'FT' && 
-             (fixture.fixture.status.short !== 'NS' || hoursUntil <= 4);
+      return (
+        fixture.fixture.status.short !== 'FT' &&
+        (fixture.fixture.status.short !== 'NS' || hoursUntil <= 4)
+      );
     });
 
     console.log(`✅ Found ${goodMatches.length} suitable match(es):\n`);
 
     goodMatches.slice(0, 5).forEach((fixture: any, index: number) => {
       const matchDate = new Date(fixture.fixture.date);
-      const localTime = matchDate.toLocaleString('es-CO', { 
+      const localTime = matchDate.toLocaleString('es-CO', {
         timeZone: 'America/Bogota',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hour12: false,
       });
-      
-      const hoursUntil = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      
-      console.log(`${index + 1}. ${fixture.fixture.status.short === 'LIVE' ? '🔴 LIVE' : '⏰'} [ID: ${fixture.fixture.id}]`);
-      console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
-      console.log(`   League: ${fixture.league.name} (${fixture.league.country})`);
+
+      const hoursUntil =
+        (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      console.log(
+        `${index + 1}. ${fixture.fixture.status.short === 'LIVE' ? '🔴 LIVE' : '⏰'} [ID: ${fixture.fixture.id}]`,
+      );
+      console.log(
+        `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+      );
+      console.log(
+        `   League: ${fixture.league.name} (${fixture.league.country})`,
+      );
       console.log(`   Time: ${localTime} (Colombia)`);
       console.log(`   Status: ${fixture.fixture.status.long}`);
       if (fixture.fixture.status.short !== 'NS') {
@@ -74,17 +86,23 @@ async function findRealTimeMatches() {
     // Output JSON for script consumption
     console.log('\n📋 JSON OUTPUT (first 3 matches):');
     const topMatches = goodMatches.slice(0, 3);
-    console.log(JSON.stringify(topMatches.map((f: any) => ({
-      id: f.fixture.id,
-      homeTeam: f.teams.home.name,
-      awayTeam: f.teams.away.name,
-      date: f.fixture.date,
-      venue: f.fixture.venue.name,
-      homeLogo: f.teams.home.logo,
-      awayLogo: f.teams.away.logo,
-      league: f.league.name,
-      status: f.fixture.status.short,
-    })), null, 2));
+    console.log(
+      JSON.stringify(
+        topMatches.map((f: any) => ({
+          id: f.fixture.id,
+          homeTeam: f.teams.home.name,
+          awayTeam: f.teams.away.name,
+          date: f.fixture.date,
+          venue: f.fixture.venue.name,
+          homeLogo: f.teams.home.logo,
+          awayLogo: f.teams.away.logo,
+          league: f.league.name,
+          status: f.fixture.status.short,
+        })),
+        null,
+        2,
+      ),
+    );
 
     process.exit(0);
   } catch (error: any) {

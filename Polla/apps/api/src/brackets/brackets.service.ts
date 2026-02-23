@@ -62,7 +62,11 @@ export class BracketsService {
         },
       });
 
-      if (participant && (participant.isBlocked || participant.status === LeagueParticipantStatus.PENDING)) {
+      if (
+        participant &&
+        (participant.isBlocked ||
+          participant.status === LeagueParticipantStatus.PENDING)
+      ) {
         throw new ForbiddenException(
           'No puedes guardar tu bracket porque tu estado es PENDIENTE o BLOQUEADO en esta liga.',
         );
@@ -131,8 +135,11 @@ export class BracketsService {
 
     // Get all match IDs from picks
     const rawIds = Object.keys(picks);
-    console.log(`[DEBUG] SaveBracket - Raw Keys (${rawIds.length}):`, rawIds.slice(0, 3)); // Log first 3
-    
+    console.log(
+      `[DEBUG] SaveBracket - Raw Keys (${rawIds.length}):`,
+      rawIds.slice(0, 3),
+    ); // Log first 3
+
     // FILTER: Only valid UUIDs to prevent DB errors
     const matchIds = rawIds.filter((id) => {
       const isValid = UUID_REGEX.test(id);
@@ -140,12 +147,18 @@ export class BracketsService {
       return isValid;
     });
 
-    console.log(`[DEBUG] SaveBracket - Valid UUIDs: ${matchIds.length} / ${rawIds.length}`);
-    
+    console.log(
+      `[DEBUG] SaveBracket - Valid UUIDs: ${matchIds.length} / ${rawIds.length}`,
+    );
+
     if (matchIds.length === 0) {
-      console.warn('[WARN] SaveBracket - No valid match IDs found after filtering.');
+      console.warn(
+        '[WARN] SaveBracket - No valid match IDs found after filtering.',
+      );
       if (rawIds.length > 0) {
-        throw new BadRequestException(`No se encontraron IDs de partido válidos. IDs recibidos: ${rawIds.join(', ')}`);
+        throw new BadRequestException(
+          `No se encontraron IDs de partido válidos. IDs recibidos: ${rawIds.join(', ')}`,
+        );
       }
       return; // Empty picks originally
     }
@@ -156,15 +169,19 @@ export class BracketsService {
     });
 
     if (matches.length === 0) {
-      console.warn(`[WARN] SaveBracket - ALL ${matchIds.length} match IDs were rejected (not found in DB). First ID: ${matchIds[0]}`);
+      console.warn(
+        `[WARN] SaveBracket - ALL ${matchIds.length} match IDs were rejected (not found in DB). First ID: ${matchIds[0]}`,
+      );
       throw new BadRequestException(
         `Los partidos seleccionados ya no son válidos (el torneo se ha actualizado). Por favor recarga la página para obtener los nuevos partidos.`,
       );
     }
 
     if (matches.length < matchIds.length) {
-        console.warn(`[WARN] SaveBracket - Partial mismatch. Received ${matchIds.length}, found ${matches.length}.`);
-        // Opcional: Podríamos lanzar error aquí también si queremos consistencia estricta
+      console.warn(
+        `[WARN] SaveBracket - Partial mismatch. Received ${matchIds.length}, found ${matches.length}.`,
+      );
+      // Opcional: Podríamos lanzar error aquí también si queremos consistencia estricta
     }
 
     // Get unique phases from matches
@@ -248,31 +265,31 @@ export class BracketsService {
     let result: UserBracket | undefined;
 
     if (leagueBracket && generalBracket) {
-       const leaguePts = leagueBracket.points || 0;
-       const generalPts = generalBracket.points || 0;
-       // If General is better, use it. Otherwise Stick to League (Priority to context if tied)
-       if (generalPts > leaguePts) {
-           result = generalBracket;
-       } else {
-           result = leagueBracket;
-       }
+      const leaguePts = leagueBracket.points || 0;
+      const generalPts = generalBracket.points || 0;
+      // If General is better, use it. Otherwise Stick to League (Priority to context if tied)
+      if (generalPts > leaguePts) {
+        result = generalBracket;
+      } else {
+        result = leagueBracket;
+      }
     } else {
-       result = leagueBracket || generalBracket;
+      result = leagueBracket || generalBracket;
     }
-    
+
     if (!result) {
-        return {
-            userId,
-            tournamentId,
-            leagueId: targetLeagueId || null,
-            picks: {},
-            points: 0,
-            id: 'virtual-empty',
-            createdAt: new Date(),
-            updatedAt: new Date()
-        } as unknown as UserBracket;
+      return {
+        userId,
+        tournamentId,
+        leagueId: targetLeagueId || null,
+        picks: {},
+        points: 0,
+        id: 'virtual-empty',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as unknown as UserBracket;
     }
-    
+
     return result;
   }
 

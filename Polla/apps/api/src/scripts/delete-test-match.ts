@@ -38,18 +38,25 @@ async function deleteTestMatch() {
 
     console.log('📊 Found test match:');
     console.log(`   ID: ${testMatch[0].id}`);
-    console.log(`   Match: ${testMatch[0].homeTeam} vs ${testMatch[0].awayTeam}`);
+    console.log(
+      `   Match: ${testMatch[0].homeTeam} vs ${testMatch[0].awayTeam}`,
+    );
     console.log(`   External ID: ${testMatch[0].externalId}`);
     console.log(`   Group: ${testMatch[0].group}`);
 
     // Delete associated predictions first (cascade)
-    const deletedPredictions = await AppDataSource.query(`
+    const deletedPredictions = await AppDataSource.query(
+      `
       DELETE FROM predictions 
       WHERE "matchId" = $1
       RETURNING id
-    `, [testMatch[0].id]);
+    `,
+      [testMatch[0].id],
+    );
 
-    console.log(`\n🗑️  Deleted ${deletedPredictions.length} prediction(s) associated with test match`);
+    console.log(
+      `\n🗑️  Deleted ${deletedPredictions.length} prediction(s) associated with test match`,
+    );
 
     // Delete the test match
     await AppDataSource.query(`
@@ -59,7 +66,9 @@ async function deleteTestMatch() {
 
     console.log('✅ Test match deleted successfully!');
     console.log('\n📋 Summary:');
-    console.log(`   - Removed: ${testMatch[0].homeTeam} vs ${testMatch[0].awayTeam}`);
+    console.log(
+      `   - Removed: ${testMatch[0].homeTeam} vs ${testMatch[0].awayTeam}`,
+    );
     console.log(`   - Predictions deleted: ${deletedPredictions.length}`);
     console.log('   - Champions League matches: UNTOUCHED ✅');
 
@@ -70,7 +79,9 @@ async function deleteTestMatch() {
       WHERE "tournamentId" = 'UCL2526'
     `);
 
-    console.log(`\n✅ Verification: ${uclMatches[0].count} UCL matches still in database`);
+    console.log(
+      `\n✅ Verification: ${uclMatches[0].count} UCL matches still in database`,
+    );
 
     process.exit(0);
   } catch (error: any) {

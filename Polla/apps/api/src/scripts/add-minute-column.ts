@@ -44,7 +44,9 @@ async function addMinuteColumn() {
     `);
 
     console.log('✅ Successfully added "minute" column to matches table');
-    console.log('   This column will store elapsed match time during live games');
+    console.log(
+      '   This column will store elapsed match time during live games',
+    );
 
     process.exit(0);
   } catch (error: any) {

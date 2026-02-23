@@ -69,10 +69,19 @@ export class Match {
   @Column({ name: 'ai_prediction', type: 'text', nullable: true })
   aiPrediction: string | null; // JSON stringified analysis
 
-  @Column({ name: 'ai_prediction_score', type: 'varchar', length: 10, nullable: true })
+  @Column({
+    name: 'ai_prediction_score',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
   aiPredictionScore: string | null; // e.g., "2-1"
 
-  @Column({ name: 'ai_prediction_generated_at', type: 'timestamp', nullable: true })
+  @Column({
+    name: 'ai_prediction_generated_at',
+    type: 'timestamp',
+    nullable: true,
+  })
   aiPredictionGeneratedAt: Date | null;
 
   @OneToMany(() => Prediction, (prediction) => prediction.match, {

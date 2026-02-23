@@ -57,7 +57,9 @@ async function registerTestTournament() {
     console.log('   Active: true');
     console.log('\n🎯 Now you can access it at:');
     console.log('   https://lapollavirtual.com/hub');
-    console.log('\n💡 Select "⚙️ System Config (Admin Only)" from the dropdown');
+    console.log(
+      '\n💡 Select "⚙️ System Config (Admin Only)" from the dropdown',
+    );
 
     process.exit(0);
   } catch (error: any) {

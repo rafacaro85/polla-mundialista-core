@@ -71,7 +71,13 @@ export class League {
   @Column({ name: 'prize_type', default: 'image' })
   prizeType: string;
 
-  @Column({ name: 'prize_amount', type: 'decimal', nullable: true, precision: 15, scale: 2 })
+  @Column({
+    name: 'prize_amount',
+    type: 'decimal',
+    nullable: true,
+    precision: 15,
+    scale: 2,
+  })
   prizeAmount?: number;
 
   @Column({ name: 'welcome_message', type: 'text', nullable: true })

@@ -68,9 +68,9 @@ export class TimeLockGuard implements CanActivate {
     // User request: "5 minutos antes de comenzar el siguiente". This might refer to phase unlocking.
     // But for locking prediction: "partidos tienen que estar bloqueados... si ya finalizó".
     // We already handled FINISHED above.
-    
+
     // We keep the buffer for "before start" lock.
-     const lockTime = new Date(matchDate.getTime() - this.LOCK_BUFFER_MS);
+    const lockTime = new Date(matchDate.getTime() - this.LOCK_BUFFER_MS);
 
     if (now >= lockTime) {
       const minutesUntilMatch = Math.floor(

@@ -75,11 +75,14 @@ export class PhaseCompletedListener {
       };
 
       const phaseName = PHASE_NAMES[phase] || `Fase ${phase}`;
-      
+
       // Determine tournament name for clear messaging
-      const tournamentName = tournamentId === 'WC2026' ? 'Mundial 2026' : 
-                             tournamentId === 'UCL2526' ? 'Champions League' : 
-                             'Torneo';
+      const tournamentName =
+        tournamentId === 'WC2026'
+          ? 'Mundial 2026'
+          : tournamentId === 'UCL2526'
+            ? 'Champions League'
+            : 'Torneo';
 
       const notificationsData = stats.map((stat) => {
         const points = parseInt(stat.totalPoints) || 0;

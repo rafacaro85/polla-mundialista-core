@@ -14,22 +14,30 @@ export class BroadcastController {
 
   @Post()
   async sendBroadcast(
-    @Body() body: { 
-      subject: string; 
-      message: string; 
-      target: 'ALL' | 'NO_PREDICTION' | 'NO_BRACKET' | 'FREE_BRACKET' | 'PAID_BRACKET';
+    @Body()
+    body: {
+      subject: string;
+      message: string;
+      target:
+        | 'ALL'
+        | 'NO_PREDICTION'
+        | 'NO_BRACKET'
+        | 'FREE_BRACKET'
+        | 'PAID_BRACKET';
       tournamentId?: string;
-    }
+    },
   ) {
-    this.logger.log(`📥 Received broadcast request: ${body.subject} (Target: ${body.target}, Tournament: ${body.tournamentId})`);
-    
-    const results = await this.broadcastService.broadcastEmail(
-      body.subject, 
-      body.message, 
-      body.target,
-      body.tournamentId || 'UCL2526'
+    this.logger.log(
+      `📥 Received broadcast request: ${body.subject} (Target: ${body.target}, Tournament: ${body.tournamentId})`,
     );
-    
+
+    const results = await this.broadcastService.broadcastEmail(
+      body.subject,
+      body.message,
+      body.target,
+      body.tournamentId || 'UCL2526',
+    );
+
     return {
       success: true,
       message: `Broadcast completed. Sent: ${results.sent}, Failed: ${results.failed}`,

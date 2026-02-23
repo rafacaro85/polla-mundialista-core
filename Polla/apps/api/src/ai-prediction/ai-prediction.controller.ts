@@ -36,7 +36,10 @@ export class AiPredictionController {
       }
       return await this.aiPredictionService.getBulkPredictions(matchIds);
     } catch (error) {
-      console.error('🔥 Error in AiPredictionController.getBulkPredictions:', error);
+      console.error(
+        '🔥 Error in AiPredictionController.getBulkPredictions:',
+        error,
+      );
       throw error;
     }
   }

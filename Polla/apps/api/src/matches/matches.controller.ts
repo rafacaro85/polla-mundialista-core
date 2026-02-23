@@ -27,7 +27,8 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Request() req: any): Promise<Match[]> {
-    const isAdmin = req.user.role === 'ADMIN' || req.user.role === 'SUPER_ADMIN';
+    const isAdmin =
+      req.user.role === 'ADMIN' || req.user.role === 'SUPER_ADMIN';
     const tournamentId =
       req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
     return this.matchesService.findAll(req.user.id, isAdmin, tournamentId);
@@ -37,7 +38,8 @@ export class MatchesController {
   @Get('live')
   @Header('Cache-Control', 'public, max-age=30')
   async findLive(@Request() req: any): Promise<Match[]> {
-    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+    const isAdmin =
+      req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
     const tournamentId =
       req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
     return this.matchesService.findLive(isAdmin, tournamentId);
@@ -148,7 +150,6 @@ export class MatchesController {
     }
   }
 
-
   // Alias con guion bajo para compatibilidad con el componente frontend
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -192,7 +193,8 @@ export class MatchesController {
     @Body() body: { tournamentId?: string },
     @Request() req: any,
   ) {
-    const tid = body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+    const tid =
+      body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
     return this.matchesService.seedRound32(tid);
   }
 
@@ -203,7 +205,8 @@ export class MatchesController {
     @Body() body: { tournamentId?: string },
     @Request() req: any,
   ) {
-    const tid = body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+    const tid =
+      body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
     return this.matchesService.ensureTournamentIntegrity(tid);
   }
 
@@ -211,9 +214,8 @@ export class MatchesController {
   @Roles('ADMIN')
   @Post('seed-ucl')
   async seedUCL() {
-      return this.matchesService.seedUCLKnockout();
+    return this.matchesService.seedUCLKnockout();
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

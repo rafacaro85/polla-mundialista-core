@@ -63,7 +63,12 @@ export class DemoController {
   async createBonus(
     @Body() data: { text: string; points: number; tournamentId?: string },
   ) {
-    return this.demoService.createBonus(data.text, data.points, undefined, data.tournamentId);
+    return this.demoService.createBonus(
+      data.text,
+      data.points,
+      undefined,
+      data.tournamentId,
+    );
   }
 
   @Post('reset')

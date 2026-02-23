@@ -24,7 +24,7 @@ export class Match {
 
   @Column({ nullable: true })
   awayFlag: string;
-  
+
   @Column({ nullable: true })
   phase: string;
 }
@@ -51,24 +51,25 @@ const AppDataSource = process.env.DATABASE_URL
 // Map Logic Name -> Filename in /images/escudos/
 const FLAG_UPDATES: Record<string, string> = {
   'Real Madrid': '/images/escudos/real-madrid-footballlogos-org.svg',
-  'Benfica': '/images/escudos/sl-benfica-footballlogos-org.svg',
-  'Juventus': '/images/escudos/juventus-footballlogos-org.svg',
+  Benfica: '/images/escudos/sl-benfica-footballlogos-org.svg',
+  Juventus: '/images/escudos/juventus-footballlogos-org.svg',
   'Atletico Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
   'Atlético Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg', // Found in DB
   'Bayer Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
   'Inter Milan': '/images/escudos/inter-milan-footballlogos-org.svg',
-  'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
-  'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg', // Found in DB
-  'PSG': '/images/escudos/paris-saint-germain-footballlogos-org.svg',
-  'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
-  'Monaco': '/images/escudos/as-monaco-footballlogos-org.svg',
-  'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg', 
-  'Club Brugge': '/images/escudos/club-brugge-footballlogos-org.svg', 
+  'Borussia Dortmund':
+    '/images/escudos/borussia-dortmund-footballlogos-org.svg',
+  Dortmund: '/images/escudos/borussia-dortmund-footballlogos-org.svg', // Found in DB
+  PSG: '/images/escudos/paris-saint-germain-footballlogos-org.svg',
+  Atalanta: '/images/escudos/atalanta-footballlogos-org.svg',
+  Monaco: '/images/escudos/as-monaco-footballlogos-org.svg',
+  'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
+  'Club Brugge': '/images/escudos/club-brugge-footballlogos-org.svg',
   'Club Brujas': '/images/escudos/club-brugge-footballlogos-org.svg', // Likely in DB if spanish
-  'Galatasaray': '/images/escudos/galatasaray-footballlogos-org.svg',
-  'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg',
-  'Olympiacos': '/images/escudos/olympiacos-footballlogos-org.svg', 
-  'Qarabag': '/images/escudos/qarabag-fk-footballlogos-org.svg', 
+  Galatasaray: '/images/escudos/galatasaray-footballlogos-org.svg',
+  Newcastle: '/images/escudos/newcastle-united-footballlogos-org.svg',
+  Olympiacos: '/images/escudos/olympiacos-footballlogos-org.svg',
+  Qarabag: '/images/escudos/qarabag-fk-footballlogos-org.svg',
 };
 
 async function updateFlags() {
@@ -77,28 +78,32 @@ async function updateFlags() {
     console.log('✅ Connected to DB');
 
     const matchRepo = AppDataSource.getRepository(Match);
-    
+
     console.log('🔄 Updating flags for UCL2526...');
-    
+
     for (const [teamName, flagUrl] of Object.entries(FLAG_UPDATES)) {
       // Update Home
-      const updateHome = await matchRepo.createQueryBuilder()
+      const updateHome = await matchRepo
+        .createQueryBuilder()
         .update(Match)
         .set({ homeFlag: flagUrl })
-        .where("homeTeam = :team", { team: teamName })
+        .where('homeTeam = :team', { team: teamName })
         .andWhere("tournamentId = 'UCL2526'")
         .execute();
 
       // Update Away
-      const updateAway = await matchRepo.createQueryBuilder()
+      const updateAway = await matchRepo
+        .createQueryBuilder()
         .update(Match)
         .set({ awayFlag: flagUrl })
-        .where("awayTeam = :team", { team: teamName })
+        .where('awayTeam = :team', { team: teamName })
         .andWhere("tournamentId = 'UCL2526'")
         .execute();
 
       if (updateHome.affected || updateAway.affected) {
-        console.log(`✅ Updated ${teamName} -> ${flagUrl} (Matches affected: ${(updateHome.affected || 0) + (updateAway.affected || 0)})`);
+        console.log(
+          `✅ Updated ${teamName} -> ${flagUrl} (Matches affected: ${(updateHome.affected || 0) + (updateAway.affected || 0)})`,
+        );
       } else {
         console.log(`⚠️ Team not found in UCL2526 matches: ${teamName}`);
       }

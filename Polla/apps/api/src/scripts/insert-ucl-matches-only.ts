@@ -9,9 +9,7 @@ const AppDataSource = process.env.DATABASE_URL
   ? new DataSource({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [
-        Match,
-      ],
+      entities: [Match],
       synchronize: false,
       ssl: { rejectUnauthorized: false },
     })
@@ -22,9 +20,7 @@ const AppDataSource = process.env.DATABASE_URL
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_DATABASE || 'polla_mundialista',
-      entities: [
-        Match,
-      ],
+      entities: [Match],
       synchronize: false,
     });
 
@@ -184,16 +180,22 @@ async function seed() {
 
     // 1. Safety Check: Verificar si ya existen partidos de UCL para no duplicar
     const existingCount = await matchRepository.count({
-      where: { tournamentId: TARGET_TOURNAMENT_ID }
+      where: { tournamentId: TARGET_TOURNAMENT_ID },
     });
 
     if (existingCount > 0) {
-      console.warn(`⚠️  ALERTA: Ya existen ${existingCount} partidos con ID ${TARGET_TOURNAMENT_ID}.`);
-      console.warn('⚠️  Abortando script para evitar duplicados. Si deseas reiniciar, borra manualmente los partidos de UCL.');
+      console.warn(
+        `⚠️  ALERTA: Ya existen ${existingCount} partidos con ID ${TARGET_TOURNAMENT_ID}.`,
+      );
+      console.warn(
+        '⚠️  Abortando script para evitar duplicados. Si deseas reiniciar, borra manualmente los partidos de UCL.',
+      );
       process.exit(0);
     }
 
-    console.log(`🌍 Iniciando inyección de ${MATCHES.length} partidos para ${TARGET_TOURNAMENT_ID}...`);
+    console.log(
+      `🌍 Iniciando inyección de ${MATCHES.length} partidos para ${TARGET_TOURNAMENT_ID}...`,
+    );
 
     let insertedCount = 0;
 
@@ -219,10 +221,11 @@ async function seed() {
       // console.log(`✅ [${TARGET_TOURNAMENT_ID}] Insertado: ${matchData.home} vs ${matchData.away}`);
     }
 
-    console.log(`\n🎉 INYECCIÓN COMPLETADA. Se agregaron ${insertedCount} partidos al torneo ${TARGET_TOURNAMENT_ID}.`);
+    console.log(
+      `\n🎉 INYECCIÓN COMPLETADA. Se agregaron ${insertedCount} partidos al torneo ${TARGET_TOURNAMENT_ID}.`,
+    );
     console.log('🔒 Los datos de WC2026 permanecen intactos.');
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Error Crítico en Data Injection:', error);
     process.exit(1);

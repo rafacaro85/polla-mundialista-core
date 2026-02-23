@@ -35,7 +35,12 @@ import { LeagueExtraController } from './league-extra.controller';
     PdfModule,
     TelegramModule,
   ],
-  providers: [LeaguesService, AccessCodesService, LeagueParticipantsService, LeagueExtraService],
+  providers: [
+    LeaguesService,
+    AccessCodesService,
+    LeagueParticipantsService,
+    LeagueExtraService,
+  ],
   controllers: [LeaguesController, LeagueExtraController],
   exports: [LeaguesService],
 })

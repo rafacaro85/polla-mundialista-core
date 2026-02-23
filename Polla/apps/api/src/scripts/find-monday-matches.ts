@@ -32,34 +32,46 @@ async function findMondayMatches() {
     }
 
     // Look for specific matches
-    const girona = allFixtures.find((f: any) => 
-      (f.teams.home.name.includes('Girona') && f.teams.away.name.includes('Barcelona')) ||
-      (f.teams.away.name.includes('Girona') && f.teams.home.name.includes('Barcelona'))
+    const girona = allFixtures.find(
+      (f: any) =>
+        (f.teams.home.name.includes('Girona') &&
+          f.teams.away.name.includes('Barcelona')) ||
+        (f.teams.away.name.includes('Girona') &&
+          f.teams.home.name.includes('Barcelona')),
     );
 
-    const cagliari = allFixtures.find((f: any) => 
-      (f.teams.home.name.includes('Cagliari') && f.teams.away.name.includes('Lecce')) ||
-      (f.teams.away.name.includes('Cagliari') && f.teams.home.name.includes('Lecce'))
+    const cagliari = allFixtures.find(
+      (f: any) =>
+        (f.teams.home.name.includes('Cagliari') &&
+          f.teams.away.name.includes('Lecce')) ||
+        (f.teams.away.name.includes('Cagliari') &&
+          f.teams.home.name.includes('Lecce')),
     );
 
     const targetMatches = [girona, cagliari].filter(Boolean);
 
     if (targetMatches.length === 0) {
-      console.log('⚠️  Target matches (Girona vs Barcelona, Cagliari vs Lecce) not found.');
+      console.log(
+        '⚠️  Target matches (Girona vs Barcelona, Cagliari vs Lecce) not found.',
+      );
       console.log('\nShowing first 10 matches for today:\n');
 
       allFixtures.slice(0, 10).forEach((fixture: any, index: number) => {
         const matchDate = new Date(fixture.fixture.date);
-        const colombiaTime = matchDate.toLocaleString('es-CO', { 
+        const colombiaTime = matchDate.toLocaleString('es-CO', {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
-        
+
         console.log(`${index + 1}. [ID: ${fixture.fixture.id}]`);
-        console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
-        console.log(`   League: ${fixture.league.name} (${fixture.league.country})`);
+        console.log(
+          `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+        );
+        console.log(
+          `   League: ${fixture.league.name} (${fixture.league.country})`,
+        );
         console.log(`   Time: ${colombiaTime} (Colombia)`);
         console.log(`   Status: ${fixture.fixture.status.long}\n`);
       });
@@ -68,15 +80,17 @@ async function findMondayMatches() {
 
       targetMatches.forEach((fixture: any, index: number) => {
         const matchDate = new Date(fixture.fixture.date);
-        const colombiaTime = matchDate.toLocaleString('es-CO', { 
+        const colombiaTime = matchDate.toLocaleString('es-CO', {
           timeZone: 'America/Bogota',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: false
+          hour12: false,
         });
-        
+
         console.log(`${index + 1}. ⚽ [ID: ${fixture.fixture.id}]`);
-        console.log(`   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
+        console.log(
+          `   ${fixture.teams.home.name} vs ${fixture.teams.away.name}`,
+        );
         console.log(`   League: ${fixture.league.name}`);
         console.log(`   Time: ${colombiaTime} (Colombia)`);
         console.log(`   Venue: ${fixture.fixture.venue.name || 'TBD'}`);
@@ -87,16 +101,22 @@ async function findMondayMatches() {
 
       // Output JSON for script consumption
       console.log('\n📋 JSON OUTPUT (for script):');
-      console.log(JSON.stringify(targetMatches.map((f: any) => ({
-        id: f.fixture.id,
-        homeTeam: f.teams.home.name,
-        awayTeam: f.teams.away.name,
-        date: f.fixture.date,
-        venue: f.fixture.venue.name,
-        homeLogo: f.teams.home.logo,
-        awayLogo: f.teams.away.logo,
-        league: f.league.name,
-      })), null, 2));
+      console.log(
+        JSON.stringify(
+          targetMatches.map((f: any) => ({
+            id: f.fixture.id,
+            homeTeam: f.teams.home.name,
+            awayTeam: f.teams.away.name,
+            date: f.fixture.date,
+            venue: f.fixture.venue.name,
+            homeLogo: f.teams.home.logo,
+            awayLogo: f.teams.away.logo,
+            league: f.league.name,
+          })),
+          null,
+          2,
+        ),
+      );
     }
 
     process.exit(0);

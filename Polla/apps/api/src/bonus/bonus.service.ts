@@ -67,7 +67,10 @@ export class BonusService {
     // Si no se especifica leagueId ni tournamentId, es una pregunta global del torneo actual
     if (!dto.leagueId) {
       const globalLeague = await this.leagueRepository.findOne({
-        where: { type: LeagueType.GLOBAL, tournamentId: dto.tournamentId || 'WC2026' },
+        where: {
+          type: LeagueType.GLOBAL,
+          tournamentId: dto.tournamentId || 'WC2026',
+        },
       });
       if (globalLeague) {
         question.leagueId = globalLeague.id;
@@ -82,14 +85,15 @@ export class BonusService {
     return this.bonusQuestionRepository.save(question);
   }
 
-
   // Listar preguntas activas filtradas por liga y torneo
   async getActiveQuestions(
     leagueId?: string,
     tournamentId?: string,
   ): Promise<BonusQuestion[]> {
-    console.log(`🔍 [BonusService] getActiveQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`);
-    
+    console.log(
+      `🔍 [BonusService] getActiveQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`,
+    );
+
     const conditions: any[] = [];
     const tId = tournamentId || 'WC2026';
 
@@ -97,9 +101,13 @@ export class BonusService {
     const globalLeague = await this.leagueRepository.findOne({
       where: { type: LeagueType.GLOBAL, tournamentId: tId },
     });
-    
+
     if (globalLeague) {
-      conditions.push({ isActive: true, leagueId: globalLeague.id, tournamentId: tId });
+      conditions.push({
+        isActive: true,
+        leagueId: globalLeague.id,
+        tournamentId: tId,
+      });
     }
 
     // 2. Si se especifica una liga, sumamos las preguntas de esa liga
@@ -109,7 +117,11 @@ export class BonusService {
 
     // Si no hay condiciones (ej. no hay global league y no pasaron leagueId), buscamos por tournamentId general
     if (conditions.length === 0) {
-      conditions.push({ isActive: true, tournamentId: tId, leagueId: IsNull() });
+      conditions.push({
+        isActive: true,
+        tournamentId: tId,
+        leagueId: IsNull(),
+      });
     }
 
     console.log('🔍 [BonusService] conditions:', JSON.stringify(conditions));
@@ -121,14 +133,14 @@ export class BonusService {
     return results;
   }
 
-
-
   // Listar todas las preguntas (admin) - Filtradas por liga
   async getAllQuestions(
     leagueId?: string,
     tournamentId?: string,
   ): Promise<BonusQuestion[]> {
-    console.log(`🔍 [BonusService] getAllQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`);
+    console.log(
+      `🔍 [BonusService] getAllQuestions - leagueId: ${leagueId}, tournamentId: ${tournamentId}`,
+    );
     const where: any = {};
 
     if (tournamentId) {

@@ -1175,8 +1175,12 @@ async function main() {
     await dataSource.initialize();
 
     console.log('🗑️ Limpiando calendarios antiguos (SOLO WC2026)...');
-    await dataSource.query("DELETE FROM matches WHERE \"tournamentId\" = 'WC2026'");
-    await dataSource.query("DELETE FROM knockout_phase_status WHERE \"tournamentId\" = 'WC2026'");
+    await dataSource.query(
+      'DELETE FROM matches WHERE "tournamentId" = \'WC2026\'',
+    );
+    await dataSource.query(
+      'DELETE FROM knockout_phase_status WHERE "tournamentId" = \'WC2026\'',
+    );
 
     console.log('📅 Configurando fases del torneo...');
     const phases = [
@@ -1220,7 +1224,7 @@ async function main() {
         m.bracket_id || null,
         m.home_placeholder || null,
         m.away_placeholder || null,
-        'WC2026'
+        'WC2026',
       ];
 
       await dataSource.query(query, values);

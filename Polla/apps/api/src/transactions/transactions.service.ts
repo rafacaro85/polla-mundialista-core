@@ -104,11 +104,16 @@ export class TransactionsService {
         },
       });
 
-      if (participant && participant.status === LeagueParticipantStatus.REJECTED) {
+      if (
+        participant &&
+        participant.status === LeagueParticipantStatus.REJECTED
+      ) {
         participant.status = LeagueParticipantStatus.PENDING;
         participant.isPaid = false;
         await this.leagueParticipantsRepository.save(participant);
-        console.log(`🔄 Participant status reset from REJECTED to PENDING for league ${league.id}`);
+        console.log(
+          `🔄 Participant status reset from REJECTED to PENDING for league ${league.id}`,
+        );
       }
     }
 
@@ -199,34 +204,42 @@ export class TransactionsService {
         const participant = await this.leagueParticipantsRepository.findOne({
           where: {
             league: { id: league.id },
-            user: { id: transaction.user.id }
-          }
+            user: { id: transaction.user.id },
+          },
         });
         if (participant) {
-            participant.status = LeagueParticipantStatus.ACTIVE;
-            participant.isPaid = true;
-            await queryRunner.manager.save(participant);
-            console.log(`✅ Participant ${transaction.user.id} activated for league ${league.id}`);
+          participant.status = LeagueParticipantStatus.ACTIVE;
+          participant.isPaid = true;
+          await queryRunner.manager.save(participant);
+          console.log(
+            `✅ Participant ${transaction.user.id} activated for league ${league.id}`,
+          );
         }
       }
 
       // Handle REJECTED Transaction (Update participant status)
-      if (status === TransactionStatus.REJECTED && transaction.league && transaction.user) {
-        console.log(`❌ Rejecting transaction for league ${transaction.league.id} and user ${transaction.user.id}`);
+      if (
+        status === TransactionStatus.REJECTED &&
+        transaction.league &&
+        transaction.user
+      ) {
+        console.log(
+          `❌ Rejecting transaction for league ${transaction.league.id} and user ${transaction.user.id}`,
+        );
         const participant = await this.leagueParticipantsRepository.findOne({
           where: {
             league: { id: transaction.league.id },
-            user: { id: transaction.user.id }
-          }
+            user: { id: transaction.user.id },
+          },
         });
 
         if (participant) {
-            participant.status = LeagueParticipantStatus.REJECTED;
-            participant.isPaid = false;
-            await queryRunner.manager.save(participant);
-            console.log(`✅ Participant status updated to REJECTED`);
+          participant.status = LeagueParticipantStatus.REJECTED;
+          participant.isPaid = false;
+          await queryRunner.manager.save(participant);
+          console.log(`✅ Participant status updated to REJECTED`);
         } else {
-            console.warn(`⚠️ Participant record not found for rejection`);
+          console.warn(`⚠️ Participant record not found for rejection`);
         }
       }
 

@@ -65,7 +65,7 @@ function normalizeTeamName(name: string): string {
 async function mapUCLFixtures() {
   try {
     console.log('✅ Connected to API-SPORTS v3');
-    
+
     await AppDataSource.initialize();
     console.log('✅ Connected to Database');
 
@@ -79,12 +79,14 @@ async function mapUCLFixtures() {
     // SNIPER METHOD: Query by specific dates instead of season
     // Target: Feb 17-18, 2026 (UCL Round of 16 - Ida)
     console.log('🔄 Fetching UCL fixtures for Feb 17-18, 2026...');
-    
+
     let apiFixtures: any[] = [];
-    
+
     // Strategy 1: Try date range query with league filter
     try {
-      console.log('📅 Trying: /fixtures?league=2&season=2025&from=2026-02-17&to=2026-02-18');
+      console.log(
+        '📅 Trying: /fixtures?league=2&season=2025&from=2026-02-17&to=2026-02-18',
+      );
       const response1 = await axios.get(`${BASE_URL}/fixtures`, {
         headers: {
           'x-apisports-key': API_KEY,
@@ -96,21 +98,26 @@ async function mapUCLFixtures() {
           to: '2026-02-18',
         },
       });
-      
+
       apiFixtures = response1.data.response || [];
       console.log(`📊 Strategy 1 returned: ${apiFixtures.length} fixtures`);
-      
+
       if (apiFixtures.length > 0) {
-        console.log('📅 API Response Sample:', JSON.stringify(apiFixtures[0], null, 2));
+        console.log(
+          '📅 API Response Sample:',
+          JSON.stringify(apiFixtures[0], null, 2),
+        );
       }
     } catch (error: any) {
       console.log('⚠️ Strategy 1 failed:', error.message);
     }
-    
+
     // Strategy 2: If Strategy 1 fails, try single date query (Feb 17)
     if (apiFixtures.length === 0) {
       try {
-        console.log('📅 Trying: /fixtures?date=2026-02-17 (then filter by league)');
+        console.log(
+          '📅 Trying: /fixtures?date=2026-02-17 (then filter by league)',
+        );
         const response2 = await axios.get(`${BASE_URL}/fixtures`, {
           headers: {
             'x-apisports-key': API_KEY,
@@ -119,22 +126,27 @@ async function mapUCLFixtures() {
             date: '2026-02-17',
           },
         });
-        
+
         const allFixtures = response2.data.response || [];
-        console.log(`📊 Strategy 2 returned: ${allFixtures.length} total fixtures`);
-        
+        console.log(
+          `📊 Strategy 2 returned: ${allFixtures.length} total fixtures`,
+        );
+
         // Filter for Champions League (league id = 2)
         apiFixtures = allFixtures.filter((f: any) => f.league.id === 2);
         console.log(`🎯 Filtered to ${apiFixtures.length} UCL fixtures`);
-        
+
         if (apiFixtures.length > 0) {
-          console.log('📅 API Response Sample:', JSON.stringify(apiFixtures[0], null, 2));
+          console.log(
+            '📅 API Response Sample:',
+            JSON.stringify(apiFixtures[0], null, 2),
+          );
         }
       } catch (error: any) {
         console.log('⚠️ Strategy 2 failed:', error.message);
       }
     }
-    
+
     // Strategy 3: Try Feb 18 if still no results
     if (apiFixtures.length === 0) {
       try {
@@ -147,10 +159,12 @@ async function mapUCLFixtures() {
             date: '2026-02-18',
           },
         });
-        
+
         const allFixtures = response3.data.response || [];
-        console.log(`📊 Strategy 3 returned: ${allFixtures.length} total fixtures`);
-        
+        console.log(
+          `📊 Strategy 3 returned: ${allFixtures.length} total fixtures`,
+        );
+
         apiFixtures = allFixtures.filter((f: any) => f.league.id === 2);
         console.log(`🎯 Filtered to ${apiFixtures.length} UCL fixtures`);
       } catch (error: any) {
@@ -164,14 +178,18 @@ async function mapUCLFixtures() {
     if (apiFixtures.length > 0) {
       console.log('\n🔍 All UCL fixtures found:');
       apiFixtures.forEach((f: any, idx: number) => {
-        console.log(`   ${idx + 1}. ${f.teams.home.name} vs ${f.teams.away.name}`);
+        console.log(
+          `   ${idx + 1}. ${f.teams.home.name} vs ${f.teams.away.name}`,
+        );
         console.log(`      ID: ${f.fixture.id}, Date: ${f.fixture.date}`);
       });
     }
 
     const relevantFixtures = apiFixtures; // All are relevant since we queried specific dates
 
-    console.log(`🎯 Filtered to ${relevantFixtures.length} Round of 16 fixtures (Feb/Mar 2026)`);
+    console.log(
+      `🎯 Filtered to ${relevantFixtures.length} Round of 16 fixtures (Feb/Mar 2026)`,
+    );
 
     let mappedCount = 0;
     let unmappedCount = 0;
@@ -190,8 +208,11 @@ async function mapUCLFixtures() {
         const matchDate = new Date(m.date);
 
         // Match by team names and date proximity (within 24 hours)
-        const teamMatch = homeTeamDB === homeTeamAPI && awayTeamDB === awayTeamAPI;
-        const dateMatch = Math.abs(matchDate.getTime() - fixtureDate.getTime()) < 24 * 60 * 60 * 1000;
+        const teamMatch =
+          homeTeamDB === homeTeamAPI && awayTeamDB === awayTeamAPI;
+        const dateMatch =
+          Math.abs(matchDate.getTime() - fixtureDate.getTime()) <
+          24 * 60 * 60 * 1000;
 
         return teamMatch && dateMatch;
       });
@@ -200,14 +221,14 @@ async function mapUCLFixtures() {
         // Update externalId
         match.externalId = fixtureId;
         await matchRepo.save(match);
-        
+
         console.log(
-          `🔗 Linked: [${apiFixture.teams.home.name} vs ${apiFixture.teams.away.name}] -> API ID: ${fixtureId}`
+          `🔗 Linked: [${apiFixture.teams.home.name} vs ${apiFixture.teams.away.name}] -> API ID: ${fixtureId}`,
         );
         mappedCount++;
       } else {
         console.log(
-          `⚠️  No match found for: [${apiFixture.teams.home.name} vs ${apiFixture.teams.away.name}] (${fixtureDate.toISOString()})`
+          `⚠️  No match found for: [${apiFixture.teams.home.name} vs ${apiFixture.teams.away.name}] (${fixtureDate.toISOString()})`,
         );
         unmappedCount++;
       }

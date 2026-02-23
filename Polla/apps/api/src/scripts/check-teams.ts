@@ -1,4 +1,3 @@
-
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
@@ -27,8 +26,7 @@ async function main() {
       .getRawMany();
 
     console.log('Teams in UCL2526:');
-    teams.forEach(t => console.log(`- ${t.team}`));
-
+    teams.forEach((t) => console.log(`- ${t.team}`));
   } catch (err) {
     console.error(err);
   } finally {

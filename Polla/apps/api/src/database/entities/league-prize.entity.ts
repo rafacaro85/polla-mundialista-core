@@ -26,7 +26,13 @@ export class LeaguePrize {
   @Column({ name: 'image_url', type: 'text', nullable: true })
   imageUrl: string;
 
-  @Column({ name: 'amount', type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({
+    name: 'amount',
+    type: 'decimal',
+    precision: 15,
+    scale: 2,
+    nullable: true,
+  })
   amount: number;
 
   @Column({ name: 'top_label', nullable: true })

@@ -36,27 +36,28 @@ export class BracketsController {
     @Query('tournamentId') tournamentId?: string,
   ) {
     const userId = req.user.id;
-    
+
     // Sanitize Inputs: Handle "WC2026,WC2026" caused by duplicate query params
     const cleanId = (id: string | undefined): string | undefined => {
-        if (!id) return undefined;
-        if (Array.isArray(id)) return id[0];
-        if (typeof id === 'string' && id.includes(',')) return id.split(',')[0].trim();
-        return id;
+      if (!id) return undefined;
+      if (Array.isArray(id)) return id[0];
+      if (typeof id === 'string' && id.includes(','))
+        return id.split(',')[0].trim();
+      return id;
     };
 
     const tid = cleanId(tournamentId);
     const lid = cleanId(leagueId);
-    
+
     const data = await this.bracketsService.getMyBracket(userId, lid, tid);
 
     if (!data) {
-        return { 
-            picks: {}, 
-            points: 0, 
-            tournamentId: tid || 'WC2026',
-            leagueId: lid || null
-        };
+      return {
+        picks: {},
+        points: 0,
+        tournamentId: tid || 'WC2026',
+        leagueId: lid || null,
+      };
     }
 
     return data;
@@ -82,6 +83,5 @@ export class BracketsController {
         error.message || 'Unknown error during recalculation',
       );
     }
-
   }
 }

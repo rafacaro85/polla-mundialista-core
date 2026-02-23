@@ -44,7 +44,11 @@ export class PredictionsService {
         },
       });
 
-      if (participant && (participant.isBlocked || participant.status === LeagueParticipantStatus.PENDING)) {
+      if (
+        participant &&
+        (participant.isBlocked ||
+          participant.status === LeagueParticipantStatus.PENDING)
+      ) {
         throw new ForbiddenException(
           'No puedes realizar predicciones porque tu estado es PENDIENTE o BLOQUEADO en esta liga.',
         );
@@ -62,8 +66,8 @@ export class PredictionsService {
     // Check if match has started or is manually locked
     if (match.isManuallyLocked || match.date < new Date()) {
       throw new BadRequestException(
-        match.isManuallyLocked 
-          ? 'Match is locked by administrator' 
+        match.isManuallyLocked
+          ? 'Match is locked by administrator'
           : 'Cannot predict on a match that has already started',
       );
     }
@@ -161,7 +165,7 @@ export class PredictionsService {
     if (leagueId) {
       try {
         // Buscamos o creamos la predicción global
-        let globalPrediction = await this.predictionsRepository.findOne({
+        const globalPrediction = await this.predictionsRepository.findOne({
           where: {
             user: { id: userId },
             match: { id: matchId },
@@ -189,7 +193,9 @@ export class PredictionsService {
           await this.predictionsRepository.save(newGlobal);
         }
       } catch (error) {
-        console.warn(`⚠️ Error syncing prediction to global context: ${error.message}`);
+        console.warn(
+          `⚠️ Error syncing prediction to global context: ${error.message}`,
+        );
         // No lanzamos error para no fallar el request original
       }
     }
@@ -287,98 +293,120 @@ export class PredictionsService {
     tournamentId?: any,
   ) {
     try {
-        // 1. Normalización estricta de parámetros
-        let lId = Array.isArray(leagueId) ? leagueId[0] : leagueId;
-        if (typeof lId === 'string' && lId.includes(',')) lId = lId.split(',')[0];
-        if (!lId || lId === 'null' || lId === 'undefined' || lId === 'global' || lId === '') {
-            lId = null;
-        }
-        
-        let tId = Array.isArray(tournamentId) ? tournamentId[0] : tournamentId;
-        if (typeof tId === 'string' && tId.includes(',')) tId = tId.split(',')[0];
-        if (!tId || tId === 'null' || tId === 'undefined' || tId === '') {
-            tId = null;
+      // 1. Normalización estricta de parámetros
+      let lId = Array.isArray(leagueId) ? leagueId[0] : leagueId;
+      if (typeof lId === 'string' && lId.includes(',')) lId = lId.split(',')[0];
+      if (
+        !lId ||
+        lId === 'null' ||
+        lId === 'undefined' ||
+        lId === 'global' ||
+        lId === ''
+      ) {
+        lId = null;
+      }
+
+      let tId = Array.isArray(tournamentId) ? tournamentId[0] : tournamentId;
+      if (typeof tId === 'string' && tId.includes(',')) tId = tId.split(',')[0];
+      if (!tId || tId === 'null' || tId === 'undefined' || tId === '') {
+        tId = null;
+      }
+
+      console.log(
+        `🚀 [CLEAR DEBUG] Normalizado -> User: ${userId} | League: ${lId} | Tournament: ${tId}`,
+      );
+
+      // 2. Limpieza de Brackets
+      try {
+        await this.bracketsService.clearBracket(
+          userId,
+          lId || undefined,
+          tId || undefined,
+        );
+      } catch (e) {
+        console.error('❌ Error en clearBracket:', e.message);
+      }
+
+      // 3. Limpieza de Marcadores (Scores)
+      const allUserPredictions = await this.predictionsRepository.find({
+        where: { user: { id: userId } },
+        relations: ['match'],
+      });
+
+      console.log(
+        `📊 [CLEAR DEBUG] DB Total: ${allUserPredictions.length}. Filtros: T=${tId}, L=${lId}`,
+      );
+
+      // Log sample to see what's in DB
+      if (allUserPredictions.length > 0) {
+        const sample = allUserPredictions[0];
+        console.log(
+          `📝 [CLEAR DEBUG] Sample DB Prediction: ID=${sample.id}, T=${sample.tournamentId}, L=${sample.leagueId}`,
+        );
+      }
+
+      const now = new Date();
+      const toDelete = allUserPredictions.filter((p) => {
+        // 1. Torneo: Revisamos tanto en la predicción como en el partido asociado
+        const predTid = p.tournamentId;
+        const matchTid = p.match?.tournamentId;
+
+        if (tId) {
+          // Si el torneo no coincide en NINGUNA de las dos fuentes, lo descartamos
+          if (predTid !== tId && matchTid !== tId) return false;
         }
 
-        console.log(`🚀 [CLEAR DEBUG] Normalizado -> User: ${userId} | League: ${lId} | Tournament: ${tId}`);
-        
-        // 2. Limpieza de Brackets
-        try {
-            await this.bracketsService.clearBracket(userId, lId || undefined, tId || undefined);
-        } catch (e) {
-            console.error('❌ Error en clearBracket:', e.message);
+        // 2. Liga:
+        // - Si pLid coincide con lId: Borramos (es la predicción propia de la liga).
+        // - Si pLid es NULL y lId NO es NULL: También borramos si el torneo coincide.
+        //   Esto es CRÍTICO porque el sistema sincroniza marcadores a Global (null).
+        //   Si no borramos el global, la UI lo seguirá mostrando como "heredado".
+        const pLid = p.leagueId || null;
+
+        const isExactMatch = lId === pLid;
+        const isGlobalSyncOfThisTournament = lId !== null && pLid === null;
+
+        if (!isExactMatch && !isGlobalSyncOfThisTournament) return false;
+
+        // 3. Tiempo: Solo borrar si el partido es futuro
+        // Si no hay fecha o no hay partido, permitimos borrar por seguridad
+        if (p.match?.date) {
+          const matchDate = new Date(p.match.date);
         }
 
-        // 3. Limpieza de Marcadores (Scores)
-        const allUserPredictions = await this.predictionsRepository.find({
-            where: { user: { id: userId } },
-            relations: ['match']
+        return true;
+      });
+
+      console.log(
+        `🔥 [CLEAR DEBUG] ${toDelete.length} marcadores pasan los filtros.`,
+      );
+
+      // Log details if nothing found to delete but there are predictions
+      if (toDelete.length === 0 && allUserPredictions.length > 0) {
+        console.log('🔍 [CLEAR DEBUG] ¿Por qué no se borró nada?');
+        allUserPredictions.slice(0, 3).forEach((p) => {
+          console.log(
+            `   - Pred ID: ${p.id} | T_Pred: ${p.tournamentId} | T_Match: ${p.match?.tournamentId} | League: ${p.leagueId}`,
+          );
         });
+      }
 
-        console.log(`📊 [CLEAR DEBUG] DB Total: ${allUserPredictions.length}. Filtros: T=${tId}, L=${lId}`);
-        
-        // Log sample to see what's in DB
-        if (allUserPredictions.length > 0) {
-            const sample = allUserPredictions[0];
-            console.log(`📝 [CLEAR DEBUG] Sample DB Prediction: ID=${sample.id}, T=${sample.tournamentId}, L=${sample.leagueId}`);
-        }
+      if (toDelete.length > 0) {
+        const ids = toDelete.map((p) => p.id);
+        await this.predictionsRepository.delete(ids);
+        console.log(`✅ [CLEAR DEBUG] Borrados IDs: ${ids.join(', ')}`);
+      }
 
-        const now = new Date();
-        const toDelete = allUserPredictions.filter(p => {
-            // 1. Torneo: Revisamos tanto en la predicción como en el partido asociado
-            const predTid = p.tournamentId;
-            const matchTid = p.match?.tournamentId;
-            
-            if (tId) {
-                // Si el torneo no coincide en NINGUNA de las dos fuentes, lo descartamos
-                if (predTid !== tId && matchTid !== tId) return false;
-            }
-            
-            // 2. Liga: 
-            // - Si pLid coincide con lId: Borramos (es la predicción propia de la liga).
-            // - Si pLid es NULL y lId NO es NULL: También borramos si el torneo coincide.
-            //   Esto es CRÍTICO porque el sistema sincroniza marcadores a Global (null). 
-            //   Si no borramos el global, la UI lo seguirá mostrando como "heredado".
-            const pLid = p.leagueId || null;
-            
-            const isExactMatch = lId === pLid;
-            const isGlobalSyncOfThisTournament = (lId !== null && pLid === null);
-
-            if (!isExactMatch && !isGlobalSyncOfThisTournament) return false;
-
-            // 3. Tiempo: Solo borrar si el partido es futuro
-            // Si no hay fecha o no hay partido, permitimos borrar por seguridad
-            if (p.match?.date) {
-                const matchDate = new Date(p.match.date);
-            }
-
-            return true;
-        });
-
-        console.log(`🔥 [CLEAR DEBUG] ${toDelete.length} marcadores pasan los filtros.`);
-        
-        // Log details if nothing found to delete but there are predictions
-        if (toDelete.length === 0 && allUserPredictions.length > 0) {
-            console.log('🔍 [CLEAR DEBUG] ¿Por qué no se borró nada?');
-            allUserPredictions.slice(0, 3).forEach(p => {
-                console.log(`   - Pred ID: ${p.id} | T_Pred: ${p.tournamentId} | T_Match: ${p.match?.tournamentId} | League: ${p.leagueId}`);
-            });
-        }
-
-        if (toDelete.length > 0) {
-            const ids = toDelete.map(p => p.id);
-            await this.predictionsRepository.delete(ids);
-            console.log(`✅ [CLEAR DEBUG] Borrados IDs: ${ids.join(', ')}`);
-        }
-
-        return {
-            success: true,
-            message: `Limpieza completada: ${toDelete.length} marcadores eliminados.`,
-            count: toDelete.length,
-        };
+      return {
+        success: true,
+        message: `Limpieza completada: ${toDelete.length} marcadores eliminados.`,
+        count: toDelete.length,
+      };
     } catch (error) {
-        console.error('🔥 [CLEAR DEBUG FATAL]:', error);
-        throw new InternalServerErrorException(`Fallo crítico al limpiar: ${error.message}`);
+      console.error('🔥 [CLEAR DEBUG FATAL]:', error);
+      throw new InternalServerErrorException(
+        `Fallo crítico al limpiar: ${error.message}`,
+      );
     }
   }
   async upsertBulkPredictions(
@@ -453,16 +481,16 @@ export class PredictionsService {
           // ... (ya corregido antes) ...
           prediction.homeScore = dto.homeScore;
           prediction.awayScore = dto.awayScore;
-          
-        if (dto.isJoker !== undefined) {
-          prediction.isJoker = dto.isJoker;
-        }
+
+          if (dto.isJoker !== undefined) {
+            prediction.isJoker = dto.isJoker;
+          }
         } else {
           // Create nuevo
           prediction = queryRunner.manager.create(Prediction, {
             user: { id: userId } as User,
             match: { id: dto.matchId } as Match,
-            leagueId: dto.leagueId || undefined, 
+            leagueId: dto.leagueId || undefined,
             tournamentId: match.tournamentId,
             homeScore: dto.homeScore,
             awayScore: dto.awayScore,
@@ -473,37 +501,37 @@ export class PredictionsService {
 
         // --- SYNC GLOBAL (BULK) ---
         if (dto.leagueId) {
-            // Check if user already has a DIFFERENT prediction in the batch targeting global context?
-            // Usually not. But we need to check if global prediction already exists in DB to update it.
-            // Since we fetched ALL predictions for this user/matches in step 2 (existingPredictions), we can check the Map.
-            
-            const globalKey = `${dto.matchId}_null`;
-            let globalPred = predictionsMap.get(globalKey);
+          // Check if user already has a DIFFERENT prediction in the batch targeting global context?
+          // Usually not. But we need to check if global prediction already exists in DB to update it.
+          // Since we fetched ALL predictions for this user/matches in step 2 (existingPredictions), we can check the Map.
 
-            if (globalPred) {
-                // Update existing global - Sync SCORES ONLY
-                globalPred.homeScore = dto.homeScore;
-                globalPred.awayScore = dto.awayScore;
-                // FIX: Do NOT sync Joker. Jokers must be independent per league/context.
-            } else {
-                // Create new global
-                globalPred = queryRunner.manager.create(Prediction, {
-                    user: { id: userId } as User,
-                    match: { id: dto.matchId } as Match,
-                    leagueId: undefined, // Global
-                    tournamentId: match.tournamentId,
-                    homeScore: dto.homeScore,
-                    awayScore: dto.awayScore,
-                    isJoker: false // Default to false for independent strategy
-                });
-                // Add to map
-                predictionsMap.set(globalKey, globalPred);
-            }
-            
-            // Add to save list
-            if (!entitiesToSave.includes(globalPred)) {
-                 entitiesToSave.push(globalPred);
-            }
+          const globalKey = `${dto.matchId}_null`;
+          let globalPred = predictionsMap.get(globalKey);
+
+          if (globalPred) {
+            // Update existing global - Sync SCORES ONLY
+            globalPred.homeScore = dto.homeScore;
+            globalPred.awayScore = dto.awayScore;
+            // FIX: Do NOT sync Joker. Jokers must be independent per league/context.
+          } else {
+            // Create new global
+            globalPred = queryRunner.manager.create(Prediction, {
+              user: { id: userId } as User,
+              match: { id: dto.matchId } as Match,
+              leagueId: undefined, // Global
+              tournamentId: match.tournamentId,
+              homeScore: dto.homeScore,
+              awayScore: dto.awayScore,
+              isJoker: false, // Default to false for independent strategy
+            });
+            // Add to map
+            predictionsMap.set(globalKey, globalPred);
+          }
+
+          // Add to save list
+          if (!entitiesToSave.includes(globalPred)) {
+            entitiesToSave.push(globalPred);
+          }
         }
       }
 

@@ -26,9 +26,14 @@ export class LeagueExtraController {
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
     if (isSuperAdmin) return true;
 
-    const league: any = await this.leaguesService.getLeagueDetails(leagueId, req.user.id);
+    const league: any = await this.leaguesService.getLeagueDetails(
+      leagueId,
+      req.user.id,
+    );
     if (!league.isAdmin) {
-      throw new ForbiddenException('You do not have permission to manage this league');
+      throw new ForbiddenException(
+        'You do not have permission to manage this league',
+      );
     }
   }
 

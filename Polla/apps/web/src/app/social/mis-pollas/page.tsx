@@ -165,7 +165,7 @@ function MisPollasContent() {
                         <img 
                             src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
                             alt="Tournament" 
-                            className={`h-5 w-auto object-contain transition-all duration-500 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                            className={`h-16 w-auto object-contain transition-all duration-500 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
                         />
                     </div>
                 </div>

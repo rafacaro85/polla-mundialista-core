@@ -125,7 +125,7 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                 <img 
                                     src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
                                     alt="Tournament" 
-                                    className={`h-4 w-auto object-contain opacity-40 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                                    className={`h-6 w-auto object-contain opacity-50 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
                                 />
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-[#94A3B8] font-semibold">

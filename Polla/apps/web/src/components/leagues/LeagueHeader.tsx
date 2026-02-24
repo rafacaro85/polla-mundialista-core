@@ -105,11 +105,11 @@ export function LeagueHeader() {
 
                     {/* Tournament Logo */}
                     {leagueData?.tournamentId && (
-                        <div className="hidden sm:flex items-center ml-2 mr-2 opacity-40 hover:opacity-100 transition-opacity">
+                        <div className="flex items-center ml-2 mr-2 transition-opacity scale-110">
                             <img 
                                 src={leagueData.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
                                 alt="Tournament" 
-                                className={`h-8 w-auto object-contain ${leagueData.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                                className={`h-14 w-auto object-contain ${leagueData.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
                             />
                         </div>
                     )}

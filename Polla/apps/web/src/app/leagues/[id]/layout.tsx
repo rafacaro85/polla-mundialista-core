@@ -5,7 +5,6 @@ import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
 import { LeagueNavigation } from '@/components/LeagueNavigation';
 import { EnterpriseNavigation } from '@/modules/enterprise-league/components/EnterpriseNavigation';
-import { UniversalGameHeader } from '@/components/leagues/UniversalGameHeader';
 import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2, Timer, Shield } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -291,20 +290,6 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             logoUrl={league.brandingLogoUrl}
             companyName={league.companyName || league.name}
         >
-            {/* LEAGUE HEADER - Sticky top bar with logo and user menu */}
-            {showLayoutUI && (
-                <UniversalGameHeader 
-                    leagueName={league.name}
-                    tournamentId={league.tournamentId}
-                    logoUrl={league.brandingLogoUrl}
-                    isEnterprise={isEnterprise}
-                    onBack={() => {
-                        const backUrl = isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
-                        router.push(backUrl);
-                    }}
-                />
-            )}
-
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
                 {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO AND DASHBOARD ROOT */}
                 {showLayoutNav && isEnterprise && (
@@ -330,6 +315,36 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         ? 'md:pl-64 pb-24 md:pb-0'
                         : ''
                     }`}>
+
+                    {/* LOGO STRIP — logo de la app/empresa sin tarjeta, entre header y hero */}
+                    {showLayoutUI && !isDashboardRoot && (
+                        <div className="flex items-center justify-center py-4 px-4">
+                            {league.brandingLogoUrl ? (
+                                // Liga empresa: logo de la empresa
+                                <img
+                                    src={league.brandingLogoUrl}
+                                    alt={league.companyName || league.name}
+                                    className="h-14 w-auto object-contain max-w-[160px] opacity-90"
+                                />
+                            ) : (
+                                // Liga social: logo LPV según torneo
+                                <img
+                                    src={
+                                        (league.tournamentId || '').toUpperCase().includes('UCL')
+                                            ? '/images/ucl-logo.png'
+                                            : '/images/lpv/lpv-full-logo.png'
+                                    }
+                                    alt="Logo"
+                                    className={`h-12 w-auto object-contain opacity-90 ${
+                                        (league.tournamentId || '').toUpperCase().includes('UCL')
+                                            ? 'brightness-0 invert'
+                                            : ''
+                                    }`}
+                                />
+                            )}
+                        </div>
+                    )}
+
                     <div className="w-full mx-auto px-4 md:px-6 lg:px-8 max-w-full md:max-w-[768px] lg:max-w-[1280px]">
                         {children}
                     </div>

@@ -243,6 +243,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           <Header
             userName={user?.nickname || 'Invitado'}
             leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}
+            tournamentId={currentLeague?.tournamentId}
+            isEnterprise={isEnterpriseMode}
+            backUrl={isEnterpriseMode ? '/empresa/mis-pollas' : '/social/mis-pollas'}
           />
         )}
 

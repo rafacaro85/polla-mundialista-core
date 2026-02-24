@@ -655,9 +655,10 @@ export class LeaguesService {
         .leftJoinAndSelect('league.participants', 'leagueParticipants')
         .where('participant.user_id = :userId', { userId });
 
-      if (tournamentId && tournamentId !== 'all') {
-        query.andWhere('league.tournamentId = :tournamentId', { tournamentId });
-      }
+      query.andWhere(
+        '(:tournamentId = \'all\' OR :tournamentId IS NULL OR league.tournamentId = :tournamentId)',
+        { tournamentId: tournamentId || 'all' },
+      );
 
       const participants = await query.getMany();
 

@@ -39,8 +39,8 @@ export const useLeagues = () => {
 
         try {
             setLoading(true);
-            console.log(`[useLeagues] Fetching leagues for tournament: ${tournamentId}`);
-            const { data } = await api.get('/leagues/my', { params: { tournamentId } });
+            console.log(`[useLeagues] Fetching all leagues for user`);
+            const { data } = await api.get('/leagues/my');
             console.log(`[useLeagues] Received ${data.length} leagues`);
 
             // Map API data to local interface

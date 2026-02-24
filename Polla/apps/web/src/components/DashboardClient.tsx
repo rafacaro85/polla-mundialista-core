@@ -395,9 +395,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           {/* 3. PREDICTIONS (Unified View) */}
           {activeTab === 'predictions' && (
              <PredictionsView 
-                matchesData={matchesData}
                 matches={matches}
-                isLoadingMatches={isLoadingMatchesSWR}
                 onRefresh={handleFullRefresh}
                 isRefreshing={isRefreshing}
                 leagueId={selectedLeagueId}

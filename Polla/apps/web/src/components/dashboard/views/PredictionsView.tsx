@@ -5,19 +5,16 @@ import { BracketView } from '@/components/BracketView';
 import { Calendar, Activity } from 'lucide-react';
 
 interface PredictionsViewProps {
-    matchesData: any;
-    matches: any[];
-    isLoadingMatches: boolean;
+    // matches still used for BracketView display
+    matches?: any[];
     onRefresh: () => void;
     isRefreshing: boolean;
     leagueId?: string;
-    tournamentId?: string; // From the current league entity
+    tournamentId?: string; // From the current league entity — passed through to SocialFixture
 }
 
 export const PredictionsView: React.FC<PredictionsViewProps> = ({
-    matchesData,
-    matches,
-    isLoadingMatches,
+    matches = [],
     onRefresh,
     isRefreshing,
     leagueId,
@@ -43,14 +40,13 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                     </TabsTrigger>
                 </TabsList>
 
+                {/* SocialFixture self-fetches from /leagues/:id/matches — no matchesData prop needed */}
                 <TabsContent value="matches" className="flex-1 overflow-visible mt-0">
                     <SocialFixture
-                        matchesData={matchesData}
-                        loading={isLoadingMatches}
-                        onRefresh={onRefresh}
-                        isRefreshing={isRefreshing}
                         leagueId={leagueId}
                         tournamentId={tournamentId}
+                        onRefresh={onRefresh}
+                        isRefreshing={isRefreshing}
                     />
                 </TabsContent>
 
@@ -65,8 +61,8 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                         homeTeamPlaceholder: m.homeTeamPlaceholder,
                         awayTeamPlaceholder: m.awayTeamPlaceholder,
                       }))}
-                      leagueId={leagueId}
-                    />
+                       leagueId={leagueId}
+                     />
                 </TabsContent>
             </Tabs>
         </div>

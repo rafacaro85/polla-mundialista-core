@@ -9,11 +9,18 @@ import { useTournament } from '@/hooks/useTournament';
 interface PaymentMethodsProps {
     leagueId: string;
     amount?: number;
+    tournamentId?: string;
     onSuccess?: () => void;
 }
 
-export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ leagueId, amount = 50000, onSuccess }) => {
-    const { tournamentId } = useTournament();
+export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ 
+    leagueId, 
+    amount = 50000, 
+    tournamentId: propTournamentId, 
+    onSuccess 
+}) => {
+    const { tournamentId: hookTournamentId } = useTournament();
+    const tournamentId = propTournamentId || hookTournamentId;
     const [selectedQR, setSelectedQR] = useState<'NEQUI' | 'DAVIPLATA' | 'BANCOLOMBIA' | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);

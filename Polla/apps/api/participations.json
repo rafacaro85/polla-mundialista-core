@@ -1,0 +1,110 @@
+[
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "84ed7ab7-48b2-4d5f-99aa-37ab678a69c0",
+    "league_name": "POLLA MUNDIAL",
+    "tournamentId": "UCL2526",
+    "p_status": "PENDING",
+    "isAdmin": false
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "1376cb1b-eea2-4c4a-934f-25dcdad926c7",
+    "league_name": "OFICINA",
+    "tournamentId": "UCL2526",
+    "p_status": "PENDING",
+    "isAdmin": false
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "fda43085-3405-41ed-8161-b3f76332599e",
+    "league_name": "POLLA MUNDIALISTA",
+    "tournamentId": "WC2026",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "65bf8db4-3f6d-407e-8ba0-4a6b2b6a276f",
+    "email": "racv85@hotmail.com",
+    "league_id": "dd66e5d4-9f45-4330-a539-69ba98414e2a",
+    "league_name": "FAMILIA",
+    "tournamentId": "WC2026",
+    "p_status": "PENDING",
+    "isAdmin": false
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "bd4e870e-16b9-4e23-8da2-73751501e4eb",
+    "league_name": "AMIGOS",
+    "tournamentId": "UCL2526",
+    "p_status": "PENDING",
+    "isAdmin": false
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "a432c20e-daac-4e47-9359-56c728514cf4",
+    "league_name": "AMIGOS BARRIO",
+    "tournamentId": "UCL2526",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "65bf8db4-3f6d-407e-8ba0-4a6b2b6a276f",
+    "email": "racv85@hotmail.com",
+    "league_id": "84ed7ab7-48b2-4d5f-99aa-37ab678a69c0",
+    "league_name": "POLLA MUNDIAL",
+    "tournamentId": "UCL2526",
+    "p_status": "PENDING",
+    "isAdmin": false
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "ccca2e86-e3d8-48f9-ae07-3d20a6a09acd",
+    "league_name": "FAMILIA",
+    "tournamentId": "UCL2526",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "65bf8db4-3f6d-407e-8ba0-4a6b2b6a276f",
+    "email": "racv85@hotmail.com",
+    "league_id": "9b0affe8-5c1e-4986-962e-845893d934f3",
+    "league_name": "FAMILIA",
+    "tournamentId": "UCL2526",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "dd66e5d4-9f45-4330-a539-69ba98414e2a",
+    "league_name": "FAMILIA",
+    "tournamentId": "WC2026",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "65bf8db4-3f6d-407e-8ba0-4a6b2b6a276f",
+    "email": "racv85@hotmail.com",
+    "league_id": "1376cb1b-eea2-4c4a-934f-25dcdad926c7",
+    "league_name": "OFICINA",
+    "tournamentId": "UCL2526",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  },
+  {
+    "user_id": "42c5a8ca-e772-46b4-a147-8c3d42815880",
+    "email": "racv85@gmail.com",
+    "league_id": "f543d8f3-7529-4dd5-8ba9-4573f5bbc9a1",
+    "league_name": "Champions",
+    "tournamentId": "UCL2526",
+    "p_status": "ACTIVE",
+    "isAdmin": true
+  }
+]

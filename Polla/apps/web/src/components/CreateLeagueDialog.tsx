@@ -773,6 +773,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
                                                     <PaymentMethods
                                                         leagueId={createdLeagueId}
                                                         amount={parseInt(selectedPlanDetails?.price.replace(/\D/g, '') || '0')}
+                                                        tournamentId={selectedTournamentId}
                                                         onSuccess={() => {
                                                             toast.success('Pago enviado. Espera la confirmación del administrador.');
                                                             handleClose();

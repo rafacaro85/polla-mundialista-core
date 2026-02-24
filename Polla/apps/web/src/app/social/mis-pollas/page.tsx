@@ -144,14 +144,20 @@ function MisPollasContent() {
                     : 'border-white/5 hover:border-[#00E676]/30'
                 }`}
               >
-                <div className="absolute top-6 right-6 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                    {league.tournamentId && (
-                        <img 
-                            src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
-                            alt="Tournament" 
-                            className={`h-14 w-auto object-contain ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
-                        />
-                    )}
+                <div className="absolute top-6 right-6 pointer-events-none group-hover:scale-110 transition-transform duration-500 z-10">
+                    {(() => {
+                        const tid = (league as any).tournamentId || (league as any).tournament_id || (league.name.toLowerCase().includes('champions') ? 'UCL2526' : '');
+                        if (!tid) return null;
+                        
+                        const isUCL = tid === 'UCL2526';
+                        return (
+                            <img 
+                                src={isUCL ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                                alt="Tournament" 
+                                className={`h-16 w-auto object-contain ${isUCL ? 'brightness-0 invert' : ''} drop-shadow-2xl`}
+                            />
+                        );
+                    })()}
                 </div>
 
                 {/* Imagen del Premio / MoneyCard / Fondo por defecto */}

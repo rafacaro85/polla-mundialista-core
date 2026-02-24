@@ -16,10 +16,10 @@ async function run() {
     const columns = await queryRunner.query(`
         SELECT column_name, data_type 
         FROM information_schema.columns 
-        WHERE table_name = 'league_participants'
+        WHERE table_name = 'leagues'
         ORDER BY column_name
     `);
-    console.log('\n🔍 league_participants Columns (STRICT):');
+    console.log('\n🔍 leagues Columns (STRICT):');
     columns.forEach((c: any) => console.log(`- ${c.column_name} (${c.data_type})`));
 
   } catch (err) {

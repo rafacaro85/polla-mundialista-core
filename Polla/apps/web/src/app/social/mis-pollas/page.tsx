@@ -144,30 +144,14 @@ function MisPollasContent() {
                     : 'border-white/5 hover:border-[#00E676]/30'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3 px-1">
-                    <div className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] backdrop-blur-md border border-white/5 flex items-center gap-1 ${league.tournamentId === 'WC2026' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                         {league.tournamentId === 'WC2026' ? 'Mundial 2026' : 'Champions 25/26'}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {league.status === 'PENDING' && (
-                            <div className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500/20">
-                                Pendiente
-                            </div>
-                        )}
-
-                        {league.status === 'REJECTED' && (
-                            <div className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500 animate-pulse">
-                                Rechazado
-                            </div>
-                        )}
-
+                <div className="absolute top-6 right-6 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                    {league.tournamentId && (
                         <img 
                             src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
                             alt="Tournament" 
-                            className={`h-16 w-auto object-contain transition-all duration-500 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                            className={`h-14 w-auto object-contain ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
                         />
-                    </div>
+                    )}
                 </div>
 
                 {/* Imagen del Premio / MoneyCard / Fondo por defecto */}

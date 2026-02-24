@@ -78,7 +78,6 @@ export class LeaguesController {
     @Req() req: Request,
     @Query('tournamentId') tournamentId?: string,
   ) {
-    console.log('🔥 MY LEAGUES v2 - params:', JSON.stringify(req.query));
     const userPayload = req.user as { id: string; userId?: string };
     const userId = userPayload.userId || userPayload.id;
     if (!userId) {

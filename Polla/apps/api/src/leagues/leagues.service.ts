@@ -661,10 +661,6 @@ export class LeaguesService {
       );
 
       const participants = await query.getMany();
-      console.log(`🔥 [LeaguesService] Found ${participants.length} participants for user ${userId}`);
-      participants.forEach(p => {
-        console.log(`   - League: ${p.league.name} (${p.league.id}), Tournament: ${p.league.tournamentId}, Enterprise: ${p.league.isEnterprise}`);
-      });
 
       const result = participants.map((p) => {
         // Calculate pending requests only if user is Admin of the league

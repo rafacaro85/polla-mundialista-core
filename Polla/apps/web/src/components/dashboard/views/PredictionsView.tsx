@@ -11,6 +11,7 @@ interface PredictionsViewProps {
     onRefresh: () => void;
     isRefreshing: boolean;
     leagueId?: string;
+    tournamentId?: string; // From the current league entity
 }
 
 export const PredictionsView: React.FC<PredictionsViewProps> = ({
@@ -19,7 +20,8 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
     isLoadingMatches,
     onRefresh,
     isRefreshing,
-    leagueId
+    leagueId,
+    tournamentId
 }) => {
     return (
         <div className="h-full flex flex-col animate-in fade-in duration-300">
@@ -48,6 +50,7 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                         onRefresh={onRefresh}
                         isRefreshing={isRefreshing}
                         leagueId={leagueId}
+                        tournamentId={tournamentId}
                     />
                 </TabsContent>
 

@@ -113,7 +113,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
   // Custom Hooks
   const { currentLeague, participants, isEnterpriseMode, isWallEnabled } = useCurrentLeague(selectedLeagueId, activeTab);
-  const { matches, matchesData, loading: isLoadingMatchesSWR, isRefreshing, handleManualRefresh } = useMatches(predictions);
+  // Pass league's tournamentId directly to ensure correct matches are fetched
+  // (e.g. UCL2526 for Champions leagues, WC2026 for World Cup)
+  const leagueTournamentId = currentLeague?.tournamentId;
+  const { matches, matchesData, loading: isLoadingMatchesSWR, isRefreshing, handleManualRefresh } = useMatches(predictions, leagueTournamentId);
   const { refetch: refetchPhases } = useKnockoutPhases();
   
   // Implement useLeagues to determine smart onboarding state
@@ -398,6 +401,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 onRefresh={handleFullRefresh}
                 isRefreshing={isRefreshing}
                 leagueId={selectedLeagueId}
+                tournamentId={leagueTournamentId}
              />
           )}
 

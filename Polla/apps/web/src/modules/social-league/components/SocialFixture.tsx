@@ -21,6 +21,7 @@ interface SocialFixtureProps {
     onRefresh: () => void;
     isRefreshing: boolean;
     leagueId?: string;
+    tournamentId?: string; // From the league entity - overrides URL detection
 }
 
 import { getTeamFlagUrl } from '@/shared/utils/flags';
@@ -38,8 +39,10 @@ const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
     return getTeamFlagUrl(teamName);
 };
 
-export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId }) => {
-    const { tournamentId } = useTournament();
+export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loading, onRefresh, isRefreshing, leagueId, tournamentId: propTournamentId }) => {
+    const { tournamentId: detectedTournamentId } = useTournament();
+    // Always use prop from league entity if provided; fall back to URL-detected
+    const tournamentId = propTournamentId || detectedTournamentId;
     const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);

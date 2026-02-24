@@ -290,7 +290,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             companyName={league.companyName || league.name}
         >
             {/* LEAGUE HEADER - Sticky top bar with logo and user menu */}
-            {showLayoutUI && !isDashboardRoot && (
+            {showLayoutUI && (
                 <UniversalGameHeader 
                     leagueName={league.name}
                     tournamentId={league.tournamentId}

@@ -25,8 +25,11 @@ interface Match {
     awayTeamPlaceholder?: string;
 }
 
-export const useMatches = (predictions: any) => {
-    const { tournamentId } = useTournament();
+// Optional: pass a specific tournamentId to override global detection (e.g. from a league entity)
+export const useMatches = (predictions: any, overrideTournamentId?: string) => {
+    const { tournamentId: detectedTournamentId } = useTournament();
+    // Always prefer the override (from league entity) over the auto-detected one
+    const tournamentId = overrideTournamentId || detectedTournamentId;
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // SWR Fetcher with explicit tournamentId param

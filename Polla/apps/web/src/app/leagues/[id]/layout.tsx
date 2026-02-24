@@ -129,6 +129,8 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const isDashboardRoot = pathname === `/leagues/${params.id}`;
     // ALWAYS SHOW HEADER in game pages, except studio
     const showLayoutUI = !pathname?.includes('/studio'); 
+    // Hide layout nav on the Dashboard root (DashboardClient has its own internal nav tabs)
+    const showLayoutNav = showLayoutUI && !isDashboardRoot;
 
     // 3b. Check if user has REJECTED or PENDING status
     const userStatus = league.userStatus;
@@ -305,7 +307,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
                 {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO AND DASHBOARD ROOT */}
-                {showLayoutUI && isEnterprise && (
+                {showLayoutNav && isEnterprise && (
                     <EnterpriseNavigation
                         leagueId={league.id}
                         isEnterpriseActive={league.isEnterpriseActive || false}
@@ -314,7 +316,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                 )}
 
                 {/* SOCIAL NAVIGATION (non-Enterprise) */}
-                {showLayoutUI && !isEnterprise && (
+                {showLayoutNav && !isEnterprise && (
                     <LeagueNavigation
                         leagueId={league.id}
                         isAdmin={league.isAdmin || false}
@@ -324,7 +326,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
                 {/* MAIN CONTENT AREA - Responsive and Centered */}
                 <main className={`flex-1 w-full ${
-                    showLayoutUI
+                    showLayoutNav
                         ? 'md:pl-64 pb-24 md:pb-0'
                         : ''
                     }`}>

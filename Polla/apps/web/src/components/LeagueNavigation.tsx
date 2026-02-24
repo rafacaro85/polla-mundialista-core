@@ -28,7 +28,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
 
     const items: NavItem[] = [
         { label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
-        { label: 'Juegos', icon: <Gamepad2 size={20} />, href: `${basePath}/predictions` },
+        { label: 'Predicciones', icon: <Gamepad2 size={20} />, href: `${basePath}/predictions` },
         { label: 'Ranking', icon: <Trophy size={20} />, href: `${basePath}/ranking` },
         { label: 'Simulador', icon: <Users size={20} />, href: `${basePath}/simulation` },
         { label: 'Bonus', icon: <Star size={20} />, href: `${basePath}/bonus` },

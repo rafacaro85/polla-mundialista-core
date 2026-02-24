@@ -38,10 +38,14 @@ export function UniversalGameHeader({
         router.push('/');
     };
 
-    // Logos del torneo
-    const tournamentLogo = tournamentId === 'UCL2526' 
-        ? '/images/ucl-logo.png' 
-        : '/images/wc-logo.png';
+    // Logos del torneo - Robust Mapping
+    const getTournamentLogo = (id: string) => {
+        const tid = (id || '').toUpperCase();
+        if (tid.includes('UCL') || tid.includes('CHAMPIONS')) return '/images/ucl-logo.png';
+        return '/images/wc-logo.png'; // Default to WC
+    };
+
+    const tournamentLogo = getTournamentLogo(tournamentId);
 
     // Logo por defecto si no hay uno (LPV)
     const displayLogo = logoUrl || '/images/lpv/lpv-full-logo.png';
@@ -143,7 +147,7 @@ export function UniversalGameHeader({
                             <img 
                                 src={displayLogo} 
                                 alt="League Logo" 
-                                className="h-10 w-auto object-contain max-w-[80px]"
+                                className="h-12 md:h-16 w-auto object-contain max-w-[120px]"
                             />
                         </div>
                     </div>

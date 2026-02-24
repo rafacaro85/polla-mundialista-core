@@ -57,11 +57,16 @@ export default function GatewayApp() {
           1. NAVBAR (Ultra Clean)
           ==================================================================== */}
       <nav className="relative z-50 px-6 py-6 flex justify-center items-center w-full shrink-0">
-        <img 
-          src="/images/lpv/lpv-full-logo.png" 
-          alt="La Polla Virtual" 
-          className="h-14 md:h-20 w-auto object-contain"
-        />
+        <div className="flex flex-col items-center gap-4">
+          <img 
+            src="/images/lpv/lpv-full-logo.png" 
+            alt="La Polla Virtual" 
+            className="h-20 md:h-32 w-auto object-contain drop-shadow-[0_0_20px_rgba(0,230,118,0.2)]"
+          />
+          <span className="text-white font-russo text-xl md:text-2xl tracking-[0.3em] uppercase opacity-90">
+            La Polla Virtual
+          </span>
+        </div>
       </nav>
 
       {/* ====================================================================

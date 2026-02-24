@@ -13,12 +13,14 @@ import { signInWithGoogle } from '@/lib/auth.utils';
    ============================================================================= */
 
 const LogoLight = () => (
-    <div className="flex items-center gap-3 select-none shrink-0">
-        <img 
-            src="/images/lpv/lpv-full-logo.png" 
-            alt="La Polla Virtual" 
-            className="h-12 w-auto object-contain"
-        />
+    <div className="flex items-center gap-3 select-none shrink-0 group">
+        <div className="bg-[#0F172A] p-2 rounded-xl border border-white/5 shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <img 
+                src="/images/lpv/lpv-full-logo.png" 
+                alt="La Polla Virtual" 
+                className="h-8 md:h-10 w-auto object-contain"
+            />
+        </div>
     </div>
 );
 
@@ -232,9 +234,16 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
             {/* --- HERO SECTION (SIMPLIFICADO / ROBUSTO) --- */}
             <section className="w-full min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 py-12 text-center overflow-x-hidden">
 
-                {/* 1. Logo (Con margen inferior) */}
-                <div className="mb-10 relative flex justify-center">
-                    <LogoLight />
+                {/* 1. Logo (Con margen inferior) - GRANDE E IMPONENTE */}
+                <div className="mb-12 relative flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-1000">
+                    <img 
+                      src="/images/lpv/lpv-full-logo.png" 
+                      alt="La Polla Virtual" 
+                      className="h-28 md:h-40 w-auto object-contain drop-shadow-[0_0_30px_rgba(0,230,118,0.3)]"
+                    />
+                    <h2 className="text-[#00E676] font-russo text-xl md:text-2xl tracking-[0.3em] uppercase opacity-80">
+                        La Polla Virtual
+                    </h2>
                 </div>
 
                 {/* 2. Títulos (Tamaños controlados) */}

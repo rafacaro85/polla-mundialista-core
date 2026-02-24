@@ -29,7 +29,7 @@ export function MainHeader() {
                     <img 
                         src="/images/lpv/lpv-full-logo.png" 
                         alt="La Polla Virtual" 
-                        className="h-10 w-auto object-contain"
+                        className="h-12 md:h-14 w-auto object-contain"
                     />
                 </Link>
 

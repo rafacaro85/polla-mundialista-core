@@ -127,7 +127,8 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
     // Check if main dashboard
     const isDashboardRoot = pathname === `/leagues/${params.id}`;
-    const showLayoutUI = !pathname?.includes('/studio') && (isEnterprise || !isDashboardRoot);
+    // ALWAYS SHOW HEADER in game pages, except studio
+    const showLayoutUI = !pathname?.includes('/studio'); 
 
     // 3b. Check if user has REJECTED or PENDING status
     const userStatus = league.userStatus;

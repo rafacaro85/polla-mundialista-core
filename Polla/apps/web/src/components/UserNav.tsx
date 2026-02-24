@@ -33,11 +33,23 @@ export function UserNav() {
   }
 
   if (!user) {
-    return (
-      <Link href="/login">
-        <Button variant="ghost" className="text-white hover:text-signal">Ingresar</Button>
-      </Link>
-    );
+    // Fallback: check localStorage for session
+    const hasToken = typeof window !== 'undefined' && localStorage.getItem('token');
+    
+    if (hasToken && isLoading) {
+      return <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse border border-white/10" />;
+    }
+
+    if (!hasToken) {
+      return (
+        <Link href="/login">
+          <Button variant="ghost" className="text-emerald-500 hover:text-emerald-400 font-bold text-xs uppercase tracking-widest">Ingresar</Button>
+        </Link>
+      );
+    }
+    
+    // If has token but user is null and NOT loading, maybe we need to sync
+    return <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse border border-emerald-500/30" />;
   }
 
   // Datos del usuario mapeados

@@ -325,13 +325,23 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       {/* Fondo decorativo */}
       <div style={STYLES.backgroundGlow} />
 
-      {/* LOGO */}
-      <div style={STYLES.logoBox}>
+      {/* LOGO - GRANDE E IMPONENTE */}
+      <div style={{ ...STYLES.logoBox, marginBottom: '24px' }}>
         <img 
           src="/images/lpv/lpv-full-logo.png" 
           alt="La Polla Virtual" 
-          style={{ height: '70px', width: 'auto', display: 'block', margin: '0 auto' }}
+          style={{ height: '120px', width: 'auto', display: 'block', margin: '0 auto', filter: 'drop-shadow(0 0 20px rgba(0, 230, 118, 0.2))' }}
         />
+        <h1 style={{ 
+          fontFamily: "'Russo One', sans-serif", 
+          fontSize: '24px', 
+          color: 'white', 
+          marginTop: '12px',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase'
+        }}>
+          La Polla Virtual
+        </h1>
       </div>
 
       {/* TARJETA FORMULARIO */}

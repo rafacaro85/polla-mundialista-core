@@ -5,7 +5,7 @@ import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
 import { LeagueNavigation } from '@/components/LeagueNavigation';
 import { EnterpriseNavigation } from '@/modules/enterprise-league/components/EnterpriseNavigation';
-import { LeagueHeader } from '@/components/leagues/LeagueHeader';
+import { UniversalGameHeader } from '@/components/leagues/UniversalGameHeader';
 import BrandThemeProvider from '@/components/providers/BrandThemeProvider';
 import { Loader2, Timer, Shield } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -289,7 +289,18 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             companyName={league.companyName || league.name}
         >
             {/* LEAGUE HEADER - Sticky top bar with logo and user menu */}
-            {showLayoutUI && !isDashboardRoot && <LeagueHeader />}
+            {showLayoutUI && !isDashboardRoot && (
+                <UniversalGameHeader 
+                    leagueName={league.name}
+                    tournamentId={league.tournamentId}
+                    logoUrl={league.brandingLogoUrl}
+                    isEnterprise={isEnterprise}
+                    onBack={() => {
+                        const backUrl = isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas';
+                        router.push(backUrl);
+                    }}
+                />
+            )}
 
             <div className="min-h-screen w-full transition-colors duration-500 bg-brand-bg text-brand-text flex flex-col md:flex-row">
                 {/* PERSISTENT NAVIGATION (Sidebar/Bottom) - HIDDEN IN STUDIO AND DASHBOARD ROOT */}

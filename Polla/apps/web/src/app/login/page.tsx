@@ -327,10 +327,11 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
 
       {/* LOGO */}
       <div style={STYLES.logoBox}>
-        <h1 style={STYLES.logoTitle}>
-          POLLA <span style={{ color: '#00E676' }}>MUNDIALISTA</span>
-        </h1>
-        <p style={STYLES.logoSubtitle}>FIFA WORLD CUP 2026</p>
+        <img 
+          src="/images/lpv/lpv-full-logo.png" 
+          alt="La Polla Virtual" 
+          style={{ height: '70px', width: 'auto', display: 'block', margin: '0 auto' }}
+        />
       </div>
 
       {/* TARJETA FORMULARIO */}

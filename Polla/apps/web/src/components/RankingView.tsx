@@ -331,7 +331,6 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
             <div style={STYLES.contentWrapper}>
                 {/* 1. HEADER & SELECTOR */}
                 <div style={STYLES.headerSection}>
-                    <h2 style={STYLES.title}>Ranking</h2>
 
                     {/* BOTÓN SELECTOR (TRIGGER) - Solo mostrar si NO hay leagueId fijo */}
                     {!leagueId && (

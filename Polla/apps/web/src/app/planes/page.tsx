@@ -14,13 +14,11 @@ import { Button } from '@/components/ui/button';
 
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none">
-        <div className="flex flex-col leading-tight">
-            <span className="font-black text-xl text-slate-900">POLLA</span>
-            <span className="font-black text-2xl text-slate-900">
-                MUNDIALISTA
-            </span>
-            <span className="text-xs font-bold text-slate-500 uppercase">FIFA World Cup 2026</span>
-        </div>
+        <img 
+            src="/images/lpv/lpv-full-logo.png" 
+            alt="La Polla Virtual" 
+            className="h-12 w-auto object-contain"
+        />
     </div>
 );
 

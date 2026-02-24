@@ -123,11 +123,6 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
 
     return (
         <div className="w-full pb-24">
-            <div className="mb-6 text-center">
-                <h2 className="font-russo text-2xl text-white uppercase tracking-widest">
-                    Tabla de Posiciones
-                </h2>
-            </div>
 
             {/* TABS DE GUERRA DE ÁREAS */}
             {enableDepartmentWar && (

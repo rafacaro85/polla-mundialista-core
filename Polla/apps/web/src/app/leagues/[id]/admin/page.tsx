@@ -247,48 +247,6 @@ export default function AdminDashboardPage() {
     return (
         <div className="min-h-screen bg-brand-bg text-brand-text">
             <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-                {/* Header */}
-                <div className="mb-8">
-                    {/* Back Button */}
-                    <button
-                        onClick={() => router.push(isEnterprise ? '/empresa/mis-pollas' : `/leagues/${params.id}`)}
-                        className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary transition-colors mb-6 group"
-                    >
-                        <LayoutGrid size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        {isEnterprise ? 'Lista de Pollas' : 'Volver a la Polla'}
-                    </button>
-
-                    {/* Title & Subtitle */}
-                    <div className="flex items-start justify-between flex-wrap gap-4">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-brand-text mb-2 flex items-center gap-3">
-                                <Shield className="text-brand-primary" size={32} />
-                                Panel de Control
-                            </h1>
-                            <p className="text-slate-400 text-sm md:text-base">
-                                {league.companyName || league.name}
-                            </p>
-                        </div>
-
-                        {/* Admin Badge */}
-                        <div className="flex flex-col md:flex-row gap-2">
-                            {league.isSuperAdminAccess && (
-                                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/50 rounded-full">
-                                    <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                                        🛠️ God Mode
-                                    </span>
-                                </div>
-                            )}
-                            <div className="flex items-center gap-2 px-4 py-2 bg-brand-primary/10 border border-brand-primary/30 rounded-full">
-                                <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse" />
-                                <span className="text-xs font-bold text-brand-primary uppercase tracking-wider">
-                                    Administrador
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Dashboard Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

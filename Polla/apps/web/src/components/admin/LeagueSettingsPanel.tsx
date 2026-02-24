@@ -237,20 +237,6 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
     return (
         <div className="flex flex-col min-h-screen text-[var(--brand-text,white)]" style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}>
-            {/* HEADLINE */}
-            <div className="p-6 pb-2 border-b sticky top-0 z-10 shadow-md" style={{ backgroundColor: 'var(--brand-secondary, #1E293B)', borderColor: 'rgba(255,255,255,0.05)' }}>
-                <div className="max-w-4xl mx-auto w-full">
-                    <h2 className="text-xl font-russo uppercase text-white flex items-center gap-2">
-                        <Settings className="text-[var(--brand-primary,#00E676)]" /> Gestión de Polla
-                    </h2>
-                    <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider ml-8">{currentLeague?.name}</p>
-                        <Link href={`/leagues/${leagueId}/admin`} className="text-[10px] font-bold uppercase underline" style={{ color: 'var(--brand-primary,#00E676)' }}>
-                            Regresar
-                        </Link>
-                    </div>
-                </div>
-            </div>
 
             {loadingParticipants && !currentLeague ? (
                 <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500" /></div>

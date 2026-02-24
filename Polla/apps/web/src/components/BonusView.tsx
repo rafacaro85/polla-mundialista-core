@@ -258,20 +258,6 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
     return (
         <div style={STYLES.container}>
 
-            {/* 1. HEADER */}
-            <div style={STYLES.headerSection}>
-                <div style={STYLES.headerIconBox}>
-                    <Gift size={28} color={COLORS.gold} strokeWidth={2.5} />
-                </div>
-                <h2 style={STYLES.title}>Bonus Zone</h2>
-                <p style={STYLES.subtitle}>Preguntas especiales • Puntos Extra</p>
-                <div className="mt-4 bg-signal/10 inline-block px-4 py-1 rounded-full border border-signal/30">
-                    <p className="text-xs font-bold text-signal">
-                        Tus Puntos: {Object.values(userAnswers).reduce((acc, curr) => acc + curr.pointsEarned, 0)}
-                    </p>
-                </div>
-            </div>
-
             {/* 2. LISTA DE PREGUNTAS */}
             <div>
                 {questions.map((q) => {

@@ -14,23 +14,11 @@ import { signInWithGoogle } from '@/lib/auth.utils';
 
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none shrink-0">
-        <div className="relative flex items-center justify-center shrink-0" style={{ width: '36px', height: '36px' }}>
-            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" className="text-[#00E676]" style={{ width: '100%', height: '100%' }}>
-                <circle cx="50" cy="50" r="45" />
-                <path d="M50 20 L75 38 L65 68 L35 68 L25 38 Z" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M50 20 L50 5" strokeLinecap="round" /><path d="M75 38 L90 30" strokeLinecap="round" />
-                <path d="M65 68 L80 85" strokeLinecap="round" /><path d="M35 68 L20 85" strokeLinecap="round" />
-                <path d="M25 38 L10 30" strokeLinecap="round" />
-            </svg>
-        </div>
-        <div className="flex flex-col leading-[0.85]">
-            <span className="font-[900] text-[16px] text-[#0F172A] tracking-tighter font-sans">POLLA</span>
-            <span className="font-[900] text-[20px] text-[#0F172A] tracking-tighter relative font-sans">
-                MUNDIALISTA
-                <span className="absolute -top-0.5 -right-1.5 bg-[#00E676] rounded-full" style={{ width: '4px', height: '4px' }}></span>
-            </span>
-            <span className="text-[9px] font-bold text-[#94A3B8] tracking-widest uppercase mt-0.5">FIFA World Cup 2026</span>
-        </div>
+        <img 
+            src="/images/lpv/lpv-full-logo.png" 
+            alt="La Polla Virtual" 
+            className="h-12 w-auto object-contain"
+        />
     </div>
 );
 
@@ -40,7 +28,7 @@ const iPhoneMockup = () => (
         <div className="w-full h-full bg-[#0F172A] relative flex flex-col font-sans text-white pt-10 overflow-hidden">
             <div className="px-5 pb-4 flex justify-between items-center">
                 <Menu size={18} className="text-[#94A3B8]" />
-                <span className="font-black text-[#00E676] tracking-widest text-[10px]">EN VIVO • FWC26</span>
+                <span className="font-black text-[#00E676] tracking-widest text-[10px]">EN VIVO</span>
                 <div className="w-7 h-7 rounded-full bg-[#1E293B] border border-[#94A3B8]/30"></div>
             </div>
             <div className="px-4 mb-4">
@@ -423,7 +411,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="font-russo text-3xl md:text-4xl text-[#0F172A] mb-4">PLANES PARA TODOS</h2>
-                        <p className="text-[#94A3B8]">Desde la familia hasta grandes corporaciones. Pago único por todo el mundial.</p>
+                        <p className="text-[#94A3B8]">Desde la familia hasta grandes corporaciones. Planes diseñados para cada tipo de polla.</p>
                     </div>
                     <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
                         {/* Plan Amigos */}
@@ -541,7 +529,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                 <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-2">
                         <LogoLight />
-                        <p className="text-[#94A3B8] mt-6 text-sm max-w-xs leading-relaxed">La plataforma oficial para tu Polla Mundialista 2026. Infraestructura Serverless segura, escalable y confiable.</p>
+                        <p className="text-[#94A3B8] mt-6 text-sm max-w-xs leading-relaxed">La plataforma oficial de La Polla Virtual. Infraestructura Serverless segura, escalable y confiable.</p>
                         <div className="flex gap-4 mt-6">
                             <div className="bg-slate-100 p-2 rounded flex items-center gap-2 text-xs font-bold text-[#1E293B]"><ShieldCheck size={14} /> Anti-Fraude</div>
                             <div className="bg-slate-100 p-2 rounded flex items-center gap-2 text-xs font-bold text-[#1E293B]"><Cpu size={14} /> IA Gemini Powered</div>
@@ -565,7 +553,7 @@ export default function LandingPage({ onLoginClick }: { onLoginClick: () => void
                         </ul>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 Polla Mundialista. Todos los derechos reservados.</div>
+                <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 La Polla Virtual. Todos los derechos reservados.</div>
             </footer>
 
             {/* --- WHATSAPP FLOATING BUTTON --- */}

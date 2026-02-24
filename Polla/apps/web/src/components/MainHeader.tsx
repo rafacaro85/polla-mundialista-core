@@ -26,12 +26,11 @@ export function MainHeader() {
                 
                 {/* LOGO */}
                 <Link href="/gateway" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00E676] to-[#00C853] flex items-center justify-center shadow-lg shadow-[#00E676]/20">
-                        <Trophy size={18} className="text-[#050505]" strokeWidth={2.5} />
-                    </div>
-                    <span className="hidden sm:block text-white font-russo text-lg tracking-tighter uppercase italic leading-none">
-                        La Polla <span className="text-[#00E676]">Virtual</span>
-                    </span>
+                    <img 
+                        src="/images/lpv/lpv-full-logo.png" 
+                        alt="La Polla Virtual" 
+                        className="h-10 w-auto object-contain"
+                    />
                 </Link>
 
 

@@ -28,11 +28,11 @@ import { FloatingDemoWidget } from '@/components/FloatingDemoWidget';
 
 const LogoLight = () => (
   <div className="flex items-center gap-3 select-none">
-    <img src="/icon-192x192.png" alt="La Polla Virtual" className="w-12 h-12 object-contain" />
-    <div className="flex flex-col leading-none">
-      <span className="font-black text-2xl text-slate-900 tracking-tighter">LA POLLA</span>
-      <span className="font-black text-2xl text-[#00E676] tracking-tighter">VIRTUAL</span>
-    </div>
+    <img 
+      src="/images/lpv/lpv-full-logo.png" 
+      alt="La Polla Virtual" 
+      className="h-12 w-auto object-contain"
+    />
   </div>
 );
 
@@ -72,7 +72,7 @@ const iPhoneMockup = () => (
     <div className="w-full h-full bg-[#0F172A] relative flex flex-col font-sans text-white pt-10 overflow-hidden">
       <div className="px-5 pb-4 flex justify-between items-center">
         <Menu size={18} className="text-[#94A3B8]" />
-        <span className="font-black text-[#00E676] tracking-widest text-[10px]">EN VIVO • FWC26</span>
+        <span className="font-black text-[#00E676] tracking-widest text-[10px]">EN VIVO</span>
         <div className="w-7 h-7 rounded-full bg-[#1E293B] border border-[#94A3B8]/30"></div>
       </div>
       <div className="px-4 mb-4">
@@ -171,7 +171,7 @@ const CountdownTimer = () => {
       <div className="relative z-10 flex flex-col items-center">
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="text-[#FACC15] animate-bounce" size={16} />
-          <span className="text-[#00E676] font-bold uppercase tracking-[0.2em] text-[10px]">Kickoff 2026</span>
+          <span className="text-[#00E676] font-bold uppercase tracking-[0.2em] text-[10px]">COUNTDOWN TORNEO</span>
         </div>
 
         <div className="flex items-start justify-center gap-2 mb-0">
@@ -684,7 +684,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-2">
             <LogoLight />
-            <p className="text-[#94A3B8] mt-6 text-sm max-w-xs leading-relaxed">La plataforma oficial para tu Polla Mundialista 2026. Infraestructura Serverless segura, escalable y confiable.</p>
+            <p className="text-[#94A3B8] mt-6 text-sm max-w-xs leading-relaxed">La plataforma oficial de La Polla Virtual. Infraestructura Serverless segura, escalable y confiable.</p>
             <div className="flex gap-4 mt-6">
               <div className="bg-slate-100 p-2 rounded flex items-center gap-2 text-xs font-bold text-[#1E293B]"><ShieldCheck size={14} /> Anti-Fraude</div>
               <div className="bg-slate-100 p-2 rounded flex items-center gap-2 text-xs font-bold text-[#1E293B]"><Cpu size={14} /> IA Gemini Powered</div>
@@ -708,7 +708,7 @@ export default function LandingPage() {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 Polla Mundialista. Todos los derechos reservados.</div>
+        <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-[#94A3B8]/20 text-center text-[#94A3B8] text-xs font-medium">© 2026 La Polla Virtual. Todos los derechos reservados.</div>
       </footer>
 
       {/* --- WHATSAPP FLOATING BUTTON --- */}

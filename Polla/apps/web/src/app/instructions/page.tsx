@@ -39,7 +39,7 @@ export default function InstructionsPage() {
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-sm">
                         CÓMO JUGAR
-                        <span className="block text-[#00E676] mt-2">POLLA MUNDIALISTA</span>
+                        <span className="block text-[#00E676] mt-2">LA POLLA VIRTUAL</span>
                     </h1>
                     <p className="text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
                         Domina las reglas, suma puntos y conviértete en el campeón de tu polla. 

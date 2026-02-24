@@ -144,20 +144,6 @@ export default function WallPage() {
         <div className="min-h-screen bg-brand-bg text-brand-text py-6 pb-24 md:pb-8">
             <div className="w-full mx-auto bg-brand-secondary/50 border border-white/5 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-500">
 
-                {/* Header */}
-                <div className="bg-black/20 p-4 border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-brand-primary/20 p-2 rounded-lg text-brand-primary">
-                            <MessageSquare size={18} />
-                        </div>
-                        <span className="font-russo uppercase tracking-widest text-sm text-brand-text italic">MURO SOCIAL</span>
-                    </div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                        {comments.length} Mensajes
-                    </div>
-                </div>
-
-                {/* Post Input */}
                 <div className="p-4 bg-brand-bg/50">
                     <form onSubmit={handlePost} className="space-y-3">
                         <div className="flex gap-3">

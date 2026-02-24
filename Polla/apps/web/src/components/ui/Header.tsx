@@ -60,19 +60,10 @@ export function Header({ userName, leagueName }: HeaderProps) {
               ) : (
                 <div className="flex items-center gap-1">
                   <img 
-                      src="/images/wc-logo.png" 
-                      alt="FIFA World Cup 2026" 
-                      className="h-20 w-auto object-contain"
+                      src="/images/lpv/lpv-full-logo.png" 
+                      alt="La Polla Virtual" 
+                      className="h-12 w-auto object-contain"
                   />
-                  <div className="flex flex-col">
-                    <h1 className="font-russo text-base leading-none tracking-wide text-white">
-                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'PRUEBAS' : 'POLLA'} <br /> 
-                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'EN VIVO' : 'MUNDIALISTA'}
-                    </h1>
-                    <span className={`${tournamentId === 'TEST_LIVE_MONDAY' ? 'text-amber-500' : 'text-slate-400'} text-[8px] font-bold tracking-widest mt-1`}>
-                      {tournamentId === 'TEST_LIVE_MONDAY' ? 'AMBIENTE DE PRUEBAS' : 'FIFA WORLD CUP 2026'}
-                    </span>
-                  </div>
                 </div>
               )}
             </>

@@ -579,8 +579,8 @@ export class MatchesService {
 
     // 3. Recrear PhaseStatuses
     const PHASES = [
-      { p: 'PLAYOFF_1', unlocked: true },
-      { p: 'PLAYOFF_2', unlocked: false },
+      { p: 'PLAYOFF_1', unlocked: true },  // Primera vuelta (partidos de ida) - ya se jugaron
+      { p: 'PLAYOFF_2', unlocked: true },  // Segunda vuelta (partidos de vuelta) - 24-25 Feb
       { p: 'ROUND_16', unlocked: false },
       { p: 'QUARTER', unlocked: false },
       { p: 'SEMI', unlocked: false },

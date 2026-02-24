@@ -9,8 +9,11 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
-// [REDEPLOY FORCE] v1.0.1 - Triggering build for invitation fixes
+// [REDEPLOY FORCE] v1.0.2 - Diagnostic Logs Deployment
 async function bootstrap() {
+  console.log('🔥 [BOOTSTRAP] Starting API v1.0.2...');
+  console.log('📡 [BOOTSTRAP] Initial NODE_ENV:', process.env.NODE_ENV);
+  
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 

@@ -216,7 +216,73 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
         );
     }
 
-    // 3c. Check if pending activation (only for non-rejected enterprise)
+    // 3c-SOCIAL: Polla social PENDIENTE de pago (PENDING + no enterprise)
+    // Este bloque faltaba — el usuario llegaba al home sin ver la pantalla de activación
+    if (isPendingApproval) {
+        const getAmount = () => {
+            const type = (league.packageType || '').toLowerCase();
+            if (type === 'parche' || type === 'amateur') return 30000;
+            if (type === 'amigos' || type === 'semi-pro') return 80000;
+            if (type === 'lider' || type === 'pro') return 180000;
+            if (type === 'influencer' || type === 'elite') return 350000;
+            return 50000;
+        };
+
+        return (
+            <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-24 text-center animate-in fade-in duration-500 overflow-y-auto">
+                <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden flex flex-col items-center justify-center">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00E676] to-transparent opacity-50" />
+
+                    {league.hasPendingTransaction ? (
+                        <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20">
+                            <Timer className="w-8 h-8 text-yellow-500 animate-pulse" />
+                        </div>
+                    ) : (
+                        <div className="w-16 h-16 bg-[#00E676]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#00E676]/20">
+                            <Shield className="w-8 h-8 text-[#00E676]" />
+                        </div>
+                    )}
+
+                    <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight leading-tight">
+                        {league.hasPendingTransaction ? (
+                            <>PAGO EN <span className="text-yellow-500">REVISIÓN</span></>
+                        ) : (
+                            <>ACTIVA TU <span className="text-[#00E676]">POLLA</span></>
+                        )}
+                    </h2>
+
+                    <p className="text-slate-400 mb-6 leading-relaxed text-xs">
+                        {league.hasPendingTransaction ? (
+                            <>Estamos validando tu comprobante para la polla <span className="text-white font-bold">{league.name}</span>. En unos minutos podrás empezar a jugar.</>
+                        ) : (
+                            <>Para activar la polla <span className="text-white font-bold">{league.name}</span>, realiza el pago y sube el comprobante.</>
+                        )}
+                    </p>
+
+                    <div className="w-full flex flex-col gap-4">
+                        {!league.hasPendingTransaction && (
+                            <PaymentMethods
+                                leagueId={league.id}
+                                amount={getAmount()}
+                                tournamentId={league.tournamentId}
+                                onSuccess={() => {
+                                    setTimeout(() => router.push('/social/mis-pollas'), 1500);
+                                }}
+                            />
+                        )}
+                        <button
+                            className="text-slate-500 hover:text-white text-xs underline transition-colors mt-2"
+                            onClick={() => router.push('/social/mis-pollas')}
+                        >
+                            Volver a Mis Pollas
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 3c-ENTERPRISE. Check if pending activation (only for non-rejected enterprise)
     const isSuperAdmin = user?.role === 'SUPER_ADMIN';
     if (isEnterprise && !league.isEnterpriseActive && !isSuperAdmin) {
         const getAmount = () => {

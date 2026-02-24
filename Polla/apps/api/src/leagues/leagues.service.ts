@@ -1293,6 +1293,17 @@ export class LeaguesService {
     if (updateLeagueDto.adImages !== undefined)
       league.adImages = updateLeagueDto.adImages;
 
+    // --- TOURNAMENT (SUPER_ADMIN only to prevent abuse) ---
+    if (updateLeagueDto.tournamentId !== undefined) {
+      if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+        throw new ForbiddenException(
+          'Solo un administrador puede cambiar el torneo de una liga.',
+        );
+      }
+      league.tournamentId = updateLeagueDto.tournamentId;
+      console.log(`🏆 [updateLeague] Cambiando torneo de liga ${leagueId} a ${updateLeagueDto.tournamentId}`);
+    }
+
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
         throw new ForbiddenException(

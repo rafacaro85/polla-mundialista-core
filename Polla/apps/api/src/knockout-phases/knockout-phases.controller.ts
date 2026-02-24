@@ -61,7 +61,7 @@ export class KnockoutPhasesController {
    * Manually unlock a phase (ADMIN only)
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post(':phase/unlock')
   async unlockPhase(
     @Param('phase') phase: string,
@@ -85,7 +85,7 @@ export class KnockoutPhasesController {
    * Check and unlock next phase if current is complete (ADMIN only)
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post(':phase/check-unlock')
   async checkAndUnlockNextPhase(
     @Param('phase') phase: string,

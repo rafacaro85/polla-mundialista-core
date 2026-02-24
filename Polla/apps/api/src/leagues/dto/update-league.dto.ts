@@ -112,4 +112,9 @@ export class UpdateLeagueDto {
   @IsString({ each: true })
   @IsOptional()
   adImages?: string[];
+
+  // --- TOURNAMENT ---
+  @IsString()
+  @IsOptional()
+  tournamentId?: string;
 }

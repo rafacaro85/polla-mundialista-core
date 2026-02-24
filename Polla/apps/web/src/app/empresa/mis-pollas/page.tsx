@@ -161,80 +161,87 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
             {/* Action Buttons */}
             <div className="flex gap-2 mt-auto">
                 {league.isAdmin ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)] relative">
-                                Opciones de Admin <MoreVertical size={14} />
-                                {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
-                                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border-2 border-[#1E293B] animate-bounce">
-                                    {league.pendingRequestsCount}
-                                  </span>
-                                )}
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-[#1E293B] border-white/10 text-white w-56 p-2 rounded-2xl shadow-2xl z-[100]" align="end" side="top">
-                            <DropdownMenuLabel className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em] px-2 py-1.5">Acciones Disponibles</DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-white/5" />
-                            
-                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}`} className="flex items-center gap-3 w-full">
-                                    <LogIn size={16} /> <span className="font-bold">INGRESAR</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/studio`} className="flex items-center gap-3 w-full">
-                                    <LayoutDashboard size={16} /> <span className="font-bold">ESTUDIO (CMS)</span>
-                                </Link>
-                            </DropdownMenuItem>
+                    <div className="flex items-stretch gap-2 flex-1">
+                        {/* INGRESAR: navega directo, no abre menú */}
+                        <Link
+                            href={`/leagues/${league.id}`}
+                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)]"
+                        >
+                            <LogIn size={14} />
+                            Ingresar
+                        </Link>
 
-                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
-                                    </div>
+                        {/* ⋮ solo este botón abre el dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="relative px-4 py-3 rounded-xl bg-[#00E676] text-[#0F172A] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)] flex items-center justify-center shrink-0">
+                                    <MoreVertical size={16} strokeWidth={2.5} />
                                     {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
-                                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">
-                                            {league.pendingRequestsCount}
-                                        </span>
+                                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border-2 border-[#1E293B] animate-bounce">
+                                        {league.pendingRequestsCount}
+                                      </span>
                                     )}
-                                </Link>
-                            </DropdownMenuItem>
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-[#1E293B] border-white/10 text-white w-56 p-2 rounded-2xl shadow-2xl z-[100]" align="end" side="top">
+                                <DropdownMenuLabel className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em] px-2 py-1.5">Acciones Disponibles</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-white/5" />
+                                
+                                <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                    <Link href={`/leagues/${league.id}/studio`} className="flex items-center gap-3 w-full">
+                                        <LayoutDashboard size={16} /> <span className="font-bold">ESTUDIO (CMS)</span>
+                                    </Link>
+                                </DropdownMenuItem>
 
-                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/admin/analytics`} className="flex items-center gap-3 w-full">
-                                    <BarChart3 size={16} /> <span className="font-bold">ANALÍTICAS</span>
-                                </Link>
-                            </DropdownMenuItem>
+                                <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                    <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                        </div>
+                                        {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
+                                            <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                                                {league.pendingRequestsCount}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </DropdownMenuItem>
 
-                            <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                <Link href={`/leagues/${league.id}/admin/settings`} className="flex items-center gap-3 w-full">
-                                    <Settings size={16} /> <span className="font-bold">CONFIGURACIÓN</span>
-                                </Link>
-                            </DropdownMenuItem>
+                                <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                    <Link href={`/leagues/${league.id}/admin/analytics`} className="flex items-center gap-3 w-full">
+                                        <BarChart3 size={16} /> <span className="font-bold">ANALÍTICAS</span>
+                                    </Link>
+                                </DropdownMenuItem>
 
-                            {league.status === 'REJECTED' && (
-                                <>
-                                    <DropdownMenuSeparator className="bg-white/5" />
-                                    <DropdownMenuItem 
-                                        onClick={async () => {
-                                            if (!confirm('¿Eliminar esta liga?')) return;
-                                            try {
-                                                await api.delete(`/leagues/${league.id}`);
-                                                window.location.reload();
-                                            } catch (err) {
-                                                console.error('Error deleting league', err);
-                                                alert('Error al eliminar la liga');
-                                            }
-                                        }}
-                                        className="focus:bg-red-500 focus:text-white text-red-400 rounded-xl cursor-pointer py-3 flex items-center gap-3"
-                                    >
-                                        <Trash2 size={16} /> <span className="font-bold">ELIMINAR</span>
-                                    </DropdownMenuItem>
-                                </>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
+                                    <Link href={`/leagues/${league.id}/admin/settings`} className="flex items-center gap-3 w-full">
+                                        <Settings size={16} /> <span className="font-bold">CONFIGURACIÓN</span>
+                                    </Link>
+                                </DropdownMenuItem>
+
+                                {league.status === 'REJECTED' && (
+                                    <>
+                                        <DropdownMenuSeparator className="bg-white/5" />
+                                        <DropdownMenuItem 
+                                            onClick={async () => {
+                                                if (!confirm('¿Eliminar esta liga?')) return;
+                                                try {
+                                                    await api.delete(`/leagues/${league.id}`);
+                                                    window.location.reload();
+                                                } catch (err) {
+                                                    console.error('Error deleting league', err);
+                                                    alert('Error al eliminar la liga');
+                                                }
+                                            }}
+                                            className="focus:bg-red-500 focus:text-white text-red-400 rounded-xl cursor-pointer py-3 flex items-center gap-3"
+                                        >
+                                            <Trash2 size={16} /> <span className="font-bold">ELIMINAR</span>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
                 ) : (
                     <Link
                         href={(league.isEnterpriseActive || league.status === 'REJECTED') ? `/leagues/${league.id}` : '#'}

@@ -1,4 +1,11 @@
-import React from 'react';
+/**
+ * @deprecated
+ * Este archivo ya NO se usa. La ruta /leagues/[id] ahora redirige
+ * directamente a /leagues/[id]/predictions sin pasar por DashboardClient.
+ *
+ * PENDIENTE DE ELIMINACIÓN: verificar en producción → eliminar en próxima sesión.
+ */
+
 import { DashboardClient } from '@/components/DashboardClient';
 
 export const SocialLeagueView = ({ leagueId }: { leagueId: string }) => {

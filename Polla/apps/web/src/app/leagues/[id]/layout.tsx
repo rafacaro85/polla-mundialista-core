@@ -128,8 +128,9 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const isDashboardRoot = pathname === `/leagues/${params.id}`;
     // ALWAYS SHOW HEADER in game pages, except studio
     const showLayoutUI = !pathname?.includes('/studio'); 
-    // Hide layout nav on the Dashboard root (DashboardClient has its own internal nav tabs)
-    const showLayoutNav = showLayoutUI && !isDashboardRoot;
+    // Hide layout nav on the Dashboard root, studio, and all admin routes
+    const isAdminRoute = pathname?.includes('/admin');
+    const showLayoutNav = showLayoutUI && !isDashboardRoot && !isAdminRoute;
 
     // 3b. Check if user has REJECTED or PENDING status
     const userStatus = league.userStatus;

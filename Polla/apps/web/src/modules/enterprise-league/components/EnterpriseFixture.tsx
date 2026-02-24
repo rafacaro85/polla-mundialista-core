@@ -137,8 +137,23 @@ export const EnterpriseFixture = () => {
     // Filter matches by unlocked phases
     const { filteredMatches: phaseFilteredMatches } = useFilteredMatches(matches, leagueMetadata?.tournamentId);
     
-    // Use filtered matches for all operations
-    const finalMatches = phaseFilteredMatches;
+    // For UCL: hide PLAYOFF_1 (ida) matches since they already happened Feb 17-18.
+    // We keep all matches for WC/other tournaments untouched.
+    const finalMatches = useMemo(() => {
+        const isUCL = (leagueMetadata?.tournamentId || '').toUpperCase().includes('UCL');
+        if (!isUCL) return phaseFilteredMatches;
+        
+        // Hide completed first-leg (PLAYOFF_1) matches for UCL
+        // Show: PLAYOFF_2 (vuelta) + future phases. Hide: PLAYOFF_1 (ida - already played)
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Start of today
+        
+        return phaseFilteredMatches.filter((m: any) => {
+            // Always hide PLAYOFF_1 (ya jugados - ida)
+            if (m.phase === 'PLAYOFF_1') return false;
+            return true;
+        });
+    }, [phaseFilteredMatches, leagueMetadata?.tournamentId]);
 
     // Correctly update dates only when finalMatches actually changes content
     useEffect(() => {

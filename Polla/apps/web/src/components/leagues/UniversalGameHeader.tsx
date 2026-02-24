@@ -47,8 +47,10 @@ export function UniversalGameHeader({
 
     const tournamentLogo = getTournamentLogo(tournamentId);
 
-    // Logo por defecto si no hay uno (LPV)
-    const displayLogo = logoUrl || '/images/lpv/lpv-full-logo.png';
+    // Logo por defecto segun torneo si no hay brandingLogoUrl
+    const isUCL = (tournamentId || '').toUpperCase().includes('UCL');
+    const defaultLogo = isUCL ? '/images/ucl-logo.png' : '/images/lpv/lpv-full-logo.png';
+    const displayLogo = logoUrl || defaultLogo;
 
     return (
         <header 

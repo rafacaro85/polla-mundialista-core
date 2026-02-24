@@ -19,7 +19,7 @@ export function LeagueHeader() {
         router.push('/');
     };
 
-    const [leagueData, setLeagueData] = useState<{ isLeagueAdmin: boolean; isEnterprise: boolean } | null>(null);
+    const [leagueData, setLeagueData] = useState<{ isLeagueAdmin: boolean; isEnterprise: boolean; tournamentId?: string } | null>(null);
 
     React.useEffect(() => {
         const checkLeaguePermissions = async () => {
@@ -62,7 +62,8 @@ export function LeagueHeader() {
             setLeagueData({
                 isLeagueAdmin: isMyLeagueAdmin || isGlobalAdmin,
                 // Enterprise flag fallback priority: Metadata -> MyLeagues
-                isEnterprise: metadata?.league?.isEnterprise || metadata?.league?.type === 'COMPANY' || currentLeagueInMyList?.isEnterprise
+                isEnterprise: metadata?.league?.isEnterprise || metadata?.league?.type === 'COMPANY' || currentLeagueInMyList?.isEnterprise,
+                tournamentId: metadata?.league?.tournamentId || currentLeagueInMyList?.tournamentId
             });
         };
         checkLeaguePermissions();
@@ -101,6 +102,17 @@ export function LeagueHeader() {
                         />
                         <span className="text-[10px] font-black uppercase tracking-widest">VOLVER</span>
                     </button>
+
+                    {/* Tournament Logo */}
+                    {leagueData?.tournamentId && (
+                        <div className="hidden sm:flex items-center ml-2 mr-2 opacity-40 hover:opacity-100 transition-opacity">
+                            <img 
+                                src={leagueData.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                                alt="Tournament" 
+                                className={`h-8 w-auto object-contain ${leagueData.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                            />
+                        </div>
+                    )}
 
                     {brand.brandingLogoUrl ? (
                         <div className="h-12 w-12 bg-white rounded-xl overflow-hidden flex items-center justify-center border border-white/10 shadow-lg shrink-0">

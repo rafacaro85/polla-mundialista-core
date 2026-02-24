@@ -120,7 +120,14 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
 
                         {/* Información */}
                         <div className="flex-1 min-w-0">
-                            <h3 className="font-russo text-base text-white mb-1 whitespace-nowrap overflow-hidden text-ellipsis">{league.name}</h3>
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <h3 className="font-russo text-base text-white whitespace-nowrap overflow-hidden text-ellipsis">{league.name}</h3>
+                                <img 
+                                    src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                                    alt="Tournament" 
+                                    className={`h-4 w-auto object-contain opacity-40 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                                />
+                            </div>
                             <div className="flex items-center gap-2 text-[10px] text-[#94A3B8] font-semibold">
                                 <span className="flex items-center gap-1">
                                     <Users size={10} /> {league.members}

@@ -112,6 +112,14 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                     )}
                 </div>
 
+                <div className="absolute top-6 right-6">
+                    <img 
+                        src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                        alt="Tournament" 
+                        className={`h-6 w-auto object-contain opacity-50 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                    />
+                </div>
+
                 {/* Names */}
                 <div className="flex-1 min-w-0">
                     {/* Company Name (if different from league name) */}

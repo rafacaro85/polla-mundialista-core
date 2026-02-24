@@ -149,17 +149,25 @@ function MisPollasContent() {
                          {league.tournamentId === 'WC2026' ? 'Mundial 2026' : 'Champions 25/26'}
                     </div>
 
-                    {league.status === 'PENDING' && (
-                        <div className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500/20">
-                            Pendiente
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {league.status === 'PENDING' && (
+                            <div className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500/20">
+                                Pendiente
+                            </div>
+                        )}
 
-                    {league.status === 'REJECTED' && (
-                        <div className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500 animate-pulse">
-                            Rechazado
-                        </div>
-                    )}
+                        {league.status === 'REJECTED' && (
+                            <div className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] border border-red-500 animate-pulse">
+                                Rechazado
+                            </div>
+                        )}
+
+                        <img 
+                            src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                            alt="Tournament" 
+                            className={`h-5 w-auto object-contain transition-all duration-500 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                        />
+                    </div>
                 </div>
 
                 {/* Imagen del Premio / MoneyCard / Fondo por defecto */}

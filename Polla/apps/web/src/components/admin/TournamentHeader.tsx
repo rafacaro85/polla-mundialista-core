@@ -124,7 +124,7 @@ export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
                 flexWrap: 'wrap' // Wrap buttons on very small screens
             }}>
                 <button
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/social/mis-pollas')}
                     style={{
                         backgroundColor: 'transparent',
                         color: '#94A3B8',

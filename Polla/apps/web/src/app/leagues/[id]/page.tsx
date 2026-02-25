@@ -1,33 +1,68 @@
 'use client';
 
-/**
- * Ruta raíz: /leagues/[id]
- *
- * Redirige inmediatamente a /leagues/[id]/predictions.
- * El nuevo sistema de rutas /leagues/[id]/* cubre toda la funcionalidad
- * del antiguo DashboardClient. Esta página ya no renderiza SocialLeagueView
- * ni EnterpriseLeagueView directamente.
- */
-
-import { useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { useParams, useRouter } from 'next/navigation';
+import { useLeague } from '@/shared/hooks/useLeague';
+import { useAppStore } from '@/store/useAppStore';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
+import { Timer } from 'lucide-react';
 
-export default function LeagueRootPage() {
-    const router = useRouter();
+// 1. IMPORTACIÓN DINÁMICA (Lazy Loading) con Named Exports
+const SocialLeagueView = dynamic(
+    () => import('@/modules/social-league/views/SocialLeagueView')
+        .then((mod) => mod.SocialLeagueView),
+    {
+        ssr: false,
+        loading: () => <div className="flex h-screen items-center justify-center bg-[#0F172A]"><LoadingSpinner /></div>
+    }
+);
+
+const EnterpriseLeagueView = dynamic(
+    () => import('@/modules/enterprise-league/views/EnterpriseLeagueView')
+        .then((mod) => mod.EnterpriseLeagueView),
+    {
+        ssr: false,
+        loading: () => <div className="flex h-screen items-center justify-center bg-[#0F172A]"><LoadingSpinner /></div>
+    }
+);
+
+export default function LeagueDispatcherPage() {
     const params = useParams();
+    const router = useRouter();
+    const { user } = useAppStore();
     const leagueId = (Array.isArray(params?.id) ? params?.id[0] : params?.id) as string;
 
-    useEffect(() => {
-        if (leagueId) {
-            router.replace(`/leagues/${leagueId}/predictions`);
-        }
-    }, [leagueId, router]);
+    const { league, isLoading, error } = useLeague(leagueId);
 
-    // Spinner mientras ocurre el redirect
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-[#0F172A]">
-            <LoadingSpinner />
-        </div>
-    );
+    // 2. ESTADOS DE CARGA DEL DATA FETCHING
+    if (isLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-[#0F172A]">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (error || !league) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center text-white bg-[#0F172A]">
+                <h2 className="text-xl font-bold text-red-500">Error de conexión</h2>
+                <p>No pudimos cargar la liga.</p>
+                <button onClick={() => window.location.reload()} className="mt-4 rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
+                    Reintentar
+                </button>
+            </div>
+        );
+    }
+
+    // 3. EL DISPATCHER (Switch)
+    const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
+    if (isEnterprise) {
+        return <EnterpriseLeagueView leagueId={leagueId} />;
+    }
+
+    // Default: SOCIAL
+    return <SocialLeagueView leagueId={leagueId} />;
 }

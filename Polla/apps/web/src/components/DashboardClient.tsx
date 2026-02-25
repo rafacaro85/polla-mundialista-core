@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * @deprecated
- * Este componente ya NO debe usarse para nuevas funcionalidades.
- * Las vistas han sido migradas al sistema de rutas /leagues/[id]/*:
- *   - Home       → /leagues/[id]/predictions (redirect)
- *   - Predicciones → /leagues/[id]/predictions
- *   - Ranking    → /leagues/[id]/ranking
- *   - Bonus      → /leagues/[id]/bonus
- *   - Muro       → /leagues/[id]/wall
- *
- * PENDIENTE DE ELIMINACIÓN: verificar en producción → eliminar en próxima sesión.
- */
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { useRouter } from 'next/navigation';

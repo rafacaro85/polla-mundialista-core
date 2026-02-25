@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { X, Shield, Zap, Crown, Check, Plus, Trophy, Copy, Loader2, Star, Gem, Medal } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import { PaymentMethods } from './dashboard/PaymentMethods';
 import { useTournament } from '@/hooks/useTournament';
 
@@ -77,7 +76,6 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
     onOpenChange
 }) => {
     const { tournamentId } = useTournament();
-    const router = useRouter();
     
     const [internalOpen, setInternalOpen] = useState(false);
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -777,14 +775,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
                                                         amount={parseInt(selectedPlanDetails?.price.replace(/\D/g, '') || '0')}
                                                         tournamentId={selectedTournamentId}
                                                         onSuccess={() => {
-                                                            toast.success('¡Comprobante enviado! Tu polla está en revisión.');
+                                                            toast.success('Pago enviado. Espera la confirmación del administrador.');
                                                             handleClose();
-                                                            // Navegar a la liga para que el layout muestre la pantalla PENDING
-                                                            if (createdLeagueId) {
-                                                                router.push(`/leagues/${createdLeagueId}/predictions`);
-                                                            } else {
-                                                                onLeagueCreated();
-                                                            }
+                                                            onLeagueCreated();
                                                         }}
                                                     />
                                                 </div>

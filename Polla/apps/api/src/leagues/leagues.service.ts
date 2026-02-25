@@ -780,6 +780,7 @@ export class LeaguesService {
       const participant = await this.leagueParticipantsRepository.findOne({
         where: { league: { id: leagueId }, user: { id: userId } },
         relations: [
+          'user',
           'league',
           'league.creator',
           'league.participants',
@@ -852,7 +853,7 @@ export class LeaguesService {
             .then((tx) => tx?.status === TransactionStatus.PENDING)
             .catch(() => false),
           userDepartment: participant.department || 'General',
-          userNickname: participant.nickname || participant.user.nickname,
+          userNickname: participant.user.nickname || participant.user.fullName,
         };
       }
 
@@ -922,7 +923,7 @@ export class LeaguesService {
             prizes: league.prizes || [],
             userStatus: actualParticipant ? actualParticipant.status : 'ACTIVE',
             userDepartment: actualParticipant?.department || 'General',
-            userNickname: actualParticipant?.nickname || user.nickname,
+            userNickname: actualParticipant?.user?.nickname || user.nickname,
           };
         }
       }

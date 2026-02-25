@@ -93,10 +93,28 @@ polla-mundialista-core/
   - Commit: `7dd4d4f`
   - El interceptor 401 ya no redirige si el usuario está en `/login` o `/auth/*`
 - **Verificado en producción:** ✅
-  - Sin loop de redirección ✅
-  - Login funcionando ✅
-  - URL `/auth/success` sin token expuesto ✅
-  - Cookie `auth_token` httpOnly en DevTools ✅
+- Sin loop de redirección ✅
+- Login funcionando ✅
+- URL `/auth/success` sin token expuesto ✅
+- Cookie `auth_token` httpOnly en DevTools ✅
+
+#### C3 — Race Condition en el Joker (Desplegado ✅)
+- **Archivo modificado:** `apps/api/src/predictions/predictions.service.ts`
+- **Commit:** `f3811b8`
+- **Cambio:** Pessimistic Locking (`SELECT FOR UPDATE`) en transacción para activación del Joker.
+- **Verificado en producción:** ✅
+
+#### C4 — Scoring Secuencial (Desplegado ✅)
+- **Archivo modificado:** `apps/api/src/scoring/scoring.service.ts`
+- **Commit:** `43725ac`
+- **Cambio:** Migración de loop secuencial a `save()` masivo en transacción única.
+- **Verificado en producción:** ✅
+
+#### C5 — Cron sin Ventana Temporal (Desplegado ✅)
+- **Archivo modificado:** `apps/api/src/matches/match-sync.service.ts`
+- **Commit:** `900f426`
+- **Cambio:** Guard de solapamiento + Ventana temporal de -3h a +1h.
+- **Verificado en producción:** ✅
 
 #### NOTA — Archivo huérfano pendiente de limpieza
 - `apps/web/src/app/login/page_footer.tsx` — No está importado en ningún componente.
@@ -112,9 +130,9 @@ polla-mundialista-core/
 |---|-------|-----------|--------|
 | C1 | CORS completamente abierto | `main.ts:29` | ✅ DONE |
 | C2 | JWT en localStorage | `web/src/lib/api.ts:16` | ✅ DONE |
-| C3 | Race condition en Joker | `predictions.service.ts:73` | ⏳ EN PROGRESO |
-| C4 | Scoring secuencial (N × 17ms) | `scoring.service.ts:65` | ⏳ PENDIENTE |
-| C5 | Cron sin ventana temporal | `match-sync.service.ts:24` | ⏳ PENDIENTE |
+| C3 | Race condition en Joker | `predictions.service.ts:73` | ✅ DONE (f3811b8) |
+| C4 | Scoring secuencial (N × 17ms) | `scoring.service.ts:65` | ✅ DONE (43725ac) |
+| C5 | Cron sin ventana temporal | `match-sync.service.ts:24` | ✅ DONE (900f426) |
 
 ---
 

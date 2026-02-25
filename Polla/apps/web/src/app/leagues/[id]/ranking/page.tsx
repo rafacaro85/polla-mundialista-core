@@ -6,12 +6,14 @@ import { GroupStageView } from '@/components/GroupStageView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import api from '@/lib/api';
 import { Loader2, Users, Globe } from 'lucide-react';
+import { useTournament } from '@/hooks/useTournament';
 
 export default function RankingPage() {
     const params = useParams();
     const [league, setLeague] = useState<any>(null);
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { tournamentId } = useTournament(); // Detecta WC2026 vs UCL2526 desde contexto
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,7 +42,8 @@ export default function RankingPage() {
     }
 
     // La tabla de posiciones (grupos) solo aplica para torneo Mundial
-    const hasGroupStage = league?.tournamentId !== 'UCL2526';
+    // Usar tournamentId del hook (confiable) en lugar de league?.tournamentId (puede ser undefined)
+    const hasGroupStage = tournamentId !== 'UCL2526';
 
     return (
         <div className="p-0 md:p-4 h-full flex flex-col">

@@ -59,8 +59,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log('Sesión expirada (401). Redirigiendo a /login.');
-      window.location.href = '/login';
+      // Evitar loop infinito si ya estamos en /login o /auth/*
+      const currentPath = window.location.pathname;
+      const isAuthRoute = currentPath.startsWith('/login') || 
+                          currentPath.startsWith('/auth');
+      
+      if (!isAuthRoute) {
+        console.log('Sesión expirada (401). Redirigiendo a /login.');
+        window.location.href = '/login';
+      }
+      // Si ya estamos en /login, no hacer nada — dejar que la página maneje el estado
     }
     return Promise.reject(error);
   }

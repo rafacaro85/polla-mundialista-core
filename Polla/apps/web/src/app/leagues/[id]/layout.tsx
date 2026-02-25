@@ -326,7 +326,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         onClick={() => router.push('/empresa/mis-pollas')}
                         className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all font-russo"
                     >
-                        Volver a Mis Empresas
+                        Ir a mis pollas
                     </button>
                     
                     {/* Retry Drawer for PENDING Enterprise */}

@@ -5,7 +5,8 @@
 const { Client } = require('pg');
 const { randomUUID } = require('crypto');
 
-const DB_URL = 'postgresql://postgres:admin123@localhost:5432/polla_mundialista';
+// Priorizar variables de entorno para producción (Railway)
+const DB_URL = process.env.DATABASE_URL || 'postgresql://postgres:admin123@localhost:5432/polla_mundialista';
 const TOURNAMENT_ID = 'UCL2526';
 
 const UCL_PHASES = [
@@ -18,8 +19,13 @@ const UCL_PHASES = [
 ];
 
 async function seedUclPhases() {
-  const client = new Client({ connectionString: DB_URL });
+  const isProduction = DB_URL.includes('rlwy.net');
+  const client = new Client({ 
+    connectionString: DB_URL,
+    ssl: isProduction ? { rejectUnauthorized: false } : false
+  });
   await client.connect();
+
   console.log(`\n🏆 Seeding knockout phases for ${TOURNAMENT_ID}...\n`);
 
   try {

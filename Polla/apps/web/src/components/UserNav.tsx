@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, LogOut, ChevronRight, Shield, HelpCircle, ChevronDown, Settings } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 
@@ -63,8 +63,10 @@ export function UserNav() {
   };
 
   const isAdmin = userData.role === 'ADMIN' || userData.role === 'SUPER_ADMIN';
+  const pathname = usePathname();
+  const isEnterpriseContext = pathname?.startsWith('/empresa');
 
-  // SISTEMA DE DISEÑO
+  // ... (STYLES remains same)
   const STYLES = {
     // Contenedor Relativo para el Dropdown
     wrapper: {
@@ -282,26 +284,31 @@ export function UserNav() {
 
           {isAdmin && (
             <>
-              <MenuItem
-                icon={Shield}
-                label="Super Admin"
-                onClick={handleSuperAdmin}
-                isSpecial
-                hasArrow
-              />
+              {/* En contexto empresa, solo mostramos Super Admin si lo es. Ocultamos Panel Administrador de Pollas */}
+              {(userData.role === 'SUPER_ADMIN' || !isEnterpriseContext) && (
+                <MenuItem
+                  icon={Shield}
+                  label="Super Admin"
+                  onClick={handleSuperAdmin}
+                  isSpecial
+                  hasArrow
+                />
+              )}
               
-              <MenuItem
-                icon={Settings}
-                label={selectedLeagueId && selectedLeagueId !== 'global' ? "Administrar Polla" : "Admin. Pollas Sociales"}
-                onClick={() => {
-                  if (selectedLeagueId && selectedLeagueId !== 'global') {
-                    router.push(`/leagues/${selectedLeagueId}/admin`);
-                  } else {
-                    router.push('/leagues-admin');
-                  }
-                }}
-                hasArrow
-              />
+              {!isEnterpriseContext && (
+                <MenuItem
+                  icon={Settings}
+                  label={selectedLeagueId && selectedLeagueId !== 'global' ? "Administrar Polla" : "Admin. Pollas Sociales"}
+                  onClick={() => {
+                    if (selectedLeagueId && selectedLeagueId !== 'global') {
+                      router.push(`/leagues/${selectedLeagueId}/admin`);
+                    } else {
+                      router.push('/leagues-admin');
+                    }
+                  }}
+                  hasArrow
+                />
+              )}
             </>
           )}
 

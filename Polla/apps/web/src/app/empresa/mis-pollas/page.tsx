@@ -6,7 +6,12 @@ import Link from 'next/link';
 import {
     Building2, ChevronLeft, Plus, LogIn, Settings2,
     Users, CheckCircle2, Clock, XCircle, Trophy, Loader2,
-    ShieldCheck, Briefcase, Trash2, MoreVertical, LayoutDashboard, BarChart3, Settings
+    ShieldCheck, Briefcase, Trash2,  MoreVertical,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+  BarChart3,
+  MessageCircle
 } from 'lucide-react';
 import { useLeagues } from '@/hooks/useLeagues';
 import { useAppStore } from '@/store/useAppStore';
@@ -112,11 +117,11 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                     )}
                 </div>
 
-                <div className="absolute top-6 right-6">
+                <div className="absolute top-2 right-2">
                     <img 
-                        src={league.tournamentId === 'UCL2526' ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
+                        src={(league.tournamentId || '').toUpperCase().includes('UCL') ? '/images/ucl-logo.png' : '/images/wc-logo.png'} 
                         alt="Tournament" 
-                        className={`h-14 w-auto object-contain opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${league.tournamentId === 'UCL2526' ? 'brightness-0 invert' : ''}`}
+                        className={`h-10 w-auto object-contain opacity-90 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 ${(league.tournamentId || '').toUpperCase().includes('UCL') ? 'brightness-0 invert' : ''}`}
                     />
                 </div>
 
@@ -165,11 +170,27 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                         {/* INGRESAR: navega directo, no abre menú */}
                         <Link
                             href={`/leagues/${league.id}`}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)]"
+                            className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-[#00E676] text-[#0F172A] font-black uppercase tracking-widest text-[11px] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)]"
                         >
                             <LogIn size={14} />
                             Ingresar
                         </Link>
+
+                        {/* WhatsApp Group Share */}
+                        {league.accessCodePrefix && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const shareUrl = `${window.location.origin}/invite/${league.accessCodePrefix}`;
+                                    const msg = `Te invito a ${league.name.toUpperCase()}. Únete aquí: ${shareUrl}`;
+                                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                                }}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 hover:bg-[#25D366] hover:text-white transition-all shrink-0"
+                                title="Compartir por WhatsApp"
+                            >
+                                <MessageCircle size={18} />
+                            </button>
+                        )}
 
                         {/* ⋮ solo este botón abre el dropdown */}
                         <DropdownMenu>
@@ -207,13 +228,7 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                                 </DropdownMenuItem>
 
                                 <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                    <Link href={`/leagues/${league.id}/admin/analytics`} className="flex items-center gap-3 w-full">
-                                        <BarChart3 size={16} /> <span className="font-bold">ANALÍTICAS</span>
-                                    </Link>
-                                </DropdownMenuItem>
-
-                                <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
-                                    <Link href={`/leagues/${league.id}/admin/settings`} className="flex items-center gap-3 w-full">
+                                    <Link href={`/leagues/${league.id}/admin`} className="flex items-center gap-3 w-full">
                                         <Settings size={16} /> <span className="font-bold">CONFIGURACIÓN</span>
                                     </Link>
                                 </DropdownMenuItem>
@@ -243,17 +258,35 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                     </div>
 
                 ) : (
-                    <Link
-                        href={(league.isEnterpriseActive || league.status === 'REJECTED') ? `/leagues/${league.id}` : '#'}
-                        onClick={(e) => !(league.isEnterpriseActive || league.status === 'REJECTED') && e.preventDefault()}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${
-                            (league.isEnterpriseActive || league.status === 'REJECTED')
-                            ? "bg-[#00E676] text-[#0F172A] hover:bg-[#00E676]/90 shadow-[0_0_15px_rgba(0,230,118,0.2)]"
-                            : "bg-white/5 border border-white/5 text-slate-600 cursor-not-allowed grayscale opacity-50"
-                        }`}
-                    >
-                        <LogIn size={13} /> Ingresar
-                    </Link>
+                    <div className="flex items-stretch gap-2 flex-1">
+                        <Link
+                            href={(league.isEnterpriseActive || league.status === 'REJECTED') ? `/leagues/${league.id}` : '#'}
+                            onClick={(e) => !(league.isEnterpriseActive || league.status === 'REJECTED') && e.preventDefault()}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${
+                                (league.isEnterpriseActive || league.status === 'REJECTED')
+                                ? "bg-[#00E676] text-[#0F172A] hover:bg-[#00E676]/90 shadow-[0_0_15px_rgba(0,230,118,0.2)]"
+                                : "bg-white/5 border border-white/5 text-slate-600 cursor-not-allowed grayscale opacity-50"
+                            }`}
+                        >
+                            <LogIn size={13} /> Ingresar
+                        </Link>
+
+                        {/* WhatsApp Group Share for regular users too if active */}
+                        {league.isEnterpriseActive && league.accessCodePrefix && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const shareUrl = `${window.location.origin}/invite/${league.accessCodePrefix}`;
+                                    const msg = `Te invito a ${league.name.toUpperCase()}. Únete aquí: ${shareUrl}`;
+                                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                                }}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 hover:bg-[#25D366] hover:text-white transition-all shrink-0"
+                                title="Compartir por WhatsApp"
+                            >
+                                <MessageCircle size={18} />
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

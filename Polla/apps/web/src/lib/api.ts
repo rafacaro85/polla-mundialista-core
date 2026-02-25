@@ -59,16 +59,26 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Evitar loop infinito si ya estamos en /login o /auth/*
       const currentPath = window.location.pathname;
-      const isAuthRoute = currentPath.startsWith('/login') || 
-                          currentPath.startsWith('/auth');
+      // Rutas que no requieren autenticación
+      const PUBLIC_ROUTES = [
+        '/',
+        '/login',
+        '/planes',
+        '/invite',
+      ];
+
+      const isPublicRoute = PUBLIC_ROUTES.some(route => 
+        route === '/' 
+          ? currentPath === '/'  // match exacto para la raíz
+          : currentPath.startsWith(route)
+      );
       
-      if (!isAuthRoute) {
+      if (!isPublicRoute) {
         console.log('Sesión expirada (401). Redirigiendo a /login.');
         window.location.href = '/login';
       }
-      // Si ya estamos en /login, no hacer nada — dejar que la página maneje el estado
+      // Si es pública, no hacer nada — dejar que la página maneje el estado de no autenticado
     }
     return Promise.reject(error);
   }

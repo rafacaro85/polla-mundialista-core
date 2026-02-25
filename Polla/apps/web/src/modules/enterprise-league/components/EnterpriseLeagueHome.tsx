@@ -43,7 +43,7 @@ interface EnterpriseLeagueHomeProps {
 const getPlanIncludesAreaWar = (packageType?: string) => {
     if (!packageType) return false;
     const t = packageType.toUpperCase();
-    if (t === 'ENTERPRISE_BRONZE' || t === 'STARTER' || t === 'BASIC') return false;
+    if (t === 'ENTERPRISE_BRONZE' || t === 'BRONZE' || t === 'STARTER' || t === 'BASIC') return false;
     return true;
 };
 
@@ -341,6 +341,26 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                         </div>
                     </div>
 
+                    {/* Logo del Torneo (Derecha) */}
+                    <div className="flex items-center gap-4">
+                        {league.tournamentId && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+                                <img
+                                    src={
+                                        (league.tournamentId || '').toUpperCase().includes('UCL')
+                                            ? '/images/ucl-logo.png'
+                                            : '/images/wc-logo.png'
+                                    }
+                                    alt="Torneo"
+                                    className={`h-8 w-auto object-contain ${
+                                        (league.tournamentId || '').toUpperCase().includes('UCL')
+                                            ? 'brightness-0 invert'
+                                            : ''
+                                    }`}
+                                />
+                            </div>
+                        )}
+
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
                             <p className="text-sm font-black text-white italic">{nickname}</p>
@@ -512,9 +532,11 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                 </div>
 
                 {/* BLOQUE C: CARTELERA (AJUSTE DE ALTURA) */}
-                <div className="w-full h-[350px] md:h-[300px]">
-                    <CarteleraSlider banners={banners} showAds={league.showAds} />
-                </div>
+                {league.packageType?.toUpperCase() !== 'ENTERPRISE_BRONZE' && league.packageType?.toUpperCase() !== 'BRONZE' && (
+                    <div className="w-full h-[350px] md:h-[300px]">
+                        <CarteleraSlider banners={banners} showAds={league.showAds} />
+                    </div>
+                )}
 
                 {/* FILA 2: PREMIOS (ANCHO COMPLETO) */}
                 <div className="w-full">

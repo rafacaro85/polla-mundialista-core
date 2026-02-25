@@ -8,16 +8,13 @@ console.log('🌍 API URL CONFIGURADA:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
-  // withCredentials: true, // Deshabilitado para evitar problemas de CORS/Cookies en subdominios
+  withCredentials: true, // CRÍTICO: envía la cookie auth_token automáticamente en cada request
 });
 
 api.interceptors.request.use(
   (config) => {
-    // 1. Token Injection
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (token) {
-      config.headers.Authorization = 'Bearer ' + token;
-    }
+    // 1. Token: la cookie auth_token se envía automáticamente (withCredentials: true)
+    // No se inyecta Authorization header manual
 
     // 2. Tournament Context Injection (Dynamic Header)
     if (typeof window !== 'undefined') {
@@ -62,8 +59,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      console.log('Token eliminado debido a 401. Redirigiendo a /login.');
+      console.log('Sesión expirada (401). Redirigiendo a /login.');
       window.location.href = '/login';
     }
     return Promise.reject(error);

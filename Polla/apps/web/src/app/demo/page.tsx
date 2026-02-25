@@ -32,8 +32,7 @@ export default function DemoLandingPage() {
       const endpoint = type === 'enterprise' ? '/demo/start/enterprise' : '/demo/start/social';
       const { data } = await api.post(endpoint);
       
-      // Almacenar credenciales del demo
-      localStorage.setItem('token', data.token);
+      // El endpoint de demo setea la cookie auth_token en el servidor
       localStorage.setItem('user', JSON.stringify(data.user));
       
       toast.success(`¡Demo ${type === 'enterprise' ? 'Empresarial' : 'Social'} inicializado!`);

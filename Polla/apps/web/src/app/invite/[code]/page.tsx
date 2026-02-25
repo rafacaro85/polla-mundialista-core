@@ -14,29 +14,21 @@ export default function InvitePage() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // No token -> Redirect to Login
-                const code = params?.code ? String(params.code) : '';
-                if (code) {
-                    // Use Cookie with max-age (1 hour) and path=/ to survive redirects and protocol changes
-                    document.cookie = `pendingInviteCode=${code}; path=/; max-age=3600; SameSite=Lax`;
-                    const callbackUrl = `/invite/${code}`;
-                    router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-                } else {
-                    router.push('/login');
-                }
-                return;
-            }
-
-            // If we have token but no user in store, try to sync
+            // Con httpOnly cookies, no podemos verificar el token desde JS.
+            // Intentamos sincronizar el usuario desde el servidor (enviará la cookie automáticamente).
             if (!user) {
                 try {
                     await syncUserFromServer();
-                } catch (error) {
-                    console.error("Auth Check Error:", error);
-                    // Token might be invalid
-                    router.push('/login');
+                } catch {
+                    // Sin sesión activa → redirigir al login con el código de invitación
+                    const code = params?.code ? String(params.code) : '';
+                    if (code) {
+                        document.cookie = `pendingInviteCode=${code}; path=/; max-age=3600; SameSite=Lax`;
+                        const callbackUrl = `/invite/${code}`;
+                        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+                    } else {
+                        router.push('/login');
+                    }
                     return;
                 }
             }

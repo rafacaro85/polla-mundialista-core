@@ -9,7 +9,6 @@ import {
   Globe, Gift, Target, MousePointerClick, Shield, Crown, Gem, Settings
 } from 'lucide-react';
 import { signInWithGoogle } from '@/lib/auth.utils';
-import { FloatingDemoWidget } from '@/components/FloatingDemoWidget';
 
 /* =============================================================================
    PALETA DE COLORES (USADA EN EL CÓDIGO)
@@ -292,16 +291,15 @@ export default function LandingPage() {
     console.log('🏢 [BUSINESS] Iniciando creación de polla empresarial');
 
     if (typeof window !== 'undefined') {
-      // Verificar si el usuario ya está autenticado
-      const token = localStorage.getItem('token');
+      // Con httpOnly cookies, el token no es accesible desde JS.
+      // Usamos el objeto user en localStorage como indicador de sesión activa.
       const user = localStorage.getItem('user');
 
-      console.log('🏢 [BUSINESS] Token existente:', !!token);
       console.log('🏢 [BUSINESS] Usuario existente:', !!user);
 
-      if (token && user) {
+      if (user) {
         // Usuario ya autenticado, redirigir directamente al formulario
-        console.log('🏢 [BUSINESS] Usuario ya autenticado, redirigiendo a /empresa/crear');
+        console.log('🏢 [BUSINESS] Usuario autenticado, redirigiendo a /empresa/crear');
         window.location.href = '/empresa/crear';
         return;
       }

@@ -24,27 +24,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const response = await api.get('/auth/profile');
-        setUser(response.data);
-      } catch (error) {
-        console.error('Failed to fetch user', error);
-        localStorage.removeItem('token');
-      }
+    try {
+      // La cookie auth_token se envía automáticamente (withCredentials: true)
+      const response = await api.get('/auth/profile');
+      setUser(response.data);
+    } catch {
+      // Sin sesión activa o token expirado—no hacer nada, user queda null
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchUser();
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    window.location.href = '/login';
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout'); // Borra la cookie httpOnly en el servidor
+    } catch {
+      // Continuar con logout aunque falle el request
+    } finally {
+      setUser(null);
+      window.location.href = '/login';
+    }
   };
 
   return (

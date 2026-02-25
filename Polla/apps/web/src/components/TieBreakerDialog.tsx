@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '@/lib/api';
 import { Trophy, Save, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -30,11 +30,10 @@ export default function TieBreakerDialog({ isOpen, onClose, leagueId, currentGue
 
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(
-                `${process.env.NEXT_PUBLIC_API_URL}/leagues/${leagueId}/tie-breaker`,
-                { guess: value },
-                { headers: { Authorization: `Bearer ${token}` } }
+            await api.put(
+                `/leagues/${leagueId}/tie-breaker`,
+                { guess: value }
+                // La cookie auth_token se envía automáticamente (withCredentials: true)
             );
             toast.success('Predicción guardada');
             onSuccess();

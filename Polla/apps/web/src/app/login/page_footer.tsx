@@ -2,10 +2,8 @@ export default function LoginPage() {
     const router = useRouter();
 
     useEffect(() => {
-        // Redirigir si el usuario ya está logueado (opcional, si hay un token válido)
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-            router.push('/');
-        }
+        // La sesión activa se verifica a través de la cookie httpOnly + /auth/profile
+        // No intentamos leer el token desde JS (httpOnly = inaccesible)
     }, [router]);
 
     const handleGoogleLogin = () => {

@@ -8,11 +8,15 @@ if (process.env.NODE_ENV !== 'production') {
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 // [REDEPLOY FORCE] v1.0.3 - Cleanup diagnostic logs
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // 0. Cookie Parser (requerido para leer auth_token httpOnly)
+  app.use(cookieParser());
 
   // 1. Validación Básica
   app.useGlobalPipes(

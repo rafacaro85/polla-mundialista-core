@@ -3,6 +3,15 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { Request } from 'express';
+
+// Extractor personalizado: primero cookie httpOnly, luego Bearer header (fallback para Postman/mobile)
+const cookieExtractor = (req: Request): string | null => {
+  if (req?.cookies?.auth_token) {
+    return req.cookies.auth_token;
+  }
+  return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,9 +28,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
       secretOrKey: secret || 'temporary_unsafe_fallback_secret_change_immediately',
+      passReqToCallback: false,
     });
   }
 

@@ -23,6 +23,15 @@ import { MailService } from '../mail/mail.service';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 
+// Opciones de cookie compartidas para consistencia
+const COOKIE_OPTIONS = (isProduction: boolean) => ({
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'strict' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en ms
+  path: '/',
+});
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -40,16 +49,16 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: { user: User }, @Res() res: Response) {
-    const token = await this.authService.googleLogin(req.user);
+    const { access_token } = await this.authService.googleLogin(req.user);
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    // Limpiar cualquier cookie de sesión anterior
+    // Limpiar cookie de sesión de OAuth y setear token como httpOnly
     res.clearCookie('connect.sid');
+    res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-    console.log('🔄 Redirigiendo a frontend:', `${frontendUrl}/auth/success`);
-    return res.redirect(
-      `${frontendUrl}/auth/success?token=${token.access_token}`,
-    );
+    console.log('🔄 Redirigiendo a frontend (sin token en URL):', `${frontendUrl}/auth/success`);
+    return res.redirect(`${frontendUrl}/auth/success`);
   }
 
   @Post('register')
@@ -61,11 +70,16 @@ export class AuthController {
   @Post('login')
   @UseGuards(AuthGuard('local'))
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async login(@Body() loginDto: LoginDto, @Req() req: { user: User }) {
-    // El AuthGuard('local') ya validó las credenciales usando LocalStrategy
-    // y puso el usuario en req.user.
-    // Usamos loginDto solo para validación de entrada/Swagger.
-    return this.authService.login(req.user);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: { user: User },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { access_token, user } = await this.authService.login(req.user);
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
+    // El token NUNCA se retorna en el body
+    return { user };
   }
 
   @Post('forgot-password')
@@ -121,15 +135,17 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Res() res: Response) {
-    // Limpiar cookies si las hubiera
-    res.clearCookie('connect.sid');
-    res.clearCookie('token');
-
-    return res.json({
-      message: 'Logout successful',
-      success: true,
+  async logout(@Res({ passthrough: true }) res: Response) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    // Limpiar TODAS las cookies de autenticación
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      path: '/',
     });
+    res.clearCookie('connect.sid');
+    return { message: 'Sesión cerrada correctamente', success: true };
   }
 
   @Get('debug/mail')

@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, In } from 'typeorm';
+import { Repository, IsNull, In, DataSource } from 'typeorm';
 import { Prediction } from '../database/entities/prediction.entity';
 import { Match } from '../database/entities/match.entity';
 import { User } from '../database/entities/user.entity';
@@ -25,6 +25,7 @@ export class PredictionsService {
     @InjectRepository(LeagueParticipant)
     private leagueParticipantRepository: Repository<LeagueParticipant>,
     private bracketsService: BracketsService,
+    private dataSource: DataSource,
   ) {}
 
   async upsertPrediction(
@@ -72,100 +73,115 @@ export class PredictionsService {
       );
     }
 
-    // JOKER LOGIC: Only one joker per phase allowed PER LEAGUE context.
-    // We must ensure that if we set a joker here, any other joker visible in this league (Global or Local) is disabled.
-    if (isJoker) {
-      // Find ALL active jokers for this user/phase that are visible in this league (Unique Joker Rule)
-      const previousJokers = await this.predictionsRepository
-        .createQueryBuilder('p')
-        .leftJoinAndSelect('p.match', 'match')
-        .where('p.userId = :userId', { userId })
-        .andWhere('p.isJoker = :isJoker', { isJoker: true })
-        .andWhere('match.phase = :phase', { phase: match.phase })
-        .andWhere(
-          leagueId
-            ? '(p.leagueId = :leagueId OR p.leagueId IS NULL)'
-            : 'p.leagueId IS NULL',
-          { leagueId },
-        )
-        .getMany();
+    // -------------------------------------------------------------------------
+    // FIX C3 — Race Condition: Pessimistic Locking (SELECT FOR UPDATE)
+    // Toda la lógica del Joker + guardado de predicción corre dentro de una
+    // transacción atómica. Si dos requests llegan simultáneamente para el mismo
+    // usuario/fase, el segundo esperará hasta que el primero libere el lock,
+    // garantizando que solo un Joker pueda activarse por usuario/fase/liga.
+    // -------------------------------------------------------------------------
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      for (const joker of previousJokers) {
-        // If it's a DIFFERENT match, we must deactivate the joker.
-        if (joker.match.id !== matchId) {
-          if (joker.leagueId === null && leagueId) {
-            // CASE: Disabling a GLOBAL Joker inside a Specific League.
-            // We cannot modify the global record directly (it would affect other leagues).
-            // Instead, we create a LOCAL OVERRIDE for that match with isJoker=false.
+    let savedPrediction: Prediction;
 
-            // Check if an override already exists (unlikely if we just fetched jokers, but safe to check)
-            const existingOverride = await this.predictionsRepository.findOne({
-              where: {
-                user: { id: userId },
-                match: { id: joker.match.id },
-                leagueId,
-              },
-            });
+    try {
+      // JOKER LOGIC: Only one joker per phase allowed PER LEAGUE context.
+      // We must ensure that if we set a joker here, any other joker visible in this league (Global or Local) is disabled.
+      if (isJoker) {
+        // SELECT FOR UPDATE: bloquea las filas para evitar activaciones concurrentes
+        const previousJokers = await queryRunner.manager
+          .createQueryBuilder(Prediction, 'p')
+          .leftJoinAndSelect('p.match', 'match')
+          .setLock('pessimistic_write')
+          .where('p.userId = :userId', { userId })
+          .andWhere('p.isJoker = :isJoker', { isJoker: true })
+          .andWhere('match.phase = :phase', { phase: match.phase })
+          .andWhere(
+            leagueId
+              ? '(p.leagueId = :leagueId OR p.leagueId IS NULL)'
+              : 'p.leagueId IS NULL',
+            { leagueId },
+          )
+          .getMany();
 
-            if (existingOverride) {
-              existingOverride.isJoker = false;
-              await this.predictionsRepository.save(existingOverride);
+        for (const joker of previousJokers) {
+          // If it's a DIFFERENT match, we must deactivate the joker.
+          if (joker.match.id !== matchId) {
+            if (joker.leagueId === null && leagueId) {
+              // CASE: Disabling a GLOBAL Joker inside a Specific League.
+              // We cannot modify the global record directly (it would affect other leagues).
+              // Instead, we create a LOCAL OVERRIDE for that match with isJoker=false.
+              const existingOverride = await queryRunner.manager.findOne(
+                Prediction,
+                {
+                  where: {
+                    user: { id: userId },
+                    match: { id: joker.match.id },
+                    leagueId,
+                  },
+                },
+              );
+
+              if (existingOverride) {
+                existingOverride.isJoker = false;
+                await queryRunner.manager.save(existingOverride);
+              } else {
+                // Create new override copying values but disabling joker
+                const override = queryRunner.manager.create(Prediction, {
+                  user: { id: userId } as User,
+                  match: { id: joker.match.id } as Match,
+                  leagueId: leagueId,
+                  homeScore: joker.homeScore,
+                  awayScore: joker.awayScore,
+                  isJoker: false, // Disabled locally
+                });
+                await queryRunner.manager.save(override);
+              }
             } else {
-              // Create new override copying values but disabling joker
-              const override = this.predictionsRepository.create({
-                user: { id: userId } as User,
-                match: { id: joker.match.id } as Match,
-                leagueId: leagueId,
-                homeScore: joker.homeScore,
-                awayScore: joker.awayScore,
-                isJoker: false, // Disabled locally
-              });
-              await this.predictionsRepository.save(override);
+              // CASE: Local joker or Global context edit. Just update the record.
+              joker.isJoker = false;
+              await queryRunner.manager.save(joker);
             }
-          } else {
-            // CASE: Local joker or Global context edit. Just update the record.
-            joker.isJoker = false;
-            await this.predictionsRepository.save(joker);
           }
         }
       }
-    }
 
-    let prediction = await this.predictionsRepository.findOne({
-      where: {
-        user: { id: userId },
-        match: { id: matchId },
-        leagueId: leagueId ? leagueId : IsNull(),
-      },
-    });
-
-    if (prediction) {
-      prediction.homeScore = homeScore;
-      prediction.awayScore = awayScore;
-      if (isJoker !== undefined) prediction.isJoker = isJoker;
-      // Ensure tournamentId is kept in sync (self-healing for legacy data)
-      prediction.tournamentId = match.tournamentId;
-    } else {
-      prediction = this.predictionsRepository.create({
-        user: { id: userId } as User,
-        match: { id: matchId } as Match,
-        leagueId: leagueId || undefined,
-        tournamentId: match.tournamentId, // Inherit tournament context!
-        homeScore,
-        awayScore,
-        isJoker: isJoker || false,
+      // Buscar predicción existente dentro de la transacción
+      let prediction = await queryRunner.manager.findOne(Prediction, {
+        where: {
+          user: { id: userId },
+          match: { id: matchId },
+          leagueId: leagueId ? leagueId : IsNull(),
+        },
       });
-    }
 
-    const savedPrediction = await this.predictionsRepository.save(prediction);
+      if (prediction) {
+        prediction.homeScore = homeScore;
+        prediction.awayScore = awayScore;
+        if (isJoker !== undefined) prediction.isJoker = isJoker;
+        // Ensure tournamentId is kept in sync (self-healing for legacy data)
+        prediction.tournamentId = match.tournamentId;
+      } else {
+        prediction = queryRunner.manager.create(Prediction, {
+          user: { id: userId } as User,
+          match: { id: matchId } as Match,
+          leagueId: leagueId || undefined,
+          tournamentId: match.tournamentId, // Inherit tournament context!
+          homeScore,
+          awayScore,
+          isJoker: isJoker || false,
+        });
+      }
 
-    // --- SYNC TO GLOBAL CONTEXT (User Request) ---
-    // Si se guardó una predicción en una liga específica (Empresa), replicamos el marcador
-    // en el contexto Global (Social/Dashboard) para mantenerlos sincronizados.
-    if (leagueId) {
-      try {
-        // Buscamos o creamos la predicción global
-        const globalPrediction = await this.predictionsRepository.findOne({
+      savedPrediction = await queryRunner.manager.save(prediction);
+
+      // --- SYNC TO GLOBAL CONTEXT (User Request) ---
+      // Si se guardó una predicción en una liga específica (Empresa), replicamos el marcador
+      // en el contexto Global (Social/Dashboard) para mantenerlos sincronizados.
+      if (leagueId) {
+        const globalPrediction = await queryRunner.manager.findOne(Prediction, {
           where: {
             user: { id: userId },
             match: { id: matchId },
@@ -178,10 +194,10 @@ export class PredictionsService {
           globalPrediction.homeScore = homeScore;
           globalPrediction.awayScore = awayScore;
           // FIX: No tocamos el Joker Global. Son estrategias independientes.
-          await this.predictionsRepository.save(globalPrediction);
+          await queryRunner.manager.save(globalPrediction);
         } else {
           // Si no existe, la creamos (clonando la de la empresa, pero SIN joker)
-          const newGlobal = this.predictionsRepository.create({
+          const newGlobal = queryRunner.manager.create(Prediction, {
             user: { id: userId } as User,
             match: { id: matchId } as Match,
             leagueId: undefined, // Global
@@ -190,17 +206,19 @@ export class PredictionsService {
             awayScore,
             isJoker: false, // Estrategia independiente
           });
-          await this.predictionsRepository.save(newGlobal);
+          await queryRunner.manager.save(newGlobal);
         }
-      } catch (error) {
-        console.warn(
-          `⚠️ Error syncing prediction to global context: ${error.message}`,
-        );
-        // No lanzamos error para no fallar el request original
       }
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
 
-    return savedPrediction;
+    return savedPrediction!;
   }
 
   async findAllByUser(

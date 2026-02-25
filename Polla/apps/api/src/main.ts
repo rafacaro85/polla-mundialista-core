@@ -8,7 +8,7 @@ if (process.env.NODE_ENV !== 'production') {
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
+import cookieParser = require('cookie-parser');
 
 // [REDEPLOY FORCE] v1.0.3 - Cleanup diagnostic logs
 async function bootstrap() {

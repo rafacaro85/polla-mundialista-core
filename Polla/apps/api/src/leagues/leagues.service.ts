@@ -844,6 +844,7 @@ export class LeaguesService {
           adImages: participant.league.adImages,
           banners: participant.league.banners || [],
           prizes: participant.league.prizes || [],
+          tournamentId: participant.league.tournamentId,  // FIX: campo faltante → sin esto frontend muestra partidos del torneo incorrecto
           userStatus: participant.status,
           // check for pending transaction with safety
           hasPendingTransaction: await this.transactionsService

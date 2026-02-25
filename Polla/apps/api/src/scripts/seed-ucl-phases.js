@@ -1,92 +1,75 @@
+/**
+ * Seed UCL2526 knockout phases (con nombres de columna reales de la BD)
+ * Columnas: id, phase, is_unlocked, unlocked_at, all_matches_completed, is_manually_locked, tournamentId, created_at, updated_at
+ */
 const { Client } = require('pg');
-const fs = require('fs');
-const path = require('path');
+const { randomUUID } = require('crypto');
 
-// Manually parse .env file
-try {
-  const envPath = path.resolve(process.cwd(), '.env');
-  console.log('📖 Leyendo .env desde:', envPath);
-  if (fs.existsSync(envPath)) {
-    const envConfig = fs.readFileSync(envPath, 'utf8');
-    envConfig.split('\n').forEach(line => {
-      const match = line.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const key = match[1].trim();
-        const value = match[2].trim().replace(/^['"]|['"]$/g, '');
-        if (!process.env[key]) {
-          process.env[key] = value;
-        }
-      }
-    });
-    console.log('✅ Variables de entorno cargadas manualmente.');
-  }
-} catch (e) {
-  console.error('❌ Error leyendo .env:', e);
-}
+const DB_URL = 'postgresql://postgres:admin123@localhost:5432/polla_mundialista';
+const TOURNAMENT_ID = 'UCL2526';
 
-// Disable SSL for this script execution
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-const TARGET_TOURNAMENT_ID = 'UCL2526';
-
-const PHASES = [
-  { phase: 'PLAYOFF', isUnlocked: false },
-  { phase: 'ROUND_16', isUnlocked: true }, // Unlocking this because matches were injected as ROUND_16
-  { phase: 'QUARTER', isUnlocked: false },
-  { phase: 'SEMI', isUnlocked: false },
-  { phase: 'FINAL', isUnlocked: false },
+const UCL_PHASES = [
+  { phase: 'PLAYOFF_1', is_unlocked: true,  all_matches_completed: true  }, // ida - ya jugado
+  { phase: 'PLAYOFF_2', is_unlocked: true,  all_matches_completed: false }, // vuelta - mañana
+  { phase: 'ROUND_16',  is_unlocked: false, all_matches_completed: false }, // octavos - pendiente
+  { phase: 'QUARTER',   is_unlocked: false, all_matches_completed: false },
+  { phase: 'SEMI',      is_unlocked: false, all_matches_completed: false },
+  { phase: 'FINAL',     is_unlocked: false, all_matches_completed: false },
 ];
 
-async function seed() {
-  const dbConfig = process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL, ssl: false }
-    : {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432', 10),
-        user: process.env.DB_USERNAME || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-        database: process.env.DB_DATABASE || 'polla_mundialista',
-        ssl: false
-      };
-
-  const client = new Client(dbConfig);
+async function seedUclPhases() {
+  const client = new Client({ connectionString: DB_URL });
+  await client.connect();
+  console.log(`\n🏆 Seeding knockout phases for ${TOURNAMENT_ID}...\n`);
 
   try {
-    await client.connect();
-    console.log('✅ Conexión a DB establecida para SEED de FASES UCL');
+    // Verificar columnas reales
+    const cols = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'knockout_phase_status' ORDER BY ordinal_position
+    `);
+    console.log('Columnas:', cols.rows.map(r => r.column_name).join(', '));
 
-    // 1. Clean existing statuses for UCL to avoid duplicates
-    await client.query('DELETE FROM knockout_phase_status WHERE "tournamentId" = $1', [TARGET_TOURNAMENT_ID]);
-    console.log(`🗑️  Fases previas de ${TARGET_TOURNAMENT_ID} eliminadas.`);
+    for (const p of UCL_PHASES) {
+      const existing = await client.query(
+        'SELECT id FROM knockout_phase_status WHERE "tournamentId" = $1 AND phase = $2',
+        [TOURNAMENT_ID, p.phase]
+      );
 
-    // 2. Insert new statuses
-    for (const p of PHASES) {
-      const query = `
-        INSERT INTO knockout_phase_status 
-        (phase, "tournamentId", is_unlocked, all_matches_completed, unlocked_at)
-        VALUES ($1, $2, $3, $4, $5)
-      `;
-      
-      const values = [
-        p.phase,
-        TARGET_TOURNAMENT_ID,
-        p.isUnlocked,
-        false,
-        p.isUnlocked ? new Date() : null
-      ];
-
-      await client.query(query, values);
-      console.log(`✅ Fase ${p.phase} creada (${p.isUnlocked ? 'DESBLOQUEADA' : 'BLOQUEADA'}).`);
+      if (existing.rows.length > 0) {
+        await client.query(
+          `UPDATE knockout_phase_status 
+           SET is_unlocked = $1, all_matches_completed = $2, updated_at = NOW()
+           WHERE "tournamentId" = $3 AND phase = $4`,
+          [p.is_unlocked, p.all_matches_completed, TOURNAMENT_ID, p.phase]
+        );
+        console.log(`  ✏️  UPDATED  ${p.phase} → unlocked=${p.is_unlocked} completed=${p.all_matches_completed}`);
+      } else {
+        await client.query(
+          `INSERT INTO knockout_phase_status (id, phase, is_unlocked, unlocked_at, all_matches_completed, is_manually_locked, "tournamentId", created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, false, $6, NOW(), NOW())`,
+          [randomUUID(), p.phase, p.is_unlocked, p.is_unlocked ? new Date() : null, p.all_matches_completed, TOURNAMENT_ID]
+        );
+        console.log(`  ✅  INSERTED ${p.phase} → unlocked=${p.is_unlocked} completed=${p.all_matches_completed}`);
+      }
     }
 
-    console.log(`\n🎉 SEED DE FASES COMPLETADO PARA ${TARGET_TOURNAMENT_ID}`);
-    await client.end();
-    process.exit(0);
+    console.log('\n📋 Estado final fases UCL2526:');
+    const final = await client.query(
+      `SELECT phase, is_unlocked, all_matches_completed 
+       FROM knockout_phase_status WHERE "tournamentId" = $1 ORDER BY created_at`,
+      [TOURNAMENT_ID]
+    );
+    final.rows.forEach(r => {
+      const lock = r.is_unlocked ? '🔓' : '🔒';
+      const done = r.all_matches_completed ? '✅' : '⏳';
+      console.log(`  ${lock} ${done}  ${r.phase}`);
+    });
 
-  } catch (error) {
-    console.error('❌ Error en Seed de Fases:', error);
-    process.exit(1);
+  } finally {
+    await client.end();
+    console.log('\n✨ Done!');
   }
 }
 
-seed();
+seedUclPhases().catch(e => { console.error('❌ Error:', e.message); process.exit(1); });

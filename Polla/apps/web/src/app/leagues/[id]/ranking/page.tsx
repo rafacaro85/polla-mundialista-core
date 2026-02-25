@@ -39,12 +39,15 @@ export default function RankingPage() {
         );
     }
 
+    // La tabla de posiciones (grupos) solo aplica para torneo Mundial
+    const hasGroupStage = league?.tournamentId !== 'UCL2526';
+
     return (
         <div className="p-0 md:p-4 h-full flex flex-col">
             <Tabs defaultValue="participants" className="w-full h-full flex flex-col">
                  <div className="px-4 pt-2">
                     <TabsList 
-                        className="grid w-full grid-cols-2 mb-4 p-1 h-auto rounded-xl border gap-1"
+                        className={`grid w-full mb-4 p-1 h-auto rounded-xl border gap-1 ${hasGroupStage ? 'grid-cols-2' : 'grid-cols-1'}`}
                         style={{ 
                             backgroundColor: 'var(--brand-secondary, #1E293B)',
                             borderColor: 'var(--brand-accent, #334155)'
@@ -63,13 +66,15 @@ export default function RankingPage() {
                             <Users size={16} />
                             Participantes
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="fifa"
-                            className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
-                        >
-                            <Globe size={16} />
-                            Tabla de posiciones
-                        </TabsTrigger>
+                        {hasGroupStage && (
+                            <TabsTrigger 
+                                value="fifa"
+                                className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
+                            >
+                                <Globe size={16} />
+                                Tabla de posiciones
+                            </TabsTrigger>
+                        )}
                     </TabsList>
                 </div>
 
@@ -80,10 +85,13 @@ export default function RankingPage() {
                     />
                 </TabsContent>
 
-                <TabsContent value="fifa" className="flex-1 mt-0 px-4 pb-24 overflow-y-auto custom-scrollbar">
-                    <GroupStageView matches={matches} />
-                </TabsContent>
+                {hasGroupStage && (
+                    <TabsContent value="fifa" className="flex-1 mt-0 px-4 pb-24 overflow-y-auto custom-scrollbar">
+                        <GroupStageView matches={matches} />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );
 }
+

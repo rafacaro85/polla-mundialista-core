@@ -57,23 +57,31 @@ export function useKnockoutPhases(tournamentId?: string) {
     }, [tournamentId]);
 
     const isPhaseUnlocked = useCallback((phase: string): boolean => {
-        // Special case: UCL starts from PLAYOFF, it has no GROUP in this context
+        // UCL no tiene fase GROUP — siempre bloqueada para evitar mostrar partidos incorrectos
         if (tournamentId === 'UCL2526' && (phase === 'GROUP' || !phase)) {
             return false;
         }
 
-        // Always unlock GROUP phase for World Cup/Others
-        if (phase === 'GROUP' || !phase) return true;
-        
-        const phaseStatus = phases.find(p => p.phase === phase);
-        
-        // If we have explicit data from backend, use it
-        if (phaseStatus) {
-            return phaseStatus.isUnlocked;
+        // UCL usa fases PLAYOFF_N (ida/vuelta) — buscar en BD, fail-open si no están
+        if (tournamentId === 'UCL2526' && phase?.startsWith('PLAYOFF')) {
+            const phaseStatus = phases.find(p => p.phase === phase);
+            if (phaseStatus) return phaseStatus.isUnlocked;
+            // Si no está en BD aún, desbloquear por defecto (fail-open)
+            // Esto evita que los partidos UCL desaparezcan si falta el seed
+            return true;
         }
 
+        // WC/Estándar: GROUP siempre visible
+        if (phase === 'GROUP' || !phase) return true;
+
+        // Fases de eliminación estándar: buscar en BD
+        const phaseStatus = phases.find(p => p.phase === phase);
+        if (phaseStatus) return phaseStatus.isUnlocked;
+
+        // Fail-closed para fases desconocidas — no mostrar hasta que el admin desbloquee
         return false;
     }, [phases, tournamentId]);
+
 
     const getPhaseStatus = (phase: string): PhaseStatus | undefined => {
         return phases.find(p => p.phase === phase);

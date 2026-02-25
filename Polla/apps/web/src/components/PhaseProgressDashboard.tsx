@@ -55,9 +55,14 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
         );
     }
 
-    // Count unlocked and completed phases
-    const unlockedCount = phases.filter(p => p.isUnlocked).length;
-    const completedCount = phases.filter(p => p.allMatchesCompleted).length;
+    // Para UCL, ocultar fases que no aplican (GROUP, ROUND_32)
+    const visiblePhases = tournamentId === 'UCL2526'
+        ? phases.filter(p => p.phase !== 'GROUP' && p.phase !== 'ROUND_32')
+        : phases;
+
+    // Count unlocked and completed phases (usando fases visibles)
+    const unlockedCount = visiblePhases.filter(p => p.isUnlocked).length;
+    const completedCount = visiblePhases.filter(p => p.allMatchesCompleted).length;
 
     const handleIndicatorClick = (phase: string) => {
         // Safety check: Don't navigate if phase is locked according to our local data
@@ -113,7 +118,7 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
                 <div className="px-4 pb-4 border-t border-gray-700">
                     {/* Phase Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                        {phases.map((phase) => (
+                        {visiblePhases.map((phase) => (
                             <PhaseStatusIndicator
                                 key={phase.phase}
                                 phase={phase.phase}

@@ -25,11 +25,29 @@ async function bootstrap() {
   // 2. Prefijo Global
   app.setGlobalPrefix('api');
 
-  // 3. CORS Original (Permisivo para evitar bloqueos)
+  // 3. CORS — Whitelist de orígenes permitidos (fix seguridad)
   app.enableCors({
-    origin: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'https://lapollavirtual.com',
+        'https://www.lapollavirtual.com',
+        'https://champions.lapollavirtual.com',
+        ...(process.env.NODE_ENV !== 'production'
+          ? ['http://localhost:3000', 'http://localhost:3001']
+          : []),
+      ];
+
+      // Permite requests sin origin (mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS bloqueado para origen: ${origin}`));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',

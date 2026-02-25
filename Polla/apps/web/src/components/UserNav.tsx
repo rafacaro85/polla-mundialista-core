@@ -71,7 +71,7 @@ export function UserNav() {
     // Contenedor Relativo para el Dropdown
     wrapper: {
       position: 'relative' as const,
-      zindex: 50
+      zIndex: 50
     },
     // Contenedor que agrupa Avatar + Flecha
     triggerContainer: {

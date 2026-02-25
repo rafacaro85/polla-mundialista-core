@@ -341,7 +341,7 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                         </div>
                     </div>
 
-                    {/* Logo del Torneo (Derecha) */}
+                    {/* Lado Derecho: Torneo + Perfil */}
                     <div className="flex items-center gap-4">
                         {league.tournamentId && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
@@ -361,75 +361,77 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                             </div>
                         )}
 
-                    <div className="flex items-center gap-4">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-black text-white italic">{nickname}</p>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{myDepartment}</p>
-                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-black text-white italic">{nickname}</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{myDepartment}</p>
+                            </div>
 
-                        {/* Perfil con estilo circular y Menú Desplegable */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowMenu(!showMenu)}
-                                className="relative group block"
-                            >
-                                <div className="absolute -inset-1 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                                <Avatar className="h-14 w-14 border-2 border-[var(--brand-primary)] shadow-2xl relative bg-[#0F172A] transition-transform active:scale-90">
-                                    <AvatarImage src={user?.avatarUrl} />
-                                    <AvatarFallback className="bg-[#0F172A] text-[var(--brand-primary)] text-sm font-black border border-[var(--brand-primary)]/20">
-                                        {nickname.substring(0,2)}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </button>
+                            {/* Perfil con estilo circular y Menú Desplegable */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMenu(!showMenu)}
+                                    className="relative group block"
+                                >
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                                    <Avatar className="h-14 w-14 border-2 border-[var(--brand-primary)] shadow-2xl relative bg-[#0F172A] transition-transform active:scale-90">
+                                        <AvatarImage src={user?.avatarUrl} />
+                                        <AvatarFallback className="bg-[#0F172A] text-[var(--brand-primary)] text-sm font-black border border-[var(--brand-primary)]/20">
+                                            {nickname.substring(0,2)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </button>
 
-                            {/* Dropdown Menu Corporativo */}
-                            {showMenu && (
-                                <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-                                    <div
-                                        className="absolute right-0 mt-4 w-60 rounded-2xl shadow-2xl border z-50 overflow-hidden animate-in fade-in zoom-in duration-200"
-                                        style={{
-                                            backgroundColor: 'var(--brand-secondary, #1E293B)',
-                                            borderColor: 'rgba(255,255,255,0.05)'
-                                        }}
-                                    >
-                                        <div className="px-5 py-4 border-b border-white/5 bg-black/20">
-                                            <p className="text-xs font-black text-white italic truncate">{user?.nickname || user?.fullName}</p>
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate mt-0.5">{user?.email}</p>
-                                        </div>
+                                {/* Dropdown Menu Corporativo */}
+                                {showMenu && (
+                                    <>
+                                        <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                                        <div
+                                            className="absolute right-0 mt-4 w-60 rounded-2xl shadow-2xl border z-50 overflow-hidden animate-in fade-in zoom-in duration-200"
+                                            style={{
+                                                backgroundColor: 'var(--brand-secondary, #1E293B)',
+                                                borderColor: 'rgba(255,255,255,0.05)'
+                                            }}
+                                        >
+                                            <div className="px-5 py-4 border-b border-white/5 bg-black/20">
+                                                <p className="text-xs font-black text-white italic truncate">{user?.nickname || user?.fullName}</p>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate mt-0.5">{user?.email}</p>
+                                            </div>
 
-                                        <div className="p-2">
-                                            <button
-                                                onClick={() => { setShowMenu(false); router.push('/profile'); }}
-                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
-                                            >
-                                                <UserIcon size={14} /> Mi Perfil
-                                            </button>
-
-                                            {canManageLeague && (
+                                            <div className="p-2">
                                                 <button
-                                                    onClick={() => { setShowMenu(false); router.push(`/leagues/${league.id}/admin`); }}
+                                                    onClick={() => { setShowMenu(false); router.push('/profile'); }}
                                                     className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
                                                 >
-                                                    <Settings size={14} /> Panel de Control
+                                                    <UserIcon size={14} /> Mi Perfil
                                                 </button>
-                                            )}
 
-                                            <div className="my-2 border-t border-white/5" />
+                                                {canManageLeague && (
+                                                    <button
+                                                        onClick={() => { setShowMenu(false); router.push(`/leagues/${league.id}/admin`); }}
+                                                        className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
+                                                    >
+                                                        <Settings size={14} /> Panel de Control
+                                                    </button>
+                                                )}
 
-                                            <button
-                                                onClick={() => { logout(); router.push('/'); }}
-                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-red-500/80 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
-                                            >
-                                                <LogOut size={14} /> Cerrar Sesión
-                                            </button>
+                                                <div className="my-2 border-t border-white/5" />
+
+                                                <button
+                                                    onClick={() => { logout(); router.push('/'); }}
+                                                    className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-red-500/80 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
+                                                >
+                                                    <LogOut size={14} /> Cerrar Sesión
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </>
-                            )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
                 {/* Fila 2: Navegación */}
                 <div className="bg-black/20 border-t border-white/5">

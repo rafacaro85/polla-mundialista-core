@@ -431,7 +431,6 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                         </div>
                     </div>
                 </div>
-            </div>
 
                 {/* Fila 2: Navegación */}
                 <div className="bg-black/20 border-t border-white/5">
@@ -442,7 +441,7 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                         >
                             <span className="group-hover:translate-x-[-2px] transition-transform">←</span> VOLVER
                         </button>
-                  </div>
+                    </div>
                 </div>
             </header>
 

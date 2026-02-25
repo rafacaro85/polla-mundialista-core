@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class MatchSyncService {
   private readonly logger = new Logger(MatchSyncService.name);
+  private isSyncing = false;
 
   constructor(
     @InjectRepository(Match)
@@ -23,28 +24,47 @@ export class MatchSyncService {
   // 🕒 CRON: Run every 5 minutes
   @Cron('*/5 * * * *')
   async syncLiveMatches() {
+    if (this.isSyncing) {
+      this.logger.warn('⏭️ Sync already in progress, skipping this run.');
+      return;
+    }
+
+    this.isSyncing = true;
     this.logger.log(
       '🔄 Running URGENT SYNC (Target: API-SPORTS Direct / Throttled Loop)',
     );
 
     try {
-      // 1. Find ALL active matches with an external ID (No Time Window check)
+      // 1. Find matches within a time window (-3 hours to +1 hour)
+      // This prevents syncing matches that are days/months away, saving API quota.
+      const now = new Date();
+      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+      const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+
       const activeMatches = await this.matchesRepository.find({
         where: {
           status: Not('FINISHED'),
           externalId: Not(IsNull()),
+          date: Not(IsNull()), // Ensure date is present
         },
       });
 
-      if (activeMatches.length === 0) {
-        this.logger.log('💤 No active matches to sync.');
+      // Filter in memory for simplicity with TypeORM 'find' or use QueryBuilder for performance.
+      // Given the volume, filter is fine, but let's be strict with the window:
+      const filteredMatches = activeMatches.filter((m) => {
+        const matchDate = new Date(m.date);
+        return matchDate >= threeHoursAgo && matchDate <= oneHourFromNow;
+      });
+
+      if (filteredMatches.length === 0) {
+        this.logger.log('💤 No active matches in the current time window.');
         return;
       }
 
-      this.logger.log(`🎯 Found ${activeMatches.length} matches to update.`);
+      this.logger.log(`🎯 Found ${filteredMatches.length} matches to update.`);
 
       // 2. Individual Loop with PAUSE (Prevents 429 & 403)
-      for (const match of activeMatches) {
+      for (const match of filteredMatches) {
         if (!match.externalId) continue;
 
         try {
@@ -88,6 +108,8 @@ export class MatchSyncService {
       }
     } catch (error) {
       this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);
+    } finally {
+      this.isSyncing = false;
     }
   }
 

@@ -27,7 +27,7 @@ async function bootstrap() {
 
   // 3. CORS — Whitelist de orígenes permitidos (fix seguridad)
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       const allowedOrigins = [
         'https://lapollavirtual.com',
         'https://www.lapollavirtual.com',

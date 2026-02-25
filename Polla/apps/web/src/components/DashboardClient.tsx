@@ -239,7 +239,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 md:pb-0 overflow-x-hidden w-full md:pl-[68px]"
       >
-        {!isEnterpriseMode && (
+        {/* Header only shown in Global/Main dashboard, league pages have it in LeagueLayout */}
+        {!isEnterpriseMode && selectedLeagueId === 'global' && (
           <Header
             userName={user?.nickname || 'Invitado'}
             leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}

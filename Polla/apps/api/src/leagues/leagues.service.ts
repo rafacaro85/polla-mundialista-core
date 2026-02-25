@@ -851,6 +851,8 @@ export class LeaguesService {
             .findLatestLeagueTransaction(userId, leagueId)
             .then((tx) => tx?.status === TransactionStatus.PENDING)
             .catch(() => false),
+          userDepartment: participant.department || 'General',
+          userNickname: participant.nickname || participant.user.nickname,
         };
       }
 
@@ -919,6 +921,8 @@ export class LeaguesService {
             banners: league.banners || [],
             prizes: league.prizes || [],
             userStatus: actualParticipant ? actualParticipant.status : 'ACTIVE',
+            userDepartment: actualParticipant?.department || 'General',
+            userNickname: actualParticipant?.nickname || user.nickname,
           };
         }
       }

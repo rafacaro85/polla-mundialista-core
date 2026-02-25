@@ -10,6 +10,8 @@ import { Loader2, Timer, Shield } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { DemoControlPanel } from '@/components/DemoControlPanel';
 import { PaymentMethods } from '@/components/dashboard/PaymentMethods';
+import { EnterpriseHeader } from '@/modules/enterprise-league/components/EnterpriseHeader';
+import { Header } from '@/components/ui/Header';
 
 // Helper for Plan Levels
 const getPlanLevel = (type?: string) => {
@@ -387,35 +389,25 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         ? 'md:pl-64 pb-24 md:pb-0'
                         : ''
                     }`}>
-
-                    {/* LOGO STRIP — logo de la app/empresa sin tarjeta, entre header y hero */}
-                    {showLayoutUI && !isDashboardRoot && (
-                        <div className="flex items-center justify-center py-4 px-4">
-                            {league.brandingLogoUrl ? (
-                                // Liga empresa: logo de la empresa
-                                <img
-                                    src={league.brandingLogoUrl}
-                                    alt={league.companyName || league.name}
-                                    className="h-14 w-auto object-contain max-w-[160px] opacity-90"
-                                />
-                            ) : (
-                                // Liga social: logo LPV según torneo
-                                <img
-                                    src={
-                                        (league.tournamentId || '').toUpperCase().includes('UCL')
-                                            ? '/images/ucl-logo.png'
-                                            : '/images/lpv/lpv-full-logo.png'
-                                    }
-                                    alt="Logo"
-                                    className={`h-12 w-auto object-contain opacity-90 ${
-                                        (league.tournamentId || '').toUpperCase().includes('UCL')
-                                            ? 'brightness-0 invert'
-                                            : ''
-                                    }`}
-                                />
-                            )}
-                        </div>
+                    
+                    {/* ENTERPRISE HEADER — MOVED FROM PAGE TO LAYOUT FOR CONSISTENCY */}
+                    {isEnterprise && showLayoutUI && (
+                        <EnterpriseHeader 
+                            league={league} 
+                            myDepartment={league.userDepartment} 
+                        />
                     )}
+
+                    {/* SOCIAL HEADER — Standard UI for non-enterprise leagues */}
+                    {!isEnterprise && showLayoutUI && (
+                        <Header 
+                            userName={user?.nickname || user?.fullName || 'Usuario'}
+                            leagueName={league.name}
+                            tournamentId={league.tournamentId}
+                            isEnterprise={false}
+                        />
+                    )}
+
 
                     <div className="w-full mx-auto px-4 md:px-6 lg:px-8 max-w-full md:max-w-[768px] lg:max-w-[1280px]">
                         {children}

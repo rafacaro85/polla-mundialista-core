@@ -73,14 +73,22 @@ export class ScoringService {
       relations: ['user'],
     });
 
+    if (predictions.length === 0) return;
+
+    // FIX C4: Scoring masivo en una única transacción
+    // En lugar de hacer N saves individuales (N x 17ms), calculamos todo en memoria
+    // y enviamos un solo batch a la base de datos.
     for (const prediction of predictions) {
-      const points = this.calculatePoints(match, prediction);
-      prediction.points = points;
-      await this.predictionsRepository.save(prediction);
+      prediction.points = this.calculatePoints(match, prediction);
     }
 
+    await this.predictionsRepository.manager.transaction(async (manager) => {
+      // TypeORM manejará el chunking automáticamente si son demasiadas entidades
+      await manager.save(Prediction, predictions);
+    });
+
     console.log(
-      `Calculated points for ${predictions.length} predictions for match ${matchId}`,
+      `✅ [Scoring] Batch calculated and saved ${predictions.length} predictions for match ${matchId}`,
     );
   }
 }

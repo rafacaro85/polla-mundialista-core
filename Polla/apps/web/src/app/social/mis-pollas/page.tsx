@@ -224,7 +224,8 @@ function MisPollasContent() {
                       Ingresar
                     </button>
 
-                    {league.code && (
+                    {/* WhatsApp Group Share - ONLY FOR ADMIN AND ACTIVE LEAGUES */}
+                    {league.code && league.status !== 'PENDING' && league.status !== 'REJECTED' && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();

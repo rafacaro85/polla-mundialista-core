@@ -19,6 +19,7 @@ import { ContentTab } from './components/ContentTab';
 import { SocialTab } from './components/SocialTab';
 import { AdsTab } from './components/AdsTab';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { UserNav } from '@/components/UserNav';
 
 /* --- PÁGINA PRINCIPAL STUDIO --- */
 
@@ -335,6 +336,9 @@ export default function StudioPage() {
                     >
                         {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />} <span className="hidden lg:inline">Publicar</span>
                     </button>
+
+                    <div className="h-8 w-px bg-white/5 mx-1"></div>
+                    <UserNav />
                 </div>
             </header>
 

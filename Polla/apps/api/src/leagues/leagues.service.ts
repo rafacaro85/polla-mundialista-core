@@ -544,17 +544,23 @@ export class LeaguesService {
     await this.cacheManager.set(cacheKey, finalResults, 10 * 60 * 1000); // 10 minutes
     return finalResults;
   }
-  async getAllLeagues(tournamentId?: string) {
+  async getAllLeagues(tournamentId?: string, page: number = 1, limit: number = 20) {
     try {
-      const leagues = await this.leaguesRepository.find({
+      const pageNum = Math.max(1, parseInt(page as any, 10) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit as any, 10) || 20));
+      const skip = (pageNum - 1) * limitNum;
+
+      const [leagues, total] = await this.leaguesRepository.findAndCount({
         where: tournamentId ? { tournamentId } : {},
         relations: ['creator', 'participants'],
         order: { name: 'ASC' },
+        skip,
+        take: limitNum,
       });
 
-      console.log(`    Found ${leagues.length} leagues`);
+      console.log(`    Found ${leagues.length} leagues (Total: ${total})`);
 
-      return leagues.map((l) => ({
+      const data = leagues.map((l) => ({
         id: l.id,
         name: l.name,
         code: l.accessCodePrefix || 'SIN-CODIGO',
@@ -576,6 +582,16 @@ export class LeaguesService {
         companyName: l.companyName,
         isPaid: l.isPaid,
       }));
+
+      return {
+        data,
+        meta: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      };
     } catch (error) {
       console.error('    CRITICAL ERROR in getAllLeagues:', error);
       console.error('Error stack:', error.stack);
@@ -670,10 +686,10 @@ export class LeaguesService {
     }
   }
 
-  async getParticipants(leagueId: string, userId: string, userRole?: string) {
+  async getParticipants(leagueId: string, userId: string, userRole?: string, page: number = 1, limit: number = 20) {
     // 1. Verificar si es Super Admin
     if (userRole === 'SUPER_ADMIN') {
-      return this.fetchParticipants(leagueId);
+      return this.fetchParticipants(leagueId, page, limit);
     }
 
     // 2. Verificar si es Admin de la Liga
@@ -687,17 +703,23 @@ export class LeaguesService {
       );
     }
 
-    return this.fetchParticipants(leagueId);
+    return this.fetchParticipants(leagueId, page, limit);
   }
 
-  private async fetchParticipants(leagueId: string) {
-    const participants = await this.leagueParticipantsRepository.find({
+  private async fetchParticipants(leagueId: string, page: number = 1, limit: number = 20) {
+    const pageNum = Math.max(1, parseInt(page as any, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as any, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [participants, total] = await this.leagueParticipantsRepository.findAndCount({
       where: { league: { id: leagueId } },
       relations: ['user'],
       order: { totalPoints: 'DESC' },
+      skip,
+      take: limitNum,
     });
 
-    return participants.map((p) => ({
+    const data = participants.map((p) => ({
       ...p,
       user: {
         id: p.user.id,
@@ -716,6 +738,16 @@ export class LeaguesService {
         bonus: p.triviaPoints || 0,
       },
     }));
+
+    return {
+      data,
+      meta: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      }
+    };
   }
 
   async getLeagueForUser(leagueId: string, userId: string) {

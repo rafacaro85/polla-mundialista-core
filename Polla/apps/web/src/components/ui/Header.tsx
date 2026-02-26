@@ -56,11 +56,11 @@ export function Header({ userName, leagueName, tournamentId, isEnterprise, backU
 
           {/* Logo torneo */}
           {tournamentLogo && (
-            <div className="shrink-0">
+            <div className="shrink-0 flex items-center justify-center p-1 rounded-full border border-white/10 bg-white/5 shadow-xl">
               <img
                 src={tournamentLogo.src}
                 alt={tournamentLogo.alt}
-                className={`h-8 w-auto object-contain ${tournamentLogo.invert ? 'brightness-0 invert' : ''}`}
+                className={`h-11 md:h-14 w-11 md:w-14 object-contain rounded-full shadow-inner ${tournamentLogo.invert ? 'brightness-0 invert' : ''}`}
               />
             </div>
           )}

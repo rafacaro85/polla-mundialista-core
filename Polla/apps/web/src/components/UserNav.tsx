@@ -286,7 +286,11 @@ export function UserNav() {
             hasArrow
           />
 
+<<<<<<< HEAD
           {(userData.role?.toUpperCase() === 'SUPER_ADMIN') && (
+=======
+          {(userData.role === 'SUPER_ADMIN') && (
+>>>>>>> security/sprint-2-fixes
             <MenuItem
               icon={Shield}
               label="Super Admin"

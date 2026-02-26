@@ -182,8 +182,8 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                             Ingresar
                         </Link>
 
-                        {/* WhatsApp Group Share */}
-                        {(league.accessCodePrefix || league.code) && (
+                        {/* WhatsApp Group Share - ONLY FOR ADMIN AND ACTIVE LEAGUES */}
+                        {league.isAdmin && league.isEnterpriseActive && (league.accessCodePrefix || league.code) && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -217,14 +217,14 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                                 
                                 <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
                                     <Link href={`/leagues/${league.id}/studio`} className="flex items-center gap-3 w-full">
-                                        <LayoutDashboard size={16} /> <span className="font-bold">ESTUDIO (CMS)</span>
+                                        <LayoutDashboard size={16} /> <span className="font-bold">DISEÑO DE MARCA</span>
                                     </Link>
                                 </DropdownMenuItem>
 
                                 <DropdownMenuItem asChild className="focus:bg-[#00E676] focus:text-[#0F172A] rounded-xl cursor-pointer py-3">
                                     <Link href={`/leagues/${league.id}/admin/users`} className="flex items-center gap-3 w-full justify-between">
                                         <div className="flex items-center gap-3">
-                                            <Users size={16} /> <span className="font-bold">PARTICIPANTES</span>
+                                            <Users size={16} /> <span className="font-bold">GESTIÓN DE USUARIOS</span>
                                         </div>
                                         {league.pendingRequestsCount != null && league.pendingRequestsCount > 0 && (
                                             <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">
@@ -277,23 +277,7 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                         >
                             <LogIn size={15} /> Ingresar
                         </Link>
-
-                        {/* WhatsApp Group Share for regular users too if active */}
-                        {league.isEnterpriseActive && (league.accessCodePrefix || league.code) && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const code = league.accessCodePrefix || league.code;
-                                    const shareUrl = `${window.location.origin}/invite/${code}`;
-                                    const msg = `Te invito a ${league.name.toUpperCase()}. Únete aquí: ${shareUrl}`;
-                                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                                }}
-                                className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"
-                                title="Compartir enlace de invitación"
-                            >
-                                <WhatsAppIcon className="w-6 h-6" />
-                            </button>
-                        )}
+                        {/* Removed WhatsApp Group Share for regular users entirely as per requirements */}
                     </div>
                 )}
             </div>

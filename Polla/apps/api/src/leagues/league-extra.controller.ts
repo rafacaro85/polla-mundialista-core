@@ -56,9 +56,10 @@ export class LeagueExtraController {
     }
 
     if (type === 'banner') {
-      if (!isEnterprise || plan.includes('BRONZE')) {
+      // Banners are ONLY allowed for DIAMOND plans (enterprise)
+      if (!isEnterprise || !plan.includes('DIAMOND')) {
         throw new ForbiddenException(
-          'La subida de publicidad requiere un plan SILVER o superior.',
+          'La subida de publicidad es una función exclusiva para planes DIAMANTE.',
         );
       }
     }

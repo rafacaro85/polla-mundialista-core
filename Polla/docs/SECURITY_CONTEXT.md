@@ -128,8 +128,8 @@ polla-mundialista-core/
 
 | # | Tarea | Archivo(s) | Estado |
 |---|-------|-----------|--------|
-| C1 | CORS completamente abierto | `main.ts:29` | ✅ DONE |
-| C2 | JWT en localStorage | `web/src/lib/api.ts:16` | ✅ DONE |
+| C1 | CORS completamente abierto | `main.ts:29` | ✅ DONE (commit previo) |
+| C2 | JWT en localStorage | `web/src/lib/api.ts:16` | ✅ DONE (commit previo) |
 | C3 | Race condition en Joker | `predictions.service.ts:73` | ✅ DONE (f3811b8) |
 | C4 | Scoring secuencial (N × 17ms) | `scoring.service.ts:65` | ✅ DONE (43725ac) |
 | C5 | Cron sin ventana temporal | `match-sync.service.ts:24` | ✅ DONE (900f426) |
@@ -140,12 +140,12 @@ polla-mundialista-core/
 
 | # | Tarea | Archivo(s) | Estado |
 |---|-------|-----------|--------|
-| A1 | Thundering herd en caché de rankings | `leagues.service.ts:427` | ⏳ PENDIENTE |
-| A2 | `createLeague` sin transacción completa | `leagues.service.ts:56` | ⏳ PENDIENTE |
+| A1 | Thundering herd en caché de rankings | `leagues.service.ts:427` | ✅ DONE (173c67f) |
+| A2 | `createLeague` sin transacción completa | `leagues.service.ts:56` | ✅ DONE (276e914) |
 | A3 | JWT sin rol del usuario en payload | `auth.service.ts:70` | ✅ DONE (74dd3bb) |
-| A4 | `tournamentId` con fallback silencioso (`\|\| 'WC2026'`) | 20+ archivos | ⏳ PENDIENTE |
-| A5 | Estados de partidos incompletos (PST, CANC, ABD) | `match-sync.service.ts:118` | ⏳ PENDIENTE |
-| A6 | Sin Error Boundaries en frontend | `apps/web/src/app/**` | ⏳ PENDIENTE |
+| A4 | `tournamentId` con fallback silencioso (`\|\| 'WC2026'`) | 20+ archivos | ✅ DONE (6ee49e1) |
+| A5 | Estados de partidos incompletos (PST, CANC, ABD) | `match-sync.service.ts:118` | ✅ DONE (e9a5096) |
+| A6 | Sin Error Boundaries en frontend | `apps/web/src/app/**` | ✅ DONE (3cf49e0) |
 | A7 | `console.log` masivo en producción | Todo el backend | ✅ DONE (74dd3bb) |
 
 ---

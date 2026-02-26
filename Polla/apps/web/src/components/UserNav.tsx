@@ -282,18 +282,17 @@ export function UserNav() {
             hasArrow
           />
 
+          {(userData.role === 'SUPER_ADMIN') && (
+            <MenuItem
+              icon={Shield}
+              label="Super Admin"
+              onClick={handleSuperAdmin}
+              hasArrow
+            />
+          )}
+
           {isAdmin && (
             <>
-              {/* En contexto empresa o social, siempre mostramos Super Admin si lo es. */}
-              {(userData.role === 'SUPER_ADMIN') && (
-                <MenuItem
-                  icon={Shield}
-                  label="Super Admin"
-                  onClick={handleSuperAdmin}
-                  hasArrow
-                />
-              )}
-              
               {(!isEnterpriseContext && selectedLeagueId && selectedLeagueId !== 'global' && !pathname?.endsWith('/mis-pollas')) && (
                 <MenuItem
                   icon={Settings}

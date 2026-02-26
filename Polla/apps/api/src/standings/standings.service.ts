@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
@@ -28,7 +29,7 @@ export class StandingsService {
 
   async calculateGroupStandings(
     group: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<TeamStanding[]> {
     // 1. Buscar todos los partidos finalizados del grupo
     const matches = await this.matchesRepository.find({
@@ -176,7 +177,7 @@ export class StandingsService {
   async saveGroupOverrides(
     group: string,
     overrides: { team: string; position: number }[],
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ) {
     // Delete existing overrides for this group and tournament (full replacement)
     await this.overridesRepository.delete({ group, tournamentId });
@@ -195,7 +196,7 @@ export class StandingsService {
   }
 
   async getAllGroupStandings(
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<{ [group: string]: TeamStanding[] }> {
     // Obtener todos los grupos únicos para el torneo especificado
     const groups = await this.matchesRepository
@@ -222,7 +223,7 @@ export class StandingsService {
    * Calcula el ranking de los mejores terceros de todos los grupos
    */
   async calculateBestThirdsRanking(
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<TeamStanding[]> {
     const allGroupStandings = await this.getAllGroupStandings(tournamentId);
     const thirdPlaces: TeamStanding[] = [];

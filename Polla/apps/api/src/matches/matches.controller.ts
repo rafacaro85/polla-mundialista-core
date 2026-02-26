@@ -9,6 +9,7 @@ import {
   Request,
   Header,
 } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { MatchesService } from './matches.service';
 import { Match } from '../database/entities/match.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,7 +31,7 @@ export class MatchesController {
     const isAdmin =
       req.user.role === 'ADMIN' || req.user.role === 'SUPER_ADMIN';
     const tournamentId =
-      req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+      req.headers['x-tournament-id'] || req.query.tournamentId || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.findAll(req.user.id, isAdmin, tournamentId);
   }
 
@@ -41,7 +42,7 @@ export class MatchesController {
     const isAdmin =
       req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
     const tournamentId =
-      req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+      req.headers['x-tournament-id'] || req.query.tournamentId || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.findLive(isAdmin, tournamentId);
   }
 
@@ -62,7 +63,7 @@ export class MatchesController {
     @Request() req: any,
   ) {
     const tournamentId =
-      body.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+      body.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.createMatch({
       homeTeam: body.homeTeam,
       awayTeam: body.awayTeam,
@@ -142,7 +143,7 @@ export class MatchesController {
       // body puede ser undefined si el request no tiene JSON
       const phase = body?.phase;
       const tournamentId =
-        body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+        body?.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
       return await this.matchesService.simulateResults(phase, tournamentId);
     } catch (e: any) {
       // ... (error logging)
@@ -194,7 +195,7 @@ export class MatchesController {
     @Request() req: any,
   ) {
     const tid =
-      body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+      body?.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.seedRound32(tid);
   }
 
@@ -206,7 +207,7 @@ export class MatchesController {
     @Request() req: any,
   ) {
     const tid =
-      body?.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+      body?.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.ensureTournamentIntegrity(tid);
   }
 
@@ -268,7 +269,7 @@ export class MatchesController {
     @Request() req: any,
   ) {
     const tournamentId =
-      body.tournamentId || req.headers['x-tournament-id'] || 'WC2026';
+      body.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.setPhaseLock(phase, body.locked, tournamentId);
   }
 
@@ -280,7 +281,7 @@ export class MatchesController {
   @Get('phases/status')
   async getPhaseStatus(@Request() req: any) {
     const tournamentId =
-      req.headers['x-tournament-id'] || req.query.tournamentId || 'WC2026';
+      req.headers['x-tournament-id'] || req.query.tournamentId || DEFAULT_TOURNAMENT_ID;
     return this.matchesService.getAllPhaseStatus(tournamentId);
   }
 }

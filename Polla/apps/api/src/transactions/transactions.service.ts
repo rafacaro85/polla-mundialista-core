@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull } from 'typeorm';
 import { Transaction } from '../database/entities/transaction.entity';
@@ -31,7 +32,7 @@ export class TransactionsService {
     amount: number,
     packageId: string,
     leagueId: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
     status: TransactionStatus = TransactionStatus.PENDING,
   ): Promise<Transaction> {
     const league = await this.leaguesRepository.findOne({
@@ -60,7 +61,7 @@ export class TransactionsService {
     amount: number = 50000,
     referenceCode?: string,
     leagueId?: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<Transaction> {
     let league: League | undefined = undefined;
     if (leagueId) {

@@ -16,6 +16,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { LeaguesService } from './leagues.service';
 import { CreateLeagueDto } from './dto/create-league.dto';
 
@@ -68,7 +69,7 @@ export class LeaguesController {
 
   @Get('global/ranking')
   async getGlobalRanking(
-    @Query('tournamentId') tournamentId: string = 'WC2026',
+    @Query('tournamentId') tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ) {
     return this.leaguesService.getGlobalRanking(tournamentId);
   }

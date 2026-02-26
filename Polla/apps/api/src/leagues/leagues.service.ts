@@ -1,12 +1,13 @@
 import {
   Injectable,
-  BadRequestException,
   NotFoundException,
   InternalServerErrorException,
+  BadRequestException,
   ForbiddenException,
-  Inject,
   Logger,
+  Inject,
 } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
@@ -128,7 +129,7 @@ export class LeaguesService {
         }
       }
 
-      const targetTournamentId = tournamentId || 'WC2026';
+      const targetTournamentId = tournamentId || DEFAULT_TOURNAMENT_ID;
       const isFreePlan = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
       // 1. Operación: Verificar límite de ligas
@@ -1703,7 +1704,7 @@ export class LeaguesService {
     }
 
     const isGlobal = league.type === LeagueType.GLOBAL;
-    const tournamentId = league.tournamentId || 'WC2026'; // Default to World Cup
+    const tournamentId = league.tournamentId || DEFAULT_TOURNAMENT_ID; // Default to World Cup
 
     const matchesQuery = this.leaguesRepository.manager
       .getRepository(Match)

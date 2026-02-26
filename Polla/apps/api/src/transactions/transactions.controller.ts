@@ -15,6 +15,7 @@ import {
   Query,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { TransactionsService } from './transactions.service';
@@ -46,7 +47,7 @@ export class TransactionsController {
     },
     @Query('tournamentId') queryTournamentId?: string,
   ) {
-    const tid = body.tournamentId || queryTournamentId || 'WC2026';
+    const tid = body.tournamentId || queryTournamentId || DEFAULT_TOURNAMENT_ID;
     return this.transactionsService.createTransaction(
       req.user,
       body.amount,
@@ -98,7 +99,7 @@ export class TransactionsController {
       // Handle potential arrays if params are duplicated in query and body
       const getFirst = (val: any) => (Array.isArray(val) ? val[0] : val);
 
-      const rawTid = body.tournamentId || queryTournamentId || 'WC2026';
+      const rawTid = body.tournamentId || queryTournamentId || DEFAULT_TOURNAMENT_ID;
       const tid = getFirst(rawTid);
 
       // Defensive check for amount

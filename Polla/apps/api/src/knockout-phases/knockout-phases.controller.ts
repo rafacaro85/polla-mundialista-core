@@ -7,6 +7,7 @@ import {
   Headers,
   Query,
 } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { KnockoutPhasesService } from './knockout-phases.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -17,7 +18,7 @@ export class KnockoutPhasesController {
   constructor(private readonly knockoutPhasesService: KnockoutPhasesService) {}
 
   private getTournamentId(headers: any, query: any): string {
-    return headers['x-tournament-id'] || query.tournamentId || 'WC2026';
+    return headers['x-tournament-id'] || query.tournamentId || DEFAULT_TOURNAMENT_ID;
   }
 
   /**

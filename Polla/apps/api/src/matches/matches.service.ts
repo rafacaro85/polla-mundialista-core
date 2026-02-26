@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In, LessThanOrEqual } from 'typeorm';
@@ -34,7 +35,7 @@ export class MatchesService {
   async findAll(
     userId?: string,
     isAdmin: boolean = false,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<Match[]> {
     const query = this.matchesRepository
       .createQueryBuilder('match')
@@ -65,7 +66,7 @@ export class MatchesService {
 
   async findLive(
     isAdmin: boolean = false,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<Match[]> {
     // Obtenemos solo las fases desbloqueadas para que no aparezcan en el fixture antes de tiempo
     const unlockedPhases = await this.phaseStatusRepository.find({
@@ -95,7 +96,7 @@ export class MatchesService {
   }): Promise<Match> {
     const newMatch = this.matchesRepository.create({
       ...data,
-      tournamentId: data.tournamentId || 'WC2026',
+      tournamentId: data.tournamentId || DEFAULT_TOURNAMENT_ID,
       homeScore: 0,
       awayScore: 0,
       status: 'NS', // Not Started
@@ -239,7 +240,7 @@ export class MatchesService {
   }
 
   async seedRound32(
-    tid: string = 'WC2026',
+    tid: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<{ message: string; created: number }> {
     // Usamos QueryBuilder para borrar cascada manualmente si es necesario o por phase, filtrando por TORNEO
     await this.matchesRepository.delete({
@@ -828,13 +829,13 @@ export class MatchesService {
     };
   }
 
-  async promoteAllGroups(tid: string = 'WC2026'): Promise<void> {
+  async promoteAllGroups(tid: string = DEFAULT_TOURNAMENT_ID): Promise<void> {
     return this.tournamentService.promoteAllCompletedGroups(tid);
   }
 
   async simulateResults(
     phase?: string,
-    tid: string = 'WC2026',
+    tid: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<{ message: string; updated: number }> {
     try {
       // Determinamos qué fase simular
@@ -1014,12 +1015,12 @@ export class MatchesService {
       }
 
       // CRITICAL: After simulation loop, check if phase is complete and UNLOCK NEXT PHASE
-      const tournamentId =
-        matches.length > 0 ? matches[0].tournamentId : 'WC2026'; // Default to WC2026 if no matches found
+      const resolvedTid =
+        matches.length > 0 ? matches[0].tournamentId : DEFAULT_TOURNAMENT_ID; // Default to WC2026 if no matches found
       const isPhaseComplete =
         await this.knockoutPhasesService.areAllMatchesCompleted(
           targetPhase,
-          tournamentId,
+          resolvedTid,
         );
       if (isPhaseComplete) {
         console.log(
@@ -1028,19 +1029,19 @@ export class MatchesService {
 
         // 1. If it was GROUP phase, promote all groups to R32
         if (targetPhase === 'GROUP') {
-          await this.tournamentService.promoteAllCompletedGroups(tournamentId);
+          await this.tournamentService.promoteAllCompletedGroups(resolvedTid);
         } else {
           // For Knockout phases, ensure batch promotion runs to catch any missed updates
           await this.tournamentService.promotePhaseWinners(
             targetPhase,
-            tournamentId,
+            resolvedTid,
           );
         }
 
         // 2. Unlock the next phase status so it becomes visible
         await this.knockoutPhasesService.checkAndUnlockNextPhase(
           targetPhase,
-          tournamentId,
+          resolvedTid,
         );
       }
 
@@ -1170,8 +1171,8 @@ export class MatchesService {
 
       // Re-abrir fases iniciales
       const initialPhases = [];
-      if (!tid || tid === 'WC2026')
-        initialPhases.push({ tid: 'WC2026', phase: 'GROUP' });
+      if (!tid || tid === DEFAULT_TOURNAMENT_ID)
+        initialPhases.push({ tid: DEFAULT_TOURNAMENT_ID, phase: 'GROUP' });
       if (!tid || tid === 'UCL2526')
         initialPhases.push({ tid: 'UCL2526', phase: 'PLAYOFF' });
 
@@ -1265,7 +1266,7 @@ export class MatchesService {
    * If not, it recreates the missing phases and heals the links.
    * This is an IDEMPOTENT operation safe to run multiple times.
    */
-  async ensureTournamentIntegrity(tid: string = 'WC2026') {
+  async ensureTournamentIntegrity(tid: string = DEFAULT_TOURNAMENT_ID) {
     console.log(`🛡️ [INTEGRITY] Checking Tournament Structure for ${tid}...`);
 
     // En el Mundial 2026 esperamos: 16 R32, 8 R16, 4 QF, 2 SEMI, 1 FINAL, 1 3RD_PLACE
@@ -1281,7 +1282,7 @@ export class MatchesService {
     counts.forEach((c) => (phaseCounts[c.phase] = parseInt(c.count)));
 
     const isCorrupted =
-      (tid === 'WC2026' &&
+      (tid === DEFAULT_TOURNAMENT_ID &&
         ((phaseCounts['ROUND_32'] || 0) < 16 ||
           (phaseCounts['ROUND_16'] || 0) < 8 ||
           (phaseCounts['QUARTER'] || 0) < 4 ||
@@ -1346,7 +1347,7 @@ export class MatchesService {
     return { repaired: false, message: 'Structure OK.' };
   }
 
-  async rebuildBrackets(tid: string = 'WC2026') {
+  async rebuildBrackets(tid: string = DEFAULT_TOURNAMENT_ID) {
     console.log(`🔄 STARTING EMERGENCY BRACKET REBUILD FOR ${tid}`);
     // 1. Resetear Bracket (Borrar y Crear placeholders limpios)
     await this.seedRound32(tid);
@@ -1393,7 +1394,7 @@ export class MatchesService {
       .update(Match)
       .set({ tournamentId: 'UCL2526' })
       .where('homeTeam IN (:...teams)', { teams: uclTeams })
-      .andWhere("tournamentId = 'WC2026'")
+      .andWhere("tournamentId = '" + DEFAULT_TOURNAMENT_ID + "'")
       .execute();
 
     // Method 2: Update by Away Team
@@ -1402,7 +1403,7 @@ export class MatchesService {
       .update(Match)
       .set({ tournamentId: 'UCL2526' })
       .where('awayTeam IN (:...teams)', { teams: uclTeams })
-      .andWhere("tournamentId = 'WC2026'")
+      .andWhere("tournamentId = '" + DEFAULT_TOURNAMENT_ID + "'")
       .execute();
 
     const total = (res1.affected || 0) + (res2.affected || 0);
@@ -1554,7 +1555,7 @@ export class MatchesService {
   async setPhaseLock(
     phase: string,
     locked: boolean,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ) {
     const validPhases = [
       'PLAYOFF_1',
@@ -1602,7 +1603,7 @@ export class MatchesService {
   /**
    * Get status of all knockout phases
    */
-  async getAllPhaseStatus(tournamentId: string = 'WC2026') {
+  async getAllPhaseStatus(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const phases =
       tournamentId === 'UCL2526'
         ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']

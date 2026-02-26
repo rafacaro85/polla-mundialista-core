@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { League } from '../database/entities/league.entity';
@@ -48,7 +49,7 @@ export class DemoService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async provisionEnterpriseDemo(tournamentId: string = 'WC2026') {
+  async provisionEnterpriseDemo(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     return this.provisionDemo(
       this.DEMO_ENTERPRISE_LEAGUE_ID,
       this.DEMO_ADMIN_EMAIL,
@@ -57,7 +58,7 @@ export class DemoService {
     );
   }
 
-  async provisionSocialDemo(tournamentId: string = 'WC2026') {
+  async provisionSocialDemo(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     return this.provisionDemo(
       this.DEMO_SOCIAL_LEAGUE_ID,
       this.DEMO_SOCIAL_ADMIN_EMAIL,
@@ -249,7 +250,7 @@ export class DemoService {
     }
   }
 
-  async clearDemoData(leagueId?: string, tournamentId: string = 'WC2026') {
+  async clearDemoData(leagueId?: string, tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     try {
       console.log(`🧹 Clearing Demo Data for league ${targetLeagueId}...`);
@@ -292,7 +293,7 @@ export class DemoService {
     }
   }
 
-  async resetTournamentResults(tournamentId: string = 'WC2026') {
+  async resetTournamentResults(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     console.log(`🔄 Resetting Tournament Match Results for ${tournamentId}...`);
 
     // Reset Matches
@@ -346,7 +347,7 @@ export class DemoService {
     console.log(`✅ Tournament ${tournamentId} Reset Complete.`);
   }
 
-  async simulateNextMatch(tournamentId: string = 'WC2026') {
+  async simulateNextMatch(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     // Find first PENDING match
     const pendingMatch = await this.matchRepo.findOne({
       where: { tournamentId: tournamentId, status: 'PENDING' },
@@ -373,7 +374,7 @@ export class DemoService {
     };
   }
 
-  async simulateBatch(count: number = 5, tournamentId: string = 'WC2026') {
+  async simulateBatch(count: number = 5, tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const results = [];
     let lastPhase = null;
 
@@ -409,7 +410,7 @@ export class DemoService {
     text: string,
     points: number,
     leagueId?: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ) {
     const targetLeagueId = leagueId || this.DEMO_ENTERPRISE_LEAGUE_ID;
     const bonus = this.bonusRepo.create({

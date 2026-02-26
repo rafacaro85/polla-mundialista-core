@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
@@ -21,7 +22,7 @@ export class TournamentService {
    */
   async isGroupComplete(
     group: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<boolean> {
     const totalMatches = await this.matchesRepository.count({
       where: { phase: 'GROUP', group, tournamentId },
@@ -68,7 +69,7 @@ export class TournamentService {
    */
   async promoteFromGroup(
     group: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<void> {
     this.logger.log(
       `🔄 Checking promotion for Group ${group} in ${tournamentId}...`,
@@ -282,7 +283,7 @@ export class TournamentService {
    * Promociona los 8 mejores terceros a los partidos correspondientes
    * basados en el ranking global de terceros.
    */
-  async promoteBestThirds(tournamentId: string = 'WC2026'): Promise<void> {
+  async promoteBestThirds(tournamentId: string = DEFAULT_TOURNAMENT_ID): Promise<void> {
     this.logger.log(
       `🔄 Checking promotion for Best Thirds in ${tournamentId}...`,
     );
@@ -758,7 +759,7 @@ export class TournamentService {
 
   async promotePhaseWinners(
     phase: string,
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<void> {
     this.logger.log(
       `🏁 Batch promoting winners for phase: ${phase} in ${tournamentId}`,
@@ -783,7 +784,7 @@ export class TournamentService {
    * Promociona todos los grupos completos
    */
   async promoteAllCompletedGroups(
-    tournamentId: string = 'WC2026',
+    tournamentId: string = DEFAULT_TOURNAMENT_ID,
   ): Promise<void> {
     const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 

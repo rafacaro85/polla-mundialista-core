@@ -92,11 +92,15 @@ export class LeaguesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get('all')
-  async getAllLeagues(@Query('tournamentId') tournamentId?: string) {
+  async getAllLeagues(
+    @Query('tournamentId') tournamentId?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+  ) {
     console.log(
       `📋 [GET /leagues/all] Listando todas las ligas (tournamentId: ${tournamentId})...`,
     );
-    return this.leaguesService.getAllLeagues(tournamentId);
+    return this.leaguesService.getAllLeagues(tournamentId, page, limit);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -146,12 +150,16 @@ export class LeaguesController {
   async getLeagueParticipants(
     @Param('id') leagueId: string,
     @Req() req: Request,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
   ) {
     const userPayload = req.user as { id: string; role?: string };
     return this.leaguesService.getParticipants(
       leagueId,
       userPayload.id,
       userPayload.role,
+      page,
+      limit,
     );
   }
 

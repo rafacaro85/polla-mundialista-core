@@ -95,12 +95,13 @@ export class LeaguesService {
         throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');
       }
 
-      creator = await queryRunner.manager.findOne(User, {
+      const foundUser = await queryRunner.manager.findOne(User, {
         where: { id: userId },
       });
-      if (!creator) {
+      if (!foundUser) {
         throw new NotFoundException(`User with ID ${userId} not found.`);
       }
+      creator = foundUser;
 
       // SUPER ADMIN: Crear liga para TERCERO (Empresa)
       if (creator.role === UserRole.SUPER_ADMIN && adminEmail && adminPassword) {

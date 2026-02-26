@@ -5,11 +5,12 @@ import {
   InternalServerErrorException,
   ForbiddenException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, In, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { League } from '../database/entities/league.entity';
 import { User } from '../database/entities/user.entity';
@@ -36,6 +37,8 @@ import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class LeaguesService {
+  private readonly logger = new Logger(LeaguesService.name);
+
   // Forced redeploy: 2026-02-22T21:30:00Z
   constructor(
     @InjectRepository(League)
@@ -52,12 +55,20 @@ export class LeaguesService {
     private pdfService: PdfService,
     private telegramService: TelegramService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
   async createLeague(
     userId: string,
     createLeagueDto: CreateLeagueDto,
   ): Promise<League> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let savedLeague: League;
+    let creator: User;
+
     try {
       const {
         name,
@@ -74,31 +85,17 @@ export class LeaguesService {
         tournamentId,
       } = createLeagueDto;
 
-      console.log('--- CREATE LEAGUE DEBUG ---');
-      console.log('Package Type:', packageType);
-      console.log(
-        'Calculated isPaid:',
-        packageType === 'starter' || packageType === 'FREE',
-      );
-      console.log('---------------------------');
+      this.logger.log('Creating league', { userId, packageType });
 
-      // Validate maxUsers based on packageType
-      // This is a basic validation, you might want to move this to a config or constant
       if (packageType === 'starter' && maxParticipants > 3) {
-        throw new BadRequestException(
-          'El plan Starter solo permite hasta 3 participantes.',
-        );
+        throw new BadRequestException('El plan Starter solo permite hasta 3 participantes.');
       }
-      // Add more validations for other plans if needed
 
-      // Si es tipo 'VIP' (m x 5)
       if (type === LeagueType.VIP && maxParticipants > 5) {
-        throw new BadRequestException(
-          'Las ligas VIP no pueden tener m s de 5 participantes.',
-        );
+        throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');
       }
 
-      let creator = await this.userRepository.findOne({
+      creator = await queryRunner.manager.findOne(User, {
         where: { id: userId },
       });
       if (!creator) {
@@ -106,53 +103,36 @@ export class LeaguesService {
       }
 
       // SUPER ADMIN: Crear liga para TERCERO (Empresa)
-      if (
-        creator.role === UserRole.SUPER_ADMIN &&
-        adminEmail &&
-        adminPassword
-      ) {
-        const targetUser = await this.userRepository.findOne({
+      if (creator.role === UserRole.SUPER_ADMIN && adminEmail && adminPassword) {
+        const targetUser = await queryRunner.manager.findOne(User, {
           where: { email: adminEmail },
         });
 
         if (targetUser) {
-          console.log(
-            `     [CreateLeague] Asignando liga a usuario existente: ${adminEmail}`,
-          );
+          this.logger.log('Assigning league to existing user', { userId: targetUser.id });
           creator = targetUser;
         } else {
-          console.log(
-            `     [CreateLeague] Creando nuevo usuario para empresa: ${adminEmail}`,
-          );
           const hashedPassword = await bcrypt.hash(adminPassword, 10);
-          const newUser = this.userRepository.create({
+          const newUser = queryRunner.manager.create(User, {
             email: adminEmail,
             fullName: adminName || 'Administrador Empresa',
-            nickname: adminName || adminEmail.split('@')[0], // Fallback nickname
+            nickname: adminName || adminEmail.split('@')[0],
             password: hashedPassword,
             phoneNumber: adminPhone,
-            isVerified: true, // Auto-verificado por SuperAdmin
+            isVerified: true,
             role: UserRole.PLAYER,
           });
-          creator = await this.userRepository.save(newUser);
+          creator = await queryRunner.manager.save(newUser);
+          this.logger.log('Creating new enterprise user', { userId: creator.id });
         }
       }
 
-      console.log(`🏢 [LeaguesService] createLeague: name=${name}, type=${type}, isEnterprise=${isEnterprise}, pkg=${packageType}`);
-      
-      // --- LIMIT CHECK: 1 Free League Per User Per Tournament ---
       const targetTournamentId = tournamentId || 'WC2026';
-      const isFreePlan = [
-        'familia',
-        'starter',
-        'FREE',
-        'launch_promo',
-        'ENTERPRISE_LAUNCH',
-      ].includes(packageType);
+      const isFreePlan = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
+      // 1. Operación: Verificar límite de ligas
       if (isFreePlan) {
-        // Count existing leagues for this user in this tournament
-        const existingLeaguesCount = await this.leaguesRepository.count({
+        const existingLeaguesCount = await queryRunner.manager.count(League, {
           where: {
             creator: { id: creator.id },
             tournamentId: targetTournamentId,
@@ -160,16 +140,11 @@ export class LeaguesService {
         });
 
         if (existingLeaguesCount >= 1) {
-          throw new BadRequestException(
-            'Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.',
-          );
+          throw new BadRequestException('Ya tienes una polla creada para este torneo. Solo se permite una polla gratuita por usuario.');
         }
       }
-      // -----------------------------------------------------
 
-      // Generar c  digo autom tico si no se proporciona
       let code = accessCodePrefix;
-
       if (!code) {
         if ((isEnterprise || type === LeagueType.COMPANY) && companyName) {
           code = this.generateEnterpriseCode(companyName);
@@ -178,107 +153,54 @@ export class LeaguesService {
         }
       }
 
-      const league = this.leaguesRepository.create({
+      const isActuallyPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
+
+      // 2. Operación: Guardar la liga
+      const league = queryRunner.manager.create(League, {
         name,
         type,
         maxParticipants,
         creator,
         accessCodePrefix: code,
-        // Si es 'familia' o 'starter' (gratis), se considera pagado/activo.
-        // Si es ENTERPRISE creada por SuperAdmin, se asume pagada o pendiente seg  n config,
-        // pero generalmente las empresas se crean activas o pendientes.
-        // Asumiremos que si viene de SuperAdmin es ENTERPRISE y quizas pagada manual, pero dejemos isPaid false si no es free,
-        // luego el admin la activa con el bot  n de pago si es necesario, O si es Enterprise activarla.
-        // ACTUALIZACI  N: Si es enterprise, createLeagueDto suele marcar isEnterpriseActive en otro lado, pero aqu   isPaid se rige por type.
-        // Vamos a dejar la l  gica actual: solo FREE es paid auto. Enterprise se paga manual o por bot  n.
-        isPaid: [
-          'familia',
-          'starter',
-          'FREE',
-          'launch_promo',
-          'ENTERPRISE_LAUNCH',
-        ].includes(packageType),
+        isPaid: isActuallyPaid,
         packageType,
         isEnterprise: !!isEnterprise,
-        // Auto-activate enterprise features for launch promo
         isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH',
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,
-        tournamentId: tournamentId || 'WC2026', // Default to WC2026 if not provided
+        tournamentId: targetTournamentId,
       });
 
-      const savedLeague = await this.leaguesRepository.save(league);
+      savedLeague = await queryRunner.manager.save(league);
 
-      //      Admin Alert (    ) - New League
-      const isPaid = [
-        'familia',
-        'starter',
-        'FREE',
-        'launch_promo',
-        'ENTERPRISE_LAUNCH',
-      ].includes(packageType); // Logic copied from isPaid above
-      const creatorPhone = adminPhone || creator.phoneNumber; // Use provided admin phone or fallback to profile
-      const creatorName = adminName || creator.fullName;
-
-      this.telegramService
-        .notifyNewLeague(
-          savedLeague.name,
-          savedLeague.accessCodePrefix || 'N/A',
-          creator.email,
-          creatorPhone,
-          creatorName,
-          packageType,
-        )
-        .catch((e) => console.error('Telegram Error (Leagues):', e));
-
-      // ACTUALIZAR DATOS DEL USUARIO (Fidelizaci  n)
-      // Si el usuario proporcion   un tel  fono de contacto para la liga, lo guardamos en su perfil
-      // Solo si NO acabamos de crear al usuario con ese dato
+      // 4. Operación: Actualizar teléfono del usuario
       if (adminPhone && creator.phoneNumber !== adminPhone) {
         creator.phoneNumber = adminPhone;
-        await this.userRepository.save(creator);
-        console.log(
-          `     [CreateLeague] Actualizado tel  fono del usuario ${creator.id}: ${adminPhone}`,
-        );
+        await queryRunner.manager.save(creator);
+        this.logger.log('Updating user phone number', { userId: creator.id });
       }
 
-      // Create Transaction only for FREE plans
-      if (
-        [
-          'familia',
-          'starter',
-          'FREE',
-          'launch_promo',
-          'ENTERPRISE_LAUNCH',
-        ].includes(packageType)
-      ) {
-        await this.transactionsService.createTransaction(
-          creator,
-          0,
-          packageType,
-          savedLeague.id,
-          tournamentId || 'WC2026',
-          TransactionStatus.PAID,
-        );
+      // 5. Operación: Crear transacción de $0
+      if (isFreePlan) {
+        const transaction = queryRunner.manager.create(Transaction, {
+          user: creator,
+          amount: 0,
+          packageId: packageType,
+          league: savedLeague,
+          status: TransactionStatus.PAID,
+          tournamentId: targetTournamentId,
+          referenceCode: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        });
+        await queryRunner.manager.save(transaction);
       }
 
-      // Automatically add the creator as a participant
-      const isActuallyPaid = [
-        'familia',
-        'starter',
-        'FREE',
-        'launch_promo',
-        'ENTERPRISE_LAUNCH',
-      ].includes(packageType);
-
-      const participant = this.leagueParticipantsRepository.create({
+      // 6. Operación: Agregar al creador como participante
+      const participant = queryRunner.manager.create(LeagueParticipant, {
         user: creator,
         league: savedLeague,
         isAdmin: true,
-        status: isActuallyPaid
-          ? LeagueParticipantStatus.ACTIVE
-          : LeagueParticipantStatus.PENDING,
+        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING,
         isPaid: false,
         totalPoints: 0,
         triviaPoints: 0,
@@ -286,19 +208,15 @@ export class LeaguesService {
         bracketPoints: 0,
         jokerPoints: 0,
       });
-      await this.leagueParticipantsRepository.save(participant);
+      await queryRunner.manager.save(participant);
 
-      return savedLeague;
+      await queryRunner.commitTransaction();
     } catch (error) {
-      // Log FULL error details including PostgreSQL-specific fields
-      console.error('❌ Error in createLeague:', {
-        message: error.message,
-        detail: error.detail,
-        code: error.code,
-        table: error.table,
-        column: error.column,
-        constraint: error.constraint,
-        stack: error.stack,
+      await queryRunner.rollbackTransaction();
+
+      this.logger.error('Failed to create league', { 
+        error: error.message,
+        code: error.code 
       });
 
       if (
@@ -309,11 +227,34 @@ export class LeaguesService {
         throw error;
       }
 
-      // Return the actual PG error message so it reaches the frontend logs
       throw new InternalServerErrorException(
-        `Failed to create league: ${error.message} | detail: ${error.detail || 'none'} | code: ${error.code || 'none'}`,
+        `Failed to create league: ${error.message} | code: ${error.code || 'none'}`,
       );
+    } finally {
+      await queryRunner.release();
     }
+
+    // FUERA DE LA TRANSACCIÓN
+    // 3. Efecto Secundario: Notificación Telegram
+    try {
+      if (savedLeague && creator) {
+        const creatorPhone = createLeagueDto.adminPhone || creator.phoneNumber;
+        const creatorName = createLeagueDto.adminName || creator.fullName;
+
+        await this.telegramService.notifyNewLeague(
+          savedLeague.name,
+          savedLeague.accessCodePrefix || 'N/A',
+          creator.email,
+          creatorPhone,
+          creatorName,
+          createLeagueDto.packageType,
+        );
+      }
+    } catch (telegramError) {
+      this.logger.warn('Telegram notification failed', { leagueId: savedLeague?.id });
+    }
+
+    return savedLeague;
   }
 
   private generateCode(): string {

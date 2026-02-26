@@ -22,7 +22,7 @@ export class LeagueExtraController {
     private readonly leaguesService: LeaguesService,
   ) {}
 
-  private async checkAdmin(leagueId: string, req: any) {
+  private async checkAdmin(leagueId: string, req: any, type: 'prize' | 'banner') {
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
     if (isSuperAdmin) return true;
 
@@ -30,10 +30,37 @@ export class LeagueExtraController {
       leagueId,
       req.user.id,
     );
-    if (!league.isAdmin) {
+
+    const isLeagueAdmin =
+      league.creatorId === req.user.id ||
+      league.participants?.some(
+        (p: any) => p.userId === req.user.id && p.isAdmin,
+      );
+
+    if (!isLeagueAdmin) {
       throw new ForbiddenException(
         'You do not have permission to manage this league',
       );
+    }
+
+    const plan = (league.packageType || '').toUpperCase();
+    const isEnterprise =
+      league.isEnterprise || league.type === 'company' || plan === 'ENTERPRISE_LAUNCH';
+
+    if (type === 'prize') {
+      if (!isEnterprise) {
+        throw new ForbiddenException(
+          'Solo las pollas empresariales pueden subir imágenes de premios.',
+        );
+      }
+    }
+
+    if (type === 'banner') {
+      if (!isEnterprise || plan.includes('BRONZE')) {
+        throw new ForbiddenException(
+          'La subida de publicidad requiere un plan SILVER o superior.',
+        );
+      }
     }
   }
 
@@ -50,7 +77,7 @@ export class LeagueExtraController {
     @Body() data: any,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'prize');
     return this.extraService.createPrize(leagueId, data);
   }
 
@@ -61,7 +88,7 @@ export class LeagueExtraController {
     @Body() data: any,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'prize');
     return this.extraService.updatePrize(prizeId, data);
   }
 
@@ -71,7 +98,7 @@ export class LeagueExtraController {
     @Param('prizeId') prizeId: string,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'prize');
     return this.extraService.deletePrize(prizeId);
   }
 
@@ -81,7 +108,7 @@ export class LeagueExtraController {
     @Body() body: { prizeIds: string[] },
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'prize');
     return this.extraService.reorderPrizes(leagueId, body.prizeIds);
   }
 
@@ -98,7 +125,7 @@ export class LeagueExtraController {
     @Body() data: any,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'banner');
     return this.extraService.createBanner(leagueId, data);
   }
 
@@ -109,7 +136,7 @@ export class LeagueExtraController {
     @Body() data: any,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'banner');
     return this.extraService.updateBanner(bannerId, data);
   }
 
@@ -119,7 +146,7 @@ export class LeagueExtraController {
     @Param('bannerId') bannerId: string,
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'banner');
     return this.extraService.deleteBanner(bannerId);
   }
 
@@ -129,7 +156,7 @@ export class LeagueExtraController {
     @Body() body: { bannerIds: string[] },
     @Req() req: any,
   ) {
-    await this.checkAdmin(leagueId, req);
+    await this.checkAdmin(leagueId, req, 'banner');
     return this.extraService.reorderBanners(leagueId, body.bannerIds);
   }
 }

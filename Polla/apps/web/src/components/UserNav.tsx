@@ -16,6 +16,14 @@ export function UserNav() {
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  // Hydration state para evitar mostrar "Ingresar" en el primer render de servidor 
+  // antes de que Zustand cargue de localStorage
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -28,17 +36,13 @@ export function UserNav() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (isLoading) {
-    return <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse" />;
+  if (!isMounted || isLoading) {
+    return <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse border border-white/10" />;
   }
 
   if (!user) {
     // Sin sesión activa — mostrar botón de login
     // (la sesión se verifica al cargar via cookie httpOnly + /auth/profile)
-    if (isLoading) {
-      return <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse border border-white/10" />;
-    }
-
     return (
       <Link href="/login">
         <Button variant="ghost" className="text-emerald-500 hover:text-emerald-400 font-bold text-xs uppercase tracking-widest">Ingresar</Button>

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
    COMPONENTE: USER MENU (DROPDOWN TACTICAL)
    ============================================================================= */
 export function UserNav() {
-  const { user, isLoading, logout, selectedLeagueId } = useAppStore();
+  const { user, isLoading, logout, selectedLeagueId, syncUserFromServer } = useAppStore();
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +23,12 @@ export function UserNav() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Si la página está montada y no sabemos quién es el usuario (localStorage vacío),
+    // intentamos buscar su sesión en el servidor en caso de que tenga la cookie httpOnly
+    if (!useAppStore.getState().user) {
+        void syncUserFromServer();
+    }
+  }, [syncUserFromServer]);
 
   // Cerrar al hacer clic fuera
   useEffect(() => {

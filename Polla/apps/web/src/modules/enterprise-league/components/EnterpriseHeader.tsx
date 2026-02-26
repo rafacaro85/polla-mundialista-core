@@ -32,26 +32,39 @@ export const EnterpriseHeader = ({ league, myDepartment = 'General', isEnterpris
     return (
         <header className="border-b border-white/5 bg-[var(--brand-bg,#0F172A)] sticky top-0 z-50">
             {/* Fila 1: Branding y Perfil Estilo Círculo */}
-            <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                    {league.tournamentId && (
-                        <img
-                            src={
-                                (league.tournamentId || '').toUpperCase().includes('UCL')
-                                    ? '/images/ucl-logo.png'
-                                    : '/images/wc-logo.png'
-                            }
-                            alt="Torneo"
-                            className={`h-14 md:h-16 w-auto object-contain ${
-                                (league.tournamentId || '').toUpperCase().includes('UCL')
-                                    ? 'brightness-0 invert'
-                                    : ''
-                            }`}
-                        />
+            <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    {/* LOGO MARCA / LPV */}
+                    {isEnterpriseMode ? (
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow-lg flex items-center justify-center border border-white/10 overflow-hidden shrink-0">
+                            {league.brandingLogoUrl ? (
+                                <img src={league.brandingLogoUrl} alt={league.companyName} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="p-2 w-full h-full flex items-center justify-center">
+                                    <Shield className="w-full h-full text-[var(--brand-primary)]" />
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="h-12 md:h-16 flex items-center justify-center shrink-0">
+                            <img src="/images/lpv/lpv-icon.png" alt="Polla Virtual Logo" className="h-full w-auto object-contain drop-shadow-xl" />
+                        </div>
                     )}
-                    <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-[var(--brand-heading,#FFFFFF)] leading-none italic mt-1">
-                        {league.name}
-                    </h2>
+
+                    {/* NOMBRE LIGA / EMPRESA */}
+                    <div className="flex flex-col">
+                        <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter text-[var(--brand-heading,#FFFFFF)] leading-none italic">
+                            {isEnterpriseMode ? (league.companyName || league.name) : league.name}
+                        </h2>
+                        {isEnterpriseMode && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="w-1.5 h-1.5 bg-[var(--brand-primary,#00E676)] rounded-full animate-pulse shadow-[0_0_8px_var(--brand-primary)]" />
+                                <p className="text-[8px] md:text-[9px] text-[var(--brand-primary,#00E676)] font-black uppercase tracking-[0.2em]">
+                                    Canal Corporativo
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Lado Derecho: Torneo + Perfil */}
@@ -137,48 +150,38 @@ export const EnterpriseHeader = ({ league, myDepartment = 'General', isEnterpris
                 </div>
             </div>
 
-            {/* Fila 2: Navegación */}
-            <div className="bg-transparent border-none">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 py-2">
+            {/* Fila 2: Navegación + Torneo */}
+            <div className="bg-transparent border-t border-white/5">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-3 flex items-center justify-between">
                     <button
                         onClick={() => router.push(backUrl)}
                         className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-colors flex items-center gap-2 group"
                     >
                         <span className="group-hover:translate-x-[-2px] transition-transform">←</span> VOLVER
                     </button>
-                </div>
-            </div>
 
-            {/* Fila 3: Logo de la Empresa (Centrado) */}
-            <div className={`bg-transparent flex flex-col items-center justify-center ${isEnterpriseMode ? 'py-4 md:py-6' : 'py-2 md:py-3'}`}>
-                {isEnterpriseMode ? (
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center border-2 border-white/10 overflow-hidden shrink-0 mb-4">
-                        {league.brandingLogoUrl ? (
-                            <img src={league.brandingLogoUrl} alt={league.companyName} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="p-3 w-full h-full flex items-center justify-center">
-                                <Shield className="w-full h-full text-[var(--brand-primary)]" />
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="w-40 h-40 md:w-56 md:h-56 flex items-center justify-center">
-                        <img src="/images/lpv/lpv-icon.png" alt="Polla Virtual Logo" className="w-full h-full object-contain drop-shadow-2xl" />
-                    </div>
-                )}
-                {isEnterpriseMode && (
-                    <div className="flex flex-col items-center px-4 md:px-0">
-                        <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-[var(--brand-heading,#FFFFFF)] leading-none italic text-center">
-                            {league.companyName || league.name}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-3">
-                            <span className="w-3 h-3 bg-[var(--brand-primary,#00E676)] rounded-full animate-pulse shadow-[0_0_10px_var(--brand-primary)]" />
-                            <p className="text-xs text-[var(--brand-primary,#00E676)] font-black uppercase tracking-[0.2em]">
-                                Canal Corporativo
-                            </p>
+                    {/* LOGO TORNEO */}
+                    {league.tournamentId && (
+                        <div className="flex items-center gap-3">
+                            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 hidden sm:block">
+                                Torneo Oficial
+                            </span>
+                            <img
+                                src={
+                                    (league.tournamentId || '').toUpperCase().includes('UCL')
+                                        ? '/images/ucl-logo.png'
+                                        : '/images/wc-logo.png'
+                                }
+                                alt="Torneo"
+                                className={`h-10 md:h-12 w-auto object-contain ${
+                                    (league.tournamentId || '').toUpperCase().includes('UCL')
+                                        ? 'brightness-0 invert'
+                                        : ''
+                                }`}
+                            />
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </header>
     );

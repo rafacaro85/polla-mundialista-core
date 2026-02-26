@@ -43,6 +43,7 @@ import { useTournament } from '@/hooks/useTournament';
 import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
 import { SmartLeagueHome } from './dashboard/home/SmartLeagueHome';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface Match {
   id: string;
@@ -383,45 +384,55 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 </div>
               ) : (
                 // Liga Social: Dashboard inteligente
-                <SmartLeagueHome
-                  currentLeague={currentLeague as any}
-                  matches={matches}
-                  onNavigate={setActiveTab}
-                />
+                <ErrorBoundary>
+                  <SmartLeagueHome
+                    currentLeague={currentLeague as any}
+                    matches={matches}
+                    onNavigate={setActiveTab}
+                  />
+                </ErrorBoundary>
               )}
             </div>
           )}
 
           {activeTab === 'leagues' && (
-            <LeaguesList initialTab={leaguesTab} />
+            <ErrorBoundary>
+              <LeaguesList initialTab={leaguesTab} />
+            </ErrorBoundary>
           )}
 
           {/* 3. PREDICTIONS (Unified View) */}
           {activeTab === 'predictions' && (
-             <PredictionsView 
-                matches={matches}
-                onRefresh={handleFullRefresh}
-                isRefreshing={isRefreshing}
-                leagueId={selectedLeagueId}
-                tournamentId={leagueTournamentId}
-             />
+             <ErrorBoundary>
+               <PredictionsView 
+                  matches={matches}
+                  onRefresh={handleFullRefresh}
+                  isRefreshing={isRefreshing}
+                  leagueId={selectedLeagueId}
+                  tournamentId={leagueTournamentId}
+               />
+             </ErrorBoundary>
           )}
 
           {/* 4. RANKING (Unified View) */}
           {activeTab === 'ranking' && (
-             <RankingView 
-                leagueId={selectedLeagueId}
-                isEnterpriseMode={isEnterpriseMode}
-                currentLeague={currentLeague}
-                matches={matches}
-                tournamentId={tournamentId}
-             />
+             <ErrorBoundary>
+               <RankingView 
+                  leagueId={selectedLeagueId}
+                  isEnterpriseMode={isEnterpriseMode}
+                  currentLeague={currentLeague}
+                  matches={matches}
+                  tournamentId={tournamentId}
+               />
+             </ErrorBoundary>
           )}
 
           {/* 5. BONUS */}
           {activeTab === 'bonus' && (
               <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <BonusView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
+                <ErrorBoundary>
+                  <BonusView leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId} />
+                </ErrorBoundary>
               </div>
           )}
           

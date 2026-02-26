@@ -32,6 +32,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { UserStatusBlock } from '@/components/UserStatusBlock';
 import { MoneyCard } from '@/components/MoneyCard';
 import { Progress } from '@/components/ui/progress';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface EnterpriseLeagueHomeProps {
     league: any;
@@ -388,15 +389,17 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
 
                     {/* BLOQUE E: TU ESTADO (SIDEBAR MODE) */}
                     <div className="lg:col-span-1">
-                        <UserStatusBlock 
-                            currentLeagueId={league.id}
-                            matches={matches}
-                            variant="side"
-                            onNavigate={(tab) => {
-                                 if (tab === 'predictions') router.push(`/leagues/${league.id}/predictions`);
-                                 else if (tab === 'ranking') router.push(`/leagues/${league.id}/ranking`);
-                            }}
-                        />
+                        <ErrorBoundary>
+                            <UserStatusBlock 
+                                currentLeagueId={league.id}
+                                matches={matches}
+                                variant="side"
+                                onNavigate={(tab) => {
+                                     if (tab === 'predictions') router.push(`/leagues/${league.id}/predictions`);
+                                     else if (tab === 'ranking') router.push(`/leagues/${league.id}/ranking`);
+                                }}
+                            />
+                        </ErrorBoundary>
                     </div>
                 </div>
 
@@ -415,7 +418,9 @@ export function EnterpriseLeagueHome({ league, participants, analytics, matches 
                 {/* FILA 3: GUERRA DE ÁREAS (DEBAJO DE PREMIOS) */}
                 <div className="w-full max-w-2xl mx-auto">
                     {showAreaWar && (
-                        <GuerraDeAreas analytics={analytics} leagueId={league.id} />
+                        <ErrorBoundary>
+                            <GuerraDeAreas analytics={analytics} leagueId={league.id} />
+                        </ErrorBoundary>
                     )}
                     {!showAreaWar && (
                          <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 opacity-40">

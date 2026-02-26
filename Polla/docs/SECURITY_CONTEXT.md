@@ -1,7 +1,7 @@
 # SECURITY_CONTEXT.md
 # Contexto de Seguridad y Hoja de Ruta Técnica — Polla Virtual
 # Mantenido por: Agente de Seguridad (Emamdual Solutions)
-# Última actualización: Febrero 2026
+# Última actualización: 25 Febrero 2026
 
 ---
 
@@ -142,11 +142,11 @@ polla-mundialista-core/
 |---|-------|-----------|--------|
 | A1 | Thundering herd en caché de rankings | `leagues.service.ts:427` | ⏳ PENDIENTE |
 | A2 | `createLeague` sin transacción completa | `leagues.service.ts:56` | ⏳ PENDIENTE |
-| A3 | JWT sin rol del usuario en payload | `auth.service.ts:70` | ⏳ PENDIENTE |
+| A3 | JWT sin rol del usuario en payload | `auth.service.ts:70` | ✅ DONE (74dd3bb) |
 | A4 | `tournamentId` con fallback silencioso (`\|\| 'WC2026'`) | 20+ archivos | ⏳ PENDIENTE |
 | A5 | Estados de partidos incompletos (PST, CANC, ABD) | `match-sync.service.ts:118` | ⏳ PENDIENTE |
 | A6 | Sin Error Boundaries en frontend | `apps/web/src/app/**` | ⏳ PENDIENTE |
-| A7 | `console.log` masivo en producción | Todo el backend | ⏳ PENDIENTE |
+| A7 | `console.log` masivo en producción | Todo el backend | ✅ DONE (74dd3bb) |
 
 ---
 

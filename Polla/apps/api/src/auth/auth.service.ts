@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -21,6 +22,8 @@ import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -67,7 +70,7 @@ export class AuthService {
       );
     }
 
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -93,11 +96,7 @@ export class AuthService {
       }
 
       // Usuario existe pero sin contraseña (creado con Google)
-      console.log(
-        '🔄 [Register] Usuario de Google encontrado. Agregando contraseña...',
-      );
-      console.log(`   Email: ${existingUser.email}`);
-      console.log(`   ID: ${existingUser.id}`);
+      this.logger.log('[Register] Usuario de Google encontrado. Agregando contraseña...', { userId: existingUser.id });
 
       const hashedPassword = await bcrypt.hash(registerDto.password, 10);
       const verificationCode = Math.floor(
@@ -117,26 +116,15 @@ export class AuthService {
       this.mailService
         .sendVerificationEmail(registerDto.email, verificationCode)
         .then(() =>
-          console.log(
-            `📧 [AuthService] Correo enviado a: ${registerDto.email}`,
-          ),
+          this.logger.log('Verification email sent', { userId: existingUser.id })
         )
         .catch((err) =>
-          console.error(`❌ [AuthService] Error enviando correo:`, err),
+          this.logger.error('Error enviando correo', err)
         );
 
       // MOCK SMS SERVICE (Si hay teléfono)
       if (registerDto.phoneNumber) {
-        console.log(
-          '📱 [MOCK SMS SERVICE] --------------------------------------------------',
-        );
-        console.log(`   To: ${registerDto.phoneNumber}`);
-        console.log(
-          `   Message: Your verification code is: ${verificationCode}`,
-        );
-        console.log(
-          '----------------------------------------------------------------------',
-        );
+        this.logger.log('Verification code sent via SMS', { userId: existingUser.id });
       }
 
       const { password, ...result } = updatedUser;
@@ -168,23 +156,15 @@ export class AuthService {
     this.mailService
       .sendVerificationEmail(registerDto.email, verificationCode)
       .then(() =>
-        console.log(`📧 [AuthService] Correo enviado a: ${registerDto.email}`),
+        this.logger.log('Verification email sent', { userId: user.id })
       )
       .catch((err) =>
-        console.error(`❌ [AuthService] Error enviando correo:`, err),
+        this.logger.error('Error enviando correo', err)
       );
 
     // MOCK SMS SERVICE (Si hay teléfono)
     if (registerDto.phoneNumber) {
-      console.log(
-        '📱 [MOCK SMS SERVICE] --------------------------------------------------',
-      );
-      console.log(`   To: ${registerDto.phoneNumber}`);
-      console.log(`   Message: Your verification code is: ${verificationCode}`);
-      console.log(`   Message: Your verification code is: ${verificationCode}`);
-      console.log(
-        '----------------------------------------------------------------------',
-      );
+      this.logger.log('Verification code sent via SMS', { userId: user.id });
     }
 
     // 📢 Admin Alert
@@ -243,10 +223,10 @@ export class AuthService {
     this.mailService
       .sendVerificationEmail(user.email, verificationCode)
       .then(() =>
-        console.log(`📧 [AuthService] Código reenviado a: ${user.email}`),
+        this.logger.log('Verification code resent', { userId: user.id })
       )
       .catch((err) =>
-        console.error(`❌ [AuthService] Error reenviando correo:`, err),
+        this.logger.error('Error reenviando correo', err)
       );
 
     return { message: 'New verification code sent' };
@@ -273,14 +253,9 @@ export class AuthService {
 
     try {
       await this.mailService.sendResetPasswordEmail(user.email, resetLink);
-      console.log(
-        `📧 [AuthService] Enlace de recuperación enviado a: ${user.email}`,
-      );
+      this.logger.log('Recovery link sent', { userId: user.id });
     } catch (error) {
-      console.error(
-        `❌ [AuthService] Error enviando correo de recuperación:`,
-        error,
-      );
+      this.logger.error('Error enviando correo de recuperación', error);
     }
 
     return { message: 'If the email exists, a recovery link has been sent.' };
@@ -310,7 +285,7 @@ export class AuthService {
 
       return { message: 'Password reset successfully. You can now login.' };
     } catch (error) {
-      console.error('❌ [AuthService] Error resetting password:', error);
+      this.logger.error('Error resetting password', error);
       throw new BadRequestException('Invalid or expired token');
     }
   }
@@ -321,19 +296,14 @@ export class AuthService {
     lastName: string;
     picture: string;
   }): Promise<User> {
-    console.log('🔍 [Google OAuth] Validando usuario de Google...');
-    console.log(`   📧 Email: ${profile.email}`);
-    console.log(`   👤 Nombre: ${profile.firstName} ${profile.lastName}`);
+    this.logger.log('[Google OAuth] Initializing validation...');
 
     // 🔥 BÚSQUEDA PRIMARIA: Buscar usuario existente por email
     const existingUser = await this.usersService.findByEmail(profile.email);
 
     if (existingUser) {
       // ✅ USUARIO EXISTE: Actualizar datos y retornar
-      console.log(`✅ [Google OAuth] Usuario encontrado en BD`);
-      console.log(`   ID: ${existingUser.id}`);
-      console.log(`   Rol: ${existingUser.role}`);
-      console.log(`   🔄 Actualizando foto de perfil...`);
+      this.logger.log('[Google OAuth] Usuario encontrado en BD, actualizando...', { userId: existingUser.id });
 
       // Actualizar solo foto y googleId si es necesario
       // Google users are automatically verified
@@ -343,14 +313,12 @@ export class AuthService {
         isVerified: true,
       });
 
-      console.log(`✅ [Google OAuth] Usuario actualizado y retornado`);
+      this.logger.log('[Google OAuth] Usuario actualizado exitosamente', { userId: updatedUser.id });
       return updatedUser;
     }
 
     // ❌ USUARIO NO EXISTE: Crear nuevo usuario
-    console.log(
-      `📝 [Google OAuth] Usuario NO encontrado. Creando nuevo usuario...`,
-    );
+    this.logger.log('[Google OAuth] Usuario NO encontrado. Creando nuevo usuario...');
 
     const newUser = await this.usersService.create(
       profile.email,
@@ -366,12 +334,9 @@ export class AuthService {
     // 📢 Admin Alert (si es nuevo)
     this.telegramService
       .notifyNewUser(newUser.email, newUser.fullName, newUser.phoneNumber)
-      .catch((e) => console.error('Telegram Error:', e));
+      .catch((e) => this.logger.error('Telegram Error', e));
 
-    console.log(`✅ [Google OAuth] Nuevo usuario creado`);
-    console.log(`   ID: ${newUser.id}`);
-    console.log(`   Email: ${newUser.email}`);
-    console.log(`   Rol: ${newUser.role}`);
+    this.logger.log('[Google OAuth] Nuevo usuario creado', { userId: newUser.id, role: newUser.role });
 
     return newUser;
   }

@@ -284,28 +284,21 @@ export function UserNav() {
 
           {isAdmin && (
             <>
-              {/* En contexto empresa, solo mostramos Super Admin si lo es. Ocultamos Panel Administrador de Pollas */}
-              {(userData.role === 'SUPER_ADMIN' || !isEnterpriseContext) && (
+              {/* En contexto empresa o social, siempre mostramos Super Admin si lo es. */}
+              {(userData.role === 'SUPER_ADMIN') && (
                 <MenuItem
                   icon={Shield}
                   label="Super Admin"
                   onClick={handleSuperAdmin}
-                  isSpecial
                   hasArrow
                 />
               )}
               
-              {!isEnterpriseContext && (
+              {(!isEnterpriseContext && selectedLeagueId && selectedLeagueId !== 'global' && !pathname?.endsWith('/mis-pollas')) && (
                 <MenuItem
                   icon={Settings}
-                  label={selectedLeagueId && selectedLeagueId !== 'global' ? "Administrar Polla" : "Admin. Pollas Sociales"}
-                  onClick={() => {
-                    if (selectedLeagueId && selectedLeagueId !== 'global') {
-                      router.push(`/leagues/${selectedLeagueId}/admin`);
-                    } else {
-                      router.push('/leagues-admin');
-                    }
-                  }}
+                  label="Administrar Polla"
+                  onClick={() => router.push(`/leagues/${selectedLeagueId}/admin`)}
                   hasArrow
                 />
               )}

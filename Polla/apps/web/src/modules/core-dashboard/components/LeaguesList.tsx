@@ -147,7 +147,7 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                                     <button
                                         onClick={() => router.push(`/leagues/${league.id}/admin`)}
                                         className="h-8 w-8 p-0 rounded-md bg-[#334155] text-[#94A3B8] border-none cursor-pointer flex items-center justify-center hover:bg-[#475569] transition-colors"
-                                        title="Configuración"
+                                        title="Panel de Control"
                                     >
                                         <Settings size={14} />
                                     </button>
@@ -215,15 +215,13 @@ export const LeaguesList = ({ initialTab = 'social' }: { initialTab?: 'social' |
                             ) : (
                                 // CASO 4: Admin Polla Social
                                 <div className="flex gap-2">
-                                    {league.isPaid && (
-                                        <button
-                                            onClick={() => router.push(`/leagues/${league.id}/admin`)}
-                                            className="h-8 w-8 p-0 rounded-md bg-[#334155] text-[#94A3B8] border-none cursor-pointer flex items-center justify-center hover:bg-[#475569] transition-colors"
-                                            title="Configuración"
-                                        >
-                                            <Settings size={14} />
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => router.push(`/leagues/${league.id}/admin`)}
+                                        className="h-8 w-8 p-0 rounded-md bg-[#334155] text-[#94A3B8] border-none cursor-pointer flex items-center justify-center hover:bg-[#475569] transition-colors"
+                                        title="Panel de Control"
+                                    >
+                                        <Settings size={14} />
+                                    </button>
 
                                     {league.status === 'REJECTED' ? (
                                         <button

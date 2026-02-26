@@ -400,10 +400,8 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
 
                     {/* SOCIAL HEADER — Standard UI for non-enterprise leagues */}
                     {!isEnterprise && showLayoutUI && (
-                        <Header 
-                            userName={user?.nickname || user?.fullName || 'Usuario'}
-                            leagueName={league.name}
-                            tournamentId={league.tournamentId}
+                        <EnterpriseHeader
+                            league={league}
                             isEnterprise={false}
                         />
                     )}

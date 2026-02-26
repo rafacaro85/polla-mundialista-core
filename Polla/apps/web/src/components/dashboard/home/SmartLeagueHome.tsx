@@ -87,7 +87,6 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
       {/* ═══════════════════════════════════════════════
           BLOQUE 0 — HERO (Welcome Banner)
           ═══════════════════════════════════════════════ */}
-      <div className="px-4">
         <div className="relative h-[480px] rounded-[2.5rem] overflow-hidden shadow-2xl group border border-white/5">
           <img 
             src={currentLeague?.brandCoverUrl || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000'} 
@@ -117,18 +116,15 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
             </div>
           </div>
         </div>
-      </div>
 
       {/* ═══════════════════════════════════════════════
           BLOQUE 1 — Estado inteligente del jugador
           ═══════════════════════════════════════════════ */}
-      <div className="px-4">
-        <UserStatusBlock 
-          currentLeagueId={currentLeague?.id || ''}
-          matches={matches}
-          onNavigate={onNavigate}
-        />
-      </div>
+      <UserStatusBlock 
+        currentLeagueId={currentLeague?.id || ''}
+        matches={matches}
+        onNavigate={onNavigate}
+      />
 
       {/* ═══════════════════════════════════════════════
           BLOQUE 2 — Premio Mayor
@@ -137,7 +133,6 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
         ? currentLeague?.prizeAmount != null
         : !!(currentLeague?.prizeImageUrl || currentLeague?.prizeDetails)
       ) && (
-        <div className="px-4">
           <div className="bg-[#1E293B] border border-white/5 rounded-3xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 pt-4 pb-3">
               <Trophy size={14} className="text-[#00E676]" />
@@ -169,14 +164,12 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
               <p className="px-4 pb-4 text-sm text-white font-medium leading-relaxed">{currentLeague.prizeDetails}</p>
             )}
           </div>
-        </div>
       )}
 
       {/* ═══════════════════════════════════════════════
           BLOQUE 3 — Invitación
           ═══════════════════════════════════════════════ */}
       {currentLeague?.code && (
-        <div className="px-4">
           <div className="bg-[#1E293B] border border-white/5 rounded-3xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -225,7 +218,6 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
               </button>
             </div>
           </div>
-        </div>
       )}
 
     </div>

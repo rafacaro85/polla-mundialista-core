@@ -111,7 +111,7 @@ export const EnterpriseHeader = ({ league, myDepartment = 'General', isEnterpris
                                                 </button>
                                             )}
 
-                                            {user?.role === 'SUPER_ADMIN' && (
+                                            {user?.role?.toUpperCase() === 'SUPER_ADMIN' && (
                                                 <button
                                                     onClick={() => { setShowMenu(false); router.push('/super-admin'); }}
                                                     className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-yellow-500/80 hover:text-yellow-500 hover:bg-yellow-500/5 rounded-xl transition-all"

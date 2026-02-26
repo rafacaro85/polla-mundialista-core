@@ -145,7 +145,11 @@ export class MatchSyncService {
         if (elapsed !== null) match.minute = elapsed;
 
         // STATUS LOGIC
-        if (['FT', 'AET', 'PEN'].includes(statusShort)) {
+        const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
+        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE', 'INT'];
+        const CANCELLED_STATUSES = ['PST', 'CANC', 'ABD'];
+
+        if (FINISHED_STATUSES.includes(statusShort)) {
           if (match.status !== 'FINISHED') {
             match.status = 'FINISHED';
             await this.matchesRepository.save(match);
@@ -158,14 +162,16 @@ export class MatchSyncService {
           } else {
             await this.matchesRepository.save(match);
           }
-        } else if (
-          ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE', 'INT'].includes(
-            statusShort,
-          )
-        ) {
+        } else if (LIVE_STATUSES.includes(statusShort)) {
           if (match.status !== 'LIVE') {
             match.status = 'LIVE';
             this.logger.log(`🔴 Match ${match.id} is now LIVE.`);
+          }
+          await this.matchesRepository.save(match);
+        } else if (CANCELLED_STATUSES.includes(statusShort)) {
+          if (match.status !== statusShort) {
+            match.status = statusShort; // Guarda PST, CANC o ABD
+            this.logger.warn('Match postponed or cancelled', { matchId: match.id, status: statusShort });
           }
           await this.matchesRepository.save(match);
         } else {

@@ -64,6 +64,14 @@ export class PredictionsService {
       throw new NotFoundException('Match not found');
     }
 
+    const BLOCKED_STATUSES = ['FINISHED', 'LIVE', 'PST', 'CANC', 'ABD'];
+
+    if (BLOCKED_STATUSES.includes(match.status)) {
+      throw new BadRequestException(
+        `No se pueden hacer predicciones. Estado del partido: ${match.status}`,
+      );
+    }
+
     // Check if match has started or is manually locked
     if (match.isManuallyLocked || match.date < new Date()) {
       throw new BadRequestException(
@@ -484,6 +492,9 @@ export class PredictionsService {
       for (const dto of predictionsData) {
         const match = matchesMap.get(dto.matchId);
         if (!match) continue; // Match no existe
+
+        const BLOCKED_STATUSES = ['FINISHED', 'LIVE', 'PST', 'CANC', 'ABD'];
+        if (BLOCKED_STATUSES.includes(match.status)) continue; // Partido bloqueado
 
         // Check Time Validation & Manual Lock
         if (match.isManuallyLocked || match.date < now) continue; // Match ya empezó o está bloqueado

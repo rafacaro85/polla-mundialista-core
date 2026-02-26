@@ -282,7 +282,7 @@ export function UserNav() {
             hasArrow
           />
 
-          {(userData.role === 'SUPER_ADMIN') && (
+          {(userData.role?.toUpperCase() === 'SUPER_ADMIN') && (
             <MenuItem
               icon={Shield}
               label="Super Admin"

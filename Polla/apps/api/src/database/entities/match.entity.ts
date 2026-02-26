@@ -48,6 +48,7 @@ export class Match {
   @Column({ nullable: true })
   nextMatchId: string; // ID del partido al que avanza el ganador
 
+  // Estados válidos: NS, LIVE, FINISHED, PST (Postponed), CANC (Cancelled), ABD (Abandoned)
   @Column({ default: 'PENDING' }) // Can be PENDING, COMPLETED, CANCELED
   status: string;
 

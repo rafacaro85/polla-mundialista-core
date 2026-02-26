@@ -54,6 +54,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -162,7 +163,7 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     EventEmitterModule.forRoot(),
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [
     AppService,
     {

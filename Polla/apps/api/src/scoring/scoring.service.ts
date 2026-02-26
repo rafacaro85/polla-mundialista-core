@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +13,7 @@ export class ScoringService {
     private matchesRepository: Repository<Match>,
     @InjectRepository(Prediction)
     private predictionsRepository: Repository<Prediction>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   /**
@@ -90,5 +93,12 @@ export class ScoringService {
     console.log(
       `✅ [Scoring] Batch calculated and saved ${predictions.length} predictions for match ${matchId}`,
     );
+
+    // Invalidación proactiva de caché de rankings afectados
+    const leagueIds = [...new Set(predictions.filter(p => p.leagueId).map(p => p.leagueId))];
+    for (const leagueId of leagueIds) {
+      await this.cacheManager.del(`ranking:league:${leagueId}`);
+    }
+    await this.cacheManager.del(`ranking:global:${match.tournamentId}`);
   }
 }

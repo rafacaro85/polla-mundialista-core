@@ -22,6 +22,7 @@ import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 
 // Opciones de cookie compartidas para consistencia
 const COOKIE_OPTIONS = (isProduction: boolean) => ({
@@ -32,6 +33,7 @@ const COOKIE_OPTIONS = (isProduction: boolean) => ({
   path: '/',
 });
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(

@@ -15,7 +15,9 @@ import { TimeLockGuard } from '../common/guards/time-lock.guard';
 
 import { CreatePredictionDto } from './dto/create-prediction.dto';
 import { CreateBulkPredictionsDto } from './dto/create-bulk-predictions.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Predictions')
 @Controller('predictions')
 export class PredictionsController {
   constructor(private readonly predictionsService: PredictionsService) {}

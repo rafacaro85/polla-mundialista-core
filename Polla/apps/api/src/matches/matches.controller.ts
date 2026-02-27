@@ -17,7 +17,9 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 
 import { MatchSyncService } from './match-sync.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Matches')
 @Controller('matches')
 export class MatchesController {
   constructor(

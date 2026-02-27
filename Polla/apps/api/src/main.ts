@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser = require('cookie-parser');
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 // [REDEPLOY FORCE] v1.0.3 - Cleanup diagnostic logs
 async function bootstrap() {
@@ -59,6 +60,18 @@ async function bootstrap() {
       'X-Tournament-Id',
     ],
   });
+
+  // 3.5. Swagger Documentation
+  const config = new DocumentBuilder()
+    .setTitle('Polla Mundialista API')
+    .setDescription('API para La Polla Virtual')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  
+  // Create document after app is initialized
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   // 4. Puerto y Escucha
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;

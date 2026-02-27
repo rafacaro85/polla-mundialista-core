@@ -32,7 +32,9 @@ import { AccessCodesService } from '../access-codes/access-codes.service';
 import { LeagueParticipantsService } from '../league-participants/league-participants.service';
 import { GenerateAccessCodesDto } from './dto/generate-access-codes.dto';
 import { JoinLeagueDto } from './dto/join-league.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Leagues')
 @UseGuards(JwtAuthGuard)
 @Controller('leagues')
 export class LeaguesController {

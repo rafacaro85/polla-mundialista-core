@@ -189,7 +189,7 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                                     e.stopPropagation();
                                     const code = league.accessCodePrefix || league.code;
                                     const shareUrl = `${window.location.origin}/invite/${code}`;
-                                    const msg = `Te invito a ${league.name.toUpperCase()}. Únete aquí: ${shareUrl}`;
+                                    const msg = `¡Hola! Te invito a mi Polla 🏆 *${league.name}*.\n\nÚnete súper fácil dando clic directo aquí:\n👉 ${shareUrl}\n\nO también puedes ingresar a la plataforma y usar el código: *${code}*`;
                                     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                                 }}
                                 className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"

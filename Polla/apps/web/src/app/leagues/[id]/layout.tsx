@@ -224,6 +224,43 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     // 3c-SOCIAL: Polla social PENDIENTE de activación (PENDING + !isEnterprise)
     // Sin este bloque, el usuario con estado PENDING entra directo al home.
     if (isPendingApproval) {
+        // BUG 2 FIX: Si soy invitado (no el creador ni admin de liga), me salteo el cobro.
+        const isCreator = (league.creatorId === user?.id) || league.isAdmin;
+
+        // Si es invitado de polla SOCIAL, mostramos banner amistoso, no bloqueamos la pantalla completa.
+        if (!isCreator) {
+            return (
+                <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-24 text-center animate-in fade-in duration-500">
+                    <div className="bg-[#1E293B] border border-white/10 p-8 rounded-3xl shadow-xl max-w-md w-full relative overflow-hidden flex flex-col items-center justify-center">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-50" />
+                        
+                        <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20">
+                            <Timer className="w-8 h-8 text-yellow-500 animate-pulse" />
+                        </div>
+
+                        <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
+                            Polla <span className="text-[#00E676]">Pendiente</span>
+                        </h2>
+                        
+                        <p className="text-slate-300 mb-6 leading-relaxed text-sm">
+                            El administrador aún no ha activado esta polla. <br/>
+                            <span className="text-slate-400 text-xs mt-2 block">
+                                Pronto podrás empezar a jugar 🏆
+                            </span>
+                        </p>
+
+                        <button
+                            className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition-colors w-full"
+                            onClick={() => router.push('/social/mis-pollas')}
+                        >
+                            Volver a Mis Pollas
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Si es el creador, le cobramos:
         const getAmount = () => {
             const type = (league.packageType || '').toLowerCase();
             if (type === 'parche' || type === 'amateur') return 30000;

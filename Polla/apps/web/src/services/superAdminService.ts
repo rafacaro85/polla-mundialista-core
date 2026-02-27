@@ -159,52 +159,81 @@ export const superAdminService = {
 
     // --- STATS (Calculated on frontend for now) ---
     getDashboardStats: async (tournamentId?: string) => {
-        const [users, leagues, transactions] = await Promise.all([
-            superAdminService.getAllUsers(),
-            superAdminService.getAllLeagues(tournamentId),
-            superAdminService.getAllTransactions(tournamentId)
-        ]);
+        try {
+            const [usersRaw, leaguesRaw, transactionsRaw] = await Promise.all([
+                superAdminService.getAllUsers(),
+                superAdminService.getAllLeagues(tournamentId),
+                superAdminService.getAllTransactions(tournamentId)
+            ]);
 
-        const totalIncome = transactions.reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+            // Safely extract arrays from paginated objects to avoid .filter() crashes
+            const users = Array.isArray(usersRaw) ? usersRaw : (usersRaw?.data || []);
+            const leagues = Array.isArray(leaguesRaw) ? leaguesRaw : (leaguesRaw?.data || []);
+            const transactions = Array.isArray(transactionsRaw) ? transactionsRaw : (transactionsRaw?.data || []);
 
-        // FIX: Usar zona horaria de Colombia para definir "Hoy"
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
-
-        const todaySales = transactions
-            .filter((tx: any) => {
-                // Convertir fecha de transacción (UTC) a fecha Colombia
-                const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
-                return txDate === todayStr;
-            })
-            .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
-
-        const salesTrend = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const displayDate = date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-
-            const dailyTotal = transactions
-                .filter((tx: any) => tx.createdAt.startsWith(dateStr))
+            const totalIncome = transactions
+                .filter((tx: any) => tx.status === 'APPROVED' || tx.status === 'PAID')
                 .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
 
-            salesTrend.push({ date: displayDate, value: dailyTotal });
+            // FIX: Usar zona horaria de Colombia para definir "Hoy"
+            const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+
+            const todaySales = transactions
+                .filter((tx: any) => {
+                    if (tx.status !== 'APPROVED' && tx.status !== 'PAID') return false;
+                    if (!tx.createdAt) return false;
+                    try {
+                        const txDate = new Date(tx.createdAt).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' });
+                        return txDate === todayStr;
+                    } catch (e) {
+                        return false;
+                    }
+                })
+                .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+
+            const salesTrend = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const displayDate = date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+
+                const dailyTotal = transactions
+                    .filter((tx: any) => {
+                        if (tx.status !== 'APPROVED' && tx.status !== 'PAID') return false;
+                        if (!tx.createdAt) return false;
+                        return tx.createdAt.startsWith(dateStr);
+                    })
+                    .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+
+                salesTrend.push({ date: displayDate, value: dailyTotal });
+            }
+
+            const freeLeaguesCount = leagues.filter((l: any) => l.packageType === 'familia' || (!l.isPaid && l.type !== 'COMPANY')).length;
+
+            return {
+                kpis: {
+                    totalIncome,
+                    activeLeagues: leagues.length,
+                    totalUsers: users.length,
+                    todaySales,
+                    freeLeagues: freeLeaguesCount
+                },
+                salesTrend,
+                recentTransactions: transactions, // Devolvemos TODAS para permitir filtrado en frontend
+                users,
+                leagues
+            };
+        } catch (error) {
+            console.error("🔥 CRITICAL ERROR in getDashboardStats:", error);
+            // Return empty fallback instead of crashing the whole Dashboard
+            return {
+                kpis: { totalIncome: 0, todaySales: 0, activeLeagues: 0, freeLeagues: 0, totalUsers: 0 },
+                salesTrend: [],
+                recentTransactions: [],
+                users: [],
+                leagues: []
+            };
         }
-
-        const freeLeaguesCount = leagues.filter((l: any) => l.packageType === 'familia' || (!l.isPaid && l.type !== 'COMPANY')).length;
-
-        return {
-            kpis: {
-                totalIncome,
-                activeLeagues: leagues.length,
-                totalUsers: users.length,
-                todaySales,
-                freeLeagues: freeLeaguesCount
-            },
-            salesTrend,
-            recentTransactions: transactions, // Devolvemos TODAS para permitir filtrado en frontend
-            users
-        };
-    }
+    },
 };

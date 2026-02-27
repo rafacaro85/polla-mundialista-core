@@ -529,6 +529,9 @@ export default function SuperAdminDashboard() {
                             <p className="text-4xl font-russo text-[#00E676] z-10 drop-shadow-lg">
                                 {formatCurrency(stats.recentTransactions
                                     .filter((tx: any) => {
+                                        // NUNCA sumar dinero de transacciones que no estén aprobadas/pagadas
+                                        if (tx.status !== 'APPROVED' && tx.status !== 'PAID') return false;
+
                                         if (statusFilter !== 'ALL' && tx.status !== statusFilter) {
                                             if (statusFilter === 'PAID' && (tx.status === 'APPROVED' || tx.status === 'PAID')) {
                                                 // Allow APPROVED as PAID

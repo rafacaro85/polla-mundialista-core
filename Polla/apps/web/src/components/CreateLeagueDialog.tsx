@@ -580,7 +580,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
                                         onClick={() => setSelectedTournamentId('WC2026')}
                                     >
                                         <div style={{ ...STYLES.iconBox, borderColor: '#00E676', backgroundColor: '#00E67610', overflow: 'hidden' }}>
-                                            <img src="/images/wc-logo.png" alt="Mundial" className="w-full h-full object-cover" />
+                                            <img src="/images/wc-logo.png" alt="Mundial" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.4)' }} />
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="text-white font-russo text-sm uppercase">Mundial 2026</h4>
@@ -594,8 +594,8 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
                                         style={STYLES.tournamentCard(selectedTournamentId === 'UCL2526', '#6366F1')}
                                         onClick={() => setSelectedTournamentId('UCL2526')}
                                     >
-                                        <div style={{ ...STYLES.iconBox, borderColor: '#6366F1', backgroundColor: '#6366F110', overflow: 'hidden', padding: '2px' }}>
-                                            <img src="/images/ucl-logo.png" alt="Champions" className="w-full h-full object-contain" />
+                                        <div style={{ ...STYLES.iconBox, borderColor: '#6366F1', backgroundColor: '#6366F110', overflow: 'hidden' }}>
+                                            <img src="/images/ucl-logo.png" alt="Champions" style={{ width: '80%', height: '80%', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="text-white font-russo text-sm uppercase">Champions 25/26</h4>

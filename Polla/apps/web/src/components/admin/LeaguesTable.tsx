@@ -164,7 +164,8 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                     const txRes = await api.post('/transactions', {
                         packageType: pkg,
                         amount: amount,
-                        leagueId: league.id
+                        leagueId: league.id,
+                        tournamentId: tournamentId
                     });
                     await api.patch(`/transactions/${txRes.data.id}/approve`);
                     toast.success('Venta registrada correctamente.');

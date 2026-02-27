@@ -41,8 +41,8 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
         const formData = new FormData();
         formData.append('file', file);
         formData.append('amount', amount.toString());
-        formData.append('leagueId', leagueId);
-        formData.append('tournamentId', tournamentId);
+        if (leagueId) formData.append('leagueId', leagueId);
+        if (tournamentId) formData.append('tournamentId', tournamentId);
         
         // Generar referencia simple si no existe
         const reference = `MANUAL-${Date.now()}`;

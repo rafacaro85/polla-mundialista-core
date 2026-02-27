@@ -99,8 +99,12 @@ export class TransactionsController {
       // Handle potential arrays if params are duplicated in query and body
       const getFirst = (val: any) => (Array.isArray(val) ? val[0] : val);
 
-      const rawTid = body.tournamentId || queryTournamentId || DEFAULT_TOURNAMENT_ID;
-      const tid = getFirst(rawTid);
+      let rawTid = body.tournamentId || queryTournamentId || DEFAULT_TOURNAMENT_ID;
+      rawTid = getFirst(rawTid);
+      if (rawTid === 'undefined' || rawTid === 'null' || !rawTid) {
+        rawTid = DEFAULT_TOURNAMENT_ID;
+      }
+      const tid = rawTid;
 
       // Defensive check for amount
       let amount = 50000;

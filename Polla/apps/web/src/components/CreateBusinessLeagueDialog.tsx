@@ -307,8 +307,8 @@ export const CreateBusinessLeagueDialog = ({
                                     selectedTournamentId === 'WC2026' ? 'bg-[#00E676]/5 border-[#00E676]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
                                 }`}
                             >
-                                <div className="bg-[#00E676]/10 rounded-xl text-[#00E676] w-12 h-12 flex items-center justify-center p-1 border border-[#00E676]/20">
-                                    <img src="/images/wc-logo.png" alt="Mundial" className="w-full h-full object-cover" />
+                                <div className="bg-[#00E676]/10 rounded-xl text-[#00E676] w-12 h-12 flex items-center justify-center overflow-hidden">
+                                     <img src="/images/wc-logo.png" alt="Mundial" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.4)' }} />
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-white font-russo uppercase">Mundial 2026</h4>
@@ -328,8 +328,8 @@ export const CreateBusinessLeagueDialog = ({
                                     selectedTournamentId === 'UCL2526' ? 'bg-[#6366F1]/5 border-[#6366F1]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
                                 }`}
                             >
-                                <div className="bg-[#6366F1]/10 rounded-xl text-[#6366F1] w-12 h-12 flex items-center justify-center p-1 border border-[#6366F1]/20">
-                                    <img src="/images/ucl-logo.png" alt="Champions" className="w-full h-full object-contain" />
+                                <div className="bg-[#6366F1]/10 p-2 rounded-xl text-[#6366F1] w-12 h-12 flex items-center justify-center overflow-hidden">
+                                    <img src="/images/ucl-logo.png" alt="Champions" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-white font-russo uppercase">Champions 25/26</h4>

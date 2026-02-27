@@ -42,9 +42,11 @@ export class LeagueParticipantsService {
         throw new NotFoundException('User not found.');
       }
 
-      // 2. Buscar liga por su código (accessCodePrefix)
+      const isUuid = code.length === 36 && code.includes('-');
+
+      // 2. Buscar liga por su código (accessCodePrefix) o UUID
       const league = await this.leagueRepository.findOne({
-        where: { accessCodePrefix: code },
+        where: isUuid ? { id: code } : { accessCodePrefix: code },
         relations: ['participants', 'participants.user', 'creator'], // Added creator relation
       });
 

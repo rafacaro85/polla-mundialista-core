@@ -48,7 +48,7 @@ export class TransactionsService {
       packageId, // This stores the package type (e.g., 'gold', 'platinum')
       league,
       status,
-      tournamentId,
+      tournamentId: league?.tournamentId || tournamentId,
       referenceCode: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     });
 
@@ -74,7 +74,7 @@ export class TransactionsService {
       user,
       amount,
       imageUrl,
-      tournamentId,
+      tournamentId: league?.tournamentId || tournamentId,
       league, // Attach league if found
       packageId: league?.packageType,
       status: TransactionStatus.PENDING,

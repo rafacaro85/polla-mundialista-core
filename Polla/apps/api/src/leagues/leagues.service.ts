@@ -411,8 +411,10 @@ export class LeaguesService {
   }
 
   async getLeagueByCode(code: string) {
+    const isUuid = code.length === 36 && code.includes('-');
+    
     const league = await this.leaguesRepository.findOne({
-      where: { accessCodePrefix: code },
+      where: isUuid ? { id: code } : { accessCodePrefix: code },
       relations: ['creator'],
     });
 

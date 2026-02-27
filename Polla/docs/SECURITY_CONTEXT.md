@@ -152,34 +152,34 @@ polla-mundialista-core/
 
 ### 🟡 SPRINT 3 — Deuda técnica planificada (Próximo mes)
 
-| # | Tarea | Archivo(s) |
-|---|-------|-----------|
-| D1 | `isBlocked` + `status` redundantes en `LeagueParticipant` | `league-participant.entity.ts` |
-| D2 | Magic strings duplicados | Crear `constants/index.ts` |
-| D3 | Sin endpoint de health check | Agregar `GET /api/health` |
-| D4 | TTL de caché no refleja ciclo de invalidación real | `leagues.service.ts:427` |
-| D5 | `getAllLeagues` sin paginación | `leagues.service.ts:516` |
-| D6 | Verificación de código sin expiración | `auth.service.ts:214` |
-| D7 | Pool de 50 conexiones — validar límites Railway | `app.module.ts:117` |
-| D8 | Sin soft deletes en entidades críticas | `League`, `User`, `Prediction` |
-| D9 | `logging: true` en `data-source.ts` | `data-source.ts:25` |
-| D10 | Sin cancelación de requests en frontend | Hooks de fetching |
-| D11 | Archivo huérfano `login/page_footer.tsx` | `apps/web/src/app/login/` |
-| D12 | Roles con string literals en lugar de enums | `leagues.service.ts:605` |
+| # | Tarea | Archivo(s) | Estado |
+|---|-------|-----------|--------|
+| D1 | `isBlocked` + `status` redundantes en `LeagueParticipant` | `league-participant.entity.ts` | ✅ DIAGNÓSTICO (S1) |
+| D2 | Magic strings duplicados | Crear `constants/index.ts` | ✅ DONE (S2) |
+| D3 | Sin endpoint de health check | Agregar `GET /api/health` | ✅ DONE (S3) |
+| D4 | TTL de caché no refleja ciclo de invalidación real | `leagues.service.ts:427` | ⏳ PENDIENTE |
+| D5 | `getAllLeagues` sin paginación | `leagues.service.ts:516` | ✅ DONE (S4) |
+| D6 | Verificación de código sin expiración | `auth.service.ts:214` | ⏳ PENDIENTE |
+| D7 | Pool de 50 conexiones — validar límites Railway | `app.module.ts:117` | ⏳ PENDIENTE |
+| D8 | Sin soft deletes en entidades críticas | `League`, `User`, `Prediction` | ⏳ PENDIENTE |
+| D9 | `logging: true` en `data-source.ts` | `data-source.ts:25` | ⏳ PENDIENTE |
+| D10 | Sin cancelación de requests en frontend | Hooks de fetching | ⏳ PENDIENTE |
+| D11 | Archivo huérfano `login/page_footer.tsx` | `apps/web/src/app/login/` | ⏳ PENDIENTE |
+| D12 | Roles con string literals en lugar de enums | `leagues.service.ts:605` | ⏳ PENDIENTE |
 
 ---
 
 ### ⚪ SPRINT 4 — Mejoras de largo plazo (Continuo)
 
-| # | Tarea |
-|---|-------|
-| L1 | ~0% cobertura de tests (PredictionsService, LeaguesService, PaymentsService, AuthService) |
-| L2 | Sin Swagger/OpenAPI |
-| L3 | Respuesta de API inconsistente — adoptar envelope `{ data, meta, error }` |
-| L4 | `getLeagueRanking` con 5 queries secuenciales → paralelizar con `Promise.all()` |
-| L5 | `LeaguesService` viola SRP — separar en servicios + usar EventEmitter |
-| L6 | `leagueId` en predicciones sin foreign key constraint |
-| L7 | Lógica de joker duplicada entre upsert individual y bulk |
+| # | Tarea | Estado |
+|---|-------|--------|
+| L1 | ~0% cobertura de tests (PredictionsService, LeaguesService, PaymentsService, AuthService) | ✅ EN PROGRESO (S5) |
+| L2 | Sin Swagger/OpenAPI | ✅ DONE (S6) |
+| L3 | Respuesta de API inconsistente — adoptar envelope `{ data, meta, error }` | ⏳ PENDIENTE |
+| L4 | `getLeagueRanking` con 5 queries secuenciales → paralelizar con `Promise.all()` | ⏳ PENDIENTE |
+| L5 | `LeaguesService` viola SRP — separar en servicios + usar EventEmitter | ⏳ PENDIENTE |
+| L6 | `leagueId` en predicciones sin foreign key constraint | ⏳ PENDIENTE |
+| L7 | Lógica de joker duplicada entre upsert individual y bulk | ⏳ PENDIENTE |
 
 ---
 

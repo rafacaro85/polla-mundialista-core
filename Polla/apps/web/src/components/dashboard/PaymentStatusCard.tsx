@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useSWRConfig } from 'swr';
 import { WompiButton } from '@/components/payments/WompiButton';
+import { useTournament } from '@/hooks/useTournament';
 
 interface PaymentStatusCardProps {
     user: {
@@ -23,6 +24,7 @@ interface PaymentStatusCardProps {
 export default function PaymentStatusCard({ user, pendingTransaction }: PaymentStatusCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { mutate } = useSWRConfig();
+    const { tournamentId } = useTournament();
     const [selectedQR, setSelectedQR] = useState<'NEQUI' | 'DAVIPLATA' | 'BANCOLOMBIA' | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -51,6 +53,7 @@ export default function PaymentStatusCard({ user, pendingTransaction }: PaymentS
         
         const reference = `ACCOUNT-${user.id}-${Date.now()}`;
         formData.append('referenceCode', reference);
+        formData.append('tournamentId', tournamentId);
 
         try {
             await api.post('/transactions/upload', formData, {

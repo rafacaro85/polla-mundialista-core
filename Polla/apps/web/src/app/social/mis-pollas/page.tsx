@@ -55,8 +55,9 @@ function MisPollasContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleShare = (league: any) => {
-    const shareUrl = `${window.location.origin}/invite/${league.code}`;
-    const message = `¡Hola! Te invito a unirte a mi polla *${league.name.toUpperCase()}* en La Polla Virtual. 🏆\n\nUsa este enlace para unirte directamente: ${shareUrl}`;
+    const code = league.accessCodePrefix || league.code;
+    const shareUrl = `${window.location.origin}/invite/${code}`;
+    const message = `¡Hola! Te invito a mi Polla 🏆 *${league.name}*.\n\nÚnete súper fácil dando clic directo aquí:\n👉 ${shareUrl}\n\nO también puedes ingresar a la plataforma y usar el código: *${code}*`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };

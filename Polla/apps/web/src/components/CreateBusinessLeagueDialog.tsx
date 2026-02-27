@@ -303,12 +303,12 @@ export const CreateBusinessLeagueDialog = ({
                             {/* MUNDIAL */}
                             <div 
                                 onClick={() => setSelectedTournamentId('WC2026')}
-                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${
+                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 overflow-hidden ${
                                     selectedTournamentId === 'WC2026' ? 'bg-[#00E676]/5 border-[#00E676]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
                                 }`}
                             >
-                                <div className="bg-[#00E676]/10 p-3 rounded-xl text-[#00E676]">
-                                    <Trophy size={24} />
+                                <div className="bg-[#00E676]/10 rounded-xl text-[#00E676] w-12 h-12 flex items-center justify-center p-1 border border-[#00E676]/20">
+                                    <img src="/images/wc-logo.png" alt="Mundial" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-white font-russo uppercase">Mundial 2026</h4>
@@ -324,12 +324,12 @@ export const CreateBusinessLeagueDialog = ({
                             {/* CHAMPIONS */}
                             <div 
                                 onClick={() => setSelectedTournamentId('UCL2526')}
-                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${
+                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 overflow-hidden ${
                                     selectedTournamentId === 'UCL2526' ? 'bg-[#6366F1]/5 border-[#6366F1]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
                                 }`}
                             >
-                                <div className="bg-[#6366F1]/10 p-3 rounded-xl text-[#6366F1]">
-                                    <Star size={24} />
+                                <div className="bg-[#6366F1]/10 rounded-xl text-[#6366F1] w-12 h-12 flex items-center justify-center p-1 border border-[#6366F1]/20">
+                                    <img src="/images/ucl-logo.png" alt="Champions" className="w-full h-full object-contain" />
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-white font-russo uppercase">Champions 25/26</h4>

@@ -200,6 +200,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                             <PaymentMethods
                                 leagueId={league.id}
                                 amount={getAmount()}
+                                tournamentId={league.tournamentId}
                                 onSuccess={() => {
                                     setTimeout(() => {
                                         router.push(isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas');
@@ -269,6 +270,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                             <PaymentMethods
                                 leagueId={league.id}
                                 amount={getAmount()}
+                                tournamentId={league.tournamentId}
                                 onSuccess={() => {
                                     setTimeout(() => {
                                         router.push('/social/mis-pollas');

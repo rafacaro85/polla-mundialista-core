@@ -14,30 +14,27 @@ export default function InvitePage() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            // Con httpOnly cookies, no podemos verificar el token desde JS.
-            // Intentamos sincronizar el usuario desde el servidor (enviará la cookie automáticamente).
-            if (!user) {
-                try {
-                    await syncUserFromServer();
-                } catch {
-                    // Sin sesión activa → redirigir al login con el código de invitación
-                    const code = params?.code ? String(params.code) : '';
-                    if (code) {
-                        document.cookie = `pendingInviteCode=${code}; path=/; max-age=3600; SameSite=Lax`;
-                        const callbackUrl = `/invite/${code}`;
-                        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-                    } else {
-                        router.push('/login');
-                    }
-                    return;
+            // Evaluamos la sesión contra el servidor sin importar el localStorage
+            const isAuth = await syncUserFromServer();
+            
+            if (!isAuth) {
+                // Sin sesión activa → redirigir al login con el código
+                const code = params?.code ? String(params.code) : '';
+                if (code) {
+                    document.cookie = `pendingInviteCode=${code}; path=/; max-age=3600; SameSite=Lax`;
+                    const callbackUrl = encodeURIComponent(`/invite/${code}`);
+                    router.push(`/login?callbackUrl=${callbackUrl}`);
+                } else {
+                    router.push('/login');
                 }
+                return;
             }
 
             setChecked(true);
         };
 
         checkAuth();
-    }, [user, syncUserFromServer, router, params]);
+    }, [syncUserFromServer, router, params]);
 
     if (!checked) {
         return (

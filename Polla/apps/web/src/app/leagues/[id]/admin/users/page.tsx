@@ -95,7 +95,9 @@ export default function AdminUsersPage() {
 
             // Fetch participants
             const { data: participantsData } = await api.get(`/leagues/${params.id}/participants`);
-            setParticipants(participantsData);
+            // Extraer el array dependiendo de si el backend mandó la versión paginada o la directa
+            const participantsArray = Array.isArray(participantsData) ? participantsData : (participantsData?.data || []);
+            setParticipants(participantsArray);
 
         } catch (error) {
             console.error('Error fetching data:', error);

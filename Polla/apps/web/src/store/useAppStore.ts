@@ -18,7 +18,7 @@ interface AppState {
     setSelectedLeague: (id: string) => void;
     setTheme: (theme: { primary?: string; secondary?: string } | null) => void;
     logout: () => void;
-    syncUserFromServer: () => Promise<void>;
+    syncUserFromServer: () => Promise<boolean>;
 }
 
 /**
@@ -109,13 +109,14 @@ export const useAppStore = create<AppState>()(
                  * Sincroniza el usuario desde el servidor
                  * Útil para obtener datos frescos (ej: cambios de rol)
                  */
-                syncUserFromServer: async () => {
+                syncUserFromServer: async (): Promise<boolean> => {
                     try {
                         set({ isLoading: true }, false, 'syncUserFromServer:start');
 
                         const { data } = await api.get('/auth/profile');
 
                         get().setUser(data);
+                        return true;
                     } catch (error) {
                         console.error('❌ [Store] Error sincronizando usuario:', error);
                         // Si falla, intentar usar datos del localStorage
@@ -128,6 +129,7 @@ export const useAppStore = create<AppState>()(
                                 console.error('❌ [Store] Error parseando usuario del localStorage');
                             }
                         }
+                        return false;
                     } finally {
                         set({ isLoading: false }, false, 'syncUserFromServer:end');
                     }

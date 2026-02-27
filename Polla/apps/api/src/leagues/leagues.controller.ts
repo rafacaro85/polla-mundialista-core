@@ -27,6 +27,7 @@ import { TransferOwnerDto } from './dto/transfer-owner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import type { Request } from 'express';
 import { AccessCodesService } from '../access-codes/access-codes.service';
 import { LeagueParticipantsService } from '../league-participants/league-participants.service';
@@ -123,6 +124,7 @@ export class LeaguesController {
     return this.leaguesService.getMetadata(leagueId);
   }
 
+  @Public()
   @Get('preview/:code')
   async previewLeague(@Param('code') code: string) {
     return this.leaguesService.getLeagueByCode(code);

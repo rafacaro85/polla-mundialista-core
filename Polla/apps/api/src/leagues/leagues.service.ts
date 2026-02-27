@@ -250,6 +250,7 @@ export class LeaguesService {
           creatorPhone,
           creatorName,
           createLeagueDto.packageType,
+          savedLeague.tournamentId
         );
       }
     } catch (telegramError) {

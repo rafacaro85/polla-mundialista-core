@@ -83,17 +83,20 @@ export class TelegramService {
     phone?: string,
     fullName?: string,
     packageType: string = 'starter',
+    tournamentId: string = 'WC2026',
   ): Promise<void> {
     const name = this.formatName(fullName || '');
     const waLink = this.formatWhatsAppLink(phone || '');
 
-    const isFree = ['familia', 'starter', 'free'].includes(
+    const isFree = ['familia', 'starter', 'free', 'amateur'].includes(
       packageType.toLowerCase(),
     );
     const typeEmoji = isFree ? '🆓 GRATIS' : '💲 PAGA';
     const planLabel = packageType.toUpperCase();
+    const mapVal = { 'WC2026': 'Mundial', 'UCL2526': 'Champions' };
+    const tournamentName = mapVal[tournamentId as keyof typeof mapVal] || tournamentId;
 
-    const msg = `🏆 <b>Nueva Polla (${typeEmoji} - ${planLabel})</b>\n\n<b>Nombre:</b> ${leagueName}\n<b>Código:</b> ${code}\n<b>Admin:</b> ${name} (${userEmail})\n<b>Celular:</b> ${phone || 'N/A'}\n\n${waLink}`;
+    const msg = `🏆 <b>Nueva Polla (${typeEmoji} - ${planLabel}) [${tournamentName}]</b>\n\n<b>Nombre:</b> ${leagueName}\n<b>Código:</b> ${code}\n<b>Admin:</b> ${name} (${userEmail})\n<b>Celular:</b> ${phone || 'N/A'}\n\n${waLink}`;
     await this.sendMessage(msg);
   }
 }

@@ -198,9 +198,10 @@ export class PredictionsService {
         });
 
         if (globalPrediction) {
-          // Si ya existe, actualizamos marcadores
+          // Si ya existe, actualizamos marcadores y torneo
           globalPrediction.homeScore = homeScore;
           globalPrediction.awayScore = awayScore;
+          globalPrediction.tournamentId = match.tournamentId;
           // FIX: No tocamos el Joker Global. Son estrategias independientes.
           await queryRunner.manager.save(globalPrediction);
         } else {
@@ -457,7 +458,7 @@ export class PredictionsService {
       const matchIds = predictionsData.map((p) => p.matchId);
       const matches = await this.matchesRepository.find({
         where: { id: In(matchIds) },
-        select: ['id', 'date', 'phase', 'tournamentId'],
+        select: ['id', 'date', 'phase', 'tournamentId', 'status', 'isManuallyLocked'],
       });
       const matchesMap = new Map(matches.map((m) => [m.id, m]));
 
@@ -510,6 +511,8 @@ export class PredictionsService {
           // ... (ya corregido antes) ...
           prediction.homeScore = dto.homeScore;
           prediction.awayScore = dto.awayScore;
+          // Ensure tournamentId is kept in sync
+          prediction.tournamentId = match.tournamentId;
 
           if (dto.isJoker !== undefined) {
             prediction.isJoker = dto.isJoker;
@@ -538,9 +541,10 @@ export class PredictionsService {
           let globalPred = predictionsMap.get(globalKey);
 
           if (globalPred) {
-            // Update existing global - Sync SCORES ONLY
+            // Update existing global - Sync SCORES AND TOURNAMENT
             globalPred.homeScore = dto.homeScore;
             globalPred.awayScore = dto.awayScore;
+            globalPred.tournamentId = match.tournamentId;
             // FIX: Do NOT sync Joker. Jokers must be independent per league/context.
           } else {
             // Create new global

@@ -147,7 +147,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     const finalMatches = useMemo(() => {
         const isUCL = (tournamentId || '').toUpperCase().includes('UCL');
         if (!isUCL) return phaseFilteredMatches;
-        return phaseFilteredMatches.filter((m: any) => m.phase !== 'PLAYOFF_1');
+        return phaseFilteredMatches.filter((m: any) => m.phase !== 'PLAYOFF_1' && m.phase !== 'PLAYOFF_2');
     }, [phaseFilteredMatches, tournamentId]);
 
     // Dates Logic

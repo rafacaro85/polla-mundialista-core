@@ -149,8 +149,7 @@ export const EnterpriseFixture = () => {
         now.setHours(0, 0, 0, 0); // Start of today
         
         return phaseFilteredMatches.filter((m: any) => {
-            // Always hide PLAYOFF_1 (ya jugados - ida)
-            if (m.phase === 'PLAYOFF_1') return false;
+            if (m.phase === 'PLAYOFF_1' || m.phase === 'PLAYOFF_2') return false;
             return true;
         });
     }, [phaseFilteredMatches, leagueMetadata?.tournamentId]);

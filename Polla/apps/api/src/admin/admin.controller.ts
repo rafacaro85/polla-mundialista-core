@@ -14,6 +14,13 @@ export class AdminController {
     return this.adminService.seedUCLMatches();
   }
 
+  // --- START TEMPORARY UCL PHASES ENDPOINT ---
+  @Post('update-ucl-phases')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async updateUCLPhases() {
+    return this.adminService.updateUCLPhaseStatuses();
+  }
+  // --- END TEMPORARY UCL PHASES ENDPOINT ---
 }
-
-

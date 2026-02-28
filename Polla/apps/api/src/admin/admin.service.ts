@@ -226,5 +226,34 @@ export class AdminService {
     }
   }
 
-}
+  async updateUCLPhaseStatuses() {
+    try {
+      // 1. Mark Playoffs as COMPLETED
+      await this.dataSource.query(`
+        UPDATE "knockout_phase_statuses" 
+        SET "status" = 'COMPLETED', "isUnlocked" = true
+        WHERE "tournamentId" = 'UCL2526'
+        AND "phase" IN ('PLAYOFF_1', 'PLAYOFF_2');
+      `);
 
+      // 2. Mark Round of 16 as ACTIVE effectively unlocking the UI
+      await this.dataSource.query(`
+        UPDATE "knockout_phase_statuses"
+        SET "status" = 'ACTIVE', "isUnlocked" = true
+        WHERE "tournamentId" = 'UCL2526'
+        AND "phase" = 'ROUND_16';
+      `);
+
+      return {
+        success: true,
+        message: 'Fases UCL2526 actualizadas correctamente. PlayOffs completados y Octavos (ROUND_16) activados.',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error updating UCL phases: ${error.message}`,
+        error: error.message,
+      };
+    }
+  }
+}

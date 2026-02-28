@@ -14,15 +14,6 @@ export class AdminController {
     return this.adminService.seedUCLMatches();
   }
 
-  // --- START TEMPORARY SEED ENDPOINT ---
-  @Post('seed-ucl-matches')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async seedUCLKnockouts() {
-    return this.adminService.seedUCLMatchesKnockouts();
-  }
-  // --- END TEMPORARY SEED ENDPOINT ---
 }
 
 

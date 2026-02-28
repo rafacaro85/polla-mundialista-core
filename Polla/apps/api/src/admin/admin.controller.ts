@@ -10,4 +10,15 @@ export class AdminController {
   async seedUCL() {
     return this.adminService.seedUCLMatches();
   }
+
+  // --- START TEMPORARY SEED ENDPOINT ---
+  @Post('seed-ucl-matches')
+  @HttpCode(HttpStatus.OK)
+  async seedUCLKnockouts() {
+    // Temporarily unprotected strictly for the user's manual run, 
+    // but the controller sits under /admin and will be deleted right after.
+    return this.adminService.seedUCLMatchesKnockouts();
+  }
+  // --- END TEMPORARY SEED ENDPOINT ---
 }
+

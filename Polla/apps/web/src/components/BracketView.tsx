@@ -135,10 +135,19 @@ interface BracketViewProps {
     leagueId?: string;
 }
 
+import { UCLBracketView } from './UCLBracketView';
+
 /* =============================================================================
    3. COMPONENTE PRINCIPAL: KNOCKOUT VIEW
    ============================================================================= */
-export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) => {
+export const BracketView: React.FC<BracketViewProps> = (props) => {
+    const { matches, leagueId } = props;
+    const { tournamentId } = useTournament();
+
+    if (tournamentId === 'UCL2526') {
+        return <UCLBracketView matches={matches} leagueId={leagueId} />;
+    }
+
 
     // ESTADO: Guardamos quién ganó cada partido
     const [winners, setWinners] = useState<Record<string, string>>({});
@@ -162,8 +171,7 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
 
     // Cargar bracket guardado desde la API
     // Usamos useTournament para saber en qué contexto estamos (WC2026 o UCL2526)
-    const { tournamentId } = useTournament();
-
+    
     useEffect(() => {
         if (!tournamentId) return;
 

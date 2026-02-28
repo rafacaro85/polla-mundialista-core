@@ -230,7 +230,7 @@ export class AdminService {
     try {
       // 1. Mark Playoffs as COMPLETED
       await this.dataSource.query(`
-        UPDATE "knockout_phase_statuses" 
+        UPDATE "knockout_phase_status" 
         SET "status" = 'COMPLETED', "isUnlocked" = true
         WHERE "tournamentId" = 'UCL2526'
         AND "phase" IN ('PLAYOFF_1', 'PLAYOFF_2');
@@ -238,7 +238,7 @@ export class AdminService {
 
       // 2. Mark Round of 16 as ACTIVE effectively unlocking the UI
       await this.dataSource.query(`
-        UPDATE "knockout_phase_statuses"
+        UPDATE "knockout_phase_status"
         SET "status" = 'ACTIVE', "isUnlocked" = true
         WHERE "tournamentId" = 'UCL2526'
         AND "phase" = 'ROUND_16';

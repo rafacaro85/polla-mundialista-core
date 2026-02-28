@@ -45,10 +45,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     // Prefer prop from league entity over URL-detected (fallback only)
     const tournamentId = propTournamentId || detectedTournamentId;
 
-    const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(
-        leagueId === 'global' ? undefined : leagueId,
-        tournamentId
-    );
+    const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions } = useMyPredictions(leagueId === 'global' ? undefined : leagueId);
     const [rawMatches, setRawMatches] = useState<any[]>([]);
     const [aiSuggestions, setAiSuggestions] = useState<Record<string, { h: number, a: number }>>({});
     const [dates, setDates] = useState<string[]>([]);

@@ -33,14 +33,7 @@ api.interceptors.request.use(
 
       // Check if the request explicitly provides a tournamentId
       if (!config.params) config.params = {};
-      let explicitTournamentId = config.params.tournamentId;
-
-      if (!explicitTournamentId && config.url && config.url.includes('tournamentId=')) {
-        try {
-          const params = new URLSearchParams(config.url.split('?')[1]);
-          explicitTournamentId = params.get('tournamentId') || undefined;
-        } catch(e) {}
-      }
+      const explicitTournamentId = config.params.tournamentId;
 
       // Final Tournament ID: explicit > query > localStorage > hostname
       // If explicit param exists, use it. Otherwise use the default context.

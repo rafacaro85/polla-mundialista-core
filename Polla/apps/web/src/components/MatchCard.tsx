@@ -391,8 +391,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
                 const d = new Date(match.date);
                 const month = d.getMonth(); // 0 = Jan, 1 = Feb, 2 = Mar
-                const tid = (match.tournamentId || match.tournament_id || '').toString().toUpperCase();
-                const isUCL = tid.includes('UCL') || (d.getFullYear() === 2026 && (month === 1 || month === 2));
+                const isUCL = match.tournamentId === 'UCL2526' || (d.getFullYear() === 2026 && (month === 1 || month === 2));
 
                 // Lógica específica para UCL
                 if (isUCL) {

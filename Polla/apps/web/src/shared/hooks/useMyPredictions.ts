@@ -7,18 +7,14 @@ const PREDICTIONS_ENDPOINT = '/predictions/me';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data);
 
-export const useMyPredictions = (leagueId?: string, tournamentId?: string) => {
+export const useMyPredictions = (leagueId?: string) => {
     // Secondary state to force re-renders when SWR mutate is slow to notify
     const [lastUpdate, setLastUpdate] = React.useState(0);
 
     // Dynamic key ensures we fetch predictions specific to the current context (Global or League)
-    let swrKey = leagueId && leagueId !== 'global'
+    const swrKey = leagueId && leagueId !== 'global'
         ? `/predictions/me?leagueId=${leagueId}`
         : '/predictions/me';
-
-    if (tournamentId) {
-        swrKey += (swrKey.includes('?') ? '&' : '?') + `tournamentId=${tournamentId}`;
-    }
 
     const { data, error, isLoading, mutate } = useSWR(swrKey, fetcher, {
         revalidateOnFocus: false, 

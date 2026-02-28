@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BracketView } from '@/components/BracketView';
 import { Calendar, Activity } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
+import { useLeague } from '@/shared/hooks/useLeague';
 
 // Helper to ensure flag is a URL
 const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
@@ -28,9 +29,10 @@ const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
 export const EnterpriseFixture = () => {
     const params = useParams();
     const leagueId = params.id as string;
+    const { league } = useLeague(leagueId);
 
     // Using leagueId (not 'global') to ensure predictions are scoped to this enterprise league
-    const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions, loading: loadingPredictions } = useMyPredictions(leagueId);
+    const { predictions, savePrediction, saveBulkPredictions, deletePrediction, clearAllPredictions, refresh: refreshPredictions, loading: loadingPredictions } = useMyPredictions(leagueId, league?.tournamentId);
 
     const [rawMatches, setRawMatches] = useState<any[]>([]);
     const [leagueMetadata, setLeagueMetadata] = useState<any>(null);

@@ -256,4 +256,21 @@ export class AdminService {
       };
     }
   }
+
+  // --- START TEMPORARY DEBUG ---
+  async debugTables() {
+    try {
+      const result = await this.dataSource.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        ORDER BY table_name;
+      `);
+      return { success: true, count: result.length, tables: result };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  // --- END TEMPORARY DEBUG ---
 }
+

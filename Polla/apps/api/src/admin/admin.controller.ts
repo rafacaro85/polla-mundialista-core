@@ -1,4 +1,4 @@
-import { Controller, Post, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -23,4 +23,14 @@ export class AdminController {
     return this.adminService.updateUCLPhaseStatuses();
   }
   // --- END TEMPORARY UCL PHASES ENDPOINT ---
+
+  // --- START TEMPORARY DEBUG ---
+  @Get('debug-tables')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async debugTables() {
+    return this.adminService.debugTables();
+  }
+  // --- END TEMPORARY DEBUG ---
 }

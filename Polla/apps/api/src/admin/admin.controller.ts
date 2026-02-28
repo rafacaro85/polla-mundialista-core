@@ -1,5 +1,8 @@
-import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('admin')
 export class AdminController {
@@ -14,11 +17,12 @@ export class AdminController {
   // --- START TEMPORARY SEED ENDPOINT ---
   @Post('seed-ucl-matches')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
   async seedUCLKnockouts() {
-    // Temporarily unprotected strictly for the user's manual run, 
-    // but the controller sits under /admin and will be deleted right after.
     return this.adminService.seedUCLMatchesKnockouts();
   }
   // --- END TEMPORARY SEED ENDPOINT ---
 }
+
 

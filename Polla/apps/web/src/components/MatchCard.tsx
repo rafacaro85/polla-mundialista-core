@@ -378,6 +378,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               {(() => {
                 // Priority 1: Use group field if it's a custom label (not a single letter)
                 if (groupName && groupName.length > 1 && !['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(groupName)) {
+                  if (match.tournamentId === 'UCL2526' && match.phase === 'ROUND_16') {
+                    if (groupName === 'LEG_1') return 'OCTAVOS - IDA';
+                    if (groupName === 'LEG_2') return 'OCTAVOS - VUELTA';
+                  }
                   return groupName;
                 }
 

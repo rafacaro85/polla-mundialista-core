@@ -76,7 +76,7 @@ const CLUB_SHIELDS: Record<string, string> = {
     'Inter Milan': '/images/escudos/inter-milan-footballlogos-org.svg',
     'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
     'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
-    'PSG': '/images/escudos/paris-saint-germain-footballlogos-org.svg',
+    'PSG': '/images/escudos/psg.svg',
     'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
     'Monaco': '/images/escudos/as-monaco-footballlogos-org.svg',
     'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',

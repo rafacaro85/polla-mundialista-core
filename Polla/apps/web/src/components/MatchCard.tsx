@@ -378,7 +378,11 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
               {(() => {
                 // Priority 1: Use group field if it's a custom label (not a single letter)
                 if (groupName && groupName.length > 1 && !['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(groupName)) {
-                  if (match.tournamentId === 'UCL2526' && match.phase === 'ROUND_16') {
+                  // Extremely permissive check for UCL or any knockout match with LEG_1/LEG_2
+                  const tid = (match.tournamentId || match.tournament_id || '').toString().toUpperCase();
+                  const isUCL = tid.includes('UCL') || tid.includes('CHAMPIONS');
+                  
+                  if (isUCL || groupName.startsWith('LEG_')) {
                     if (groupName === 'LEG_1') return 'OCTAVOS - IDA';
                     if (groupName === 'LEG_2') return 'OCTAVOS - VUELTA';
                   }

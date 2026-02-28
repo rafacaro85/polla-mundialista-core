@@ -77,6 +77,8 @@ const CLUB_SHIELDS: Record<string, string> = {
     'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
     'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
     'PSG': '/images/escudos/psg.svg',
+    'PARIS SAINT-GERMAIN': '/images/escudos/psg.svg',
+    'PARIS SAINT GERMAIN': '/images/escudos/psg.svg',
     'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
     'Monaco': '/images/escudos/as-monaco-footballlogos-org.svg',
     'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
@@ -104,12 +106,12 @@ export const getTeamFlagUrl = (teamName: string) => {
     const normalized = teamName.trim();
 
     // 1. Check specific Club Shield overrides (e.g. UCL)
-    if (CLUB_SHIELDS[normalized]) {
-        return CLUB_SHIELDS[normalized];
+    const normalizedUpper = normalized.toUpperCase();
+    if (CLUB_SHIELDS[normalized] || CLUB_SHIELDS[normalizedUpper]) {
+        return CLUB_SHIELDS[normalized] || CLUB_SHIELDS[normalizedUpper];
     }
     
     // Also check case-insensitive just in case
-    const normalizedUpper = normalized.toUpperCase();
     // (Optional: loop through keys if we really needed fuzzy matching, but direct is better for performance)
 
     // Placeholders

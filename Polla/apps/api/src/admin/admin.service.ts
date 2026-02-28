@@ -226,47 +226,36 @@ export class AdminService {
     }
   }
 
-  async updateUCLPhaseStatuses() {
-    try {
-      // 1. Mark Playoffs as COMPLETED
-      await this.dataSource.query(`
-        UPDATE "knockout_phase_status" 
-        SET "is_unlocked" = true,
-            "all_matches_completed" = true
-        WHERE "tournamentId" = 'UCL2526'
-        AND "phase" IN ('PLAYOFF_1', 'PLAYOFF_2');
-      `);
+  async fixUCLPhases() {
+    await this.dataSource.query(`
+      UPDATE "knockout_phase_status" 
+      SET "is_unlocked" = true,
+          "all_matches_completed" = true
+      WHERE "tournamentId" = 'UCL2526'
+      AND "phase" IN ('PLAYOFF_1', 'PLAYOFF_2')
+    `);
 
-      // 2. Mark Round of 16 as ACTIVE effectively unlocking the UI
-      await this.dataSource.query(`
-        UPDATE "knockout_phase_status"
-        SET "is_unlocked" = true,
-            "all_matches_completed" = false,
-            "is_manually_locked" = false
-        WHERE "tournamentId" = 'UCL2526'
-        AND "phase" = 'ROUND_16';
-      `);
+    await this.dataSource.query(`
+      UPDATE "knockout_phase_status"
+      SET "is_unlocked" = true,
+          "all_matches_completed" = false,
+          "is_manually_locked" = false
+      WHERE "tournamentId" = 'UCL2526'
+      AND "phase" = 'ROUND_16'
+    `);
 
-      // 3. Ensure ROUND_16 exists just in case
-      await this.dataSource.query(`
-        INSERT INTO "knockout_phase_status" 
-        ("id", "tournamentId", "phase", "is_unlocked", "all_matches_completed", "is_manually_locked", "created_at", "updated_at")
-        VALUES 
-        (gen_random_uuid(), 'UCL2526', 'ROUND_16', true, false, false, NOW(), NOW())
-        ON CONFLICT DO NOTHING;
-      `);
+    await this.dataSource.query(`
+      INSERT INTO "knockout_phase_status" 
+      ("id", "tournamentId", "phase", 
+       "is_unlocked", "all_matches_completed",
+       "is_manually_locked")
+      VALUES 
+      (gen_random_uuid(), 'UCL2526', 
+       'ROUND_16', true, false, false)
+      ON CONFLICT DO NOTHING
+    `);
 
-      return {
-        success: true,
-        message: 'Fases UCL2526 actualizadas correctamente. PlayOffs completados y Octavos (ROUND_16) activados.',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: `Error updating UCL phases: ${error.message}`,
-        error: error.message,
-      };
-    }
+    return { success: true };
   }
 
   // --- START TEMPORARY DEBUG ---

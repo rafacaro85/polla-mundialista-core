@@ -234,7 +234,19 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     // Filtrar partidos por ronda - Usando IDs reales para evitar desajustes
     const getMatchesByPhase = (phase: string) => {
         return matches
-            .filter(m => m.phase === phase)
+            .filter(m => {
+                const isPhaseMatch = m.phase === phase;
+                if (!isPhaseMatch) return false;
+
+                // Si es UCL (o tiene LEG_1/LEG_2), solo mostrar LEG_1 en el bracket
+                // para evitar duplicados en la visualización lineal.
+                const group = (m as any).group || '';
+                if (group.startsWith('LEG_') && group !== 'LEG_1') {
+                    return false;
+                }
+                
+                return true;
+            })
             .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0));
     };
 

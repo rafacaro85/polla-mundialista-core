@@ -62,8 +62,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const homeCode = getVisualCode(homeTeamName);
   const awayCode = getVisualCode(awayTeamName);
 
-  const homeFlagUrl = getTeamFlagUrl(match.homeFlag || homeTeamName);
-  const awayFlagUrl = getTeamFlagUrl(match.awayFlag || awayTeamName);
+  const homeFlagUrl = match.homeFlag || getTeamFlagUrl(homeTeamName);
+  const awayFlagUrl = match.awayFlag || getTeamFlagUrl(awayTeamName);
 
   const groupName = match.group || 'A';
   const stadium = match.stadium || 'Estadio TBD';

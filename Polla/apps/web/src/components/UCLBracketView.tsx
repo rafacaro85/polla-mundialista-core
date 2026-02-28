@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { useTournament } from '@/hooks/useTournament';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 import { TournamentPodium } from './TournamentPodium';
-import { MatchNode } from './MatchNode'; // We will extract MatchNode or keep it inline
+import { TournamentPodium } from './TournamentPodium';
 
 /* =============================================================================
    INTERFACES
@@ -139,33 +139,49 @@ export const UCLBracketView: React.FC<UCLBracketViewProps> = ({ matches, leagueI
     const isLocked = useMemo(() => lockDate ? new Date() > lockDate : false, [lockDate]);
 
     // MAP BRACKETS
-    // Wait, let's map by bracketId if available, otherwise just use array index
-    const r16Matches = matches.filter(m => m.phase === 'ROUND_16').sort((a,b) => (a.bracketId||0) - (b.bracketId||0));
-    const qfMatches = matches.filter(m => m.phase === 'QUARTER_FINAL').sort((a,b) => (a.bracketId||0) - (b.bracketId||0));
-    const sfMatches = matches.filter(m => m.phase === 'SEMI_FINAL').sort((a,b) => (a.bracketId||0) - (b.bracketId||0));
-    const fMatches = matches.filter(m => m.phase === 'FINAL');
+    // Only use LEG_1 for the bracket display to avoid duplicates
+    const uclBracketMatches = matches.filter(m => 
+        ((m as any).tournamentId === 'UCL2526' || (m as any).tournament_id === 'UCL2526') && 
+        (m as any).group === 'LEG_1'
+    );
 
-    // Left Zone (Matches 6, 1, 7, 2 -> mapping to 0,1,2,3 for simplicity if bracket Ids aren't perfectly aligned, but we'll use array slicing)
-    // Actually the requested image has specific order. If we just want symmetrical 4 left, 4 right:
+    const r16Matches = uclBracketMatches.filter(m => m.phase === 'ROUND_16');
+    const qfMatches = uclBracketMatches.filter(m => m.phase === 'QUARTER_FINAL');
+    const sfMatches = uclBracketMatches.filter(m => m.phase === 'SEMI_FINAL');
+    const fMatches = uclBracketMatches.filter(m => m.phase === 'FINAL');
+
+    // LEFT ZONE: Brackets 1, 2, 3, 4 (Octavos) -> 9, 10 (Cuartos) -> 13 (Semis)
     const leftR16 = [
-        r16Matches.find(m => m.homeTeam === 'PSG') || r16Matches[0],
-        r16Matches.find(m => m.homeTeam === 'Galatasaray') || r16Matches[1],
-        r16Matches.find(m => m.homeTeam === 'Real Madrid') || r16Matches[2],
-        r16Matches.find(m => m.homeTeam === 'Atalanta') || r16Matches[3]
+        r16Matches.find(m => m.bracketId === 1),
+        r16Matches.find(m => m.bracketId === 2),
+        r16Matches.find(m => m.bracketId === 3),
+        r16Matches.find(m => m.bracketId === 4)
     ].filter(Boolean) as Match[];
 
+    const leftQF = [
+        qfMatches.find(m => m.bracketId === 9),
+        qfMatches.find(m => m.bracketId === 10)
+    ].filter(Boolean) as Match[];
+
+    const leftSF = sfMatches.filter(m => m.bracketId === 13);
+
+    // RIGHT ZONE: Brackets 5, 6, 7, 8 (Octavos) -> 11, 12 (Cuartos) -> 14 (Semis)
     const rightR16 = [
-        r16Matches.find(m => m.homeTeam === 'Newcastle') || r16Matches[4],
-        r16Matches.find(m => m.homeTeam === 'Atlético Madrid') || r16Matches[5],
-        r16Matches.find(m => m.homeTeam === 'Bodø/Glimt') || r16Matches[6],
-        r16Matches.find(m => m.homeTeam === 'Leverkusen') || r16Matches[7]
+        r16Matches.find(m => m.bracketId === 5),
+        r16Matches.find(m => m.bracketId === 6),
+        r16Matches.find(m => m.bracketId === 7),
+        r16Matches.find(m => m.bracketId === 8)
     ].filter(Boolean) as Match[];
 
-    const leftQF = qfMatches.slice(0, 2);
-    const rightQF = qfMatches.slice(2, 4);
-    const leftSF = sfMatches.slice(0, 1);
-    const rightSF = sfMatches.slice(1, 2);
-    const finalMatch = fMatches[0];
+    const rightQF = [
+        qfMatches.find(m => m.bracketId === 11),
+        qfMatches.find(m => m.bracketId === 12)
+    ].filter(Boolean) as Match[];
+
+    const rightSF = sfMatches.filter(m => m.bracketId === 14);
+
+    // CENTER: Bracket 15 (Final)
+    const finalMatch = fMatches.find(m => m.bracketId === 15) || fMatches[0];
 
     const pickWinner = (id: string, team: string) => {
         if (!isLocked) setWinners(prev => ({ ...prev, [id]: team }));
@@ -198,7 +214,7 @@ export const UCLBracketView: React.FC<UCLBracketViewProps> = ({ matches, leagueI
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="font-russo text-xl uppercase text-white mb-1">El Camino a Munich</h2>
-                        <p className="text-[10px] text-blue-300">Completa tu árbol hacia la final.</p>
+                        <p className="text-[10px] text-blue-300">Completa tu árbol hacia la final (Solo Ida).</p>
                     </div>
                     <div className="bg-slate-800/50 border border-slate-700 px-3 py-2 rounded-lg text-center">
                         <span className="text-[9px] text-blue-300 block font-bold uppercase tracking-widest">Puntos</span>
@@ -216,20 +232,23 @@ export const UCLBracketView: React.FC<UCLBracketViewProps> = ({ matches, leagueI
 
             {/* SYMMETRICAL BRACKET */}
             <div className="overflow-x-auto p-4 custom-scrollbar">
-                <div className="flex justify-center min-w-[900px] gap-4 py-8 items-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-[#020617] to-[#020617]">
+                <div className="flex justify-center min-w-[1200px] gap-8 py-8 items-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-[#020617] to-[#020617]">
                     
                     {/* LEFT ZONE */}
                     <div className="flex gap-4">
+                        {/* OCTAVOS LEFT */}
                         <div className="flex flex-col justify-around gap-2">
                             {leftR16.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked} isFinished={m.status === 'FINISHED'} correctWinner={getActualWinner(m)} label={i%2===0 ? "Octavos" : undefined} align="left" />
                             ))}
                         </div>
+                        {/* CUARTOS LEFT */}
                         <div className="flex flex-col justify-around gap-16 py-8">
                             {leftQF.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m?.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked || !m} isFinished={m?.status === 'FINISHED'} correctWinner={m ? getActualWinner(m) : undefined} label={i===0 ? "Cuartos" : undefined} align="left" />
                             ))}
                         </div>
+                        {/* SEMIS LEFT */}
                         <div className="flex flex-col justify-around gap-32 py-24">
                             {leftSF.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m?.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked || !m} isFinished={m?.status === 'FINISHED'} correctWinner={m ? getActualWinner(m) : undefined} label={i===0 ? "Semis" : undefined} align="left" />
@@ -237,7 +256,7 @@ export const UCLBracketView: React.FC<UCLBracketViewProps> = ({ matches, leagueI
                         </div>
                     </div>
 
-                    {/* CENTER ZONE */}
+                    {/* CENTER ZONE (FINAL) */}
                     <div className="flex flex-col items-center justify-center px-4 gap-8">
                         <Trophy size={64} className={champion ? 'text-[#FACC15] drop-shadow-[0_0_30px_#FACC15]' : 'text-slate-700 opacity-50'} />
                         <div className="w-px h-16 bg-gradient-to-b from-slate-700 to-transparent"></div>
@@ -258,16 +277,19 @@ export const UCLBracketView: React.FC<UCLBracketViewProps> = ({ matches, leagueI
 
                     {/* RIGHT ZONE */}
                     <div className="flex gap-4 flex-row-reverse">
+                        {/* OCTAVOS RIGHT */}
                         <div className="flex flex-col justify-around gap-2">
                             {rightR16.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked} isFinished={m.status === 'FINISHED'} correctWinner={getActualWinner(m)} label={i%2===0 ? "Octavos" : undefined} align="right" />
                             ))}
                         </div>
+                        {/* CUARTOS RIGHT */}
                         <div className="flex flex-col justify-around gap-16 py-8">
                             {rightQF.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m?.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked || !m} isFinished={m?.status === 'FINISHED'} correctWinner={m ? getActualWinner(m) : undefined} label={i===0 ? "Cuartos" : undefined} align="right" />
                             ))}
                         </div>
+                        {/* SEMIS RIGHT */}
                         <div className="flex flex-col justify-around gap-32 py-24">
                             {rightSF.map((m, i) => (
                                 <UCLMatchNode key={i} match={m} winner={winners[m?.id]} onPickWinner={pickWinner} getTeamFlag={getTeamFlag} isLocked={isLocked || !m} isFinished={m?.status === 'FINISHED'} correctWinner={m ? getActualWinner(m) : undefined} label={i===0 ? "Semis" : undefined} align="right" />

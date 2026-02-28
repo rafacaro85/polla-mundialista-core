@@ -218,10 +218,17 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     // --- LÓGICA DE BLOQUEO ---
     const lockDate = useMemo(() => {
+        // En WC2026 el torneo inicia en ROUND_32. En UCL inicia en ROUND_16.
+        // Buscamos el primer partido disponible para el bloqueo global.
         const r32 = matches.filter(m => m.phase === 'ROUND_32');
-        if (r32.length === 0) return null;
-        const dates = r32.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
+        const r16 = matches.filter(m => m.phase === 'ROUND_16');
+        
+        const relevantMatches = r32.length > 0 ? r32 : r16;
+        if (relevantMatches.length === 0) return null;
+        
+        const dates = relevantMatches.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
         if (dates.length === 0) return null;
+        
         // El bloqueo ocurre 30 minutos antes del primer partido
         return new Date(Math.min(...dates) - (30 * 60 * 1000));
     }, [matches]);
@@ -275,11 +282,13 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         const quarterFinished = isFinished(quarterMatches);
         const semiFinished = isFinished(semiMatches);
 
+        // Si NO hay partidos de ROUND_32, ROUND_16 es la fase inicial y debe estar abierta.
+        const hasR32 = r32Matches.length > 0;
+
         // Una fase está abierta SOLO si la anterior terminó.
-        // ROUND_32 siempre está 'abierta' a menos que el tiempo expire (isLocked global).
         return {
             ROUND_32: true, 
-            ROUND_16: r32Finished,
+            ROUND_16: !hasR32 || r32Finished,
             QUARTER: r16Finished,
             SEMI: quarterFinished,
             FINAL: semiFinished,

@@ -32,5 +32,13 @@ export class AdminController {
   async debugTables() {
     return this.adminService.debugTables();
   }
+
+  @Get('debug-columns')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async debugColumns() {
+    return this.adminService.debugColumns();
+  }
   // --- END TEMPORARY DEBUG ---
 }

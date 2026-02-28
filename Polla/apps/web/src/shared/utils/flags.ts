@@ -77,6 +77,7 @@ const CLUB_SHIELDS: Record<string, string> = {
     'Borussia Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
     'Dortmund': '/images/escudos/borussia-dortmund-footballlogos-org.svg',
     'PSG': '/images/escudos/psg.svg',
+    'psg': '/images/escudos/psg.svg',
     'PARIS SAINT-GERMAIN': '/images/escudos/psg.svg',
     'PARIS SAINT GERMAIN': '/images/escudos/psg.svg',
     'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',

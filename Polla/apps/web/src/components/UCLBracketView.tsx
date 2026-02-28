@@ -5,7 +5,6 @@ import { api } from '@/lib/api';
 import { useTournament } from '@/hooks/useTournament';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 import { TournamentPodium } from './TournamentPodium';
-import { TournamentPodium } from './TournamentPodium';
 
 /* =============================================================================
    INTERFACES

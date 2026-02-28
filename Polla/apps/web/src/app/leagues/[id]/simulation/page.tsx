@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { GroupStageView } from '@/components/GroupStageView';
 import { BracketView } from '@/components/BracketView';
+import { UCLBracketView } from '@/components/UCLBracketView';
 import { Loader2, Table, Trophy } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function SimulationPage() {
     const params = useParams();
     const [matches, setMatches] = useState([]);
+    const [leagueData, setLeagueData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>('groups');
 
@@ -30,6 +32,7 @@ export default function SimulationPage() {
                 // (Logic removed: enterprise leagues should see knockout teams now)
 
                 setMatches(matchesData);
+                setLeagueData(leagueData);
             } catch (error) {
                 console.error('Error loading simulation data:', error);
             } finally {
@@ -83,7 +86,13 @@ export default function SimulationPage() {
             {/* Content */}
             <div className="pb-24 md:pb-0">
                 {activeTab === 'groups' && <GroupStageView matches={matches} />}
-                {activeTab === 'bracket' && <BracketView matches={matches} leagueId={params.id as string} />}
+                {activeTab === 'bracket' && (() => {
+                    const isUCL = (leagueData?.tournamentId || '').toUpperCase().includes('UCL');
+                    if (isUCL) {
+                        return <UCLBracketView matches={matches} leagueId={params.id as string} />;
+                    }
+                    return <BracketView matches={matches} leagueId={params.id as string} />;
+                })()}
             </div>
         </div>
     );

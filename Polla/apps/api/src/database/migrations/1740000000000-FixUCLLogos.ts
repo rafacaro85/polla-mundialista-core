@@ -2,7 +2,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class FixUCLLogos1740000000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const LOGO_MAP: Record<string, string> = {
+    try {
+      const LOGO_MAP: Record<string, string> = {
       // Pot 1
       'Real Madrid': 'https://crests.football-data.org/86.svg',
       'Manchester City': 'https://crests.football-data.org/65.svg',
@@ -85,6 +86,9 @@ export class FixUCLLogos1740000000000 implements MigrationInterface {
       await queryRunner.query(
         `UPDATE matches SET "awayFlag" = '${safeUrl}' WHERE "awayTeam" ILIKE '%${name}%'`,
       );
+    }
+    } catch (e) {
+      console.log('Skipping FixUCLLogos - matches table not ready');
     }
   }
 

@@ -33,6 +33,16 @@ api.interceptors.request.use(
 
       // Check if the request explicitly provides a tournamentId
       if (!config.params) config.params = {};
+
+      // Verificar si tournamentId ya viene en la URL string (ej: desde swrKey)
+      const urlString = config.url || '';
+      const urlHasTournamentId = urlString.includes('tournamentId=');
+
+      // Si ya viene en la URL, no agregar nada (evitar duplicidad)
+      if (urlHasTournamentId) {
+        return config;
+      }
+
       const explicitTournamentId = config.params.tournamentId;
 
       // Final Tournament ID: explicit > query > localStorage > hostname

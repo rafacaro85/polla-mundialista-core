@@ -304,16 +304,26 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
-        // 1. Si el partido ya tiene equipos reales en la DB, los usamos
-        const team = side === 'home' ? match.homeTeam : match.awayTeam;
-        
-        // Check if team is valid (not empty, not placeholder values)
-        if (team && team.trim() !== '' && team !== 'LOC' && team !== 'VIS' && team !== 'TBD') {
-            return team;
+        // 1. Buscamos si hay un partido anterior que alimente a este slot
+        // El bracketId impar del partido anterior va al 'home', el par va al 'away'
+        const sourceMatch = matches.find(m => 
+            (m as any).nextMatchId === match.id && 
+            (side === 'home' ? (m.bracketId || 0) % 2 !== 0 : (m.bracketId || 0) % 2 === 0)
+        );
+
+        // Si el usuario ya eligió un ganador en el partido anterior, mostramos esa predicción visual
+        if (sourceMatch && winners[sourceMatch.id]) {
+            return winners[sourceMatch.id];
         }
 
-        // 2. RETIRADO: No propagamos la predicción del usuario a la siguiente fase visualmente.
-        // El usuario solicitó que la siguiente casilla permanezca vacía hasta que el partido real termine.
+        // 2. Si no hay predicción, mostramos el equipo establecido en la DB
+        const realTeam = side === 'home' ? match.homeTeam : match.awayTeam;
+        
+        // Verifica que el equipo sea real y no un placeholder (Ej. 'TBD', 'W49', etc)
+        if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && !realTeam.match(/^W\d+$/)) {
+            return realTeam;
+        }
+
         return undefined;
     };
 

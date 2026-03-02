@@ -247,8 +247,8 @@ export class AdminService {
           'Newcastle': 'https://crests.football-data.org/67.svg',
           'Barcelona': 'https://crests.football-data.org/81.svg',
           'Atlético de Madrid': 'https://crests.football-data.org/78.svg',
-          'Tottenham': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
-          'Bodø/Glimt': 'https://crests.football-data.org/444.svg',
+          'Tottenham': '/images/escudos/tottenham-hotspur-footballlogos-org.svg',
+          'Bodø/Glimt': '/assets/ucl/bodo-glimt.svg',
           'Sporting CP': 'https://crests.football-data.org/498.svg',
           'Bayer Leverkusen': 'https://crests.football-data.org/3.svg',
           'Arsenal': 'https://crests.football-data.org/57.svg'
@@ -269,19 +269,6 @@ export class AdminService {
         { date: '2026-03-11T20:00:00Z', home: 'PSG', away: 'Chelsea', stadium: 'Parc des Princes', bracketId: 1 },
         { date: '2026-03-11T20:00:00Z', home: 'Real Madrid', away: 'Manchester City', stadium: 'Santiago Bernabéu', bracketId: 3 },
         { date: '2026-03-11T20:00:00Z', home: 'Bodø/Glimt', away: 'Sporting CP', stadium: 'Aspmyra Stadion', bracketId: 7 },
-
-        // ====== VUELTA ======
-        // Martes 17 marzo 2026
-        { date: '2026-03-17T17:45:00Z', home: 'Sporting CP', away: 'Bodø/Glimt', stadium: 'Estádio José Alvalade', bracketId: 7 },
-        { date: '2026-03-17T20:00:00Z', home: 'Chelsea', away: 'PSG', stadium: 'Stamford Bridge', bracketId: 1 },
-        { date: '2026-03-17T20:00:00Z', home: 'Manchester City', away: 'Real Madrid', stadium: 'Etihad Stadium', bracketId: 3 },
-        { date: '2026-03-17T20:00:00Z', home: 'Arsenal', away: 'Bayer Leverkusen', stadium: 'Emirates Stadium', bracketId: 8 },
-
-        // Miércoles 18 marzo 2026
-        { date: '2026-03-18T17:45:00Z', home: 'Barcelona', away: 'Newcastle', stadium: 'Camp Nou', bracketId: 5 },
-        { date: '2026-03-18T20:00:00Z', home: 'Liverpool', away: 'Galatasaray', stadium: 'Anfield', bracketId: 2 },
-        { date: '2026-03-18T20:00:00Z', home: 'Bayern Munich', away: 'Atalanta', stadium: 'Allianz Arena', bracketId: 4 },
-        { date: '2026-03-18T20:00:00Z', home: 'Tottenham', away: 'Atlético de Madrid', stadium: 'Tottenham Hotspur Stadium', bracketId: 6 },
       ];
 
       let insertedCount = 0;

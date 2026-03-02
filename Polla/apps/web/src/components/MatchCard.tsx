@@ -395,9 +395,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
                 // Lógica específica para UCL
                 if (isUCL) {
-                    if (month === 1) return "PLAY OFF IDA";
-                    if (month === 2) return "PLAY OFF VUELTA";
-                    if (match.phase === 'ROUND_16') return "OCTAVOS DE FINAL";
+                    if (match.phase === 'PLAYOFF_1' || month === 0) return "PLAY OFF IDA";
+                    if (match.phase === 'PLAYOFF_2' || month === 1) return "PLAY OFF VUELTA";
+                    if (match.phase === 'ROUND_16' || month === 2) return "OCTAVOS DE FINAL";
                 }
                 
                 // Default

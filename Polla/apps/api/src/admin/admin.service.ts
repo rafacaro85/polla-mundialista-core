@@ -236,22 +236,22 @@ export class AdminService {
 
       const getLogo = (team: string): string => {
         const FLAGS: Record<string, string> = {
-          'PSG': 'https://crests.football-data.org/524.svg',
-          'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
-          'Galatasaray': 'https://crests.football-data.org/610.svg',
-          'Liverpool': 'https://crests.football-data.org/64.svg',
-          'Real Madrid': 'https://crests.football-data.org/86.svg',
-          'Manchester City': 'https://crests.football-data.org/65.svg',
-          'Atalanta': 'https://crests.football-data.org/102.svg',
-          'Bayern Munich': 'https://crests.football-data.org/5.svg',
-          'Newcastle': 'https://crests.football-data.org/67.svg',
-          'Barcelona': 'https://crests.football-data.org/81.svg',
-          'Atlético de Madrid': 'https://crests.football-data.org/78.svg',
+          'PSG': '/images/escudos/psg.svg',
+          'Chelsea': '/images/escudos/chelsea-footballlogos-org.svg',
+          'Galatasaray': '/images/escudos/galatasaray-footballlogos-org.svg',
+          'Liverpool': '/images/escudos/liverpool-fc-footballlogos-org.svg',
+          'Real Madrid': '/images/escudos/real-madrid-footballlogos-org.svg',
+          'Manchester City': '/images/escudos/manchester-city-footballlogos-org.svg',
+          'Atalanta': '/images/escudos/atalanta-footballlogos-org.svg',
+          'Bayern Munich': '/images/escudos/bayern-munich-footballlogos-org.svg',
+          'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg',
+          'Barcelona': '/images/escudos/fc-barcelona-footballlogos-org.svg',
+          'Atlético de Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
           'Tottenham': '/images/escudos/tottenham-hotspur-footballlogos-org.svg',
-          'Bodø/Glimt': '/assets/ucl/bodo-glimt.svg',
-          'Sporting CP': 'https://crests.football-data.org/498.svg',
-          'Bayer Leverkusen': 'https://crests.football-data.org/3.svg',
-          'Arsenal': 'https://crests.football-data.org/57.svg'
+          'Bodø/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
+          'Sporting CP': '/images/escudos/sporting-cp-portugal-footballlogos-org.svg',
+          'Bayer Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
+          'Arsenal': '/images/escudos/arsenal-footballlogos-org.svg'
         };
         return FLAGS[team] || '';
       };

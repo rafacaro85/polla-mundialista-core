@@ -235,35 +235,53 @@ export class AdminService {
       `);
 
       const getLogo = (team: string): string => {
-        const TEAMS: Record<string, string> = {
-          'Manchester City': 'gb-eng', 'Real Madrid': 'es', 'Bayern Munich': 'de', Liverpool: 'gb-eng',
-          'Inter Milan': 'it', Arsenal: 'gb-eng', Barcelona: 'es', PSG: 'fr', 'Atletico Madrid': 'es',
-          'Borussia Dortmund': 'de', 'Bayer Leverkusen': 'de', Juventus: 'it', 'AC Milan': 'it',
-          Benfica: 'pt', 'Aston Villa': 'gb-eng', PSV: 'nl'
+        const FLAGS: Record<string, string> = {
+          'PSG': 'https://crests.football-data.org/524.svg',
+          'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
+          'Galatasaray': 'https://crests.football-data.org/610.svg',
+          'Liverpool': 'https://crests.football-data.org/64.svg',
+          'Real Madrid': 'https://crests.football-data.org/86.svg',
+          'Manchester City': 'https://crests.football-data.org/65.svg',
+          'Atalanta': 'https://crests.football-data.org/102.svg',
+          'Bayern Munich': 'https://crests.football-data.org/5.svg',
+          'Newcastle': 'https://crests.football-data.org/67.svg',
+          'Barcelona': 'https://crests.football-data.org/81.svg',
+          'Atlético de Madrid': 'https://crests.football-data.org/78.svg',
+          'Tottenham': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
+          'Bodø/Glimt': 'https://crests.football-data.org/444.svg',
+          'Sporting CP': 'https://crests.football-data.org/498.svg',
+          'Bayer Leverkusen': 'https://crests.football-data.org/3.svg',
+          'Arsenal': 'https://crests.football-data.org/57.svg'
         };
-        const code = TEAMS[team];
-        return code ? `https://flagcdn.com/w40/${code}.png` : '';
+        return FLAGS[team] || '';
       };
 
       const MATCHES_R16 = [
-        // IDA
-        { date: '2026-02-17T20:00:00Z', home: 'PSV', away: 'Arsenal', stadium: 'Philips Stadion', bracketId: 1 },
-        { date: '2026-02-17T20:00:00Z', home: 'Benfica', away: 'Real Madrid', stadium: 'Estádio da Luz', bracketId: 2 },
-        { date: '2026-02-18T20:00:00Z', home: 'Juventus', away: 'Manchester City', stadium: 'Allianz Stadium', bracketId: 3 },
-        { date: '2026-02-18T20:00:00Z', home: 'AC Milan', away: 'Liverpool', stadium: 'San Siro', bracketId: 4 },
-        { date: '2026-02-24T20:00:00Z', home: 'Atletico Madrid', away: 'Bayern Munich', stadium: 'Metropolitano', bracketId: 5 },
-        { date: '2026-02-24T20:00:00Z', home: 'Bayer Leverkusen', away: 'Inter Milan', stadium: 'BayArena', bracketId: 6 },
-        { date: '2026-02-25T20:00:00Z', home: 'Aston Villa', away: 'Barcelona', stadium: 'Villa Park', bracketId: 7 },
-        { date: '2026-02-25T20:00:00Z', home: 'Borussia Dortmund', away: 'PSG', stadium: 'Signal Iduna Park', bracketId: 8 },
-        // VUELTA
-        { date: '2026-03-10T20:00:00Z', home: 'Arsenal', away: 'PSV', stadium: 'Emirates Stadium', bracketId: 1 },
-        { date: '2026-03-10T20:00:00Z', home: 'Real Madrid', away: 'Benfica', stadium: 'Santiago Bernabéu', bracketId: 2 },
-        { date: '2026-03-11T20:00:00Z', home: 'Manchester City', away: 'Juventus', stadium: 'Etihad Stadium', bracketId: 3 },
-        { date: '2026-03-11T20:00:00Z', home: 'Liverpool', away: 'AC Milan', stadium: 'Anfield', bracketId: 4 },
-        { date: '2026-03-17T20:00:00Z', home: 'Bayern Munich', away: 'Atletico Madrid', stadium: 'Allianz Arena', bracketId: 5 },
-        { date: '2026-03-17T20:00:00Z', home: 'Inter Milan', away: 'Bayer Leverkusen', stadium: 'San Siro', bracketId: 6 },
-        { date: '2026-03-18T20:00:00Z', home: 'Barcelona', away: 'Aston Villa', stadium: 'Camp Nou', bracketId: 7 },
-        { date: '2026-03-18T20:00:00Z', home: 'PSG', away: 'Borussia Dortmund', stadium: 'Parc des Princes', bracketId: 8 },
+        // ====== IDA ======
+        // Martes 10 marzo 2026
+        { date: '2026-03-10T17:45:00Z', home: 'Galatasaray', away: 'Liverpool', stadium: 'RAMS Park', bracketId: 2 },
+        { date: '2026-03-10T20:00:00Z', home: 'Atalanta', away: 'Bayern Munich', stadium: 'Gewiss Stadium', bracketId: 4 },
+        { date: '2026-03-10T20:00:00Z', home: 'Newcastle', away: 'Barcelona', stadium: 'St James Park', bracketId: 5 },
+        { date: '2026-03-10T20:00:00Z', home: 'Atlético de Madrid', away: 'Tottenham', stadium: 'Metropolitano', bracketId: 6 },
+        
+        // Miércoles 11 marzo 2026
+        { date: '2026-03-11T17:45:00Z', home: 'Bayer Leverkusen', away: 'Arsenal', stadium: 'BayArena', bracketId: 8 },
+        { date: '2026-03-11T20:00:00Z', home: 'PSG', away: 'Chelsea', stadium: 'Parc des Princes', bracketId: 1 },
+        { date: '2026-03-11T20:00:00Z', home: 'Real Madrid', away: 'Manchester City', stadium: 'Santiago Bernabéu', bracketId: 3 },
+        { date: '2026-03-11T20:00:00Z', home: 'Bodø/Glimt', away: 'Sporting CP', stadium: 'Aspmyra Stadion', bracketId: 7 },
+
+        // ====== VUELTA ======
+        // Martes 17 marzo 2026
+        { date: '2026-03-17T17:45:00Z', home: 'Sporting CP', away: 'Bodø/Glimt', stadium: 'Estádio José Alvalade', bracketId: 7 },
+        { date: '2026-03-17T20:00:00Z', home: 'Chelsea', away: 'PSG', stadium: 'Stamford Bridge', bracketId: 1 },
+        { date: '2026-03-17T20:00:00Z', home: 'Manchester City', away: 'Real Madrid', stadium: 'Etihad Stadium', bracketId: 3 },
+        { date: '2026-03-17T20:00:00Z', home: 'Arsenal', away: 'Bayer Leverkusen', stadium: 'Emirates Stadium', bracketId: 8 },
+
+        // Miércoles 18 marzo 2026
+        { date: '2026-03-18T17:45:00Z', home: 'Barcelona', away: 'Newcastle', stadium: 'Camp Nou', bracketId: 5 },
+        { date: '2026-03-18T20:00:00Z', home: 'Liverpool', away: 'Galatasaray', stadium: 'Anfield', bracketId: 2 },
+        { date: '2026-03-18T20:00:00Z', home: 'Bayern Munich', away: 'Atalanta', stadium: 'Allianz Arena', bracketId: 4 },
+        { date: '2026-03-18T20:00:00Z', home: 'Tottenham', away: 'Atlético de Madrid', stadium: 'Tottenham Hotspur Stadium', bracketId: 6 },
       ];
 
       let insertedCount = 0;
@@ -301,7 +319,7 @@ export class AdminService {
       await this.matchRepository.save(finalMatch);
       insertedCount++;
 
-      return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526.` };
+      return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526 (Official Draw).` };
     } catch (error) {
       return { success: false, error: error.message };
     }

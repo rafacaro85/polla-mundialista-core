@@ -2,8 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class FixUCLLogos1740000000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    try {
-      const LOGO_MAP: Record<string, string> = {
+    const LOGO_MAP: Record<string, string> = {
       // Pot 1
       'Real Madrid': 'https://crests.football-data.org/86.svg',
       'Manchester City': 'https://crests.football-data.org/65.svg',
@@ -78,17 +77,30 @@ export class FixUCLLogos1740000000000 implements MigrationInterface {
     for (const [name, url] of Object.entries(LOGO_MAP)) {
       // Escape single quotes in URL just in case
       const safeUrl = url.replace(/'/g, "''");
+      
       // Update Home
-      await queryRunner.query(
-        `UPDATE matches SET "homeFlag" = '${safeUrl}' WHERE "homeTeam" ILIKE '%${name}%'`,
-      );
+      await queryRunner.query(`SAVEPOINT fix_ucl_logos_home`);
+      try {
+        await queryRunner.query(
+          `UPDATE matches SET "homeFlag" = '${safeUrl}' WHERE "homeTeam" ILIKE '%${name}%'`,
+        );
+      } catch (e) {
+        await queryRunner.query(`ROLLBACK TO SAVEPOINT fix_ucl_logos_home`);
+        console.log('Skipping FixUCLLogos - matches table not ready');
+        return;
+      }
+
       // Update Away
-      await queryRunner.query(
-        `UPDATE matches SET "awayFlag" = '${safeUrl}' WHERE "awayTeam" ILIKE '%${name}%'`,
-      );
-    }
-    } catch (e) {
-      console.log('Skipping FixUCLLogos - matches table not ready');
+      await queryRunner.query(`SAVEPOINT fix_ucl_logos_away`);
+      try {
+        await queryRunner.query(
+          `UPDATE matches SET "awayFlag" = '${safeUrl}' WHERE "awayTeam" ILIKE '%${name}%'`,
+        );
+      } catch (e) {
+        await queryRunner.query(`ROLLBACK TO SAVEPOINT fix_ucl_logos_away`);
+        console.log('Skipping FixUCLLogos - matches table not ready');
+        return;
+      }
     }
   }
 

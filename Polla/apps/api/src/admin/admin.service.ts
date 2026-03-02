@@ -259,23 +259,36 @@ export class AdminService {
       const MATCHES_R16 = [
         // ====== IDA ======
         // Martes 10 marzo 2026
-        { date: '2026-03-10T17:45:00Z', home: 'Galatasaray', away: 'Liverpool', stadium: 'RAMS Park', bracketId: 2 },
-        { date: '2026-03-10T20:00:00Z', home: 'Atalanta', away: 'Bayern Munich', stadium: 'Gewiss Stadium', bracketId: 4 },
-        { date: '2026-03-10T20:00:00Z', home: 'Newcastle', away: 'Barcelona', stadium: 'St James Park', bracketId: 5 },
-        { date: '2026-03-10T20:00:00Z', home: 'Atlético de Madrid', away: 'Tottenham', stadium: 'Metropolitano', bracketId: 6 },
+        { date: '2026-03-10T17:45:00Z', home: 'Galatasaray', away: 'Liverpool', stadium: 'RAMS Park', bracketId: 2, leg: 'LEG_1' },
+        { date: '2026-03-10T20:00:00Z', home: 'Atalanta', away: 'Bayern Munich', stadium: 'Gewiss Stadium', bracketId: 4, leg: 'LEG_1' },
+        { date: '2026-03-10T20:00:00Z', home: 'Newcastle', away: 'Barcelona', stadium: 'St James Park', bracketId: 5, leg: 'LEG_1' },
+        { date: '2026-03-10T20:00:00Z', home: 'Atlético de Madrid', away: 'Tottenham', stadium: 'Metropolitano', bracketId: 6, leg: 'LEG_1' },
         
         // Miércoles 11 marzo 2026
-        { date: '2026-03-11T17:45:00Z', home: 'Bayer Leverkusen', away: 'Arsenal', stadium: 'BayArena', bracketId: 8 },
-        { date: '2026-03-11T20:00:00Z', home: 'PSG', away: 'Chelsea', stadium: 'Parc des Princes', bracketId: 1 },
-        { date: '2026-03-11T20:00:00Z', home: 'Real Madrid', away: 'Manchester City', stadium: 'Santiago Bernabéu', bracketId: 3 },
-        { date: '2026-03-11T20:00:00Z', home: 'Bodø/Glimt', away: 'Sporting CP', stadium: 'Aspmyra Stadion', bracketId: 7 },
+        { date: '2026-03-11T17:45:00Z', home: 'Bayer Leverkusen', away: 'Arsenal', stadium: 'BayArena', bracketId: 8, leg: 'LEG_1' },
+        { date: '2026-03-11T20:00:00Z', home: 'PSG', away: 'Chelsea', stadium: 'Parc des Princes', bracketId: 1, leg: 'LEG_1' },
+        { date: '2026-03-11T20:00:00Z', home: 'Real Madrid', away: 'Manchester City', stadium: 'Santiago Bernabéu', bracketId: 3, leg: 'LEG_1' },
+        { date: '2026-03-11T20:00:00Z', home: 'Bodø/Glimt', away: 'Sporting CP', stadium: 'Aspmyra Stadion', bracketId: 7, leg: 'LEG_1' },
+
+        // ====== VUELTA ======
+        // Martes 17 marzo 2026
+        { date: '2026-03-17T20:00:00Z', home: 'Arsenal', away: 'Bayer Leverkusen', stadium: 'Emirates Stadium', bracketId: 8, leg: 'LEG_2' },
+        { date: '2026-03-17T20:00:00Z', home: 'Chelsea', away: 'PSG', stadium: 'Stamford Bridge', bracketId: 1, leg: 'LEG_2' },
+        { date: '2026-03-17T20:00:00Z', home: 'Manchester City', away: 'Real Madrid', stadium: 'Etihad Stadium', bracketId: 3, leg: 'LEG_2' },
+        { date: '2026-03-17T20:00:00Z', home: 'Sporting CP', away: 'Bodø/Glimt', stadium: 'José Alvalade', bracketId: 7, leg: 'LEG_2' },
+
+        // Miércoles 18 marzo 2026
+        { date: '2026-03-18T18:45:00Z', home: 'Liverpool', away: 'Galatasaray', stadium: 'Anfield', bracketId: 2, leg: 'LEG_2' },
+        { date: '2026-03-18T20:00:00Z', home: 'Bayern Munich', away: 'Atalanta', stadium: 'Allianz Arena', bracketId: 4, leg: 'LEG_2' },
+        { date: '2026-03-18T20:00:00Z', home: 'Barcelona', away: 'Newcastle', stadium: 'Spotify Camp Nou', bracketId: 5, leg: 'LEG_2' },
+        { date: '2026-03-18T20:00:00Z', home: 'Tottenham', away: 'Atlético de Madrid', stadium: 'Tottenham Hotspur Stadium', bracketId: 6, leg: 'LEG_2' },
       ];
 
       let insertedCount = 0;
       for (const m of MATCHES_R16) {
         const match = this.matchRepository.create({
           tournamentId: 'UCL2526', homeTeam: m.home, awayTeam: m.away, homeFlag: getLogo(m.home), awayFlag: getLogo(m.away), 
-          date: new Date(m.date), phase: 'ROUND_16', bracketId: m.bracketId, stadium: m.stadium, status: 'SCHEDULED', isManuallyLocked: false
+          date: new Date(m.date), phase: 'ROUND_16', group: m.leg, bracketId: m.bracketId, stadium: m.stadium, status: 'SCHEDULED', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
         insertedCount++;

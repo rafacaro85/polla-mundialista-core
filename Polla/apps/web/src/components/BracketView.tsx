@@ -358,7 +358,11 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         if (isLocked) return;
         if (confirm("¿Estás seguro de borrar todo tu bracket?")) {
             try {
-                await api.delete('/brackets/me');
+                let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
+                const separator = url.includes('?') ? '&' : '?';
+                url += `${separator}tournamentId=${tournamentId}`;
+                
+                await api.delete(url);
                 setWinners({});
                 setBracketPoints(0);
                 toast.info('Bracket reiniciado exitosamente');

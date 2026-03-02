@@ -64,9 +64,25 @@ export class BracketsController {
   }
 
   @Delete('me')
-  async clearMyBracket(@Req() req: Request & { user: any }) {
+  async clearMyBracket(
+    @Req() req: Request & { user: any },
+    @Query('leagueId') leagueId?: string,
+    @Query('tournamentId') tournamentId?: string,
+  ) {
     const userId = req.user.id;
-    await this.bracketsService.clearBracket(userId);
+    
+    const cleanId = (id: string | undefined): string | undefined => {
+      if (!id) return undefined;
+      if (Array.isArray(id)) return id[0];
+      if (typeof id === 'string' && id.includes(','))
+        return id.split(',')[0].trim();
+      return id;
+    };
+
+    const tid = cleanId(tournamentId);
+    const lid = cleanId(leagueId);
+
+    await this.bracketsService.clearBracket(userId, lid, tid);
     return { success: true, message: 'Bracket eliminado exitosamente' };
   }
 

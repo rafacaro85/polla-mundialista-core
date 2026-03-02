@@ -73,14 +73,30 @@ export class UseLocalAssets1740000000001 implements MigrationInterface {
 
     for (const [name, slug] of Object.entries(ASSET_MAP)) {
       const localPath = `/assets/ucl/${slug}.svg`;
+      
       // Update Home
-      await queryRunner.query(
-        `UPDATE matches SET "homeFlag" = '${localPath}' WHERE "homeTeam" ILIKE '%${name}%'`,
-      );
+      await queryRunner.query(`SAVEPOINT use_local_assets_home`);
+      try {
+        await queryRunner.query(
+          `UPDATE matches SET "homeFlag" = '${localPath}' WHERE "homeTeam" ILIKE '%${name}%'`,
+        );
+      } catch (e) {
+        await queryRunner.query(`ROLLBACK TO SAVEPOINT use_local_assets_home`);
+        console.log('Skipping UseLocalAssets - matches table not ready');
+        return;
+      }
+
       // Update Away
-      await queryRunner.query(
-        `UPDATE matches SET "awayFlag" = '${localPath}' WHERE "awayTeam" ILIKE '%${name}%'`,
-      );
+      await queryRunner.query(`SAVEPOINT use_local_assets_away`);
+      try {
+        await queryRunner.query(
+          `UPDATE matches SET "awayFlag" = '${localPath}' WHERE "awayTeam" ILIKE '%${name}%'`,
+        );
+      } catch (e) {
+        await queryRunner.query(`ROLLBACK TO SAVEPOINT use_local_assets_away`);
+        console.log('Skipping UseLocalAssets - matches table not ready');
+        return;
+      }
     }
   }
 

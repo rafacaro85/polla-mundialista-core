@@ -226,6 +226,87 @@ export class AdminService {
     }
   }
 
+  async reseedUCLMatches() {
+    try {
+      await this.dataSource.query(`
+        DELETE FROM matches 
+        WHERE "tournamentId" = 'UCL2526' 
+        AND phase IN ('ROUND_16','QUARTER_FINAL','SEMI_FINAL','FINAL', 'QUARTER', 'SEMI')
+      `);
+
+      const getLogo = (team: string): string => {
+        const TEAMS: Record<string, string> = {
+          'Manchester City': 'gb-eng', 'Real Madrid': 'es', 'Bayern Munich': 'de', Liverpool: 'gb-eng',
+          'Inter Milan': 'it', Arsenal: 'gb-eng', Barcelona: 'es', PSG: 'fr', 'Atletico Madrid': 'es',
+          'Borussia Dortmund': 'de', 'Bayer Leverkusen': 'de', Juventus: 'it', 'AC Milan': 'it',
+          Benfica: 'pt', 'Aston Villa': 'gb-eng', PSV: 'nl'
+        };
+        const code = TEAMS[team];
+        return code ? `https://flagcdn.com/w40/${code}.png` : '';
+      };
+
+      const MATCHES_R16 = [
+        // IDA
+        { date: '2026-02-17T20:00:00Z', home: 'PSV', away: 'Arsenal', stadium: 'Philips Stadion', bracketId: 1 },
+        { date: '2026-02-17T20:00:00Z', home: 'Benfica', away: 'Real Madrid', stadium: 'Estádio da Luz', bracketId: 2 },
+        { date: '2026-02-18T20:00:00Z', home: 'Juventus', away: 'Manchester City', stadium: 'Allianz Stadium', bracketId: 3 },
+        { date: '2026-02-18T20:00:00Z', home: 'AC Milan', away: 'Liverpool', stadium: 'San Siro', bracketId: 4 },
+        { date: '2026-02-24T20:00:00Z', home: 'Atletico Madrid', away: 'Bayern Munich', stadium: 'Metropolitano', bracketId: 5 },
+        { date: '2026-02-24T20:00:00Z', home: 'Bayer Leverkusen', away: 'Inter Milan', stadium: 'BayArena', bracketId: 6 },
+        { date: '2026-02-25T20:00:00Z', home: 'Aston Villa', away: 'Barcelona', stadium: 'Villa Park', bracketId: 7 },
+        { date: '2026-02-25T20:00:00Z', home: 'Borussia Dortmund', away: 'PSG', stadium: 'Signal Iduna Park', bracketId: 8 },
+        // VUELTA
+        { date: '2026-03-10T20:00:00Z', home: 'Arsenal', away: 'PSV', stadium: 'Emirates Stadium', bracketId: 1 },
+        { date: '2026-03-10T20:00:00Z', home: 'Real Madrid', away: 'Benfica', stadium: 'Santiago Bernabéu', bracketId: 2 },
+        { date: '2026-03-11T20:00:00Z', home: 'Manchester City', away: 'Juventus', stadium: 'Etihad Stadium', bracketId: 3 },
+        { date: '2026-03-11T20:00:00Z', home: 'Liverpool', away: 'AC Milan', stadium: 'Anfield', bracketId: 4 },
+        { date: '2026-03-17T20:00:00Z', home: 'Bayern Munich', away: 'Atletico Madrid', stadium: 'Allianz Arena', bracketId: 5 },
+        { date: '2026-03-17T20:00:00Z', home: 'Inter Milan', away: 'Bayer Leverkusen', stadium: 'San Siro', bracketId: 6 },
+        { date: '2026-03-18T20:00:00Z', home: 'Barcelona', away: 'Aston Villa', stadium: 'Camp Nou', bracketId: 7 },
+        { date: '2026-03-18T20:00:00Z', home: 'PSG', away: 'Borussia Dortmund', stadium: 'Parc des Princes', bracketId: 8 },
+      ];
+
+      let insertedCount = 0;
+      for (const m of MATCHES_R16) {
+        const match = this.matchRepository.create({
+          tournamentId: 'UCL2526', homeTeam: m.home, awayTeam: m.away, homeFlag: getLogo(m.home), awayFlag: getLogo(m.away), 
+          date: new Date(m.date), phase: 'ROUND_16', bracketId: m.bracketId, stadium: m.stadium, status: 'SCHEDULED', isManuallyLocked: false
+        });
+        await this.matchRepository.save(match);
+        insertedCount++;
+      }
+
+      for(let i=1; i<=8; i++) {
+        const match = this.matchRepository.create({
+          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Octavos', awayTeamPlaceholder: 'Ganador Octavos',
+          date: new Date('2026-04-07T20:00:00Z'), phase: 'QUARTER_FINAL', bracketId: Math.ceil(i/2), stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+        });
+        await this.matchRepository.save(match);
+        insertedCount++;
+      }
+
+      for(let i=1; i<=4; i++) {
+        const match = this.matchRepository.create({
+          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Cuartos', awayTeamPlaceholder: 'Ganador Cuartos',
+          date: new Date('2026-04-28T20:00:00Z'), phase: 'SEMI_FINAL', bracketId: Math.ceil(i/2), stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+        });
+        await this.matchRepository.save(match);
+        insertedCount++;
+      }
+
+      const finalMatch = this.matchRepository.create({
+        tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Finalista 1', awayTeamPlaceholder: 'Finalista 2',
+        date: new Date('2026-05-31T20:00:00Z'), phase: 'FINAL', bracketId: 1, stadium: 'Puskás Aréna', status: 'PENDING', isManuallyLocked: false
+      });
+      await this.matchRepository.save(finalMatch);
+      insertedCount++;
+
+      return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526.` };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   async fixUCLPhases() {
     await this.dataSource.query(`
       UPDATE "knockout_phase_status" 

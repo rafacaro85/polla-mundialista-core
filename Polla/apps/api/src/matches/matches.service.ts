@@ -1069,22 +1069,6 @@ export class MatchesService {
   async resetAllMatches(
     tid?: string,
   ): Promise<{ message: string; reset: number }> {
-    // SPECIAL HANDLING FOR UCL2526: FULL RESET & RE-SEED
-    if (tid === 'UCL2526') {
-      console.log('🚨 FULL RESET UCL2526 requested (Deleting & Seeding)...');
-      // Delete Phase Statuses first to avoid constraints
-      await this.phaseStatusRepository.delete({ tournamentId: tid });
-      // Delete All Matches
-      await this.matchesRepository.delete({ tournamentId: tid });
-
-      // Re-seed with correct logos
-      const result = await this.seedUCLKnockout();
-      return {
-        message: 'UCL2526 Reset & Re-seeded with Correct Logos',
-        reset: result.created,
-      };
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -1110,10 +1094,9 @@ export class MatchesService {
       }
       await qbMatches.execute();
 
-      // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
-      // Para reset parcial, verificamos el torneo tambien.
-      // Esto es más delicado con QueryBuilder puro, iteramos si es necesario o un update condicional complejo
-      // Simplificación: Si reseteamos TODO, limpiamos placeholders. Si es por torneo, igual limpiamos placeholders de ESE torneo.
+      // CRÍTICO: Solo limpiar equipos si NO es fase de grupos y NO son los octavos primarios de UCL.
+      // Modificamos NOT IN para que ROUND_16 tampoco se limpie en la Champions, porque ahí es donde están
+      // los cruces que el admin acaba de configurar de forma fija.
       const qbPlaceholders = queryRunner.manager
         .createQueryBuilder()
         .update(Match)
@@ -1124,7 +1107,7 @@ export class MatchesService {
           awayFlag: null,
         })
         .where(
-          "phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2') AND (\"homeTeamPlaceholder\" IS NOT NULL OR \"awayTeamPlaceholder\" IS NOT NULL)",
+          "phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16') AND (\"homeTeamPlaceholder\" IS NOT NULL OR \"awayTeamPlaceholder\" IS NOT NULL)",
         );
 
       if (tid) {
@@ -1174,7 +1157,7 @@ export class MatchesService {
       if (!tid || tid === DEFAULT_TOURNAMENT_ID)
         initialPhases.push({ tid: DEFAULT_TOURNAMENT_ID, phase: 'GROUP' });
       if (!tid || tid === 'UCL2526')
-        initialPhases.push({ tid: 'UCL2526', phase: 'PLAYOFF' });
+        initialPhases.push({ tid: 'UCL2526', phase: 'ROUND_16' });
 
       for (const item of initialPhases) {
         await queryRunner.manager

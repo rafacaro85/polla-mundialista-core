@@ -65,18 +65,14 @@ const MatchNode = ({
     };
 
     const getStatusColor = (team: string) => {
-        // Loose comparison: Ensure both are strings and trimmed
         const isSelected = winner && String(winner).trim() === String(team).trim();
-        
-        if (!isSelected) return 'bg-[var(--brand-secondary,#1E293B)]/80 text-slate-300'; // No selected or other team
-        
+        if (!isSelected) return 'bg-[var(--brand-secondary,#1E293B)]/80 text-slate-300';
         if (isFinished && correctWinner) {
-            return correctWinner === team 
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' // WON
-                : 'bg-red-500/20 text-red-400 border-red-500/50'; // LOST
+            return correctWinner === team
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
+                : 'bg-red-500/20 text-red-400 border-red-500/50';
         }
-        
-        return 'bg-[var(--brand-primary,#00E676)]/20 text-[var(--brand-primary,#00E676)]'; // Pending/Selected
+        return 'bg-[var(--brand-primary,#00E676)]/20 text-[var(--brand-primary,#00E676)]';
     };
 
     return (
@@ -116,7 +112,6 @@ const MatchNode = ({
                     )}
                 </button>
             </div>
-
         </div>
     );
 };
@@ -133,13 +128,10 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const { matches, leagueId } = props;
     const { tournamentId } = useTournament();
 
-    // ESTADO: Guardamos quién ganó cada partido
     const [winners, setWinners] = useState<Record<string, string>>({});
     const [bracketPoints, setBracketPoints] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // MAPA DE BANDERAS: Construimos un mapa de TeamName -> FlagURL basado en los partidos recibidos
-    // Esto asegura que usemos las mismas banderas que en el resto de la app
     const teamFlags = useMemo(() => {
         const map: Record<string, string> = {};
         matches.forEach(m => {
@@ -153,10 +145,6 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         return getTeamFlagUrl(teamName);
     };
 
-    // FETCH PROPIO DEL BRACKET: Traer TODOS los partidos de la llave
-    // (no depender de /matches/live que solo trae fases desbloqueadas)
-    // Esto garantiza que CUARTOS/SEMI/FINAL aparezcan en el bracket 
-    // aunque aún no estén desbloqueados para predicciones.
     const [allBracketMatches, setAllBracketMatches] = useState<Match[]>([]);
 
     useEffect(() => {
@@ -174,39 +162,28 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         fetchAllMatches();
     }, [tournamentId]);
 
-    // Usar allBracketMatches si ya cargaron, si no usar el prop matches como fallback
     const effectiveMatches = allBracketMatches.length > 0 ? allBracketMatches : matches;
 
-    // Cargar bracket guardado desde la API
-    // Usamos useTournament para saber en qué contexto estamos (WC2026 o UCL2526)
-    
     useEffect(() => {
         if (!tournamentId) return;
 
         const loadBracket = async () => {
             try {
-                // Si estamos en una liga, intentamos cargar el bracket de esa liga (o el global como fallback)
                 let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
-                
-                // CRITICAL: Append tournamentId to isolate data
                 const separator = url.includes('?') ? '&' : '?';
                 url += `${separator}tournamentId=${tournamentId}`;
 
                 const { data } = await api.get(url);
-                
+
                 if (data && data.picks) {
                     const pickKeys = Object.keys(data.picks);
-                    
-                    // Force Keys to String to avoid Type Mismatch
                     const normalizedPicks: Record<string, string> = {};
                     pickKeys.forEach(key => {
                         normalizedPicks[String(key)] = data.picks[key];
                     });
-                    
                     setWinners(normalizedPicks);
                     setBracketPoints(data.points || 0);
                 } else {
-                    // Reset if no data for this tournament
                     setWinners({});
                     setBracketPoints(0);
                 }
@@ -222,20 +199,13 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         loadBracket();
     }, [leagueId, tournamentId]);
 
-    // --- LÓGICA DE BLOQUEO ---
     const lockDate = useMemo(() => {
-        // En WC2026 el torneo inicia en ROUND_32. En UCL inicia en ROUND_16.
-        // Buscamos el primer partido disponible para el bloqueo global.
         const r32 = effectiveMatches.filter(m => m.phase === 'ROUND_32');
         const r16 = effectiveMatches.filter(m => m.phase === 'ROUND_16');
-        
         const relevantMatches = r32.length > 0 ? r32 : r16;
         if (relevantMatches.length === 0) return null;
-        
         const dates = relevantMatches.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
         if (dates.length === 0) return null;
-        
-        // El bloqueo ocurre 30 minutos antes del primer partido
         return new Date(Math.min(...dates) - (30 * 60 * 1000));
     }, [effectiveMatches]);
 
@@ -244,20 +214,13 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         return new Date() > lockDate;
     }, [lockDate]);
 
-    // Filtrar partidos por ronda - Usando IDs reales para evitar desajustes
     const getMatchesByPhase = (phase: string) => {
         return effectiveMatches
             .filter(m => {
                 const isPhaseMatch = m.phase === phase;
                 if (!isPhaseMatch) return false;
-
-                // Si es UCL (o tiene LEG_1/LEG_2), solo mostrar LEG_1 en el bracket
-                // para evitar duplicados en la visualización lineal.
                 const group = (m as any).group || '';
-                if (group.startsWith('LEG_') && group !== 'LEG_1') {
-                    return false;
-                }
-                
+                if (group.startsWith('LEG_') && group !== 'LEG_1') return false;
                 return true;
             })
             .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0));
@@ -265,12 +228,10 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [effectiveMatches]);
     const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [effectiveMatches]);
-    // UCL usa 'QUARTER_FINAL', WC usa 'QUARTER' — incluimos ambos
     const quarterMatches = useMemo(() => [
         ...getMatchesByPhase('QUARTER'),
         ...getMatchesByPhase('QUARTER_FINAL'),
     ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [effectiveMatches]);
-    // UCL usa 'SEMI_FINAL', WC usa 'SEMI' — incluimos ambos
     const semiMatches = useMemo(() => [
         ...getMatchesByPhase('SEMI'),
         ...getMatchesByPhase('SEMI_FINAL'),
@@ -279,106 +240,74 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [effectiveMatches]);
 
     const getActualWinner = (match: Match) => {
-        // LEG_1: el ganador real es el del AGREGADO, no del partido único
-        // Solo mostramos resultado cuando la VUELTA (LEG_2) también terminó
         if ((match as any).group === 'LEG_1') {
-            // Buscar el partido de vuelta (mismo phase y bracketId, group=LEG_2)
             const leg2 = effectiveMatches.find(m =>
                 (m as any).group === 'LEG_2' &&
                 m.phase === match.phase &&
                 m.bracketId === match.bracketId
             );
-            // Si la vuelta no terminó, aún no sabemos el ganador
             if (!leg2 || (leg2.status !== 'FINISHED' && leg2.status !== 'COMPLETED')) return null;
             if (leg2.homeScore === null || leg2.awayScore === null) return null;
             if (match.homeScore === null || match.awayScore === null) return null;
-
-            // Calcular goles totales de la IDA
-            // LEG_1: TeamA(home) vs TeamB(away)
-            // LEG_2: TeamB(home) vs TeamA(away)  ← equipos invertidos
             const teamAGoals = (match.homeScore ?? 0) + (leg2.awayScore ?? 0);
             const teamBGoals = (match.awayScore ?? 0) + (leg2.homeScore ?? 0);
-
-            if (teamAGoals > teamBGoals) return match.homeTeam; // TeamA gana
-            if (teamBGoals > teamAGoals) return match.awayTeam; // TeamB gana
-            return null; // Empate total (penales)
+            if (teamAGoals > teamBGoals) return match.homeTeam;
+            if (teamBGoals > teamAGoals) return match.awayTeam;
+            return null;
         }
-
         if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return null;
         if (typeof match.homeScore === 'number' && typeof match.awayScore === 'number') {
             if (match.homeScore > match.awayScore) return match.homeTeam;
             if (match.awayScore > match.homeScore) return match.awayTeam;
         }
-        return null; 
+        return null;
     };
 
-    // LÓGICA DE FASES SECUENCIALES (PHASE BY PHASE)
     const phasesStatus = useMemo(() => {
         const isFinished = (list: Match[]) => list.length > 0 && list.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
-        
         const r32Finished = isFinished(r32Matches);
         const r16Finished = isFinished(r16Matches);
         const quarterFinished = isFinished(quarterMatches);
         const semiFinished = isFinished(semiMatches);
-
-        // Si NO hay partidos de ROUND_32, ROUND_16 es la fase inicial y debe estar abierta.
         const hasR32 = r32Matches.length > 0;
-
-        // Una fase está abierta SOLO si la anterior terminó.
         return {
-            ROUND_32: true, 
+            ROUND_32: true,
             ROUND_16: !hasR32 || r32Finished,
             QUARTER: r16Finished,
-            QUARTER_FINAL: r16Finished,  // UCL alias
+            QUARTER_FINAL: r16Finished,
             SEMI: quarterFinished,
-            SEMI_FINAL: quarterFinished, // UCL alias
+            SEMI_FINAL: quarterFinished,
             FINAL: semiFinished,
             '3RD_PLACE': semiFinished
         };
     }, [r32Matches, r16Matches, quarterMatches, semiMatches]);
 
     const isMatchLocked = (match: Match) => {
-        // 1. Bloqueo Global por Tiempo (30 min antes del primer partido del torneo)
         if (isLocked) return true;
-
-        // 2. Bloqueo Secuencial (Fase por Fase)
-        // Si la fase anterior NO ha terminado, esta fase está BLOQUEADA.
-        if (match.phase && phasesStatus[match.phase as keyof typeof phasesStatus] === false) {
-            return true;
-        }
-
+        if (match.phase && phasesStatus[match.phase as keyof typeof phasesStatus] === false) return true;
         return false;
     };
 
-    // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
-        // 1. PRIMERO: Si el backend ya promovió un equipo real a este slot, tiene prioridad absoluta.
-        // Esto evita que la predicción del usuario sobreescriba al ganador real.
         const realTeam = side === 'home' ? match.homeTeam : match.awayTeam;
         if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && !realTeam.match(/^W\d+$/)) {
             return realTeam;
         }
-
-        // 2. SÓLO si el slot está vacío (aún no se sabe el ganador), mostramos la
-        // predicción visual del usuario como preview.
-        const sourceMatch = effectiveMatches.find(m => 
-            (m as any).nextMatchId === match.id && 
+        const sourceMatch = effectiveMatches.find(m =>
+            (m as any).nextMatchId === match.id &&
             (side === 'home' ? (m.bracketId || 0) % 2 !== 0 : (m.bracketId || 0) % 2 === 0)
         );
         if (sourceMatch && winners[sourceMatch.id]) {
             return winners[sourceMatch.id];
         }
-
         return undefined;
     };
 
-    // FUNCIÓN: Seleccionar Ganador
     const pickWinner = (matchId: string, teamCode: string) => {
         if (isLocked) return;
         setWinners(prev => ({ ...prev, [matchId]: teamCode }));
     };
 
-    // FUNCIÓN: Guardar Bracket
     const handleSaveBracket = async () => {
         if (isLocked) {
             toast.error("El tiempo para guardar tu bracket ha expirado");
@@ -387,8 +316,8 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         try {
             const { data } = await api.post('/brackets', {
                 picks: winners,
-                tournamentId: tournamentId, // CRITICAL: Save to correct tournament
-                leagueId: leagueId // Fix: Pass the current league context so we save to the correct bracket (league vs global)
+                tournamentId: tournamentId,
+                leagueId: leagueId
             });
             setBracketPoints(data.points || 0);
             toast.success('Bracket guardado exitosamente! 🏆');
@@ -398,7 +327,6 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         }
     };
 
-    // FUNCIÓN: Limpiar Bracket
     const clearBracket = async () => {
         if (isLocked) return;
         if (confirm("¿Estás seguro de borrar todo tu bracket?")) {
@@ -406,7 +334,6 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                 let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
                 const separator = url.includes('?') ? '&' : '?';
                 url += `${separator}tournamentId=${tournamentId}`;
-                
                 await api.delete(url);
                 setWinners({});
                 setBracketPoints(0);
@@ -425,15 +352,14 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const champion = winners[finalMatches[0]?.id || ''];
 
     return (
-        <div 
+        <div
             className="min-h-screen text-white font-sans pb-32"
             style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
         >
-
-            {/* HEADER INSTRUCCIONES & ACCIONES */}
-            <div 
+            {/* HEADER */}
+            <div
                 className="p-6 pt-24 sticky top-0 backdrop-blur z-30 border-b"
-                style={{ 
+                style={{
                     backgroundColor: 'color-mix(in srgb, var(--brand-bg, #0F172A), transparent 5%)',
                     borderColor: 'var(--brand-accent, #334155)'
                 }}
@@ -447,28 +373,24 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                                 : "Haz clic en los equipos para avanzar de ronda."}
                         </p>
                     </div>
-
-                    {/* INFO PUNTOS BRACKET */}
                     <div className="bg-slate-800/50 border border-slate-700 px-3 py-2 rounded-lg text-center">
                         <span className="text-[9px] text-[#94A3B8] block font-bold uppercase tracking-widest">Puntos</span>
                         <span className="font-russo text-lg" style={{ color: 'var(--brand-primary, #00E676)' }}>{bracketPoints}</span>
                     </div>
                 </div>
 
-                {/* LOCK STATUS WARNING */}
                 {isLocked && (
                     <div className="mb-4 p-2 bg-red-500/10 border border-red-500/30 rounded text-[10px] text-red-400 font-bold uppercase text-center">
                         🔒 Pronósticos cerrados desde {lockDate?.toLocaleString()}
                     </div>
                 )}
 
-                {/* BOTONES DE ACCIÓN */}
                 {!isLocked && (
                     <div className="flex gap-3">
                         <button
                             onClick={handleSaveBracket}
                             className="flex-1 py-2 rounded-lg font-black text-xs uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
-                            style={{ 
+                            style={{
                                 backgroundColor: 'var(--brand-primary, #00E676)',
                                 color: 'var(--brand-bg, #0F172A)',
                                 boxShadow: '0 0 15px rgba(0,230,118,0.2)'
@@ -488,236 +410,203 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
             {/* ZONA DE BRACKET (SCROLLABLE) */}
             <div className="overflow-x-auto p-4 custom-scrollbar">
-                <div className="flex items-start gap-0 min-w-max pb-10 pl-2">
+              {(() => {
+                // ── Build rounds ──
+                const rounds: { label: string; matches: Match[]; isFinal?: boolean }[] = [];
+                if (r32Matches.length > 0)      rounds.push({ label: 'Dieciseisavos', matches: r32Matches });
+                if (r16Matches.length > 0)      rounds.push({ label: 'Octavos',       matches: r16Matches });
+                if (quarterMatches.length > 0)  rounds.push({ label: 'Cuartos',       matches: quarterMatches });
+                if (semiMatches.length > 0)     rounds.push({ label: 'Semis',         matches: semiMatches });
+                if (finalMatches.length > 0)    rounds.push({ label: 'Final',         matches: finalMatches, isFinal: true });
 
-                    {(() => {
-                        const cols: { label: string; matches: Match[] }[] = [];
-                        if (r32Matches.length > 0) cols.push({ label: 'Dieciseisavos', matches: r32Matches });
-                        if (r16Matches.length > 0) cols.push({ label: 'Octavos', matches: r16Matches });
-                        if (quarterMatches.length > 0) cols.push({ label: 'Cuartos', matches: quarterMatches });
-                        if (semiMatches.length > 0) cols.push({ label: 'Semis', matches: semiMatches });
+                if (rounds.length === 0) return null;
 
-                        // ── constantes de layout ────────────────────────────
-                        const CARD_H   = 62;   // altura real del MatchNode (2 filas × ~31px)
-                        const CARD_W   = 128;  // w-32
-                        const PAIR_GAP = 16;   // px entre las dos tarjetas de una misma llave
-                        const SLOT_GAP = 40;   // px entre slots de rondas anteriores q se unen
-                        // altura de 1 slot en la columna 0 (ronda más a la izq)
-                        // = 2 tarjetas + gap interno. Cada ronda siguiente merges 2 slots.
-                        const BASE_SLOT = CARD_H * 2 + PAIR_GAP;
-                        const LINE_W   = 28;   // ancho del conector horizontal inter-columnas
-                        const LC       = 'rgba(148,163,184,0.35)'; // color línea
+                // ── Layout constants ──────────────────────────────────────────
+                const CARD_W    = 128;  // px - width of each match card
+                const CARD_H    = 62;   // px - height of each match card
+                const MATCH_GAP = 24;   // px - vertical gap between consecutive matches in first round
+                const COL_GAP   = 48;   // px - horizontal space between columns (connectors live here)
+                const HEADER_H  = 36;   // px - column header height
+                const LC        = 'rgba(148,163,184,0.35)'; // connector line colour
 
-                        // Altura del slot para la columna colIdx
-                        // Col 0 → BASE_SLOT, col 1 → (BASE_SLOT+SLOT_GAP)*2-SLOT_GAP, ...
-                        const slotH = (colIdx: number): number => {
-                            // col 0: el par vive en BASE_SLOT
-                            // col 1: dos slots col0 + SLOT_GAP entre ellos
-                            // col 2: dos slots col1 + SLOT_GAP entre ellos
-                            if (colIdx === 0) return BASE_SLOT;
-                            return slotH(colIdx - 1) * 2 + SLOT_GAP;
-                        };
+                // Number of matches in the FIRST round (determines total height)
+                const n0 = rounds[0].matches.length;
 
-                        // total height of a column = numPairs × slotH + (numPairs-1) × SLOT_GAP
-                        // like: pairs*slotH(c) + (pairs-1)*SLOT_GAP  but since slotH already
-                        // nests SLOT_GAP the formula simplifies: total = numPairs × slotH(c) + (numPairs-1)*SLOT_GAP
-                        // For col 0 with 8 pairs: 8*(62*2+16)+(7*40)= 8*140+280=1400
-                        // For col 1 with 4 pairs: 4*(140*2+40)+(3*40)=4*320+120=1400 ✓
+                // Total bracket height (content area, below headers)
+                // Each match in the first round occupies CARD_H + MATCH_GAP pixels
+                const UNIT   = CARD_H + MATCH_GAP; // 86px per first-round match slot
+                const totalH = n0 * UNIT;
 
-                        const makeNode = (m: Match) => (
-                            <MatchNode
-                                key={m.id}
-                                matchId={m.id}
-                                team1={getTeamForSlot(m, 'home') || ''}
-                                team2={getTeamForSlot(m, 'away') || ''}
-                                placeholder1={m.homeTeamPlaceholder}
-                                placeholder2={m.awayTeamPlaceholder}
-                                winner={winners[m.id]}
-                                onPickWinner={pickWinner}
-                                getTeamFlag={getTeamFlag}
-                                nextId={(m as any).nextMatchId}
-                                isLocked={isMatchLocked(m)}
-                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                correctWinner={getActualWinner(m)}
-                            />
-                        );
+                // Column X positions
+                const colSlotW = CARD_W + COL_GAP;
+                const totalW   = rounds.length * CARD_W + (rounds.length - 1) * COL_GAP;
 
-                        const chunkPairs = (arr: Match[]) => {
-                            const out: Match[][] = [];
-                            for (let i = 0; i < arr.length; i += 2) out.push(arr.slice(i, i + 2));
-                            return out;
-                        };
+                // Y-center of match `mi` in round `ri`
+                // Tournament tree formula: centers are equally distributed so that
+                // each round's match center is always the midpoint of the two matches it came from.
+                // For round ri with nRound = n0/2^ri matches:
+                //   centerY(ri, mi) = (2*mi + 1) * totalH / (2 * nRound)
+                const getCY = (ri: number, mi: number): number => {
+                  const nRound = n0 / Math.pow(2, ri);
+                  return (2 * mi + 1) * totalH / (2 * nRound);
+                };
 
-                        return cols.map((col, colIdx) => {
-                            const pairs = chunkPairs(col.matches);
-                            const sh    = slotH(colIdx);          // px height of one slot
-                            const isFirst = colIdx === 0;
+                // X start of round column `ri`
+                const getColX = (ri: number) => ri * colSlotW;
 
-                            return (
-                                <div key={col.label} style={{ display: 'flex', flexDirection: 'column' }}>
-                                    {/* Encabezado */}
-                                    <div style={{ textAlign: 'center', marginBottom: 16, width: CARD_W + LINE_W }}>
-                                        <span style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 3, background: '#0F172A', padding: '2px 8px', borderRadius: 4 }}>
-                                            {col.label}
-                                        </span>
-                                    </div>
+                const makeNode = (m: Match) => (
+                  <MatchNode
+                    key={m.id}
+                    matchId={m.id}
+                    team1={getTeamForSlot(m, 'home') || ''}
+                    team2={getTeamForSlot(m, 'away') || ''}
+                    placeholder1={m.homeTeamPlaceholder}
+                    placeholder2={m.awayTeamPlaceholder}
+                    winner={winners[m.id]}
+                    onPickWinner={pickWinner}
+                    getTeamFlag={getTeamFlag}
+                    nextId={(m as any).nextMatchId}
+                    isLocked={isMatchLocked(m)}
+                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                    correctWinner={getActualWinner(m)}
+                  />
+                );
 
-                                    {pairs.map((pair, gi) => {
-                                        const [mA, mB] = pair;
+                return (
+                  <div style={{ position: 'relative', width: totalW, height: totalH + HEADER_H + 80, minWidth: totalW }}>
 
-                                        // Y centre of top card inside this slot
-                                        const topCardMidY  = CARD_H / 2;
-                                        // Y centre of bottom card inside this slot
-                                        const botCardMidY  = sh - CARD_H / 2;
-                                        // midpoint between those two = where horizontal exits
-                                        const exitY        = sh / 2;
+                    {/* ── Column Headers ── */}
+                    {rounds.map((round, ri) => (
+                      <div
+                        key={`hdr-${ri}`}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: getColX(ri),
+                          width: CARD_W,
+                          textAlign: 'center',
+                        }}
+                      >
+                        <span style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          color: round.isFinal ? '#FACC15' : '#94A3B8',
+                          textTransform: 'uppercase',
+                          letterSpacing: 3,
+                          background: round.isFinal ? 'rgba(250,204,21,0.1)' : '#0F172A',
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          border: round.isFinal ? '1px solid rgba(250,204,21,0.3)' : 'none',
+                          display: 'inline-block',
+                        }}>
+                          {round.label}
+                        </span>
+                      </div>
+                    ))}
 
-                                        return (
-                                            <div key={gi} style={{ display: 'flex', flexDirection: 'row', height: sh, marginBottom: gi < pairs.length - 1 ? SLOT_GAP : 0, position: 'relative' }}>
-
-                                                {/* ── incoming horizontal connector ── */}
-                                                {!isFirst && (
-                                                    <div style={{
-                                                        width: LINE_W,
-                                                        height: 1.5,
-                                                        background: LC,
-                                                        alignSelf: 'center',   // centres in the sh height automatically
-                                                        flexShrink: 0,
-                                                    }} />
-                                                )}
-
-                                                {/* ── cards column ── */}
-                                                <div style={{ position: 'relative', width: CARD_W, height: sh, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: `${(sh - CARD_H * 2 - PAIR_GAP) / 2}px 0` }}>
-                                                    {/* Top card centred in upper half */}
-                                                    <div style={{ height: CARD_H }}>
-                                                        {makeNode(mA)}
-                                                    </div>
-                                                    {/* Bottom card */}
-                                                    {mB && (
-                                                        <div style={{ height: CARD_H }}>
-                                                            {makeNode(mB)}
-                                                        </div>
-                                                    )}
-
-                                                    {/* ── outgoing L connector (SVG) ── */}
-                                                    {mB && (
-                                                        <svg
-                                                            style={{
-                                                                position: 'absolute',
-                                                                left: CARD_W,
-                                                                top: 0,
-                                                                width: LINE_W,
-                                                                height: sh,
-                                                                overflow: 'visible',
-                                                                pointerEvents: 'none',
-                                                                zIndex: 1,
-                                                            }}
-                                                        >
-                                                            {/* vertical bar between the two card midpoints */}
-                                                            <line x1={0} y1={topCardMidY} x2={0} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
-                                                            {/* horizontal tick from top card */}
-                                                            <line x1={0} y1={topCardMidY} x2={LINE_W / 2} y2={topCardMidY} stroke={LC} strokeWidth="1.5" />
-                                                            {/* horizontal tick from bottom card */}
-                                                            <line x1={0} y1={botCardMidY} x2={LINE_W / 2} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
-                                                            {/* vertical join of ticks at half-width */}
-                                                            <line x1={LINE_W / 2} y1={topCardMidY} x2={LINE_W / 2} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
-                                                            {/* exit horizontal to right edge = where next column's incoming line starts */}
-                                                            <line x1={LINE_W / 2} y1={exitY} x2={LINE_W} y2={exitY} stroke={LC} strokeWidth="1.5" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        });
-                    })()}
-
-                    {/* ═══════════════ FINAL ═══════════════ */}
-                    {(() => {
-                        const CARD_H   = 62;
-                        const PAIR_GAP = 16;
-                        const SLOT_GAP = 40;
-                        const BASE_SLOT = CARD_H * 2 + PAIR_GAP;
-                        const LINE_W   = 28;
-                        const LC       = 'rgba(148,163,184,0.35)';
-
-                        const slotH = (c: number): number => c === 0 ? BASE_SLOT : slotH(c - 1) * 2 + SLOT_GAP;
-
-                        // The Final sits at the level of the Semis column.
-                        // Semis has 1 pair → colIdx based on how many round cols exist
-                        const numRoundCols = [r32Matches, r16Matches, quarterMatches, semiMatches].filter(a => a.length > 0).length;
-                        // semis is the last round col (colIdx = numRoundCols - 1)
-                        const semiColIdx = numRoundCols - 1; // e.g. 3 if octavos+cuartos+semis exist
-                        const semiSlotH  = slotH(semiColIdx);
-
-                        // Total height of the Semis column = 2 semi pairs × semiSlotH + 1 × SLOT_GAP
-                        // (there are 2 semi matches → 1 pair → so 1 slot, no SLOT_GAP between pairs)
-                        // Actually semis = 2 matches = 1 pair → height = semiSlotH (one slot, no gap)
-                        // But there might be 2 semis pairs (4 teams, 2 matches)? No → 2 matches = 1 pair.
-                        // The Final column total height = same as Semis column total
-                        const finalColH = semiSlotH; // 1 semi pair
-
+                    {/* ── Match Cards (absolutely positioned using tournament tree formula) ── */}
+                    {rounds.map((round, ri) =>
+                      round.matches.map((m, mi) => {
+                        const cy = getCY(ri, mi);
+                        const cardTop  = HEADER_H + cy - CARD_H / 2;
+                        const cardLeft = getColX(ri);
                         return (
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                {/* Header */}
-                                <div style={{ textAlign: 'center', marginBottom: 16, width: 128 + LINE_W }}>
-                                    <span style={{ fontSize: 9, fontWeight: 900, color: '#FACC15', textTransform: 'uppercase', letterSpacing: 3, background: 'rgba(250,204,21,0.1)', padding: '2px 8px', borderRadius: 4, border: '1px solid rgba(250,204,21,0.3)' }}>
-                                        Final
-                                    </span>
-                                </div>
-
-                                {/* One slot = same height as one Semis slot so the incoming connector lands at center */}
-                                <div style={{ height: finalColH, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                    {/* incoming from Semis */}
-                                    {semiMatches.length > 0 && (
-                                        <div style={{ width: LINE_W, height: 1.5, background: LC, flexShrink: 0 }} />
-                                    )}
-
-                                    {/* trophy + card */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, width: 128 }}>
-                                        <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
-                                            <Trophy size={28} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
-                                        </div>
-
-                                        {finalMatches.map(m => (
-                                            <MatchNode
-                                                key={m.id}
-                                                matchId={m.id}
-                                                team1={getTeamForSlot(m, 'home') || ''}
-                                                team2={getTeamForSlot(m, 'away') || ''}
-                                                placeholder1={m.homeTeamPlaceholder}
-                                                placeholder2={m.awayTeamPlaceholder}
-                                                winner={winners[m.id]}
-                                                onPickWinner={pickWinner}
-                                                getTeamFlag={getTeamFlag}
-                                                nextId={null}
-                                                isLocked={isMatchLocked(m)}
-                                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                                correctWinner={getActualWinner(m)}
-                                            />
-                                        ))}
-
-                                        {winners[finalMatches[0]?.id || ''] && (
-                                            <div className="animate-in zoom-in duration-500">
-                                                <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-                                                    <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
-                                                        <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
-                                                        <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
-                                                        <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                          <div
+                            key={m.id}
+                            style={{
+                              position: 'absolute',
+                              top: cardTop,
+                              left: cardLeft,
+                              width: CARD_W,
+                              zIndex: 1,
+                            }}
+                          >
+                            {makeNode(m)}
+                          </div>
                         );
+                      })
+                    )}
+
+                    {/* ── Final: Trophy icon above the final card ── */}
+                    {finalMatches.length > 0 && (() => {
+                      const ri  = rounds.length - 1;
+                      const cy  = getCY(ri, 0);
+                      const top = HEADER_H + cy - CARD_H / 2 - 42;
+                      return (
+                        <div style={{ position: 'absolute', top: Math.max(HEADER_H + 2, top), left: getColX(ri), width: CARD_W, display: 'flex', justifyContent: 'center', zIndex: 1 }}>
+                          <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
+                            <Trophy size={28} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
+                          </div>
+                        </div>
+                      );
                     })()}
 
-                </div>
+                    {/* ── Champion card (below final card) ── */}
+                    {winners[finalMatches[0]?.id || ''] && (() => {
+                      const ri       = rounds.length - 1;
+                      const cy       = getCY(ri, 0);
+                      const champTop = HEADER_H + cy + CARD_H / 2 + 12;
+                      return (
+                        <div style={{ position: 'absolute', top: champTop, left: getColX(ri), width: CARD_W, zIndex: 1 }} className="animate-in zoom-in duration-500">
+                          <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                            <div className="bg-[#0F172A] rounded-lg p-3 text-center">
+                              <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
+                              <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
+                              <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* ── SINGLE SVG for ALL connector lines ────────────────────
+                         The key insight: all Y coordinates use the SAME getCY() formula,
+                         so connector endpoints and card centers are mathematically guaranteed
+                         to align - no CSS coordinate system confusion.
+                    ── */}
+                    <svg
+                      style={{
+                        position: 'absolute',
+                        top: HEADER_H,
+                        left: 0,
+                        width: totalW,
+                        height: totalH,
+                        pointerEvents: 'none',
+                        overflow: 'visible',
+                        zIndex: 0,
+                      }}
+                    >
+                      {rounds.slice(0, rounds.length - 1).map((round, ri) => {
+                        const nRound = round.matches.length;
+                        const xRight = getColX(ri) + CARD_W;   // right edge of this round's cards
+                        const xLeft  = getColX(ri + 1);         // left edge of next round's cards
+                        const xMid   = xRight + COL_GAP / 2;    // midpoint in the connector zone
+
+                        const lineElems: React.ReactNode[] = [];
+
+                        // For each PAIR of consecutive matches (k, k+1) that feed match k/2 in next round
+                        for (let k = 0; k < nRound; k += 2) {
+                          const y1   = getCY(ri, k);       // center of upper match
+                          const y2   = getCY(ri, k + 1);   // center of lower match
+                          const ymid = (y1 + y2) / 2;      // guaranteed = getCY(ri+1, k/2)
+
+                          // Horizontal stub rightward from upper match center
+                          lineElems.push(<line key={`h1-${ri}-${k}`} x1={xRight} y1={y1}   x2={xMid}  y2={y1}   stroke={LC} strokeWidth="1.5" />);
+                          // Horizontal stub rightward from lower match center
+                          lineElems.push(<line key={`h2-${ri}-${k}`} x1={xRight} y1={y2}   x2={xMid}  y2={y2}   stroke={LC} strokeWidth="1.5" />);
+                          // Vertical bar connecting both stubs
+                          lineElems.push(<line key={`v-${ri}-${k}`}  x1={xMid}   y1={y1}   x2={xMid}  y2={y2}   stroke={LC} strokeWidth="1.5" />);
+                          // Horizontal exit from midpoint to next round's card
+                          lineElems.push(<line key={`o-${ri}-${k}`}  x1={xMid}   y1={ymid} x2={xLeft} y2={ymid} stroke={LC} strokeWidth="1.5" />);
+                        }
+
+                        return lineElems;
+                      })}
+                    </svg>
+
+                  </div>
+                );
+              })()}
             </div>
 
             {/* PODIUM */}

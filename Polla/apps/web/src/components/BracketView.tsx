@@ -19,6 +19,7 @@ interface Match {
     homeScore?: number | null;
     awayScore?: number | null;
     phase?: string;
+    group?: string; // A,B,C para grupos; LEG_1, LEG_2 para Champions ida/vuelta
     bracketId?: number;
     status?: string;
     homeFlag?: string;
@@ -266,9 +267,30 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
     const getActualWinner = (match: Match) => {
-        // LEG_1: no podemos determinar un ganador hasta que termine el LEG_2
-        // así que nunca mostramos verde/rojo en partidos de IDA
-        if ((match as any).group === 'LEG_1') return null;
+        // LEG_1: el ganador real es el del AGREGADO, no del partido único
+        // Solo mostramos resultado cuando la VUELTA (LEG_2) también terminó
+        if ((match as any).group === 'LEG_1') {
+            // Buscar el partido de vuelta (mismo phase y bracketId, group=LEG_2)
+            const leg2 = matches.find(m =>
+                (m as any).group === 'LEG_2' &&
+                m.phase === match.phase &&
+                m.bracketId === match.bracketId
+            );
+            // Si la vuelta no terminó, aún no sabemos el ganador
+            if (!leg2 || (leg2.status !== 'FINISHED' && leg2.status !== 'COMPLETED')) return null;
+            if (leg2.homeScore === null || leg2.awayScore === null) return null;
+            if (match.homeScore === null || match.awayScore === null) return null;
+
+            // Calcular goles totales de la IDA
+            // LEG_1: TeamA(home) vs TeamB(away)
+            // LEG_2: TeamB(home) vs TeamA(away)  ← equipos invertidos
+            const teamAGoals = (match.homeScore ?? 0) + (leg2.awayScore ?? 0);
+            const teamBGoals = (match.awayScore ?? 0) + (leg2.homeScore ?? 0);
+
+            if (teamAGoals > teamBGoals) return match.homeTeam; // TeamA gana
+            if (teamBGoals > teamAGoals) return match.awayTeam; // TeamB gana
+            return null; // Empate total (penales)
+        }
 
         if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return null;
         if (typeof match.homeScore === 'number' && typeof match.awayScore === 'number') {

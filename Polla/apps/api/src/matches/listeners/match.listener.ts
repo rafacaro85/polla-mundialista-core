@@ -107,12 +107,19 @@ export class MatchListener {
       }
 
       // 2. Calculate bracket points
-      const winner =
-        homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
-      await this.bracketsService.calculateBracketPoints(matchId, winner);
-      this.logger.log(
-        `🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`,
-      );
+      // Solo calcular bracket points si NO es LEG_1
+      // (en LEG_1 no conocemos aún el ganador real de la serie)
+      if (freshMatch.group !== 'LEG_1') {
+        const winner = homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
+        await this.bracketsService.calculateBracketPoints(matchId, winner);
+        this.logger.log(
+          `🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`,
+        );
+      } else {
+        this.logger.log(
+          `⏸️ Bracket points skipped for LEG_1 match ${matchId} — waiting for LEG_2 result`,
+        );
+      }
 
       // 3. Status updates & Progression
 

@@ -71,6 +71,15 @@ export class MatchListener {
       const homeScore = freshMatch.homeScore;
       const awayScore = freshMatch.awayScore;
 
+      const isLegMatch = freshMatch.group === 'LEG_1' || freshMatch.group === 'LEG_2';
+      const shouldPromote = freshMatch.group !== 'LEG_1';
+
+      if (freshMatch.group === 'LEG_1') {
+        this.logger.log(`⏳ LEG_1 finished, waiting for LEG_2`);
+        // Solo calcular puntos, NO promover
+        // Continuar con scoring pero skip bracket progression
+      }
+
       this.logger.log(
         `📊 [CALCULO] Data confirmada BD: ${freshMatch.homeTeam} (${homeScore}) - (${awayScore}) ${freshMatch.awayTeam}`,
       );
@@ -147,12 +156,7 @@ export class MatchListener {
       }
 
       // Next Match Promotion
-      // UCL2526: lógica ida y vuelta
-      if (freshMatch.group === 'LEG_1') {
-        // No promover aún — esperar partido de vuelta
-        this.logger.log(`⏳ LEG_1 finished for bracketId ${freshMatch.bracketId}, waiting for LEG_2`);
-        return;
-      }
+      if (!shouldPromote) return;
 
       if (freshMatch.group === 'LEG_2') {
         // Buscar partido de ida (LEG_1) por tournamentId + phase + bracketId
@@ -190,25 +194,11 @@ export class MatchListener {
           winner = leg1.awayTeam;
           winnerFlag = leg1.awayFlag;
         } else {
-          // Empate en goles totales
-          // Regla UEFA: más goles de visitante gana
-          // TeamA anotó leg1.homeScore como local
-          // TeamB anotó freshMatch.homeScore como local
-          // Goles visitante TeamA = freshMatch.awayScore
-          // Goles visitante TeamB = leg1.awayScore
-          if (freshMatch.awayScore > leg1.awayScore) {
-            winner = leg1.homeTeam;
-            winnerFlag = leg1.homeFlag;
-          } else if (leg1.awayScore > freshMatch.awayScore) {
-            winner = leg1.awayTeam;
-            winnerFlag = leg1.awayFlag;
-          } else {
-            // Empate total — avanza TeamA por defecto
-            // (en torneo real iría a penales)
-            winner = leg1.homeTeam;
-            winnerFlag = leg1.homeFlag;
-            this.logger.log(`🎯 Tie on away goals — advancing ${winner} (would go to penalties in real match)`);
-          }
+          // Empate total — en torneo real 
+          // va a penales. Admin decide manualmente.
+          this.logger.log(`🎯 Aggregate tie for bracketId ${freshMatch.bracketId} — penalties needed`);
+          // No promover automáticamente
+          return;
         }
 
         // Usar nextMatchId del LEG_1 para avanzar

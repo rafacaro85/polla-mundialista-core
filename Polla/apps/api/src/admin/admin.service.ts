@@ -349,7 +349,7 @@ export class AdminService {
         tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
         homeTeamPlaceholder: 'Finalista 1', awayTeamPlaceholder: 'Finalista 2',
         date: new Date('2026-05-30T20:00:00Z'), phase: 'FINAL', bracketId: 15,
-        group: null, stadium: 'Puskás Aréna, Budapest', status: 'PENDING', isManuallyLocked: false
+        group: undefined, stadium: 'Puskás Aréna, Budapest', status: 'PENDING', isManuallyLocked: false
       });
       await this.matchRepository.save(finalMatch);
       insertedCount++;

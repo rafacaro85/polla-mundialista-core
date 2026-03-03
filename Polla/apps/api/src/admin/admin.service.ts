@@ -294,29 +294,62 @@ export class AdminService {
         insertedCount++;
       }
 
-      for(let i=1; i<=8; i++) {
-        const bracketId = 8 + Math.ceil(i/2); // 9, 10, 11, 12
+      // ===========================================
+      // QUARTER_FINAL — 6/8 abr (ida) & 13/15 abr (vuelta)
+      // ===========================================
+      const QF_MATCHES = [
+        // LEG_1 (Ida) — 1 y 2 de abril
+        { bracketId: 9,  leg: 'LEG_1', date: '2026-04-08T20:00:00Z', homePh: 'PSG/CHE',  awayPh: 'GAL/LIV' },
+        { bracketId: 10, leg: 'LEG_1', date: '2026-04-08T20:00:00Z', homePh: 'RMA/MCI', awayPh: 'ATA/BAY' },
+        { bracketId: 11, leg: 'LEG_1', date: '2026-04-07T20:00:00Z', homePh: 'NEW/BAR', awayPh: 'ATM/TOT' },
+        { bracketId: 12, leg: 'LEG_1', date: '2026-04-07T20:00:00Z', homePh: 'BOD/SPO', awayPh: 'LEV/ARS' },
+        // LEG_2 (Vuelta) — 13/15 abr
+        { bracketId: 9,  leg: 'LEG_2', date: '2026-04-15T20:00:00Z', homePh: 'GAL/LIV', awayPh: 'PSG/CHE' },
+        { bracketId: 10, leg: 'LEG_2', date: '2026-04-15T20:00:00Z', homePh: 'ATA/BAY', awayPh: 'RMA/MCI' },
+        { bracketId: 11, leg: 'LEG_2', date: '2026-04-14T20:00:00Z', homePh: 'ATM/TOT', awayPh: 'NEW/BAR' },
+        { bracketId: 12, leg: 'LEG_2', date: '2026-04-14T20:00:00Z', homePh: 'LEV/ARS', awayPh: 'BOD/SPO' },
+      ];
+      for (const m of QF_MATCHES) {
         const match = this.matchRepository.create({
-          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Octavos', awayTeamPlaceholder: 'Ganador Octavos',
-          date: new Date('2026-04-07T20:00:00Z'), phase: 'QUARTER_FINAL', bracketId, group: i % 2 !== 0 ? 'LEG_1' : 'LEG_2', stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
+          homeTeamPlaceholder: m.homePh, awayTeamPlaceholder: m.awayPh,
+          date: new Date(m.date), phase: 'QUARTER_FINAL', bracketId: m.bracketId,
+          group: m.leg, stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
         insertedCount++;
       }
 
-      for(let i=1; i<=4; i++) {
-        const bracketId = 12 + Math.ceil(i/2); // 13, 14
+      // ===========================================
+      // SEMI_FINAL — 27/29 abr (ida) & 4/6 may (vuelta)
+      // ===========================================
+      const SF_MATCHES = [
+        // LEG_1 (Ida) — 29 abr
+        { bracketId: 13, leg: 'LEG_1', date: '2026-04-29T20:00:00Z', homePh: 'G. Cuartos 1', awayPh: 'G. Cuartos 2' },
+        { bracketId: 14, leg: 'LEG_1', date: '2026-04-28T20:00:00Z', homePh: 'G. Cuartos 3', awayPh: 'G. Cuartos 4' },
+        // LEG_2 (Vuelta) — 6 y 5 may
+        { bracketId: 13, leg: 'LEG_2', date: '2026-05-06T20:00:00Z', homePh: 'G. Cuartos 2', awayPh: 'G. Cuartos 1' },
+        { bracketId: 14, leg: 'LEG_2', date: '2026-05-05T20:00:00Z', homePh: 'G. Cuartos 4', awayPh: 'G. Cuartos 3' },
+      ];
+      for (const m of SF_MATCHES) {
         const match = this.matchRepository.create({
-          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Cuartos', awayTeamPlaceholder: 'Ganador Cuartos',
-          date: new Date('2026-04-28T20:00:00Z'), phase: 'SEMI_FINAL', bracketId, group: i % 2 !== 0 ? 'LEG_1' : 'LEG_2', stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+          tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
+          homeTeamPlaceholder: m.homePh, awayTeamPlaceholder: m.awayPh,
+          date: new Date(m.date), phase: 'SEMI_FINAL', bracketId: m.bracketId,
+          group: m.leg, stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
         insertedCount++;
       }
 
+      // ===========================================
+      // FINAL — 30 mayo, Puskás Aréna Budapest
+      // ===========================================
       const finalMatch = this.matchRepository.create({
-        tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Finalista 1', awayTeamPlaceholder: 'Finalista 2',
-        date: new Date('2026-05-31T20:00:00Z'), phase: 'FINAL', bracketId: 15, group: 'LEG_1', stadium: 'Puskás Aréna', status: 'PENDING', isManuallyLocked: false
+        tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
+        homeTeamPlaceholder: 'Finalista 1', awayTeamPlaceholder: 'Finalista 2',
+        date: new Date('2026-05-30T20:00:00Z'), phase: 'FINAL', bracketId: 15,
+        group: null, stadium: 'Puskás Aréna, Budapest', status: 'PENDING', isManuallyLocked: false
       });
       await this.matchRepository.save(finalMatch);
       insertedCount++;

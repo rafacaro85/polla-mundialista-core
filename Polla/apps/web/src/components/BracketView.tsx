@@ -163,6 +163,30 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         return getTeamFlagUrl(teamName);
     };
 
+    // FETCH PROPIO DEL BRACKET: Traer TODOS los partidos de la llave
+    // (no depender de /matches/live que solo trae fases desbloqueadas)
+    // Esto garantiza que CUARTOS/SEMI/FINAL aparezcan en el bracket 
+    // aunque aún no estén desbloqueados para predicciones.
+    const [allBracketMatches, setAllBracketMatches] = useState<Match[]>([]);
+
+    useEffect(() => {
+        if (!tournamentId) return;
+        const fetchAllMatches = async () => {
+            try {
+                const { data } = await api.get(`/matches?tournamentId=${tournamentId}`);
+                if (Array.isArray(data) && data.length > 0) {
+                    setAllBracketMatches(data);
+                }
+            } catch (err) {
+                console.error('[BracketView] Error fetching bracket matches:', err);
+            }
+        };
+        fetchAllMatches();
+    }, [tournamentId]);
+
+    // Usar allBracketMatches si ya cargaron, si no usar el prop matches como fallback
+    const effectiveMatches = allBracketMatches.length > 0 ? allBracketMatches : matches;
+
     // Cargar bracket guardado desde la API
     // Usamos useTournament para saber en qué contexto estamos (WC2026 o UCL2526)
     
@@ -179,8 +203,6 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                 url += `${separator}tournamentId=${tournamentId}`;
 
                 const { data } = await api.get(url);
-                
-                // console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
                 
                 if (data && data.picks) {
                     const pickKeys = Object.keys(data.picks);
@@ -214,8 +236,8 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const lockDate = useMemo(() => {
         // En WC2026 el torneo inicia en ROUND_32. En UCL inicia en ROUND_16.
         // Buscamos el primer partido disponible para el bloqueo global.
-        const r32 = matches.filter(m => m.phase === 'ROUND_32');
-        const r16 = matches.filter(m => m.phase === 'ROUND_16');
+        const r32 = effectiveMatches.filter(m => m.phase === 'ROUND_32');
+        const r16 = effectiveMatches.filter(m => m.phase === 'ROUND_16');
         
         const relevantMatches = r32.length > 0 ? r32 : r16;
         if (relevantMatches.length === 0) return null;
@@ -225,7 +247,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         
         // El bloqueo ocurre 30 minutos antes del primer partido
         return new Date(Math.min(...dates) - (30 * 60 * 1000));
-    }, [matches]);
+    }, [effectiveMatches]);
 
     const isLocked = useMemo(() => {
         if (!lockDate) return false;
@@ -234,7 +256,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     // Filtrar partidos por ronda - Usando IDs reales para evitar desajustes
     const getMatchesByPhase = (phase: string) => {
-        return matches
+        return effectiveMatches
             .filter(m => {
                 const isPhaseMatch = m.phase === phase;
                 if (!isPhaseMatch) return false;
@@ -251,27 +273,27 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
             .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0));
     };
 
-    const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [matches]);
-    const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [matches]);
+    const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [effectiveMatches]);
+    const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [effectiveMatches]);
     // UCL usa 'QUARTER_FINAL', WC usa 'QUARTER' — incluimos ambos
     const quarterMatches = useMemo(() => [
         ...getMatchesByPhase('QUARTER'),
         ...getMatchesByPhase('QUARTER_FINAL'),
-    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [matches]);
+    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [effectiveMatches]);
     // UCL usa 'SEMI_FINAL', WC usa 'SEMI' — incluimos ambos
     const semiMatches = useMemo(() => [
         ...getMatchesByPhase('SEMI'),
         ...getMatchesByPhase('SEMI_FINAL'),
-    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [matches]);
-    const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
-    const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
+    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [effectiveMatches]);
+    const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [effectiveMatches]);
+    const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [effectiveMatches]);
 
     const getActualWinner = (match: Match) => {
         // LEG_1: el ganador real es el del AGREGADO, no del partido único
         // Solo mostramos resultado cuando la VUELTA (LEG_2) también terminó
         if ((match as any).group === 'LEG_1') {
             // Buscar el partido de vuelta (mismo phase y bracketId, group=LEG_2)
-            const leg2 = matches.find(m =>
+            const leg2 = effectiveMatches.find(m =>
                 (m as any).group === 'LEG_2' &&
                 m.phase === match.phase &&
                 m.bracketId === match.bracketId

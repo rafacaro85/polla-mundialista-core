@@ -117,16 +117,6 @@ const MatchNode = ({
                 </button>
             </div>
 
-            {/* CONECTOR (Línea hacia la derecha) */}
-            {nextId && (
-                <div 
-                    className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? (isFinished && correctWinner && winner === correctWinner ? 'bg-emerald-500' : '') : 'bg-slate-700'}`}
-                    style={{ 
-                        backgroundColor: (winner && !(isFinished && correctWinner && winner === correctWinner)) ? 'var(--brand-primary, #00E676)' : undefined,
-                        boxShadow: (winner && !(isFinished && correctWinner && winner === correctWinner)) ? '0 0 2px var(--brand-primary)' : undefined
-                    }}
-                ></div>
-            )}
         </div>
     );
 };
@@ -631,7 +621,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                                 <div style={{ width: 24, height: '1.5px', backgroundColor: 'rgba(148,163,184,0.4)' }} />
                             )}
                             
-                            <div className="flex flex-col justify-center items-center w-32 gap-4">
+                            <div className="flex flex-col justify-center items-center w-32 gap-4 h-full relative z-10">
                                 <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
                                     <Trophy size={32} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
                                 </div>
@@ -669,9 +659,9 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                             </div>
                         </div>
 
-                        {/* 3ER PUESTO (Desplazado hacia abajo si existe, manteniéndolo fuera del flujo principal flex-1) */}
+                        {/* 3ER PUESTO (Desplazado abajo) */}
                         {thirdPlaceMatches.length > 0 && (
-                            <div className="mt-8 mb-4 absolute" style={{ bottom: 0, right: 16 }}>
+                            <div className="mt-8 mb-4 absolute" style={{ bottom: -80, right: 16 }}>
                                 <div className="text-center mb-2">
                                     <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-700">3er Puesto</span>
                                 </div>

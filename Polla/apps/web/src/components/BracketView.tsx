@@ -498,119 +498,39 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
             {/* ZONA DE BRACKET (SCROLLABLE) */}
             <div className="overflow-x-auto p-4 custom-scrollbar">
-                <div className="flex items-start gap-0 min-w-max pb-10 pl-2">
+                <div className="flex items-stretch gap-0 min-w-max pb-10 pl-2">
 
                     {/* Helper: render a column of paired match groups */}
-                    {/* Each group = [matchA, matchB] connected with L-shaped bracket lines */}
                     {(() => {
-                        // Build columns in order
-                        const cols: { label: string; matches: Match[]; pt: string }[] = [];
+                        const cols: { label: string; matches: Match[] }[] = [];
 
-                        if (r32Matches.length > 0) cols.push({ label: 'Dieciseisavos', matches: r32Matches, pt: 'pt-0' });
-                        if (r16Matches.length > 0) cols.push({ label: 'Octavos', matches: r16Matches, pt: 'pt-0' });
-                        if (quarterMatches.length > 0) cols.push({ label: 'Cuartos', matches: quarterMatches, pt: 'pt-0' });
-                        if (semiMatches.length > 0) cols.push({ label: 'Semis', matches: semiMatches, pt: 'pt-0' });
+                        if (r32Matches.length > 0) cols.push({ label: 'Dieciseisavos', matches: r32Matches });
+                        if (r16Matches.length > 0) cols.push({ label: 'Octavos', matches: r16Matches });
+                        if (quarterMatches.length > 0) cols.push({ label: 'Cuartos', matches: quarterMatches });
+                        if (semiMatches.length > 0) cols.push({ label: 'Semis', matches: semiMatches });
 
-                        // Card dimensions (keep in sync with MatchNode width)
-                        const CARD_W = 128;   // w-32 = 128px
-                        const CARD_H = 62;    // approximate card height (two rows ~31px each)
-                        const GAP = 24;       // vertical gap between siblings within a group
-                        const CONN = 24;      // horizontal connector length (px) between columns
+                        const CARD_W = 128;   // 32rem / 128px
+                        const CONN = 24;      // horizontal px offset
+                        const lineColor = 'rgba(148,163,184,0.4)'; // slate-400/40
+                        const CARD_H = 62;    
 
-                        // Each column i's matches are paired from column i+1
-                        // Height taken by a single group = 2*CARD_H + GAP (between the pair)
-                        // Groups within same column have extra spacing between them
-                        const GROUP_OUTER_GAP = 48; // gap between groups in same column
-
-                        const renderGroup = (
-                            matches: Match[],
-                            colIdx: number,
-                            groupIdx: number
-                        ) => {
-                            const [mA, mB] = matches;
-                            const lineColor = 'rgba(148,163,184,0.4)'; // slate-400/40
-
-                            const makeNode = (m: Match) => (
-                                <MatchNode
-                                    key={m.id}
-                                    matchId={m.id}
-                                    team1={getTeamForSlot(m, 'home') || ''}
-                                    team2={getTeamForSlot(m, 'away') || ''}
-                                    placeholder1={m.homeTeamPlaceholder}
-                                    placeholder2={m.awayTeamPlaceholder}
-                                    winner={winners[m.id]}
-                                    onPickWinner={pickWinner}
-                                    getTeamFlag={getTeamFlag}
-                                    nextId={(m as any).nextMatchId}
-                                    isLocked={isMatchLocked(m)}
-                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                    correctWinner={getActualWinner(m)}
-                                />
-                            );
-
-                            if (!mB) {
-                                // Single match (e.g. FINAL) — no connector needed
-                                return (
-                                    <div key={`group-${colIdx}-${groupIdx}`} className="relative flex flex-col items-start">
-                                        {makeNode(mA)}
-                                    </div>
-                                );
-                            }
-
-                            // Group height
-                            const groupH = 2 * CARD_H + GAP;
-                            const midY = groupH / 2; // Y midpoint for the horizontal exit line
-
-                            return (
-                                <div key={`group-${colIdx}-${groupIdx}`} className="relative flex flex-col items-start" style={{ gap: `${GAP}px` }}>
-                                    {makeNode(mA)}
-                                    {makeNode(mB)}
-
-                                    {/* L-shaped connector: right edge */}
-                                    <svg
-                                        className="absolute pointer-events-none"
-                                        style={{
-                                            left: CARD_W,
-                                            top: 0,
-                                            width: CONN,
-                                            height: groupH,
-                                            overflow: 'visible',
-                                        }}
-                                    >
-                                        {/* Vertical bar connecting mid of first card to mid of second */}
-                                        <line
-                                            x1={0} y1={CARD_H / 2}
-                                            x2={0} y2={groupH - CARD_H / 2}
-                                            stroke={lineColor} strokeWidth="1.5"
-                                        />
-                                        {/* Horizontal from first card mid */}
-                                        <line
-                                            x1={0} y1={CARD_H / 2}
-                                            x2={CONN / 2} y2={CARD_H / 2}
-                                            stroke={lineColor} strokeWidth="1.5"
-                                        />
-                                        {/* Horizontal from second card mid */}
-                                        <line
-                                            x1={0} y1={groupH - CARD_H / 2}
-                                            x2={CONN / 2} y2={groupH - CARD_H / 2}
-                                            stroke={lineColor} strokeWidth="1.5"
-                                        />
-                                        {/* Exit horizontal to next column */}
-                                        <line
-                                            x1={CONN / 2} y1={midY}
-                                            x2={CONN} y2={midY}
-                                            stroke={lineColor} strokeWidth="1.5"
-                                        />
-                                        {/* Short vertical joining two inner horizontals to midpoint */}
-                                        <line
-                                            x1={CONN / 2} y1={CARD_H / 2}
-                                            x2={CONN / 2} y2={groupH - CARD_H / 2}
-                                            stroke={lineColor} strokeWidth="1.5"
-                                        />
-                                    </svg>
-                                </div>
-                            );
-                        };
+                        const makeNode = (m: Match) => (
+                            <MatchNode
+                                key={m.id}
+                                matchId={m.id}
+                                team1={getTeamForSlot(m, 'home') || ''}
+                                team2={getTeamForSlot(m, 'away') || ''}
+                                placeholder1={m.homeTeamPlaceholder}
+                                placeholder2={m.awayTeamPlaceholder}
+                                winner={winners[m.id]}
+                                onPickWinner={pickWinner}
+                                getTeamFlag={getTeamFlag}
+                                nextId={(m as any).nextMatchId}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
+                            />
+                        );
 
                         const chunkPairs = (arr: Match[]) => {
                             const pairs: Match[][] = [];
@@ -625,30 +545,74 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                             const isFirst = colIdx === 0;
 
                             return (
-                                <div key={col.label} className="flex flex-col items-start" style={{ marginRight: 0 }}>
-                                    {/* Column label */}
-                                    <div className="text-center mb-3" style={{ width: CARD_W + CONN }}>
+                                <div key={col.label} className="flex flex-col" style={{ marginRight: 0, width: CARD_W + CONN }}>
+                                    {/* Encabezado fijo superior */}
+                                    <div className="text-center mb-6 shrink-0 h-6">
                                         <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">
                                             {col.label}
                                         </span>
                                     </div>
 
-                                    {/* Entry connector from previous column (small horizontal line on the left) */}
-                                    <div
-                                        className="flex flex-col items-start"
-                                        style={{ gap: `${GROUP_OUTER_GAP}px` }}
-                                    >
-                                        {pairs.map((pair, gi) => (
-                                            <div key={gi} className="flex items-center">
-                                                {/* Incoming connector line from previous column */}
-                                                {!isFirst && (
-                                                    <div style={{ width: CONN, height: CARD_H * 2 + GAP, display: 'flex', alignItems: 'center' }}>
-                                                        <div style={{ width: CONN, height: 1.5, backgroundColor: 'rgba(148,163,184,0.4)' }} />
+                                    {/* Zona que distribuye uniformemente todo el contenido */}
+                                    <div className="flex flex-col flex-1">
+                                        {pairs.map((pair, gi) => {
+                                            const [mA, mB] = pair;
+
+                                            return (
+                                                <div key={gi} className="flex-1 flex flex-row items-center relative">
+                                                    
+                                                    {/* Conector entrante (solo desde la 2da columna en adelante) */}
+                                                    {!isFirst && (
+                                                        <div style={{ width: CONN, height: '1.5px', backgroundColor: lineColor }} />
+                                                    )}
+
+                                                    {/* Nodos de esta columna */}
+                                                    <div className="relative flex flex-col justify-around h-full py-4 w-32 shrink-0">
+                                                        
+                                                        {/* Nodo Superior */}
+                                                        <div className="flex items-center justify-center z-10 w-full" style={{ height: CARD_H }}>
+                                                            {makeNode(mA)}
+                                                        </div>
+
+                                                        {/* Nodo Inferior (si existe) */}
+                                                        {mB && (
+                                                            <div className="flex items-center justify-center z-10 w-full" style={{ height: CARD_H }}>
+                                                                {makeNode(mB)}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Conector saliente (L) SVG usando % */}
+                                                        {mB && (
+                                                            <svg
+                                                                className="absolute pointer-events-none"
+                                                                style={{
+                                                                    left: CARD_W,
+                                                                    top: '0', // Full height del subcontenedor
+                                                                    width: CONN,
+                                                                    height: '100%',
+                                                                    overflow: 'visible',
+                                                                    zIndex: 0
+                                                                }}
+                                                            >
+                                                                {/* Línea horizontal Top (25% es aprox el centro del primer Match cuando está en flex justify-around, pero en un div flex-1 lo ideal es forzar las anclas. Vamos a trazar una L pura simple en el medio) */}
+                                                                {/* Si usamos flex-1 justify-around los nodos caen en el 25% y 75% vertical exacto */}
+                                                                <line x1={0} y1="25%" x2={0} y2="75%" stroke={lineColor} strokeWidth="1.5" />
+                                                                
+                                                                <line x1={0} y1="25%" x2="12" y2="25%" stroke={lineColor} strokeWidth="1.5" />
+                                                                
+                                                                <line x1={0} y1="75%" x2="12" y2="75%" stroke={lineColor} strokeWidth="1.5" />
+                                                                
+                                                                <line x1="12" y1="25%" x2="12" y2="75%" stroke={lineColor} strokeWidth="1.5" />
+                                                                
+                                                                {/* Punto de unión hacia afuera (50%) */}
+                                                                <line x1="12" y1="50%" x2="24" y2="50%" stroke={lineColor} strokeWidth="1.5" />
+                                                            </svg>
+                                                        )}
                                                     </div>
-                                                )}
-                                                {renderGroup(pair, colIdx, gi)}
-                                            </div>
-                                        ))}
+
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             );
@@ -656,59 +620,58 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                     })()}
 
                     {/* FINAL + COPA */}
-                    <div className="flex flex-col items-center" style={{ paddingTop: 0 }}>
-                        {/* Column label */}
-                        <div className="text-center mb-3">
+                    <div className="flex flex-col h-full" style={{ width: 140 }}>
+                        <div className="text-center mb-6 shrink-0 h-6">
                             <span className="text-[9px] font-black text-[#FACC15] uppercase tracking-widest bg-[#FACC15]/10 px-2 py-0.5 rounded border border-[#FACC15]/30">Final</span>
                         </div>
 
-                        {/* Incoming connector */}
-                        {semiMatches.length > 0 && (
-                            <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', height: 62 * 2 + 24 }}>
-                                <div style={{ width: 24, height: 1.5, backgroundColor: 'rgba(148,163,184,0.4)' }} />
-                            </div>
-                        )}
+                        <div className="flex-1 flex flex-row items-center relative">
+                            {/* Incoming connector final */}
+                            {semiMatches.length > 0 && (
+                                <div style={{ width: 24, height: '1.5px', backgroundColor: 'rgba(148,163,184,0.4)' }} />
+                            )}
+                            
+                            <div className="flex flex-col justify-center items-center w-32 gap-4">
+                                <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
+                                    <Trophy size={32} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
+                                </div>
 
-                        <div className="flex flex-col items-center gap-4">
-                            <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
-                                <Trophy size={32} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
-                            </div>
+                                {finalMatches.map(m => (
+                                    <MatchNode
+                                        key={m.id}
+                                        matchId={m.id}
+                                        team1={getTeamForSlot(m, 'home') || ''}
+                                        team2={getTeamForSlot(m, 'away') || ''}
+                                        placeholder1={m.homeTeamPlaceholder}
+                                        placeholder2={m.awayTeamPlaceholder}
+                                        winner={winners[m.id]}
+                                        onPickWinner={pickWinner}
+                                        getTeamFlag={getTeamFlag}
+                                        nextId={null}
+                                        isLocked={isMatchLocked(m)}
+                                        isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                        correctWinner={getActualWinner(m)}
+                                    />
+                                ))}
 
-                            {finalMatches.map(m => (
-                                <MatchNode
-                                    key={m.id}
-                                    matchId={m.id}
-                                    team1={getTeamForSlot(m, 'home') || ''}
-                                    team2={getTeamForSlot(m, 'away') || ''}
-                                    placeholder1={m.homeTeamPlaceholder}
-                                    placeholder2={m.awayTeamPlaceholder}
-                                    winner={winners[m.id]}
-                                    onPickWinner={pickWinner}
-                                    getTeamFlag={getTeamFlag}
-                                    nextId={null}
-                                    isLocked={isMatchLocked(m)}
-                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                    correctWinner={getActualWinner(m)}
-                                />
-                            ))}
-
-                            {/* CAMPEÓN */}
-                            {winners[finalMatches[0]?.id || ''] && (
-                                <div className="mt-2 animate-in zoom-in duration-500">
-                                    <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-                                        <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
-                                            <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
-                                            <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
-                                            <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
+                                {/* CAMPEÓN */}
+                                {winners[finalMatches[0]?.id || ''] && (
+                                    <div className="mt-2 animate-in zoom-in duration-500">
+                                        <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                                            <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
+                                                <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
+                                                <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
+                                                <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
-                        {/* 3ER PUESTO */}
+                        {/* 3ER PUESTO (Desplazado hacia abajo si existe, manteniéndolo fuera del flujo principal flex-1) */}
                         {thirdPlaceMatches.length > 0 && (
-                            <div className="mt-8">
+                            <div className="mt-8 mb-4 absolute" style={{ bottom: 0, right: 16 }}>
                                 <div className="text-center mb-2">
                                     <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-700">3er Puesto</span>
                                 </div>

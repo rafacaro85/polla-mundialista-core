@@ -295,18 +295,20 @@ export class AdminService {
       }
 
       for(let i=1; i<=8; i++) {
+        const bracketId = 8 + Math.ceil(i/2); // 9, 10, 11, 12
         const match = this.matchRepository.create({
           tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Octavos', awayTeamPlaceholder: 'Ganador Octavos',
-          date: new Date('2026-04-07T20:00:00Z'), phase: 'QUARTER_FINAL', bracketId: Math.ceil(i/2), stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+          date: new Date('2026-04-07T20:00:00Z'), phase: 'QUARTER_FINAL', bracketId, group: i % 2 !== 0 ? 'LEG_1' : 'LEG_2', stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
         insertedCount++;
       }
 
       for(let i=1; i<=4; i++) {
+        const bracketId = 12 + Math.ceil(i/2); // 13, 14
         const match = this.matchRepository.create({
           tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Ganador Cuartos', awayTeamPlaceholder: 'Ganador Cuartos',
-          date: new Date('2026-04-28T20:00:00Z'), phase: 'SEMI_FINAL', bracketId: Math.ceil(i/2), stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
+          date: new Date('2026-04-28T20:00:00Z'), phase: 'SEMI_FINAL', bracketId, group: i % 2 !== 0 ? 'LEG_1' : 'LEG_2', stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
         insertedCount++;
@@ -314,12 +316,47 @@ export class AdminService {
 
       const finalMatch = this.matchRepository.create({
         tournamentId: 'UCL2526', homeTeam: '', awayTeam: '', homeTeamPlaceholder: 'Finalista 1', awayTeamPlaceholder: 'Finalista 2',
-        date: new Date('2026-05-31T20:00:00Z'), phase: 'FINAL', bracketId: 1, stadium: 'Puskás Aréna', status: 'PENDING', isManuallyLocked: false
+        date: new Date('2026-05-31T20:00:00Z'), phase: 'FINAL', bracketId: 15, group: 'LEG_1', stadium: 'Puskás Aréna', status: 'PENDING', isManuallyLocked: false
       });
       await this.matchRepository.save(finalMatch);
       insertedCount++;
 
-      return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526 (Official Draw).` };
+      // ===========================================
+      // ENLACE DE LLAVES (PROGRESIÓN DEL BRACKET)
+      // ===========================================
+      const qf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'QUARTER_FINAL' AND "group" = 'LEG_1'`);
+      const sf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'SEMI_FINAL' AND "group" = 'LEG_1'`);
+      const final = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'FINAL'`);
+
+      const linkPhase = async (targetMatches: any[], links: {src: number[], tgt: number}[], phaseParam: string) => {
+        for (const link of links) {
+          const targetNode = targetMatches.find(t => t.bracketId === link.tgt);
+          if (targetNode) {
+            await this.dataSource.query(`
+              UPDATE matches SET "nextMatchId" = $1
+              WHERE "tournamentId" = 'UCL2526' AND "bracketId" IN (${link.src.join(',')}) AND phase = '${phaseParam}' AND "group" = 'LEG_1'
+            `, [targetNode.id]);
+          }
+        }
+      };
+
+      // R16 -> Quarters
+      await linkPhase(qf, [
+        { src: [1, 2], tgt: 9 }, { src: [3, 4], tgt: 10 },
+        { src: [5, 6], tgt: 11 }, { src: [7, 8], tgt: 12 },
+      ], 'ROUND_16');
+
+      // Quarters -> Semis
+      await linkPhase(sf, [
+        { src: [9, 10], tgt: 13 }, { src: [11, 12], tgt: 14 }
+      ], 'QUARTER_FINAL');
+
+      // Semis -> Final
+      await linkPhase(final, [
+        { src: [13, 14], tgt: 15 }
+      ], 'SEMI_FINAL');
+
+      return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526 (Official Draw) con enlazado activo.` };
     } catch (error) {
       return { success: false, error: error.message };
     }

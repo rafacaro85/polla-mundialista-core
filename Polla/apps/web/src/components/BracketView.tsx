@@ -252,12 +252,24 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [matches]);
     const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [matches]);
-    const quarterMatches = useMemo(() => getMatchesByPhase('QUARTER'), [matches]);
-    const semiMatches = useMemo(() => getMatchesByPhase('SEMI'), [matches]);
+    // UCL usa 'QUARTER_FINAL', WC usa 'QUARTER' — incluimos ambos
+    const quarterMatches = useMemo(() => [
+        ...getMatchesByPhase('QUARTER'),
+        ...getMatchesByPhase('QUARTER_FINAL'),
+    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [matches]);
+    // UCL usa 'SEMI_FINAL', WC usa 'SEMI' — incluimos ambos
+    const semiMatches = useMemo(() => [
+        ...getMatchesByPhase('SEMI'),
+        ...getMatchesByPhase('SEMI_FINAL'),
+    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [matches]);
     const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
     const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
     const getActualWinner = (match: Match) => {
+        // LEG_1: no podemos determinar un ganador hasta que termine el LEG_2
+        // así que nunca mostramos verde/rojo en partidos de IDA
+        if ((match as any).group === 'LEG_1') return null;
+
         if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return null;
         if (typeof match.homeScore === 'number' && typeof match.awayScore === 'number') {
             if (match.homeScore > match.awayScore) return match.homeTeam;
@@ -283,7 +295,9 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
             ROUND_32: true, 
             ROUND_16: !hasR32 || r32Finished,
             QUARTER: r16Finished,
+            QUARTER_FINAL: r16Finished,  // UCL alias
             SEMI: quarterFinished,
+            SEMI_FINAL: quarterFinished, // UCL alias
             FINAL: semiFinished,
             '3RD_PLACE': semiFinished
         };

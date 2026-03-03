@@ -107,9 +107,10 @@ export class MatchListener {
       }
 
       // 2. Calculate bracket points
-      // Solo calcular bracket points si NO es LEG_1
-      // (en LEG_1 no conocemos aún el ganador real de la serie)
-      if (freshMatch.group !== 'LEG_1') {
+      // Para LEG_1 y LEG_2 se omite aquí — se calcula más abajo con el ganador global
+      // usando el leg1.id (donde los usuarios guardaron sus picks del bracket)
+      // Para partidos únicos (WC2026, cuartos/semis/final UCL) se calcula normalmente
+      if (freshMatch.group !== 'LEG_1' && freshMatch.group !== 'LEG_2') {
         const winner = homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
         await this.bracketsService.calculateBracketPoints(matchId, winner);
         this.logger.log(
@@ -117,7 +118,7 @@ export class MatchListener {
         );
       } else {
         this.logger.log(
-          `⏸️ Bracket points skipped for LEG_1 match ${matchId} — waiting for LEG_2 result`,
+          `⏸️ Bracket points deferred for leg match ${matchId} (${freshMatch.group}) — will calculate on LEG_2 finish`,
         );
       }
 
@@ -207,6 +208,11 @@ export class MatchListener {
           // No promover automáticamente
           return;
         }
+
+        // ✅ Calcular bracket points usando el ID del LEG_1
+        // (los usuarios guardaron sus picks contra el partido de ida)
+        await this.bracketsService.calculateBracketPoints(leg1.id, winner);
+        this.logger.log(`🏆 [UCL] Bracket points calculated against leg1 match ${leg1.id}, aggregate winner: ${winner}`);
 
         // Usar nextMatchId del LEG_1 para avanzar
         if (leg1.nextMatchId) {

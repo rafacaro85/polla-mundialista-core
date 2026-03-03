@@ -147,17 +147,107 @@ export class MatchListener {
       }
 
       // Next Match Promotion
+      // UCL2526: lógica ida y vuelta
+      if (freshMatch.group === 'LEG_1') {
+        // No promover aún — esperar partido de vuelta
+        this.logger.log(`⏳ LEG_1 finished for bracketId ${freshMatch.bracketId}, waiting for LEG_2`);
+        return;
+      }
+
+      if (freshMatch.group === 'LEG_2') {
+        // Buscar partido de ida (LEG_1) por tournamentId + phase + bracketId
+        const leg1 = await this.matchesRepository.findOne({
+          where: {
+            tournamentId: freshMatch.tournamentId,
+            phase: freshMatch.phase,
+            bracketId: freshMatch.bracketId,
+            group: 'LEG_1'
+          }
+        });
+
+        if (!leg1 || leg1.homeScore === null || leg1.awayScore === null) {
+          this.logger.warn(`⚠️ LEG_1 not finished yet for bracketId ${freshMatch.bracketId}`);
+          return;
+        }
+
+        // En vuelta los equipos se invierten:
+        // LEG_1: TeamA(home) vs TeamB(away)
+        // LEG_2: TeamB(home) vs TeamA(away)
+        // Goles totales TeamA = leg1.homeScore + leg2.awayScore
+        // Goles totales TeamB = leg1.awayScore + leg2.homeScore
+        const teamAGoals = leg1.homeScore + freshMatch.awayScore;
+        const teamBGoals = leg1.awayScore + freshMatch.homeScore;
+
+        let winner: string;
+        let winnerFlag: string;
+
+        if (teamAGoals > teamBGoals) {
+          // TeamA gana en global
+          winner = leg1.homeTeam;
+          winnerFlag = leg1.homeFlag;
+        } else if (teamBGoals > teamAGoals) {
+          // TeamB gana en global
+          winner = leg1.awayTeam;
+          winnerFlag = leg1.awayFlag;
+        } else {
+          // Empate en goles totales
+          // Regla UEFA: más goles de visitante gana
+          // TeamA anotó leg1.homeScore como local
+          // TeamB anotó freshMatch.homeScore como local
+          // Goles visitante TeamA = freshMatch.awayScore
+          // Goles visitante TeamB = leg1.awayScore
+          if (freshMatch.awayScore > leg1.awayScore) {
+            winner = leg1.homeTeam;
+            winnerFlag = leg1.homeFlag;
+          } else if (leg1.awayScore > freshMatch.awayScore) {
+            winner = leg1.awayTeam;
+            winnerFlag = leg1.awayFlag;
+          } else {
+            // Empate total — avanza TeamA por defecto
+            // (en torneo real iría a penales)
+            winner = leg1.homeTeam;
+            winnerFlag = leg1.homeFlag;
+            this.logger.log(`🎯 Tie on away goals — advancing ${winner} (would go to penalties in real match)`);
+          }
+        }
+
+        // Usar nextMatchId del LEG_1 para avanzar
+        if (leg1.nextMatchId) {
+          const nextMatch = await this.matchesRepository.findOne({
+            where: { id: leg1.nextMatchId }
+          });
+          if (nextMatch) {
+            const isHome = leg1.bracketId % 2 !== 0;
+            if (isHome) {
+              nextMatch.homeTeam = winner;
+              nextMatch.homeFlag = winnerFlag;
+              nextMatch.homeTeamPlaceholder = null;
+            } else {
+              nextMatch.awayTeam = winner;
+              nextMatch.awayFlag = winnerFlag;
+              nextMatch.awayTeamPlaceholder = null;
+            }
+            await this.matchesRepository.save(nextMatch);
+            this.logger.log(`➡️ [UCL] ${winner} promoted to next match after aggregate score`);
+          }
+        }
+        return;
+      }
+
+      // Lógica original para partido único 
+      // (WC2026, FINAL UCL, QUARTER_FINAL, SEMI_FINAL)
       if (freshMatch.nextMatchId) {
         const nextMatch = await this.matchesRepository.findOne({
-          where: { id: freshMatch.nextMatchId },
+          where: { id: freshMatch.nextMatchId }
         });
         if (nextMatch) {
           const isHome = freshMatch.bracketId % 2 !== 0;
-          const winner =
-            homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
-          const winnerFlag =
-            homeScore > awayScore ? freshMatch.homeFlag : freshMatch.awayFlag;
-
+          const winner = homeScore > awayScore 
+            ? freshMatch.homeTeam 
+            : freshMatch.awayTeam;
+          const winnerFlag = homeScore > awayScore 
+            ? freshMatch.homeFlag 
+            : freshMatch.awayFlag;
           if (isHome) {
             nextMatch.homeTeam = winner;
             nextMatch.homeFlag = winnerFlag;
@@ -168,9 +258,7 @@ export class MatchListener {
             nextMatch.awayTeamPlaceholder = null;
           }
           await this.matchesRepository.save(nextMatch);
-          this.logger.log(
-            `➡️ Promoted ${winner} to next match ${nextMatch.id}`,
-          );
+          this.logger.log(`➡️ Promoted ${winner} to next match ${nextMatch.id}`);
         }
       }
     } catch (error) {

@@ -488,21 +488,41 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
             {/* ZONA DE BRACKET (SCROLLABLE) */}
             <div className="overflow-x-auto p-4 custom-scrollbar">
-                <div className="flex items-stretch gap-0 min-w-max pb-10 pl-2">
+                <div className="flex items-start gap-0 min-w-max pb-10 pl-2">
 
-                    {/* Helper: render a column of paired match groups */}
                     {(() => {
                         const cols: { label: string; matches: Match[] }[] = [];
-
                         if (r32Matches.length > 0) cols.push({ label: 'Dieciseisavos', matches: r32Matches });
                         if (r16Matches.length > 0) cols.push({ label: 'Octavos', matches: r16Matches });
                         if (quarterMatches.length > 0) cols.push({ label: 'Cuartos', matches: quarterMatches });
                         if (semiMatches.length > 0) cols.push({ label: 'Semis', matches: semiMatches });
 
-                        const CARD_W = 128;   // 32rem / 128px
-                        const CONN = 24;      // horizontal px offset
-                        const lineColor = 'rgba(148,163,184,0.4)'; // slate-400/40
-                        const CARD_H = 62;    
+                        // ── constantes de layout ────────────────────────────
+                        const CARD_H   = 62;   // altura real del MatchNode (2 filas × ~31px)
+                        const CARD_W   = 128;  // w-32
+                        const PAIR_GAP = 16;   // px entre las dos tarjetas de una misma llave
+                        const SLOT_GAP = 40;   // px entre slots de rondas anteriores q se unen
+                        // altura de 1 slot en la columna 0 (ronda más a la izq)
+                        // = 2 tarjetas + gap interno. Cada ronda siguiente merges 2 slots.
+                        const BASE_SLOT = CARD_H * 2 + PAIR_GAP;
+                        const LINE_W   = 28;   // ancho del conector horizontal inter-columnas
+                        const LC       = 'rgba(148,163,184,0.35)'; // color línea
+
+                        // Altura del slot para la columna colIdx
+                        // Col 0 → BASE_SLOT, col 1 → (BASE_SLOT+SLOT_GAP)*2-SLOT_GAP, ...
+                        const slotH = (colIdx: number): number => {
+                            // col 0: el par vive en BASE_SLOT
+                            // col 1: dos slots col0 + SLOT_GAP entre ellos
+                            // col 2: dos slots col1 + SLOT_GAP entre ellos
+                            if (colIdx === 0) return BASE_SLOT;
+                            return slotH(colIdx - 1) * 2 + SLOT_GAP;
+                        };
+
+                        // total height of a column = numPairs × slotH + (numPairs-1) × SLOT_GAP
+                        // like: pairs*slotH(c) + (pairs-1)*SLOT_GAP  but since slotH already
+                        // nests SLOT_GAP the formula simplifies: total = numPairs × slotH(c) + (numPairs-1)*SLOT_GAP
+                        // For col 0 with 8 pairs: 8*(62*2+16)+(7*40)= 8*140+280=1400
+                        // For col 1 with 4 pairs: 4*(140*2+40)+(3*40)=4*320+120=1400 ✓
 
                         const makeNode = (m: Match) => (
                             <MatchNode
@@ -523,174 +543,186 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                         );
 
                         const chunkPairs = (arr: Match[]) => {
-                            const pairs: Match[][] = [];
-                            for (let i = 0; i < arr.length; i += 2) {
-                                pairs.push(arr.slice(i, i + 2));
-                            }
-                            return pairs;
+                            const out: Match[][] = [];
+                            for (let i = 0; i < arr.length; i += 2) out.push(arr.slice(i, i + 2));
+                            return out;
                         };
 
                         return cols.map((col, colIdx) => {
                             const pairs = chunkPairs(col.matches);
+                            const sh    = slotH(colIdx);          // px height of one slot
                             const isFirst = colIdx === 0;
 
                             return (
-                                <div key={col.label} className="flex flex-col" style={{ marginRight: 0, width: CARD_W + CONN }}>
-                                    {/* Encabezado fijo superior */}
-                                    <div className="text-center mb-6 shrink-0 h-6">
-                                        <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">
+                                <div key={col.label} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {/* Encabezado */}
+                                    <div style={{ textAlign: 'center', marginBottom: 16, width: CARD_W + LINE_W }}>
+                                        <span style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 3, background: '#0F172A', padding: '2px 8px', borderRadius: 4 }}>
                                             {col.label}
                                         </span>
                                     </div>
 
-                                    {/* Zona que distribuye uniformemente todo el contenido */}
-                                    <div className="flex flex-col flex-1">
-                                        {pairs.map((pair, gi) => {
-                                            const [mA, mB] = pair;
+                                    {pairs.map((pair, gi) => {
+                                        const [mA, mB] = pair;
 
-                                            return (
-                                                <div key={gi} className="flex-1 flex flex-row items-center relative">
-                                                    
-                                                    {/* Conector entrante (solo desde la 2da columna en adelante) */}
-                                                    {!isFirst && (
-                                                        <div style={{ width: CONN, height: '1.5px', backgroundColor: lineColor }} />
+                                        // Y centre of top card inside this slot
+                                        const topCardMidY  = CARD_H / 2;
+                                        // Y centre of bottom card inside this slot
+                                        const botCardMidY  = sh - CARD_H / 2;
+                                        // midpoint between those two = where horizontal exits
+                                        const exitY        = sh / 2;
+
+                                        return (
+                                            <div key={gi} style={{ display: 'flex', flexDirection: 'row', height: sh, marginBottom: gi < pairs.length - 1 ? SLOT_GAP : 0, position: 'relative' }}>
+
+                                                {/* ── incoming horizontal connector ── */}
+                                                {!isFirst && (
+                                                    <div style={{
+                                                        width: LINE_W,
+                                                        height: 1.5,
+                                                        background: LC,
+                                                        alignSelf: 'center',   // centres in the sh height automatically
+                                                        flexShrink: 0,
+                                                    }} />
+                                                )}
+
+                                                {/* ── cards column ── */}
+                                                <div style={{ position: 'relative', width: CARD_W, height: sh, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: `${(sh - CARD_H * 2 - PAIR_GAP) / 2}px 0` }}>
+                                                    {/* Top card centred in upper half */}
+                                                    <div style={{ height: CARD_H }}>
+                                                        {makeNode(mA)}
+                                                    </div>
+                                                    {/* Bottom card */}
+                                                    {mB && (
+                                                        <div style={{ height: CARD_H }}>
+                                                            {makeNode(mB)}
+                                                        </div>
                                                     )}
 
-                                                    {/* Nodos de esta columna */}
-                                                    <div className="relative flex flex-col justify-around h-full py-4 w-32 shrink-0">
-                                                        
-                                                        {/* Nodo Superior */}
-                                                        <div className="flex items-center justify-center z-10 w-full" style={{ height: CARD_H }}>
-                                                            {makeNode(mA)}
-                                                        </div>
-
-                                                        {/* Nodo Inferior (si existe) */}
-                                                        {mB && (
-                                                            <div className="flex items-center justify-center z-10 w-full" style={{ height: CARD_H }}>
-                                                                {makeNode(mB)}
-                                                            </div>
-                                                        )}
-
-                                                        {/* Conector saliente (L) SVG usando % */}
-                                                        {mB && (
-                                                            <svg
-                                                                className="absolute pointer-events-none"
-                                                                style={{
-                                                                    left: CARD_W,
-                                                                    top: '0', // Full height del subcontenedor
-                                                                    width: CONN,
-                                                                    height: '100%',
-                                                                    overflow: 'visible',
-                                                                    zIndex: 0
-                                                                }}
-                                                            >
-                                                                {/* Línea horizontal Top (25% es aprox el centro del primer Match cuando está en flex justify-around, pero en un div flex-1 lo ideal es forzar las anclas. Vamos a trazar una L pura simple en el medio) */}
-                                                                {/* Si usamos flex-1 justify-around los nodos caen en el 25% y 75% vertical exacto */}
-                                                                <line x1={0} y1="25%" x2={0} y2="75%" stroke={lineColor} strokeWidth="1.5" />
-                                                                
-                                                                <line x1={0} y1="25%" x2="12" y2="25%" stroke={lineColor} strokeWidth="1.5" />
-                                                                
-                                                                <line x1={0} y1="75%" x2="12" y2="75%" stroke={lineColor} strokeWidth="1.5" />
-                                                                
-                                                                <line x1="12" y1="25%" x2="12" y2="75%" stroke={lineColor} strokeWidth="1.5" />
-                                                                
-                                                                {/* Punto de unión hacia afuera (50%) */}
-                                                                <line x1="12" y1="50%" x2="24" y2="50%" stroke={lineColor} strokeWidth="1.5" />
-                                                            </svg>
-                                                        )}
-                                                    </div>
-
+                                                    {/* ── outgoing L connector (SVG) ── */}
+                                                    {mB && (
+                                                        <svg
+                                                            style={{
+                                                                position: 'absolute',
+                                                                left: CARD_W,
+                                                                top: 0,
+                                                                width: LINE_W,
+                                                                height: sh,
+                                                                overflow: 'visible',
+                                                                pointerEvents: 'none',
+                                                                zIndex: 1,
+                                                            }}
+                                                        >
+                                                            {/* vertical bar between the two card midpoints */}
+                                                            <line x1={0} y1={topCardMidY} x2={0} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
+                                                            {/* horizontal tick from top card */}
+                                                            <line x1={0} y1={topCardMidY} x2={LINE_W / 2} y2={topCardMidY} stroke={LC} strokeWidth="1.5" />
+                                                            {/* horizontal tick from bottom card */}
+                                                            <line x1={0} y1={botCardMidY} x2={LINE_W / 2} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
+                                                            {/* vertical join of ticks at half-width */}
+                                                            <line x1={LINE_W / 2} y1={topCardMidY} x2={LINE_W / 2} y2={botCardMidY} stroke={LC} strokeWidth="1.5" />
+                                                            {/* exit horizontal to right edge = where next column's incoming line starts */}
+                                                            <line x1={LINE_W / 2} y1={exitY} x2={LINE_W} y2={exitY} stroke={LC} strokeWidth="1.5" />
+                                                        </svg>
+                                                    )}
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
+
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             );
                         });
                     })()}
 
-                    {/* FINAL + COPA */}
-                    <div className="flex flex-col h-full" style={{ width: 140 }}>
-                        <div className="text-center mb-6 shrink-0 h-6">
-                            <span className="text-[9px] font-black text-[#FACC15] uppercase tracking-widest bg-[#FACC15]/10 px-2 py-0.5 rounded border border-[#FACC15]/30">Final</span>
-                        </div>
+                    {/* ═══════════════ FINAL ═══════════════ */}
+                    {(() => {
+                        const CARD_H   = 62;
+                        const PAIR_GAP = 16;
+                        const SLOT_GAP = 40;
+                        const BASE_SLOT = CARD_H * 2 + PAIR_GAP;
+                        const LINE_W   = 28;
+                        const LC       = 'rgba(148,163,184,0.35)';
 
-                        <div className="flex-1 flex flex-row items-center relative">
-                            {/* Incoming connector final */}
-                            {semiMatches.length > 0 && (
-                                <div style={{ width: 24, height: '1.5px', backgroundColor: 'rgba(148,163,184,0.4)' }} />
-                            )}
-                            
-                            <div className="flex flex-col justify-center items-center w-32 gap-4 h-full relative z-10">
-                                <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
-                                    <Trophy size={32} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
+                        const slotH = (c: number): number => c === 0 ? BASE_SLOT : slotH(c - 1) * 2 + SLOT_GAP;
+
+                        // The Final sits at the level of the Semis column.
+                        // Semis has 1 pair → colIdx based on how many round cols exist
+                        const numRoundCols = [r32Matches, r16Matches, quarterMatches, semiMatches].filter(a => a.length > 0).length;
+                        // semis is the last round col (colIdx = numRoundCols - 1)
+                        const semiColIdx = numRoundCols - 1; // e.g. 3 if octavos+cuartos+semis exist
+                        const semiSlotH  = slotH(semiColIdx);
+
+                        // Total height of the Semis column = 2 semi pairs × semiSlotH + 1 × SLOT_GAP
+                        // (there are 2 semi matches → 1 pair → so 1 slot, no SLOT_GAP between pairs)
+                        // Actually semis = 2 matches = 1 pair → height = semiSlotH (one slot, no gap)
+                        // But there might be 2 semis pairs (4 teams, 2 matches)? No → 2 matches = 1 pair.
+                        // The Final column total height = same as Semis column total
+                        const finalColH = semiSlotH; // 1 semi pair
+
+                        return (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {/* Header */}
+                                <div style={{ textAlign: 'center', marginBottom: 16, width: 128 + LINE_W }}>
+                                    <span style={{ fontSize: 9, fontWeight: 900, color: '#FACC15', textTransform: 'uppercase', letterSpacing: 3, background: 'rgba(250,204,21,0.1)', padding: '2px 8px', borderRadius: 4, border: '1px solid rgba(250,204,21,0.3)' }}>
+                                        Final
+                                    </span>
                                 </div>
 
-                                {finalMatches.map(m => (
-                                    <MatchNode
-                                        key={m.id}
-                                        matchId={m.id}
-                                        team1={getTeamForSlot(m, 'home') || ''}
-                                        team2={getTeamForSlot(m, 'away') || ''}
-                                        placeholder1={m.homeTeamPlaceholder}
-                                        placeholder2={m.awayTeamPlaceholder}
-                                        winner={winners[m.id]}
-                                        onPickWinner={pickWinner}
-                                        getTeamFlag={getTeamFlag}
-                                        nextId={null}
-                                        isLocked={isMatchLocked(m)}
-                                        isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                        correctWinner={getActualWinner(m)}
-                                    />
-                                ))}
+                                {/* One slot = same height as one Semis slot so the incoming connector lands at center */}
+                                <div style={{ height: finalColH, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                                    {/* incoming from Semis */}
+                                    {semiMatches.length > 0 && (
+                                        <div style={{ width: LINE_W, height: 1.5, background: LC, flexShrink: 0 }} />
+                                    )}
 
-                                {/* CAMPEÓN */}
-                                {winners[finalMatches[0]?.id || ''] && (
-                                    <div className="mt-2 animate-in zoom-in duration-500">
-                                        <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-                                            <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
-                                                <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
-                                                <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
-                                                <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
-                                            </div>
+                                    {/* trophy + card */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, width: 128 }}>
+                                        <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
+                                            <Trophy size={28} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* 3ER PUESTO (Desplazado abajo) */}
-                        {thirdPlaceMatches.length > 0 && (
-                            <div className="mt-8 mb-4 absolute" style={{ bottom: -80, right: 16 }}>
-                                <div className="text-center mb-2">
-                                    <span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-700">3er Puesto</span>
+                                        {finalMatches.map(m => (
+                                            <MatchNode
+                                                key={m.id}
+                                                matchId={m.id}
+                                                team1={getTeamForSlot(m, 'home') || ''}
+                                                team2={getTeamForSlot(m, 'away') || ''}
+                                                placeholder1={m.homeTeamPlaceholder}
+                                                placeholder2={m.awayTeamPlaceholder}
+                                                winner={winners[m.id]}
+                                                onPickWinner={pickWinner}
+                                                getTeamFlag={getTeamFlag}
+                                                nextId={null}
+                                                isLocked={isMatchLocked(m)}
+                                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                                correctWinner={getActualWinner(m)}
+                                            />
+                                        ))}
+
+                                        {winners[finalMatches[0]?.id || ''] && (
+                                            <div className="animate-in zoom-in duration-500">
+                                                <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                                                    <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
+                                                        <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
+                                                        <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
+                                                        <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                {thirdPlaceMatches.map(m => (
-                                    <MatchNode
-                                        key={m.id}
-                                        matchId={m.id}
-                                        team1={m.homeTeam || ''}
-                                        team2={m.awayTeam || ''}
-                                        placeholder1={m.homeTeamPlaceholder}
-                                        placeholder2={m.awayTeamPlaceholder}
-                                        winner={winners[m.id]}
-                                        onPickWinner={pickWinner}
-                                        getTeamFlag={getTeamFlag}
-                                        nextId={null}
-                                        isLocked={isMatchLocked(m)}
-                                        isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                                        correctWinner={getActualWinner(m)}
-                                    />
-                                ))}
                             </div>
-                        )}
-                    </div>
+                        );
+                    })()}
 
                 </div>
             </div>
 
             {/* PODIUM */}
             <TournamentPodium matches={effectiveMatches} />
+
         </div>
     );
 };

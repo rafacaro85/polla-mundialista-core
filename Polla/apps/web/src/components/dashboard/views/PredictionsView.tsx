@@ -62,6 +62,7 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                         awayTeamPlaceholder: m.awayTeamPlaceholder,
                       }))}
                        leagueId={leagueId}
+                       tournamentId={tournamentId}
                      />
                 </TabsContent>
             </Tabs>

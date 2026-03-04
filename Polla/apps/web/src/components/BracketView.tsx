@@ -119,14 +119,18 @@ const MatchNode = ({
 interface BracketViewProps {
     matches: Match[];
     leagueId?: string;
+    tournamentId?: string; // From the league entity — takes priority over useTournament() hook
 }
 
 /* =============================================================================
    3. COMPONENTE PRINCIPAL: KNOCKOUT VIEW
    ============================================================================= */
 export const BracketView: React.FC<BracketViewProps> = (props) => {
-    const { matches, leagueId } = props;
-    const { tournamentId } = useTournament();
+    const { matches, leagueId, tournamentId: propTournamentId } = props;
+    const { tournamentId: detectedTournamentId } = useTournament();
+    // CRITICAL: Prefer league's own tournamentId over the hook's theme-based detection
+    // Without this, a WC2026 league shows UCL2526 bracket when app theme is Champions
+    const tournamentId = propTournamentId || detectedTournamentId;
 
     const [winners, setWinners] = useState<Record<string, string>>({});
     const [bracketPoints, setBracketPoints] = useState(0);

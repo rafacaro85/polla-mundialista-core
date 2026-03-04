@@ -228,10 +228,11 @@ export class AdminService {
 
   async reseedUCLMatches() {
     try {
-      await this.dataSource.query(
-        `DELETE FROM matches WHERE tournamentId = 'UCL2526' AND phase IN ('ROUND_16','QUARTER_FINAL','SEMI_FINAL','FINAL','QUARTER','SEMI')`
-      );
-
+      await this.dataSource.query(`
+        DELETE FROM matches 
+        WHERE "tournamentId" = 'UCL2526' 
+        AND phase IN ('ROUND_16','QUARTER_FINAL','SEMI_FINAL','FINAL', 'QUARTER', 'SEMI')
+      `);
 
       const getLogo = (team: string): string => {
         const FLAGS: Record<string, string> = {
@@ -356,18 +357,18 @@ export class AdminService {
       // ===========================================
       // ENLACE DE LLAVES (PROGRESIÓN DEL BRACKET)
       // ===========================================
-      const qf = await this.dataSource.query(`SELECT id, bracketId FROM matches WHERE tournamentId = 'UCL2526' AND phase = 'QUARTER_FINAL' AND \`group\` = 'LEG_1'`);
-      const sf = await this.dataSource.query(`SELECT id, bracketId FROM matches WHERE tournamentId = 'UCL2526' AND phase = 'SEMI_FINAL' AND \`group\` = 'LEG_1'`);
-      const final = await this.dataSource.query(`SELECT id, bracketId FROM matches WHERE tournamentId = 'UCL2526' AND phase = 'FINAL'`);
+      const qf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'QUARTER_FINAL' AND "group" = 'LEG_1'`);
+      const sf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'SEMI_FINAL' AND "group" = 'LEG_1'`);
+      const final = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'FINAL'`);
 
       const linkPhase = async (targetMatches: any[], links: {src: number[], tgt: number}[], phaseParam: string) => {
         for (const link of links) {
           const targetNode = targetMatches.find(t => t.bracketId === link.tgt);
           if (targetNode) {
-            await this.dataSource.query(
-              `UPDATE matches SET nextMatchId = ? WHERE tournamentId = 'UCL2526' AND bracketId IN (${link.src.join(',')}) AND phase = '${phaseParam}' AND \`group\` = 'LEG_1'`,
-              [targetNode.id]
-            );
+            await this.dataSource.query(`
+              UPDATE matches SET "nextMatchId" = $1
+              WHERE "tournamentId" = 'UCL2526' AND "bracketId" IN (${link.src.join(',')}) AND phase = '${phaseParam}' AND "group" = 'LEG_1'
+            `, [targetNode.id]);
           }
         }
       };

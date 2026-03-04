@@ -16,7 +16,9 @@ const PHASE_LABELS: Record<string, string> = {
     'ROUND_32': '1/16 de Final (32 equipos)',
     'ROUND_16': 'Octavos de Final',
     'QUARTER': 'Cuartos de Final',
+    'QUARTER_FINAL': 'Cuartos de Final',
     'SEMI': 'Semifinales',
+    'SEMI_FINAL': 'Semifinales',
     '3RD_PLACE': 'Tercer Puesto',
     'FINAL': 'Final',
 };

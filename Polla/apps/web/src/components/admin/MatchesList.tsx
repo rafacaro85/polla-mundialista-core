@@ -713,7 +713,7 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
             {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                 {(tournamentId === 'UCL2526'
-                    ? ['ALL', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'] // UCL
+                ? ['ALL', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] // UCL
                     : ['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'] // WC
                 ).map(phase => (
                     <button
@@ -737,8 +737,8 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                             phase === 'PLAYOFF_2' ? 'Play-off vuelta' :
                                 phase === 'ROUND_32' ? '1/16' :
                                     phase === 'ROUND_16' ? 'Octavos' :
-                                        phase === 'QUARTER' ? 'Cuartos' :
-                                            phase === 'SEMI' ? 'Semis' :
+                                        (phase === 'QUARTER' || phase === 'QUARTER_FINAL') ? 'Cuartos' :
+                                            (phase === 'SEMI' || phase === 'SEMI_FINAL') ? 'Semis' :
                                                 phase === '3RD_PLACE' ? '3er Puesto' :
                                                     'Final'}
                     </button>

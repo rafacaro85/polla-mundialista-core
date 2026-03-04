@@ -140,12 +140,15 @@ export class MatchesController {
   async simulateResults(
     @Body() body: { phase?: string; tournamentId?: string },
     @Request() req: any,
+    @Query('tournamentId') queryTournamentId?: string,
   ) {
     try {
-      // body puede ser undefined si el request no tiene JSON
       const phase = body?.phase;
       const tournamentId =
-        body?.tournamentId || req.headers['x-tournament-id'] || DEFAULT_TOURNAMENT_ID;
+        body?.tournamentId ||
+        queryTournamentId ||
+        req.headers['x-tournament-id'] ||
+        DEFAULT_TOURNAMENT_ID;
       return await this.matchesService.simulateResults(phase, tournamentId);
     } catch (e: any) {
       // ... (error logging)
@@ -281,9 +284,14 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('phases/status')
-  async getPhaseStatus(@Request() req: any) {
+  async getPhaseStatus(
+    @Request() req: any,
+    @Query('tournamentId') queryTournamentId?: string,
+  ) {
     const tournamentId =
-      req.headers['x-tournament-id'] || req.query.tournamentId || DEFAULT_TOURNAMENT_ID;
+      queryTournamentId ||
+      req.headers['x-tournament-id'] ||
+      DEFAULT_TOURNAMENT_ID;
     return this.matchesService.getAllPhaseStatus(tournamentId);
   }
 }

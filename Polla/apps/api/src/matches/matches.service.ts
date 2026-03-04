@@ -854,7 +854,7 @@ export class MatchesService {
         // Orden real de las fases (Merged order is OK, filtering handles isolation)
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -888,8 +888,13 @@ export class MatchesService {
           `🔄 [SIMULATOR] Integrity repair detected for ${tid}. Re-running promotions to fill new slots...`,
         );
         await this.tournamentService.promotePhaseWinners('ROUND_16', tid);
-        await this.tournamentService.promotePhaseWinners('QUARTER', tid);
-        await this.tournamentService.promotePhaseWinners('SEMI', tid);
+        if (tid === 'UCL2526') {
+            await this.tournamentService.promotePhaseWinners('QUARTER_FINAL', tid);
+            await this.tournamentService.promotePhaseWinners('SEMI_FINAL', tid);
+        } else {
+            await this.tournamentService.promotePhaseWinners('QUARTER', tid);
+            await this.tournamentService.promotePhaseWinners('SEMI', tid);
+        }
       }
 
       // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
@@ -901,7 +906,7 @@ export class MatchesService {
       ) {
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -1589,7 +1594,7 @@ export class MatchesService {
   async getAllPhaseStatus(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const phases =
       tournamentId === 'UCL2526'
-        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
         : ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
 
     // Ensure we filter by tournamentId

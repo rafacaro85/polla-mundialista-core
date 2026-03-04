@@ -264,12 +264,18 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     };
 
     const phasesStatus = useMemo(() => {
-        const isFinished = (list: Match[]) => list.length > 0 && list.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
-        const r32Finished = isFinished(r32Matches);
-        const r16Finished = isFinished(r16Matches);
-        const quarterFinished = isFinished(quarterMatches);
-        const semiFinished = isFinished(semiMatches);
-        const hasR32 = r32Matches.length > 0;
+        const isPhaseFinished = (phaseNames: string[]) => {
+            const matchesOfPhase = effectiveMatches.filter(m => phaseNames.includes(m.phase || ''));
+            return matchesOfPhase.length > 0 && matchesOfPhase.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
+        };
+
+        const r32Finished = isPhaseFinished(['ROUND_32']);
+        const r16Finished = isPhaseFinished(['ROUND_16']);
+        const quarterFinished = isPhaseFinished(['QUARTER', 'QUARTER_FINAL']);
+        const semiFinished = isPhaseFinished(['SEMI', 'SEMI_FINAL']);
+
+        const hasR32 = effectiveMatches.some(m => m.phase === 'ROUND_32');
+        
         return {
             ROUND_32: true,
             ROUND_16: !hasR32 || r32Finished,
@@ -280,7 +286,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
             FINAL: semiFinished,
             '3RD_PLACE': semiFinished
         };
-    }, [r32Matches, r16Matches, quarterMatches, semiMatches]);
+    }, [effectiveMatches]);
 
     const isMatchLocked = (match: Match) => {
         if (isLocked) return true;
@@ -290,7 +296,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
         const realTeam = side === 'home' ? match.homeTeam : match.awayTeam;
-        if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && !realTeam.match(/^W\d+$/)) {
+        if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && realTeam !== 'Por definir' && !realTeam.match(/^W\d+$/)) {
             return realTeam;
         }
         const sourceMatch = effectiveMatches.find(m =>

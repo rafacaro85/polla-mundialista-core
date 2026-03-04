@@ -431,7 +431,7 @@ export class TournamentService {
       )
     )
       return;
-    if (!['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI'].includes(match.phase))
+    if (!['ROUND_32', 'ROUND_16', 'QUARTER', 'QUARTER_FINAL', 'SEMI', 'SEMI_FINAL'].includes(match.phase))
       return;
 
     // 1. Obtener todos los partidos de esta llave en esta fase (Ida/Vuelta o único)
@@ -487,18 +487,19 @@ export class TournamentService {
       const team1 = teams[0];
       const team2 = teams[1];
 
-      if (stats[team1].gf > stats[team1].ga) {
+      // ✅ CORRECTED: cross-compare team1.gf vs team2.gf (not self-comparison gf > ga)
+      if (stats[team1].gf > stats[team2].gf) {
         winnerTeam = team1;
         winnerFlag = stats[team1].flag;
         loserTeam = team2;
         loserFlag = stats[team2].flag;
-      } else if (stats[team2].gf > stats[team2].ga) {
+      } else if (stats[team2].gf > stats[team1].gf) {
         winnerTeam = team2;
         winnerFlag = stats[team2].flag;
         loserTeam = team1;
         loserFlag = stats[team1].flag;
       } else {
-        // Empate global. Aquí entrarían penaltis en el partido de Vuelta.
+        // Empate global de goles. Buscar penaltis en el partido de Vuelta.
         const penaltyMatch = concurrentMatches.find(
           (m) => (m as any).winnerTeam,
         );
@@ -571,9 +572,11 @@ export class TournamentService {
 
     const nextPhaseMap: Record<string, string> = {
       ROUND_32: 'ROUND_16',
-      ROUND_16: 'QUARTER',
-      QUARTER: 'SEMI',
-      SEMI: 'FINAL',
+      ROUND_16: 'QUARTER_FINAL',   // UCL uses QUARTER_FINAL
+      QUARTER: 'SEMI',             // Mundial 2026
+      QUARTER_FINAL: 'SEMI_FINAL', // UCL
+      SEMI: 'FINAL',               // Mundial 2026
+      SEMI_FINAL: 'FINAL',         // UCL
     };
 
     const nextPhase = nextPhaseMap[match.phase];
@@ -722,7 +725,7 @@ export class TournamentService {
 
     // SPECIAL CASE: If this is a SEMI-FINAL, also promote the LOSER to 3RD_PLACE
     // Allow promotion even without flag (for placeholder teams)
-    if (match.phase === 'SEMI' && loserTeam) {
+    if ((match.phase === 'SEMI' || match.phase === 'SEMI_FINAL') && loserTeam) {
       const thirdPlaceMatch = await this.matchesRepository.findOne({
         where: { phase: '3RD_PLACE', tournamentId: match.tournamentId },
       });

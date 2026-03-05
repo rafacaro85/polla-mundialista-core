@@ -1099,9 +1099,14 @@ export class MatchesService {
       }
       await qbMatches.execute();
 
-      // CRÍTICO: Solo limpiar equipos si NO es fase de grupos y NO son los octavos primarios de UCL.
-      // Modificamos NOT IN para que ROUND_16 tampoco se limpie en la Champions, porque ahí es donde están
-      // los cruces que el admin acaba de configurar de forma fija.
+      // CRÍTICO: Limpiar equipos de fases eliminatorias que tienen placeholders.
+      // Para UCL2526: NO limpiar ROUND_16 porque esos cruces son fijos (configurados por el admin).
+      // Para WC2026: limpiar TODO excepto GROUP (los equipos de knockout vienen de la promoción de grupos).
+      const keepPhasesForReset =
+        tid === 'UCL2526'
+          ? `phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16')`
+          : `phase NOT IN ('GROUP')`;
+
       const qbPlaceholders = queryRunner.manager
         .createQueryBuilder()
         .update(Match)
@@ -1112,13 +1117,14 @@ export class MatchesService {
           awayFlag: null,
         })
         .where(
-          "phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16') AND (\"homeTeamPlaceholder\" IS NOT NULL OR \"awayTeamPlaceholder\" IS NOT NULL)",
+          `${keepPhasesForReset} AND ("homeTeamPlaceholder" IS NOT NULL OR "awayTeamPlaceholder" IS NOT NULL)`,
         );
 
       if (tid) {
         qbPlaceholders.andWhere('"tournamentId" = :tid', { tid });
       }
       await qbPlaceholders.execute();
+
 
       // 2. Resetear todas las predicciones a 0 puntos
       const qbPreds = queryRunner.manager

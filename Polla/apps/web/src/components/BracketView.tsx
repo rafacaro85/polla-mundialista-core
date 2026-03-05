@@ -483,7 +483,7 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                 );
 
                 return (
-                  <div style={{ position: 'relative', width: totalW, height: totalH + HEADER_H + 80, minWidth: totalW }}>
+                  <div style={{ position: 'relative', width: totalW, height: totalH + HEADER_H + (thirdPlaceMatches.length > 0 ? 180 : 80), minWidth: totalW }}>
 
                     {/* ── Column Headers ── */}
                     {rounds.map((round, ri) => (
@@ -569,6 +569,56 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                       );
                     })()}
 
+                    {/* ── 3RD PLACE card (below champion/final, same column as Final) ── */}
+                    {thirdPlaceMatches.length > 0 && finalMatches.length > 0 && (() => {
+                      const ri       = rounds.length - 1;
+                      const cy       = getCY(ri, 0);
+                      // Position below champion card (or below final card + gap if no champion yet)
+                      const champOffset = winners[finalMatches[0]?.id || ''] ? 90 : 20;
+                      const thirdTop = HEADER_H + cy + CARD_H / 2 + champOffset + 28;
+                      const m3rd = thirdPlaceMatches[0];
+                      const h = getTeamForSlot(m3rd, 'home') || m3rd.homeTeam || m3rd.homeTeamPlaceholder || '?';
+                      const a = getTeamForSlot(m3rd, 'away') || m3rd.awayTeam || m3rd.awayTeamPlaceholder || '?';
+                      const w3rd = winners[m3rd.id];
+                      const actual3rd = getActualWinner(m3rd);
+                      const locked3rd = isMatchLocked(m3rd);
+                      return (
+                        <div style={{ position: 'absolute', top: thirdTop - 18, left: getColX(ri), width: CARD_W, zIndex: 1 }}>
+                          {/* Label */}
+                          <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                            <span style={{ fontSize: 8, fontWeight: 900, color: '#CD7F32', textTransform: 'uppercase', letterSpacing: 2, background: 'rgba(205,127,50,0.1)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(205,127,50,0.3)', display: 'inline-block' }}>
+                              🥉 3er Puesto
+                            </span>
+                          </div>
+                          {/* Card */}
+                          <div style={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(205,127,50,0.3)', borderRadius: 8, padding: '4px 6px' }}>
+                            {/* Home */}
+                            <button
+                              onClick={() => !locked3rd && h && h !== '?' && pickWinner(m3rd.id, h)}
+                              disabled={locked3rd || !h || h === '?'}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, marginBottom: 2, background: w3rd === h ? 'rgba(205,127,50,0.2)' : actual3rd === h ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === h ? '1px solid rgba(205,127,50,0.5)' : actual3rd === h ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: locked3rd ? 'default' : 'pointer' }}
+                            >
+                              <img src={getTeamFlag(h)} alt={h} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                              <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h}</span>
+                              {actual3rd === h && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
+                            </button>
+                            {/* Away */}
+                            <button
+                              onClick={() => !locked3rd && a && a !== '?' && pickWinner(m3rd.id, a)}
+                              disabled={locked3rd || !a || a === '?'}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, background: w3rd === a ? 'rgba(205,127,50,0.2)' : actual3rd === a ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === a ? '1px solid rgba(205,127,50,0.5)' : actual3rd === a ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: locked3rd ? 'default' : 'pointer' }}
+                            >
+                              <img src={getTeamFlag(a)} alt={a} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                              <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a}</span>
+                              {actual3rd === a && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+
+
                     {/* ── SINGLE SVG for ALL connector lines ────────────────────
                          The key insight: all Y coordinates use the SAME getCY() formula,
                          so connector endpoints and card centers are mathematically guaranteed
@@ -619,60 +669,8 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
               })()}
             </div>
 
-            {/* ── 3RD PLACE MATCH ── */}
-            {thirdPlaceMatches.length > 0 && (() => {
-              const m3rd = thirdPlaceMatches[0];
-              const h = getTeamForSlot(m3rd, 'home') || m3rd.homeTeam || m3rd.homeTeamPlaceholder || '?';
-              const a = getTeamForSlot(m3rd, 'away') || m3rd.awayTeam || m3rd.awayTeamPlaceholder || '?';
-              const w3rd = winners[m3rd.id];
-              const actual3rd = getActualWinner(m3rd);
-              const locked3rd = isMatchLocked(m3rd);
-              return (
-                <div className="px-4 pb-4 mt-4">
-                  <div className="max-w-xs mx-auto">
-                    <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#94A3B8] text-center mb-2">
-                      🥉 Tercer y Cuarto Puesto
-                    </p>
-                    <div className="bg-slate-800/60 border border-slate-600/50 rounded-xl p-3 shadow-lg">
-                      {/* Home team */}
-                      <button
-                        onClick={() => !locked3rd && h && h !== '?' && pickWinner(m3rd.id, h)}
-                        disabled={locked3rd || !h || h === '?'}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg mb-1 transition-all ${
-                          w3rd === h
-                            ? 'bg-amber-500/20 border border-amber-500/50'
-                            : actual3rd === h
-                            ? 'bg-green-500/20 border border-green-500/50'
-                            : 'hover:bg-slate-700/50'
-                        }`}
-                      >
-                        <img src={getTeamFlag(h)} alt={h} className="w-5 h-auto rounded" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
-                        <span className="text-xs font-bold text-white truncate flex-1 text-left">{h}</span>
-                        {actual3rd === h && <span className="text-[8px] text-green-400 font-bold">3°</span>}
-                        {w3rd === h && !actual3rd && <span className="text-[8px] text-amber-400 font-bold">★</span>}
-                      </button>
-                      {/* Away team */}
-                      <button
-                        onClick={() => !locked3rd && a && a !== '?' && pickWinner(m3rd.id, a)}
-                        disabled={locked3rd || !a || a === '?'}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg transition-all ${
-                          w3rd === a
-                            ? 'bg-amber-500/20 border border-amber-500/50'
-                            : actual3rd === a
-                            ? 'bg-green-500/20 border border-green-500/50'
-                            : 'hover:bg-slate-700/50'
-                        }`}
-                      >
-                        <img src={getTeamFlag(a)} alt={a} className="w-5 h-auto rounded" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
-                        <span className="text-xs font-bold text-white truncate flex-1 text-left">{a}</span>
-                        {actual3rd === a && <span className="text-[8px] text-green-400 font-bold">3°</span>}
-                        {w3rd === a && !actual3rd && <span className="text-[8px] text-amber-400 font-bold">★</span>}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+
+
 
             {/* PODIUM */}
             <TournamentPodium matches={effectiveMatches} />

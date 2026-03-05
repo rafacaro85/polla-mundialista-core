@@ -456,44 +456,6 @@ export class AdminService {
     }
   }
   // --- END TEMPORARY DEBUG ---
-
-  // --- FIX WC2026 ROUND_32 PLACEHOLDERS (FIFA Official Calendar) ---
-  async fixWC2026Round32Placeholders(): Promise<{ success: boolean; message: string }> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '2A', "awayTeamPlaceholder" = '2B' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 1`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1E', "awayTeamPlaceholder" = '3ABCDF' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 2`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1F', "awayTeamPlaceholder" = '2C' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 3`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1C', "awayTeamPlaceholder" = '2F' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 4`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1I', "awayTeamPlaceholder" = '3CDFGH' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 5`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '2E', "awayTeamPlaceholder" = '2I' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 6`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1A', "awayTeamPlaceholder" = '3CEFHI' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 7`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1L', "awayTeamPlaceholder" = '3EHIJK' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 8`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1D', "awayTeamPlaceholder" = '3BEFIJ' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 9`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1G', "awayTeamPlaceholder" = '3AEHIJ' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 10`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '2K', "awayTeamPlaceholder" = '2L' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 11`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1H', "awayTeamPlaceholder" = '2J' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 12`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1B', "awayTeamPlaceholder" = '3EFGIJ' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 13`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1J', "awayTeamPlaceholder" = '2H' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 14`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '1K', "awayTeamPlaceholder" = '3DEJIL' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 15`);
-      await queryRunner.query(`UPDATE matches SET "homeTeamPlaceholder" = '2D', "awayTeamPlaceholder" = '2G' WHERE "tournamentId" = 'WC2026' AND phase = 'ROUND_32' AND "bracketId" = 16`);
-
-      await queryRunner.commitTransaction();
-      return {
-        success: true,
-        message: 'WC2026 ROUND_32 placeholders actualizados según calendario FIFA',
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      return { success: false, message: `Error: ${error.message}` };
-    } finally {
-      await queryRunner.release();
-    }
-  }
-  // --- END FIX WC2026 ROUND_32 PLACEHOLDERS ---
 }
 
 

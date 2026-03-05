@@ -49,12 +49,4 @@ export class AdminController {
     return this.adminService.debugColumns();
   }
   // --- END TEMPORARY DEBUG ---
-  // --- FIX WC2026 ROUND_32 PLACEHOLDERS ---
-  @Post('fix-wc2026-round32')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async fixWC2026Round32() {
-    return this.adminService.fixWC2026Round32Placeholders();
-  }
 }

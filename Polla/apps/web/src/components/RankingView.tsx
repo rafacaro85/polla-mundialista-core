@@ -287,9 +287,12 @@ export const RankingView = ({ leagueId, enableDepartmentWar }: RankingViewProps)
                     setDeptRanking(dRanking);
                 } else {
                     // Cargar Ranking de Usuarios Normal
-                    const endpoint = selectedLeagueId === 'global'
-                        ? '/leagues/global/ranking'
-                        : `/leagues/${selectedLeagueId}/ranking`;
+                    // Solo cargar si hay una liga seleccionada válida (no global)
+                    if (selectedLeagueId === 'global') {
+                      setRanking([]);
+                      return;
+                    }
+                    const endpoint = `/leagues/${selectedLeagueId}/ranking`;
 
                     const { data } = await api.get(endpoint);
 

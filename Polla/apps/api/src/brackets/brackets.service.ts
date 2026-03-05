@@ -44,8 +44,7 @@ export class BracketsService {
   ) {}
 
   async saveBracket(userId: string, dto: SaveBracketDto): Promise<UserBracket> {
-    // Check for 'global' string and treat as null
-    // Also validate if it is a valid UUID, otherwise null
+    // Normalize leagueId: treat 'global' or invalid UUIDs as null
     let targetLeagueId = null;
     if (
       dto.leagueId &&
@@ -87,7 +86,7 @@ export class BracketsService {
     tournamentId = tournamentId || 'WC2026'; // Final fallback
 
     try {
-      // ✅ NEW: Validate bracket is not locked (manual or automatic)
+      // Validate bracket is not locked (manual or automatic)
       await this.validateBracketNotLocked(dto.picks, tournamentId);
 
       // Find existing bracket or create new one
@@ -95,7 +94,7 @@ export class BracketsService {
       if (targetLeagueId) {
         whereClause.leagueId = targetLeagueId;
       } else {
-        whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull checks
+        whereClause.leagueId = IsNull();
       }
 
       let bracket = await this.userBracketRepository.findOne({
@@ -107,10 +106,10 @@ export class BracketsService {
         bracket.picks = dto.picks;
         bracket.updatedAt = new Date();
       } else {
-        // Create new bracket
+        // Create new bracket per league (or global if no leagueId)
         bracket = this.userBracketRepository.create({
           userId,
-          leagueId: targetLeagueId || undefined, // FIX: Use sanitized leagueId (handles 'global' -> null) instead of raw dto.leagueId
+          leagueId: targetLeagueId || undefined,
           tournamentId,
           picks: dto.picks,
           points: 0,
@@ -262,21 +261,15 @@ export class BracketsService {
     const leagueBracket = brackets.find((b) => b.leagueId === targetLeagueId);
     const generalBracket = brackets.find((b) => b.leagueId === null);
 
-    // Logic change: Return the bracket with correct points (MAX) to match Ranking logic
-    // If both exist, prioritize the one with higher points (likely the Global one if League one is stale)
+    // Smart Fallback: use league bracket if it exists, else use global (leagueId=NULL)
+    // IMPORTANT: We do NOT prioritize the bracket with more points,
+    // because showing a different bracket than the one scored for this league is misleading.
     let result: UserBracket | undefined;
 
-    if (leagueBracket && generalBracket) {
-      const leaguePts = leagueBracket.points || 0;
-      const generalPts = generalBracket.points || 0;
-      // If General is better, use it. Otherwise Stick to League (Priority to context if tied)
-      if (generalPts > leaguePts) {
-        result = generalBracket;
-      } else {
-        result = leagueBracket;
-      }
+    if (leagueBracket) {
+      result = leagueBracket;  // Always prefer the league-specific bracket
     } else {
-      result = leagueBracket || generalBracket;
+      result = generalBracket; // Fall back to global only if no league bracket exists
     }
 
     if (!result) {
@@ -304,7 +297,7 @@ export class BracketsService {
     if (leagueId) {
       whereClause.leagueId = leagueId;
     } else {
-      whereClause.leagueId = IsNull(); // IMPORTANT: Explicit IsNull for global
+      whereClause.leagueId = IsNull();
     }
 
     if (tournamentId) {

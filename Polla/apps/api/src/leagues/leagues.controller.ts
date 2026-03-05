@@ -70,12 +70,6 @@ export class LeaguesController {
     return this.leaguesService.createLeague(userId, createLeagueDto);
   }
 
-  @Get('global/ranking')
-  async getGlobalRanking(
-    @Query('tournamentId') tournamentId: string = DEFAULT_TOURNAMENT_ID,
-  ) {
-    return this.leaguesService.getGlobalRanking(tournamentId);
-  }
 
   @Get('my')
   async getMyLeagues(

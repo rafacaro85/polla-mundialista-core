@@ -23,7 +23,9 @@ const PHASE_POINTS = {
   PLAYOFF_2: 2,
   ROUND_16: 3,
   QUARTER: 6,
+  QUARTER_FINAL: 6,   // UCL alias
   SEMI: 10,
+  SEMI_FINAL: 10,     // UCL alias
   '3RD_PLACE': 15,
   FINAL: 20,
 };

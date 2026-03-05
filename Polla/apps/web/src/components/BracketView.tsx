@@ -619,6 +619,61 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
               })()}
             </div>
 
+            {/* ── 3RD PLACE MATCH ── */}
+            {thirdPlaceMatches.length > 0 && (() => {
+              const m3rd = thirdPlaceMatches[0];
+              const h = getTeamForSlot(m3rd, 'home') || m3rd.homeTeam || m3rd.homeTeamPlaceholder || '?';
+              const a = getTeamForSlot(m3rd, 'away') || m3rd.awayTeam || m3rd.awayTeamPlaceholder || '?';
+              const w3rd = winners[m3rd.id];
+              const actual3rd = getActualWinner(m3rd);
+              const locked3rd = isMatchLocked(m3rd);
+              return (
+                <div className="px-4 pb-4 mt-4">
+                  <div className="max-w-xs mx-auto">
+                    <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#94A3B8] text-center mb-2">
+                      🥉 Tercer y Cuarto Puesto
+                    </p>
+                    <div className="bg-slate-800/60 border border-slate-600/50 rounded-xl p-3 shadow-lg">
+                      {/* Home team */}
+                      <button
+                        onClick={() => !locked3rd && h && h !== '?' && pickWinner(m3rd.id, h)}
+                        disabled={locked3rd || !h || h === '?'}
+                        className={`w-full flex items-center gap-2 p-2 rounded-lg mb-1 transition-all ${
+                          w3rd === h
+                            ? 'bg-amber-500/20 border border-amber-500/50'
+                            : actual3rd === h
+                            ? 'bg-green-500/20 border border-green-500/50'
+                            : 'hover:bg-slate-700/50'
+                        }`}
+                      >
+                        <img src={getTeamFlag(h)} alt={h} className="w-5 h-auto rounded" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                        <span className="text-xs font-bold text-white truncate flex-1 text-left">{h}</span>
+                        {actual3rd === h && <span className="text-[8px] text-green-400 font-bold">3°</span>}
+                        {w3rd === h && !actual3rd && <span className="text-[8px] text-amber-400 font-bold">★</span>}
+                      </button>
+                      {/* Away team */}
+                      <button
+                        onClick={() => !locked3rd && a && a !== '?' && pickWinner(m3rd.id, a)}
+                        disabled={locked3rd || !a || a === '?'}
+                        className={`w-full flex items-center gap-2 p-2 rounded-lg transition-all ${
+                          w3rd === a
+                            ? 'bg-amber-500/20 border border-amber-500/50'
+                            : actual3rd === a
+                            ? 'bg-green-500/20 border border-green-500/50'
+                            : 'hover:bg-slate-700/50'
+                        }`}
+                      >
+                        <img src={getTeamFlag(a)} alt={a} className="w-5 h-auto rounded" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                        <span className="text-xs font-bold text-white truncate flex-1 text-left">{a}</span>
+                        {actual3rd === a && <span className="text-[8px] text-green-400 font-bold">3°</span>}
+                        {w3rd === a && !actual3rd && <span className="text-[8px] text-amber-400 font-bold">★</span>}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* PODIUM */}
             <TournamentPodium matches={effectiveMatches} />
 

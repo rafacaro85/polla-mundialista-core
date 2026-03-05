@@ -298,6 +298,34 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         return false;
     };
 
+    // Nueva función para obtener equipos del Tercer Puesto (Losers of Semis)
+    const getLoserFor3rdPlace = (match: Match, side: 'home' | 'away') => {
+        // En el formato FIFA 2026, los partidos 101 y 102 alimentan la Final (104) y el 3er Puesto (103)
+        // Buscamos los partidos que alimentan la Final
+        const finalMatch = finalMatches[0];
+        if (!finalMatch) return undefined;
+
+        // Las semis son los partidos cuyo nextMatchId es la Final
+        const semis = effectiveMatches.filter(m => (m as any).nextMatchId === finalMatch.id);
+        if (semis.length < 2) return undefined;
+
+        // S1 suele ser el de bracketId menor (o el que alimenta Home del final)
+        const s1 = semis.find(m => (m.bracketId || 0) % 2 !== 0) || semis[0];
+        const s2 = semis.find(m => (m.bracketId || 0) % 2 === 0) || semis[1];
+
+        const targetSemi = side === 'home' ? s1 : s2;
+        if (!targetSemi) return undefined;
+
+        const winner = winners[targetSemi.id];
+        if (!winner) return undefined;
+
+        const t1 = getTeamForSlot(targetSemi, 'home');
+        const t2 = getTeamForSlot(targetSemi, 'away');
+
+        // El perdedor es el que NO es el ganador seleccionado
+        return winner === t1 ? t2 : t1;
+    };
+
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
         const realTeam = side === 'home' ? match.homeTeam : match.awayTeam;
         if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && realTeam !== 'Por definir' && !realTeam.match(/^W\d+$/)) {
@@ -577,8 +605,14 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                       const champOffset = winners[finalMatches[0]?.id || ''] ? 90 : 20;
                       const thirdTop = HEADER_H + cy + CARD_H / 2 + champOffset + 28;
                       const m3rd = thirdPlaceMatches[0];
-                      const h = getTeamForSlot(m3rd, 'home') || m3rd.homeTeam || m3rd.homeTeamPlaceholder || '?';
-                      const a = getTeamForSlot(m3rd, 'away') || m3rd.awayTeam || m3rd.awayTeamPlaceholder || '?';
+                      
+                      // Intentar obtener perdedores de semis, o valor real, o nada (evitar placeholders raros)
+                      const hRaw = getLoserFor3rdPlace(m3rd, 'home') || getTeamForSlot(m3rd, 'home') || m3rd.homeTeam;
+                      const aRaw = getLoserFor3rdPlace(m3rd, 'away') || getTeamForSlot(m3rd, 'away') || m3rd.awayTeam;
+                      
+                      const h = (hRaw && hRaw !== 'LSF-1' && hRaw !== 'LSF-2' && hRaw !== 'LSF1' && hRaw !== 'LSF2' && hRaw !== 'Por definir') ? hRaw : '-';
+                      const a = (aRaw && aRaw !== 'LSF-1' && aRaw !== 'LSF-2' && aRaw !== 'LSF1' && aRaw !== 'LSF2' && aRaw !== 'Por definir') ? aRaw : '-';
+                      
                       const w3rd = winners[m3rd.id];
                       const actual3rd = getActualWinner(m3rd);
                       const locked3rd = isMatchLocked(m3rd);
@@ -594,21 +628,21 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                           <div style={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(205,127,50,0.3)', borderRadius: 8, padding: '4px 6px' }}>
                             {/* Home */}
                             <button
-                              onClick={() => !locked3rd && h && h !== '?' && pickWinner(m3rd.id, h)}
-                              disabled={locked3rd || !h || h === '?'}
-                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, marginBottom: 2, background: w3rd === h ? 'rgba(205,127,50,0.2)' : actual3rd === h ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === h ? '1px solid rgba(205,127,50,0.5)' : actual3rd === h ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: locked3rd ? 'default' : 'pointer' }}
+                              onClick={() => !locked3rd && h && h !== '-' && pickWinner(m3rd.id, h)}
+                              disabled={locked3rd || !h || h === '-'}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, marginBottom: 2, background: w3rd === h ? 'rgba(205,127,50,0.2)' : actual3rd === h ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === h ? '1px solid rgba(205,127,50,0.5)' : actual3rd === h ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: (locked3rd || h === '-') ? 'default' : 'pointer' }}
                             >
-                              <img src={getTeamFlag(h)} alt={h} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                              {h !== '-' && <img src={getTeamFlag(h)} alt={h} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />}
                               <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h}</span>
                               {actual3rd === h && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
                             </button>
                             {/* Away */}
                             <button
-                              onClick={() => !locked3rd && a && a !== '?' && pickWinner(m3rd.id, a)}
-                              disabled={locked3rd || !a || a === '?'}
-                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, background: w3rd === a ? 'rgba(205,127,50,0.2)' : actual3rd === a ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === a ? '1px solid rgba(205,127,50,0.5)' : actual3rd === a ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: locked3rd ? 'default' : 'pointer' }}
+                              onClick={() => !locked3rd && a && a !== '-' && pickWinner(m3rd.id, a)}
+                              disabled={locked3rd || !a || a === '-'}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, background: w3rd === a ? 'rgba(205,127,50,0.2)' : actual3rd === a ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === a ? '1px solid rgba(205,127,50,0.5)' : actual3rd === a ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: (locked3rd || a === '-') ? 'default' : 'pointer' }}
                             >
-                              <img src={getTeamFlag(a)} alt={a} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                              {a !== '-' && <img src={getTeamFlag(a)} alt={a} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />}
                               <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a}</span>
                               {actual3rd === a && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
                             </button>

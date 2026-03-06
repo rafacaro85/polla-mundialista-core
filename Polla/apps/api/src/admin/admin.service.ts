@@ -456,6 +456,31 @@ export class AdminService {
     }
   }
   // --- END TEMPORARY DEBUG ---
+
+  async seedStagingUser() {
+    try {
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.query(`
+        INSERT INTO users 
+        (id, email, full_name, role, 
+         google_id, created_at)
+        VALUES (
+          gen_random_uuid(),
+          'admin@staging.com',
+          'Admin Staging',
+          'SUPER_ADMIN',
+          'staging-google-id-123',
+          NOW()
+        )
+        ON CONFLICT (email) DO NOTHING
+      `);
+      await queryRunner.release();
+      return { success: true, message: 'Admin staging creado' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 

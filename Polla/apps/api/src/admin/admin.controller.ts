@@ -3,6 +3,7 @@ import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('admin')
 export class AdminController {
@@ -49,4 +50,11 @@ export class AdminController {
     return this.adminService.debugColumns();
   }
   // --- END TEMPORARY DEBUG ---
+
+  @Post('seed-staging-user')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  async seedStagingUser() {
+    return this.adminService.seedStagingUser();
+  }
 }

@@ -29,7 +29,7 @@ export class PaymentsService {
     currency: string,
     transactionId: string,
     packageId?: string,
-  ): Promise<{ init_point: string; transactionId: string }> {
+  ): Promise<{ init_point: string | undefined; transactionId: string }> {
     const preference = new Preference(this.mpClient);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const apiUrl = process.env.API_URL || 'http://localhost:3001/api';
@@ -55,7 +55,7 @@ export class PaymentsService {
       },
     });
     return {
-      init_point: response.init_point,
+      init_point: response.init_point ?? '',
       transactionId,
     };
   }

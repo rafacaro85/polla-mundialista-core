@@ -481,6 +481,24 @@ export class AdminService {
       return { success: false, error: error.message };
     }
   }
+
+  async updateRole(body: { email: string; role: string }) {
+    try {
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.query(
+        `
+        UPDATE users SET role = $1 
+        WHERE email = $2
+        `,
+        [body.role, body.email],
+      );
+      await queryRunner.release();
+      return { success: true, message: `Role updated for ${body.email}` };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 

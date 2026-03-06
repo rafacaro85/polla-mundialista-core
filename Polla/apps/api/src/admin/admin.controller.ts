@@ -1,4 +1,4 @@
-import { Controller, Post, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, HttpCode, HttpStatus, UseGuards, Body } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -56,5 +56,12 @@ export class AdminController {
   @Public()
   async seedStagingUser() {
     return this.adminService.seedStagingUser();
+  }
+
+  @Post('update-role')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  async updateRole(@Body() body: { email: string; role: string }) {
+    return this.adminService.updateRole(body);
   }
 }

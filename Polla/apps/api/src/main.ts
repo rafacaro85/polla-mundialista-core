@@ -34,13 +34,15 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       const allowedOrigins = [
-        'https://lapollavirtual.com',
         'https://www.lapollavirtual.com',
+        'https://lapollavirtual.com',
+        process.env.FRONTEND_URL,
+        'https://polla-mundialista-core-git-develop-rafaels-projects-10edc374.vercel.app',
         'https://champions.lapollavirtual.com',
         ...(process.env.NODE_ENV !== 'production'
           ? ['http://localhost:3000', 'http://localhost:3001']
           : []),
-      ];
+      ].filter(Boolean);
 
       // Permite requests sin origin (mobile apps, Postman, server-to-server)
       if (!origin) return callback(null, true);

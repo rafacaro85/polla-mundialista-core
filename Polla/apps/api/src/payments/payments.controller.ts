@@ -25,14 +25,15 @@ export class PaymentsController {
   @Post('create-preference')
   async createPreference(
     @Request() req: any,
-    @Body() body: CreatePreferenceDto,
+    @Body() body: Record<string, any>,
   ) {
     this.logger.log(`Creating MP preference for user: ${req.user.id}`);
     
-    const amount = Number(body.amount);
-    const currency = body.currency || 'COP';
-    const packageId = body.packageId || 'SOCIAL_BASIC';
-    
+    const amount = Number(body?.amount);
+    const currency = String(body?.currency || 'COP');
+    const packageId = String(body?.packageId || 'SOCIAL_BASIC');
+    const leagueId = body?.leagueId || null;
+
     if (!amount || amount <= 0) {
       throw new Error('amount es requerido');
     }
@@ -41,7 +42,7 @@ export class PaymentsController {
       req.user,
       amount,
       packageId,
-      body.leagueId || null,
+      leagueId,
       TransactionStatus.PENDING,
     );
 

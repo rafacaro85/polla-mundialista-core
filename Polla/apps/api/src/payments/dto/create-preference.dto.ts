@@ -1,6 +1,6 @@
 import { IsNumber, IsString, IsOptional, Min, IsIn } from 'class-validator';
 
-export class CreateSignatureDto {
+export class CreatePreferenceDto {
   @IsNumber()
   @Min(1000, { message: 'El monto mínimo es $1,000 COP' })
   amount: number;

@@ -6,89 +6,103 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createHash } from 'crypto';
 import { Transaction } from '../database/entities/transaction.entity';
 import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
-import { WompiWebhookDto } from './dto/wompi-webhook.dto';
+import { MercadoPagoWebhookDto } from './dto/mp-webhook.dto';
+import MercadoPagoConfig, { Preference, Payment } from 'mercadopago';
 
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private readonly integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
+  private readonly mpClient: MercadoPagoConfig;
 
   constructor(
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
     private transactionsService: TransactionsService,
-  ) {}
+  ) {
+    this.mpClient = new MercadoPagoConfig({
+      accessToken: process.env.MP_ACCESS_TOKEN || '',
+    });
+  }
 
   /**
-   * Genera la firma de integridad para Wompi
+   * Crea la preferencia de pago en Mercado Pago
    */
-  generateSignature(
+  async createPreference(
     reference: string,
-    amountInCents: number,
+    amount: number,
     currency: string,
-  ): string {
-    const concatenatedString = `${reference}${amountInCents}${currency}${this.integritySecret}`;
+    transactionId: string,
+    packageId?: string,
+  ): Promise<{ init_point: string; transactionId: string }> {
+    const preference = new Preference(this.mpClient);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const apiUrl = process.env.API_URL || 'http://localhost:3001/api';
 
-    const signature = createHash('sha256')
-      .update(concatenatedString)
-      .digest('hex');
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            id: packageId || 'starter',
+            title: `Plan ${packageId || 'Starter'} - La Polla Virtual`,
+            quantity: 1,
+            currency_id: currency,
+            unit_price: amount,
+          },
+        ],
+        external_reference: transactionId, // CRITICAL: Link MP external_reference directly to our DB transaction.id
+        back_urls: {
+          success: `${frontendUrl}/mis-pollas?payment=success`,
+          failure: `${frontendUrl}/mis-pollas?payment=failure`,
+          pending: `${frontendUrl}/mis-pollas?payment=pending`,
+        },
+        auto_return: 'approved',
+        notification_url: `${apiUrl}/payments/webhook`,
+      },
+    });
 
-    this.logger.log(`Signature generated for reference: ${reference}`);
-    return signature;
+    this.logger.log(`MP Preference created for transaction: ${transactionId}`);
+    
+    return {
+      init_point: response.init_point,
+      transactionId,
+    };
   }
 
   /**
-   * Valida la firma del webhook de Wompi
-   */
-  validateWompiSignature(webhookData: WompiWebhookDto): boolean {
-    const { data } = webhookData;
-    const { transaction, signature } = data;
-
-    // Construir la cadena según la documentación de Wompi
-    // Formato: {transaction.id}{transaction.status}{transaction.amount_in_cents}{INTEGRITY_SECRET}
-    const concatenatedString = `${transaction.id}${transaction.status}${transaction.amount_in_cents}${this.integritySecret}`;
-
-    const expectedSignature = createHash('sha256')
-      .update(concatenatedString)
-      .digest('hex');
-
-    const isValid = expectedSignature === signature.checksum;
-
-    if (!isValid) {
-      this.logger.error(`Invalid signature for transaction ${transaction.id}`);
-      this.logger.debug(`Expected: ${expectedSignature}`);
-      this.logger.debug(`Received: ${signature.checksum}`);
-    }
-
-    return isValid;
-  }
-
-  /**
-   * Procesa el pago del webhook de Wompi
+   * Procesa el pago del webhook de Mercado Pago
    * IMPORTANTE: Este método se ejecuta de forma asíncrona después de responder 200 OK
    */
-  async processPayment(webhookData: WompiWebhookDto): Promise<void> {
-    const { transaction } = webhookData.data;
+  async processPayment(paymentId: string): Promise<void> {
+    this.logger.log(`Processing MP payment ID: ${paymentId}`);
 
-    this.logger.log(
-      `Processing payment for reference: ${transaction.reference}`,
-    );
+    const paymentClient = new Payment(this.mpClient);
+    let paymentData;
+    try {
+      paymentData = await paymentClient.get({ id: paymentId });
+    } catch (error) {
+      this.logger.error(`Failed to fetch MP payment ${paymentId}: ${error.message}`);
+      return;
+    }
 
-    // Buscar la transacción por referenceCode
+    const transactionId = paymentData.external_reference;
+
+    if (!transactionId) {
+      this.logger.error(`No external_reference found for MP payment ${paymentId}`);
+      return;
+    }
+
+    // Buscar la transacción por ID (external_reference de MP maped to our standard UUID ID)
     const dbTransaction = await this.transactionsRepository.findOne({
-      where: { referenceCode: transaction.reference },
+      where: { id: transactionId },
       relations: ['user', 'league'],
     });
 
     if (!dbTransaction) {
-      this.logger.error(`Transaction not found: ${transaction.reference}`);
-      throw new NotFoundException(
-        `Transaction not found: ${transaction.reference}`,
-      );
+      this.logger.error(`Transaction not found: ${transactionId}`);
+      throw new NotFoundException(`Transaction not found: ${transactionId}`);
     }
 
     // Verificar que no haya sido procesada previamente
@@ -96,74 +110,58 @@ export class PaymentsService {
       dbTransaction.status === TransactionStatus.APPROVED ||
       dbTransaction.status === TransactionStatus.PAID
     ) {
-      this.logger.warn(
-        `Transaction already processed: ${transaction.reference}`,
-      );
+      this.logger.warn(`Transaction already processed: ${transactionId}`);
       return;
     }
 
-    // Verificar el monto
-    const expectedAmountInCents = Math.round(
-      Number(dbTransaction.amount) * 100,
-    );
-    if (transaction.amount_in_cents !== expectedAmountInCents) {
-      this.logger.error(
-        `Amount mismatch for ${transaction.reference}. Expected: ${expectedAmountInCents}, Received: ${transaction.amount_in_cents}`,
-      );
-      throw new UnauthorizedException('Amount mismatch');
-    }
-
     // Procesar según el estado
-    if (transaction.status === 'APPROVED') {
-      this.logger.log(`Approving transaction: ${transaction.reference}`);
+    if (paymentData.status === 'approved') {
+      this.logger.log(`Approving transaction: ${transactionId}`);
 
       // Actualizar transacción (esto activará automáticamente usuario/liga)
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.APPROVED,
-        `Pago aprobado por Wompi. ID: ${transaction.id}`,
+        `Pago aprobado por Mercado Pago. Ref MP: ${paymentId}`,
       );
 
-      this.logger.log(
-        `Transaction approved successfully: ${transaction.reference}`,
-      );
+      this.logger.log(`Transaction approved successfully: ${transactionId}`);
     } else if (
-      transaction.status === 'DECLINED' ||
-      transaction.status === 'ERROR'
+      paymentData.status === 'rejected' ||
+      paymentData.status === 'cancelled'
     ) {
-      this.logger.warn(`Transaction declined/error: ${transaction.reference}`);
+      this.logger.warn(`Transaction rejected/cancelled: ${transactionId}`);
 
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.REJECTED,
-        `Pago rechazado por Wompi. Estado: ${transaction.status}`,
+        `Pago rechazado o cancelado en Mercado Pago. Estado: ${paymentData.status}`,
       );
     }
   }
 
   /**
-   * Maneja el webhook de Wompi con respuesta rápida 200 OK
+   * Maneja el webhook de Mercado Pago con respuesta rápida 200 OK
    */
-  async handleWebhook(
-    webhookData: WompiWebhookDto,
-  ): Promise<{ received: boolean }> {
-    this.logger.log(`Webhook received: ${webhookData.event}`);
+  async handleMPWebhook(webhookData: MercadoPagoWebhookDto): Promise<{ received: boolean }> {
+    this.logger.log(`MP Webhook received: type=${webhookData.type}, action=${webhookData.action}`);
 
-    // Validar firma ANTES de responder
-    if (!this.validateWompiSignature(webhookData)) {
-      throw new UnauthorizedException('Invalid webhook signature');
+    if (webhookData.type === 'payment' || webhookData.action === 'payment.created' || webhookData.action === 'payment.updated') {
+      const paymentId = webhookData.data?.id;
+      
+      if (paymentId) {
+        // Responder inmediatamente con 200 OK
+        // El procesamiento se hará de forma asíncrona
+        setImmediate(() => {
+          this.processPayment(paymentId).catch((error) => {
+            this.logger.error(
+              `Error processing payment: ${error.message}`,
+              error.stack,
+            );
+          });
+        });
+      }
     }
-
-    // Responder inmediatamente con 200 OK
-    // El procesamiento se hará de forma asíncrona
-    setImmediate(() => {
-      this.processPayment(webhookData).catch((error) => {
-        this.logger.error(
-          `Error processing payment: ${error.message}`,
-          error.stack,
-        );
-      });
-    });
 
     return { received: true };
   }

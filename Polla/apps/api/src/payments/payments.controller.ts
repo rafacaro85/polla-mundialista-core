@@ -11,8 +11,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { PaymentsService } from './payments.service';
 import { TransactionsService } from '../transactions/transactions.service';
-import { CreateSignatureDto } from './dto/create-signature.dto';
-import type { WompiWebhookDto } from './dto/wompi-webhook.dto';
+import { CreatePreferenceDto } from './dto/create-preference.dto';
+import type { MercadoPagoWebhookDto } from './dto/mp-webhook.dto';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
 
 @Controller('payments')
@@ -25,19 +25,16 @@ export class PaymentsController {
   ) {}
 
   /**
-   * Genera la firma de integridad para iniciar un pago con Wompi
+   * Crea una preferencia de pago en Mercado Pago
    * Endpoint protegido con JWT
    */
   @UseGuards(JwtAuthGuard)
-  @Post('signature')
-  async generateSignature(
+  @Post('create-preference')
+  async createPreference(
     @Request() req: any,
-    @Body() body: CreateSignatureDto,
+    @Body() body: CreatePreferenceDto,
   ) {
-    this.logger.log(`Generating signature for user: ${req.user.id}`);
-
-    // Convertir monto a centavos
-    const amountInCents = Math.round(body.amount * 100);
+    this.logger.log(`Creating MP preference for user: ${req.user.id}`);
 
     // Crear transacción en BD con estado PENDING
     const transaction = await this.transactionsService.createTransaction(
@@ -48,41 +45,34 @@ export class PaymentsController {
       TransactionStatus.PENDING,
     );
 
-    // Generar firma de integridad
-    const integritySignature = this.paymentsService.generateSignature(
+    // Generar preferencia de MP
+    const preferenceResult = await this.paymentsService.createPreference(
       transaction.referenceCode,
-      amountInCents,
+      body.amount,
       body.currency,
+      transaction.id,
+      body.packageId
     );
 
     this.logger.log(
-      `Signature generated for transaction: ${transaction.referenceCode}`,
+      `MP Preference generated for transaction: ${transaction.referenceCode}`,
     );
 
-    return {
-      reference: transaction.referenceCode,
-      amountInCents,
-      currency: body.currency,
-      integritySignature,
-      transactionId: transaction.id,
-    };
+    return preferenceResult;
   }
 
   /**
-   * Webhook de Wompi - PÚBLICO (sin autenticación)
+   * Webhook de Mercado Pago - PÚBLICO (sin autenticación)
    * Responde 200 OK inmediatamente y procesa de forma asíncrona
    */
   @Public()
-  @Post('wompi-webhook')
+  @Post('webhook')
   @HttpCode(200)
-  async handleWompiWebhook(@Body() webhookData: WompiWebhookDto) {
-    this.logger.log(`Wompi webhook received: ${webhookData.event}`);
-    this.logger.debug(`Transaction ID: ${webhookData.data.transaction.id}`);
-    this.logger.debug(`Reference: ${webhookData.data.transaction.reference}`);
-    this.logger.debug(`Status: ${webhookData.data.transaction.status}`);
+  async handleWebhook(@Body() webhookData: MercadoPagoWebhookDto) {
+    this.logger.log(`MP webhook received: ${webhookData.action} - ${webhookData.type}`);
 
     // Validar y procesar (responde 200 OK inmediatamente)
-    const result = await this.paymentsService.handleWebhook(webhookData);
+    const result = await this.paymentsService.handleMPWebhook(webhookData);
 
     return result;
   }

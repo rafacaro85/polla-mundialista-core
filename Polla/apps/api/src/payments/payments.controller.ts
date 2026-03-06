@@ -28,24 +28,30 @@ export class PaymentsController {
     @Body() body: CreatePreferenceDto,
   ) {
     this.logger.log(`Creating MP preference for user: ${req.user.id}`);
+    
+    const amount = Number(body.amount);
+    const currency = body.currency || 'COP';
+    const packageId = body.packageId || 'SOCIAL_BASIC';
+    
+    if (!amount || amount <= 0) {
+      throw new Error('amount es requerido');
+    }
+
     const transaction = await this.transactionsService.createTransaction(
       req.user,
-      body.amount,
-      body.packageId || 'starter',
+      amount,
+      packageId,
       body.leagueId || null,
       TransactionStatus.PENDING,
     );
-    const preferenceResult = await this.paymentsService.createPreference(
+
+    return this.paymentsService.createPreference(
       transaction.referenceCode,
-      body.amount,
-      body.currency,
+      amount,
+      currency,
       transaction.id,
-      body.packageId
+      packageId
     );
-    this.logger.log(
-      `MP Preference generated for transaction: ${transaction.referenceCode}`,
-    );
-    return preferenceResult;
   }
   @Public()
   @Post('webhook')

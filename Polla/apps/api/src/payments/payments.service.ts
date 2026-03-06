@@ -41,7 +41,7 @@ export class PaymentsService {
             title: `Plan ${packageId || 'Starter'} - La Polla Virtual`,
             quantity: 1,
             currency_id: currency,
-            unit_price: amount,
+            unit_price: parseFloat(amount.toString()),
           },
         ],
         external_reference: transactionId,

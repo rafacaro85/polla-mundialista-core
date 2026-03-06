@@ -17,29 +17,27 @@ const PHASE_ORDER = [
   'ROUND_32',
   'ROUND_16',
   'QUARTER',
+  'QUARTER_FINAL',
   'SEMI',
+  'SEMI_FINAL',
   '3RD_PLACE',
   'FINAL',
 ];
 
 // Next phase mapping
 const NEXT_PHASE: { [key: string]: string | null } = {
-  GROUP: 'PLAYOFF', // WC2026 goes GROUP -> ROUND_32 usually, but we handle logic dynamically?
-  // Actually WC2026 is GROUP -> ROUND_32. UCL is PLAYOFF -> ROUND_16.
-  // We need dynamic next phase based on tournament?
-  // For now, let's map loosely, or better, keep it simple mapping.
-  // If tournamentId='WC2026', GROUP -> ROUND_32.
-  // If 'UCL2526', PLAYOFF -> ROUND_16.
+  GROUP: 'PLAYOFF',
   // UCL Flow
   PLAYOFF_1: 'PLAYOFF_2',
   PLAYOFF_2: 'ROUND_16',
-
-  // Existing
+  // Generic
   PLAYOFF: 'ROUND_16',
   ROUND_32: 'ROUND_16',
-  ROUND_16: 'QUARTER',
+  ROUND_16: 'QUARTER',         // WC2026 / legacy
   QUARTER: 'SEMI',
+  QUARTER_FINAL: 'SEMI_FINAL', // UCL
   SEMI: '3RD_PLACE',
+  SEMI_FINAL: 'FINAL',         // UCL
   '3RD_PLACE': 'FINAL',
   FINAL: null,
 };
@@ -60,14 +58,16 @@ export class KnockoutPhasesService {
   private getNextPhase(current: string, tournamentId: string): string | null {
     if (tournamentId === 'WC2026' && current === 'GROUP') return 'ROUND_32';
 
-    // UCL Specific
+    // UCL Specific overrides
     if (tournamentId === 'UCL2526') {
       if (current === 'PLAYOFF_1') return 'PLAYOFF_2';
       if (current === 'PLAYOFF_2') return 'ROUND_16';
-      if (current === 'GROUP') return 'PLAYOFF_1'; // Just in case
+      if (current === 'GROUP') return 'PLAYOFF_1';
+      if (current === 'PLAYOFF') return 'ROUND_16';
+      if (current === 'ROUND_16') return 'QUARTER_FINAL';   // ← UCL uses QUARTER_FINAL
+      if (current === 'QUARTER_FINAL') return 'SEMI_FINAL'; // ← UCL uses SEMI_FINAL
+      if (current === 'SEMI_FINAL') return 'FINAL';
     }
-
-    if (tournamentId === 'UCL2526' && current === 'PLAYOFF') return 'ROUND_16'; // Legacy/Fallback
 
     return NEXT_PHASE[current] || null;
   }

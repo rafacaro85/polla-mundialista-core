@@ -854,7 +854,7 @@ export class MatchesService {
         // Orden real de las fases (Merged order is OK, filtering handles isolation)
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -888,8 +888,13 @@ export class MatchesService {
           `🔄 [SIMULATOR] Integrity repair detected for ${tid}. Re-running promotions to fill new slots...`,
         );
         await this.tournamentService.promotePhaseWinners('ROUND_16', tid);
-        await this.tournamentService.promotePhaseWinners('QUARTER', tid);
-        await this.tournamentService.promotePhaseWinners('SEMI', tid);
+        if (tid === 'UCL2526') {
+            await this.tournamentService.promotePhaseWinners('QUARTER_FINAL', tid);
+            await this.tournamentService.promotePhaseWinners('SEMI_FINAL', tid);
+        } else {
+            await this.tournamentService.promotePhaseWinners('QUARTER', tid);
+            await this.tournamentService.promotePhaseWinners('SEMI', tid);
+        }
       }
 
       // SELF-HEALING: Antes de simular, aseguramos que la fase anterior haya propagado sus ganadores.
@@ -901,7 +906,7 @@ export class MatchesService {
       ) {
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -1069,22 +1074,6 @@ export class MatchesService {
   async resetAllMatches(
     tid?: string,
   ): Promise<{ message: string; reset: number }> {
-    // SPECIAL HANDLING FOR UCL2526: FULL RESET & RE-SEED
-    if (tid === 'UCL2526') {
-      console.log('🚨 FULL RESET UCL2526 requested (Deleting & Seeding)...');
-      // Delete Phase Statuses first to avoid constraints
-      await this.phaseStatusRepository.delete({ tournamentId: tid });
-      // Delete All Matches
-      await this.matchesRepository.delete({ tournamentId: tid });
-
-      // Re-seed with correct logos
-      const result = await this.seedUCLKnockout();
-      return {
-        message: 'UCL2526 Reset & Re-seeded with Correct Logos',
-        reset: result.created,
-      };
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -1110,10 +1099,14 @@ export class MatchesService {
       }
       await qbMatches.execute();
 
-      // CRÍTICO: Solo limpiar equipos si NO es fase de grupos.
-      // Para reset parcial, verificamos el torneo tambien.
-      // Esto es más delicado con QueryBuilder puro, iteramos si es necesario o un update condicional complejo
-      // Simplificación: Si reseteamos TODO, limpiamos placeholders. Si es por torneo, igual limpiamos placeholders de ESE torneo.
+      // CRÍTICO: Limpiar equipos de fases eliminatorias que tienen placeholders.
+      // Para UCL2526: NO limpiar ROUND_16 porque esos cruces son fijos (configurados por el admin).
+      // Para WC2026: limpiar TODO excepto GROUP (los equipos de knockout vienen de la promoción de grupos).
+      const keepPhasesForReset =
+        tid === 'UCL2526'
+          ? `phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16')`
+          : `phase NOT IN ('GROUP')`;
+
       const qbPlaceholders = queryRunner.manager
         .createQueryBuilder()
         .update(Match)
@@ -1124,13 +1117,14 @@ export class MatchesService {
           awayFlag: null,
         })
         .where(
-          "phase NOT IN ('GROUP', 'PLAYOFF', 'PLAYOFF_1', 'PLAYOFF_2') AND (\"homeTeamPlaceholder\" IS NOT NULL OR \"awayTeamPlaceholder\" IS NOT NULL)",
+          `${keepPhasesForReset} AND ("homeTeamPlaceholder" IS NOT NULL OR "awayTeamPlaceholder" IS NOT NULL)`,
         );
 
       if (tid) {
         qbPlaceholders.andWhere('"tournamentId" = :tid', { tid });
       }
       await qbPlaceholders.execute();
+
 
       // 2. Resetear todas las predicciones a 0 puntos
       const qbPreds = queryRunner.manager
@@ -1174,7 +1168,7 @@ export class MatchesService {
       if (!tid || tid === DEFAULT_TOURNAMENT_ID)
         initialPhases.push({ tid: DEFAULT_TOURNAMENT_ID, phase: 'GROUP' });
       if (!tid || tid === 'UCL2526')
-        initialPhases.push({ tid: 'UCL2526', phase: 'PLAYOFF' });
+        initialPhases.push({ tid: 'UCL2526', phase: 'ROUND_16' });
 
       for (const item of initialPhases) {
         await queryRunner.manager
@@ -1606,7 +1600,7 @@ export class MatchesService {
   async getAllPhaseStatus(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const phases =
       tournamentId === 'UCL2526'
-        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
+        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
         : ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
 
     // Ensure we filter by tournamentId

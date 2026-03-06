@@ -383,8 +383,20 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                   const isUCL = tid.includes('UCL') || tid.includes('CHAMPIONS');
                   
                   if (isUCL || groupName.startsWith('LEG_')) {
-                    if (groupName === 'LEG_1') return 'OCTAVOS - IDA';
-                    if (groupName === 'LEG_2') return 'OCTAVOS - VUELTA';
+                    // Determine phase name from match.phase
+                    const phaseLabels: Record<string, string> = {
+                      'PLAYOFF_1': 'PLAY OFF',
+                      'PLAYOFF_2': 'PLAY OFF',
+                      'ROUND_16': 'OCTAVOS',
+                      'QUARTER': 'CUARTOS',
+                      'QUARTER_FINAL': 'CUARTOS',
+                      'SEMI': 'SEMIS',
+                      'SEMI_FINAL': 'SEMIS',
+                      'FINAL': 'FINAL',
+                    };
+                    const phaseName = phaseLabels[match.phase] || 'OCTAVOS';
+                    if (groupName === 'LEG_1') return `${phaseName} - IDA`;
+                    if (groupName === 'LEG_2') return `${phaseName} - VUELTA`;
                   }
                   return groupName;
                 }
@@ -395,9 +407,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
                 // Lógica específica para UCL
                 if (isUCL) {
-                    if (month === 1) return "PLAY OFF IDA";
-                    if (month === 2) return "PLAY OFF VUELTA";
-                    if (match.phase === 'ROUND_16') return "OCTAVOS DE FINAL";
+                    if (match.phase === 'PLAYOFF_1' || month === 0) return "PLAY OFF IDA";
+                    if (match.phase === 'PLAYOFF_2' || month === 1) return "PLAY OFF VUELTA";
+                    if (match.phase === 'ROUND_16' || month === 2) return "OCTAVOS DE FINAL";
                 }
                 
                 // Default

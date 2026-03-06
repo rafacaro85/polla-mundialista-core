@@ -71,6 +71,15 @@ export class MatchListener {
       const homeScore = freshMatch.homeScore;
       const awayScore = freshMatch.awayScore;
 
+      const isLegMatch = freshMatch.group === 'LEG_1' || freshMatch.group === 'LEG_2';
+      const shouldPromote = freshMatch.group !== 'LEG_1';
+
+      if (freshMatch.group === 'LEG_1') {
+        this.logger.log(`⏳ LEG_1 finished, waiting for LEG_2`);
+        // Solo calcular puntos, NO promover
+        // Continuar con scoring pero skip bracket progression
+      }
+
       this.logger.log(
         `📊 [CALCULO] Data confirmada BD: ${freshMatch.homeTeam} (${homeScore}) - (${awayScore}) ${freshMatch.awayTeam}`,
       );
@@ -98,12 +107,20 @@ export class MatchListener {
       }
 
       // 2. Calculate bracket points
-      const winner =
-        homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
-      await this.bracketsService.calculateBracketPoints(matchId, winner);
-      this.logger.log(
-        `🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`,
-      );
+      // Para LEG_1 y LEG_2 se omite aquí — se calcula más abajo con el ganador global
+      // usando el leg1.id (donde los usuarios guardaron sus picks del bracket)
+      // Para partidos únicos (WC2026, cuartos/semis/final UCL) se calcula normalmente
+      if (freshMatch.group !== 'LEG_1' && freshMatch.group !== 'LEG_2') {
+        const winner = homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
+        await this.bracketsService.calculateBracketPoints(matchId, winner);
+        this.logger.log(
+          `🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`,
+        );
+      } else {
+        this.logger.log(
+          `⏸️ Bracket points deferred for leg match ${matchId} (${freshMatch.group}) — will calculate on LEG_2 finish`,
+        );
+      }
 
       // 3. Status updates & Progression
 
@@ -147,17 +164,93 @@ export class MatchListener {
       }
 
       // Next Match Promotion
+      if (!shouldPromote) return;
+
+      if (freshMatch.group === 'LEG_2') {
+        // Buscar partido de ida (LEG_1) por tournamentId + phase + bracketId
+        const leg1 = await this.matchesRepository.findOne({
+          where: {
+            tournamentId: freshMatch.tournamentId,
+            phase: freshMatch.phase,
+            bracketId: freshMatch.bracketId,
+            group: 'LEG_1'
+          }
+        });
+
+        if (!leg1 || leg1.homeScore === null || leg1.awayScore === null) {
+          this.logger.warn(`⚠️ LEG_1 not finished yet for bracketId ${freshMatch.bracketId}`);
+          return;
+        }
+
+        // En vuelta los equipos se invierten:
+        // LEG_1: TeamA(home) vs TeamB(away)
+        // LEG_2: TeamB(home) vs TeamA(away)
+        // Goles totales TeamA = leg1.homeScore + leg2.awayScore
+        // Goles totales TeamB = leg1.awayScore + leg2.homeScore
+        const teamAGoals = leg1.homeScore + freshMatch.awayScore;
+        const teamBGoals = leg1.awayScore + freshMatch.homeScore;
+
+        let winner: string;
+        let winnerFlag: string;
+
+        if (teamAGoals > teamBGoals) {
+          // TeamA gana en global
+          winner = leg1.homeTeam;
+          winnerFlag = leg1.homeFlag;
+        } else if (teamBGoals > teamAGoals) {
+          // TeamB gana en global
+          winner = leg1.awayTeam;
+          winnerFlag = leg1.awayFlag;
+        } else {
+          // Empate total — en torneo real 
+          // va a penales. Admin decide manualmente.
+          this.logger.log(`🎯 Aggregate tie for bracketId ${freshMatch.bracketId} — penalties needed`);
+          // No promover automáticamente
+          return;
+        }
+
+        // ✅ Calcular bracket points usando el ID del LEG_1
+        // (los usuarios guardaron sus picks contra el partido de ida)
+        await this.bracketsService.calculateBracketPoints(leg1.id, winner);
+        this.logger.log(`🏆 [UCL] Bracket points calculated against leg1 match ${leg1.id}, aggregate winner: ${winner}`);
+
+        // Usar nextMatchId del LEG_1 para avanzar
+        if (leg1.nextMatchId) {
+          const nextMatch = await this.matchesRepository.findOne({
+            where: { id: leg1.nextMatchId }
+          });
+          if (nextMatch) {
+            const isHome = leg1.bracketId % 2 !== 0;
+            if (isHome) {
+              nextMatch.homeTeam = winner;
+              nextMatch.homeFlag = winnerFlag;
+              nextMatch.homeTeamPlaceholder = null;
+            } else {
+              nextMatch.awayTeam = winner;
+              nextMatch.awayFlag = winnerFlag;
+              nextMatch.awayTeamPlaceholder = null;
+            }
+            await this.matchesRepository.save(nextMatch);
+            this.logger.log(`➡️ [UCL] ${winner} promoted to next match after aggregate score`);
+          }
+        }
+        return;
+      }
+
+      // Lógica original para partido único 
+      // (WC2026, FINAL UCL, QUARTER_FINAL, SEMI_FINAL)
       if (freshMatch.nextMatchId) {
         const nextMatch = await this.matchesRepository.findOne({
-          where: { id: freshMatch.nextMatchId },
+          where: { id: freshMatch.nextMatchId }
         });
         if (nextMatch) {
           const isHome = freshMatch.bracketId % 2 !== 0;
-          const winner =
-            homeScore > awayScore ? freshMatch.homeTeam : freshMatch.awayTeam;
-          const winnerFlag =
-            homeScore > awayScore ? freshMatch.homeFlag : freshMatch.awayFlag;
-
+          const winner = homeScore > awayScore 
+            ? freshMatch.homeTeam 
+            : freshMatch.awayTeam;
+          const winnerFlag = homeScore > awayScore 
+            ? freshMatch.homeFlag 
+            : freshMatch.awayFlag;
           if (isHome) {
             nextMatch.homeTeam = winner;
             nextMatch.homeFlag = winnerFlag;
@@ -168,9 +261,7 @@ export class MatchListener {
             nextMatch.awayTeamPlaceholder = null;
           }
           await this.matchesRepository.save(nextMatch);
-          this.logger.log(
-            `➡️ Promoted ${winner} to next match ${nextMatch.id}`,
-          );
+          this.logger.log(`➡️ Promoted ${winner} to next match ${nextMatch.id}`);
         }
       }
     } catch (error) {

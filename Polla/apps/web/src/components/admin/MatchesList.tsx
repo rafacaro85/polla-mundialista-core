@@ -464,12 +464,43 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                             Resetear TODO
                         </button>
 
+                        {/* BOTÓN ESPECIAL UCL: Recrear partidos de Octavos/Cuartos/Semis/Final */}
+                        {tournamentId === 'UCL2526' && (
+                            <button
+                                style={{ ...STYLES.syncBtn, backgroundColor: '#8B5CF6', color: 'white' }}
+                                onClick={async () => {
+                                    const ok = confirm(
+                                        '⚠️ RECREAR PARTIDOS UCL\n\n' +
+                                        'Esto borra y vuelve a crear los partidos de Octavos, Cuartos, Semis y Final de la UCL 25/26 ' +
+                                        'con los cruces oficiales.\n\n' +
+                                        '¿Continuar?'
+                                    );
+                                    if (ok) {
+                                        try {
+                                            setSyncing(true);
+                                            const res = await superAdminService.fixUCLData();
+                                            toast.success(res.message || 'Partidos UCL recreados ✅');
+                                            loadMatches();
+                                        } catch (e: any) {
+                                            toast.error('Error: ' + (e?.response?.data?.error || e?.message));
+                                        } finally {
+                                            setSyncing(false);
+                                        }
+                                    }
+                                }}
+                                disabled={syncing}
+                            >
+                                <Database size={14} /> Recrear Partidos UCL
+                            </button>
+                        )}
+
                         <button
                             style={{ ...STYLES.syncBtn, backgroundColor: '#00E676', color: '#0F172A' }}
                             onClick={() => setIsCreateModalOpen(true)}
                         >
                             ➕ Nuevo
                         </button>
+
 
                         <button
                             style={{ ...STYLES.syncBtn, backgroundColor: '#3B82F6', color: 'white' }}
@@ -682,7 +713,7 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
             {/* FILTROS DE FASE */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                 {(tournamentId === 'UCL2526'
-                    ? ['ALL', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL'] // UCL
+                ? ['ALL', 'PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL'] // UCL
                     : ['ALL', 'GROUP', 'ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'] // WC
                 ).map(phase => (
                     <button
@@ -706,8 +737,8 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                             phase === 'PLAYOFF_2' ? 'Play-off vuelta' :
                                 phase === 'ROUND_32' ? '1/16' :
                                     phase === 'ROUND_16' ? 'Octavos' :
-                                        phase === 'QUARTER' ? 'Cuartos' :
-                                            phase === 'SEMI' ? 'Semis' :
+                                        (phase === 'QUARTER' || phase === 'QUARTER_FINAL') ? 'Cuartos' :
+                                            (phase === 'SEMI' || phase === 'SEMI_FINAL') ? 'Semis' :
                                                 phase === '3RD_PLACE' ? '3er Puesto' :
                                                     'Final'}
                     </button>

@@ -122,7 +122,7 @@ export const superAdminService = {
     },
 
     fixUCLData: async () => {
-        const response = await api.post('/matches/fix-ucl-data');
+        const response = await api.post('/admin/seed-ucl-matches');
         return response.data;
     },
 

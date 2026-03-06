@@ -70,7 +70,8 @@ const CLUB_SHIELDS: Record<string, string> = {
     'Benfica': '/images/escudos/sl-benfica-footballlogos-org.svg',
     'Juventus': '/images/escudos/juventus-footballlogos-org.svg',
     'Atletico Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
-    'Atlético Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg', // Database variation with accent
+    'Atlético Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
+    'Atlético de Madrid': '/images/escudos/atletico-madrid-footballlogos-org.svg',
     'Bayer Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
     'Leverkusen': '/images/escudos/bayer-leverkusen-footballlogos-org.svg',
     'Inter Milan': '/images/escudos/inter-milan-footballlogos-org.svg',
@@ -85,14 +86,14 @@ const CLUB_SHIELDS: Record<string, string> = {
     'Bodo/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
     'Bodø/Glimt': '/images/escudos/bodo-glimt-footballlogos-org.svg',
     'Club Brugge': '/images/escudos/club-brugge-footballlogos-org.svg',
-    'Club Brujas': '/images/escudos/club-brugge-footballlogos-org.svg', // Database variation
+    'Club Brujas': '/images/escudos/club-brugge-footballlogos-org.svg',
     'Galatasaray': '/images/escudos/galatasaray-footballlogos-org.svg',
     'Newcastle': '/images/escudos/newcastle-united-footballlogos-org.svg',
     'Olympiacos': '/images/escudos/olympiacos-footballlogos-org.svg',
     'Qarabag': '/images/escudos/qarabag-fk-footballlogos-org.svg',
-    // --- 8 NEW KNOCKOUT TEAMS ---
     'Liverpool': '/images/escudos/liverpool-fc-footballlogos-org.svg',
     'Bayern München': '/images/escudos/bayern-munich-footballlogos-org.svg',
+    'Bayern Munich': '/images/escudos/bayern-munich-footballlogos-org.svg',
     'Tottenham': '/images/escudos/tottenham-hotspur-footballlogos-org.svg',
     'Barcelona': '/images/escudos/fc-barcelona-footballlogos-org.svg',
     'Arsenal': '/images/escudos/arsenal-footballlogos-org.svg',

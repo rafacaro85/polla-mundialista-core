@@ -31,15 +31,18 @@ export class TransactionsService {
     user: User,
     amount: number,
     packageId: string,
-    leagueId: string,
+    leagueId: string | null,
     tournamentId: string = DEFAULT_TOURNAMENT_ID,
     status: TransactionStatus = TransactionStatus.PENDING,
   ): Promise<Transaction> {
-    const league = await this.leaguesRepository.findOne({
-      where: { id: leagueId },
-    });
-    if (!league) {
-      throw new NotFoundException('Liga no encontrada');
+    let league: League | undefined = undefined;
+    if (leagueId) {
+      league = (await this.leaguesRepository.findOne({
+        where: { id: leagueId },
+      })) || undefined;
+      if (!league) {
+        throw new NotFoundException('Liga no encontrada');
+      }
     }
 
     const transaction = this.transactionsRepository.create({

@@ -32,7 +32,7 @@ export class PaymentsController {
       req.user,
       body.amount,
       body.packageId || 'starter',
-      body.leagueId || '',
+      body.leagueId || null,
       TransactionStatus.PENDING,
     );
     const preferenceResult = await this.paymentsService.createPreference(

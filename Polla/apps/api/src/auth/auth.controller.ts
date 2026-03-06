@@ -27,9 +27,9 @@ import { ApiTags } from '@nestjs/swagger';
 // Opciones de cookie compartidas para consistencia
 const COOKIE_OPTIONS = (isProduction: boolean) => ({
   httpOnly: true,
-  secure: isProduction,
-  sameSite: 'strict' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en ms
+  secure: true,
+  sameSite: 'none' as const,
+  maxAge: 24 * 60 * 60 * 1000, // 1 día en ms
   path: '/',
 });
 
@@ -142,8 +142,8 @@ export class AuthController {
     // Limpiar TODAS las cookies de autenticación
     res.clearCookie('auth_token', {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       path: '/',
     });
     res.clearCookie('connect.sid');

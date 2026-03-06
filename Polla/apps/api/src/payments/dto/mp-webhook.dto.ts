@@ -1,12 +1,5 @@
-export interface MercadoPagoWebhookDto {
-  action: string;
-  api_version: string;
-  data: {
-    id: string;
-  };
-  date_created: string;
-  id: number;
-  live_mode: boolean;
+export class MercadoPagoWebhookDto {
   type: string;
-  user_id: string;
+  action: string;
+  data?: { id: string };
 }

@@ -4,7 +4,6 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { Transaction } from '../database/entities/transaction.entity';
 import { TransactionsModule } from '../transactions/transactions.module';
-
 @Module({
   imports: [TypeOrmModule.forFeature([Transaction]), TransactionsModule],
   controllers: [PaymentsController],

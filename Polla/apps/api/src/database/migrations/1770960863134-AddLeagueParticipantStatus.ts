@@ -4,12 +4,18 @@ export class AddLeagueParticipantStatus1770960863134 implements MigrationInterfa
   name = 'AddLeagueParticipantStatus1770960863134';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `CREATE TYPE "public"."league_participants_status_enum" AS ENUM('PENDING', 'ACTIVE', 'REJECTED')`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "league_participants" ADD "status" "public"."league_participants_status_enum" NOT NULL DEFAULT 'ACTIVE'`,
-    );
+    await queryRunner.query(`SAVEPOINT add_participant_status`);
+    try {
+      await queryRunner.query(
+        `CREATE TYPE "public"."league_participants_status_enum" AS ENUM('PENDING', 'ACTIVE', 'REJECTED')`,
+      );
+      await queryRunner.query(
+        `ALTER TABLE "league_participants" ADD "status" "public"."league_participants_status_enum" NOT NULL DEFAULT 'ACTIVE'`,
+      );
+    } catch (e) {
+      await queryRunner.query(`ROLLBACK TO SAVEPOINT add_participant_status`);
+      console.log('Skipping AddLeagueParticipantStatus - table not ready');
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

@@ -100,7 +100,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
                     <button
                         onClick={handleMercadoPago}
                         disabled={loadingMP}
-                        className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
+                        className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white font-bold py-2 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
                     >
                         {loadingMP ? (
                             <span>Procesando...</span>

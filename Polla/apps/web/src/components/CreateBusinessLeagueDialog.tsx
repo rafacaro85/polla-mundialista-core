@@ -498,6 +498,7 @@ export const CreateBusinessLeagueDialog = ({
                                         <PaymentMethods 
                                             leagueId={createdLeagueId}
                                             amount={parseInt(selectedPlan?.price.replace(/\D/g, '') || '0')}
+                                            packageId={selectedPlan?.packageType}
                                             onSuccess={() => {
                                                 setIsPaymentSubmitted(true);
                                                 toast.success('Pago enviado para revisión');

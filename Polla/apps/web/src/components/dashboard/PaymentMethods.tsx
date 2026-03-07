@@ -10,6 +10,7 @@ interface PaymentMethodsProps {
     leagueId: string;
     amount?: number;
     tournamentId?: string;
+    packageId?: string;
     onSuccess?: () => void;
 }
 
@@ -17,6 +18,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
     leagueId, 
     amount = 50000, 
     tournamentId: propTournamentId, 
+    packageId,
     onSuccess 
 }) => {
     const { tournamentId: hookTournamentId } = useTournament();
@@ -71,7 +73,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
             const response = await api.post('/payments/create-preference', {
                 amount: amount,
                 currency: 'COP',
-                packageId: 'SOCIAL_BASIC',
+                packageId: packageId || 'SOCIAL_BASIC',
                 leagueId: leagueId
             });
             

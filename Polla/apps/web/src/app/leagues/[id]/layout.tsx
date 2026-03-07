@@ -201,6 +201,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                                 leagueId={league.id}
                                 amount={getAmount()}
                                 tournamentId={league.tournamentId}
+                                packageId={league.packageType || 'SOCIAL_BASIC'}
                                 onSuccess={() => {
                                     setTimeout(() => {
                                         router.push(isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas');
@@ -308,6 +309,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                                 leagueId={league.id}
                                 amount={getAmount()}
                                 tournamentId={league.tournamentId}
+                                packageId={league.packageType || 'SOCIAL_BASIC'}
                                 onSuccess={() => {
                                     setTimeout(() => {
                                         router.push('/social/mis-pollas');
@@ -376,6 +378,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         <PaymentMethods
                             leagueId={league.id}
                             amount={getAmount()}
+                            packageId={league.packageType || 'SOCIAL_BASIC'}
                             onSuccess={() => window.location.reload()}
                         />
                     </div>

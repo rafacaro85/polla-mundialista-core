@@ -347,6 +347,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                                 })()
                             }
                             tournamentId={currentLeague.tournamentId}
+                            packageId={currentLeague.packageType}
                             onSuccess={() => window.location.reload()} 
                         />
                         <Button 

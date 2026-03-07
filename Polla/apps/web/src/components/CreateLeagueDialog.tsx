@@ -776,6 +776,7 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
                                                         leagueId={createdLeagueId}
                                                         amount={parseInt(selectedPlanDetails?.price.replace(/\D/g, '') || '0')}
                                                         tournamentId={selectedTournamentId}
+                                                        packageId={selectedPlan}
                                                         onSuccess={() => {
                                                             toast.success('¡Comprobante enviado! Tu polla está en revisión.');
                                                             handleClose();

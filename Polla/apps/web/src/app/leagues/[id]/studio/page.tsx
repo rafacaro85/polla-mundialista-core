@@ -416,6 +416,7 @@ export default function StudioPage() {
                             <PaymentMethods
                                 leagueId={params.id as string}
                                 amount={getPriceForPlan((config as any).packageType)}
+                                packageId={(config as any).packageType}
                                 onSuccess={() => {
                                     toast({ title: 'Pago enviado', description: 'Tu solicitud está en revisión.' });
                                     setShowActivation(false);

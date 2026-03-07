@@ -12,9 +12,10 @@ interface PaymentLockOverlayProps {
     leagueName: string;
     leagueId: string;
     amount?: number;
+    packageId?: string;
 }
 
-export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueName, leagueId, amount = 50000 }) => {
+export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueName, leagueId, amount = 50000, packageId }) => {
     const { data: transaction } = useSWR(`/transactions/my-latest?leagueId=${leagueId}`, async (url) => (await api.get(url)).data);
 
     const isPending = transaction && transaction.status === 'PENDING';
@@ -48,7 +49,7 @@ export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueNa
                         </span>
                     </div>
 
-                    <PaymentMethods leagueId={leagueId} amount={amount} onSuccess={() => window.location.reload()} />
+                    <PaymentMethods leagueId={leagueId} amount={amount} packageId={packageId} onSuccess={() => window.location.reload()} />
 
                     <button onClick={() => window.location.reload()} className="text-xs text-slate-500 hover:text-white underline pb-10">
                         Recargar Página

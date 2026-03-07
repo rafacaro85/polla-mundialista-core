@@ -97,6 +97,7 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
                                   return 50000;
                                 })()
                             }
+                            packageId={currentLeague.packageType}
                             onSuccess={() => window.location.reload()} 
                         />
                         <Button 

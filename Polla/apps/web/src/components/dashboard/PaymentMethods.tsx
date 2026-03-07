@@ -107,7 +107,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
                         ) : (
                             <>
                                 <img 
-                                    src="/assets/mp-logo.png" 
+                                    src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large@2x.png" 
                                     alt="Mercado Pago" 
                                     className="h-6"
                                 />

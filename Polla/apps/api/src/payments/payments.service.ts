@@ -23,6 +23,14 @@ export class PaymentsService {
       accessToken: process.env.MP_ACCESS_TOKEN || '',
     });
   }
+
+  // Plan temporal para pruebas reales de Mercado Pago
+  public readonly TEST_PLAN = {
+    name: 'Plan Test $1',
+    price: 1,
+    maxParticipants: 5,
+    features: ['Solo para pruebas'],
+  };
   async createPreference(
     reference: string,
     amount: number,

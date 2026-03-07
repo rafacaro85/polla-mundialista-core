@@ -24,6 +24,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
     const [selectedQR, setSelectedQR] = useState<'NEQUI' | 'DAVIPLATA' | 'BANCOLOMBIA' | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [loadingMP, setLoadingMP] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -64,10 +65,68 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
         }
     };
 
+    const handleMercadoPago = async () => {
+        setLoadingMP(true);
+        try {
+            const response = await api.post('/payments/create-preference', {
+                amount: amount,
+                currency: 'COP',
+                packageId: 'SOCIAL_BASIC',
+                leagueId: leagueId
+            });
+            
+            if (response.data && response.data.init_point) {
+                window.location.href = response.data.init_point;
+            } else {
+                toast.error('Error al generar el link de pago');
+                setLoadingMP(false);
+            }
+        } catch (error) {
+            console.error('Error MP:', error);
+            toast.error('Error al conectar con Mercado Pago');
+            setLoadingMP(false);
+        }
+    };
+
     return (
         <div className="w-full flex flex-col items-center gap-6">
-            {/* Manual Payment Section */}
             <div className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6">
+                
+                {/* BLOQUE MERCADO PAGO */}
+                <div className="mb-6">
+                    <h3 className="text-white font-black uppercase text-lg mb-4 text-center">
+                        Pago en línea
+                    </h3>
+                    <button
+                        onClick={handleMercadoPago}
+                        disabled={loadingMP}
+                        className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
+                    >
+                        {loadingMP ? (
+                            <span>Procesando...</span>
+                        ) : (
+                            <>
+                                <img 
+                                    src="/assets/mp-logo.png" 
+                                    alt="Mercado Pago" 
+                                    className="h-6"
+                                />
+                                <span>Pagar con Mercado Pago</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {/* SEPARADOR */}
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="flex-1 h-px bg-white/20"/>
+                    <span className="text-white/50 text-sm">
+                        o paga manualmente
+                    </span>
+                    <div className="flex-1 h-px bg-white/20"/>
+                </div>
+
+                {/* Manual Payment Section */}
                 <h3 className="text-white font-black uppercase text-lg mb-4 text-center">
                     Pago Manual
                 </h3>

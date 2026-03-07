@@ -27,32 +27,40 @@ export class PaymentsController {
     @Request() req: any,
     @Body() body: Record<string, any>,
   ) {
-    this.logger.log(`Creating MP preference for user: ${req.user.id}`);
-    
-    const amount = Number(body?.amount);
-    const currency = String(body?.currency || 'COP');
-    const packageId = String(body?.packageId || 'SOCIAL_BASIC');
-    const leagueId = body?.leagueId || null;
+    try {
+      this.logger.log(`Creating MP preference for user: ${req.user.id}`);
+      
+      const amount = Number(body?.amount);
+      const currency = String(body?.currency || 'COP');
+      const packageId = String(body?.packageId || 'SOCIAL_BASIC');
+      const leagueId = body?.leagueId || null;
 
-    if (!amount || amount <= 0) {
-      throw new Error('amount es requerido');
+      if (!amount || amount <= 0) {
+        throw new Error('amount es requerido');
+      }
+
+      const transaction = await this.transactionsService.createTransaction(
+        req.user,
+        amount,
+        packageId,
+        leagueId,
+        TransactionStatus.PENDING,
+      );
+
+      return await this.paymentsService.createPreference(
+        transaction.referenceCode,
+        amount,
+        currency,
+        transaction.id,
+        packageId
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error en createPreference: ${error.message}`,
+        error.stack
+      );
+      throw error;
     }
-
-    const transaction = await this.transactionsService.createTransaction(
-      req.user,
-      amount,
-      packageId,
-      leagueId,
-      TransactionStatus.PENDING,
-    );
-
-    return this.paymentsService.createPreference(
-      transaction.referenceCode,
-      amount,
-      currency,
-      transaction.id,
-      packageId
-    );
   }
   @Public()
   @Post('webhook')

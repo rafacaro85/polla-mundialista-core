@@ -107,11 +107,10 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
                         ) : (
                             <>
                                 <img 
-                                    src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large@2x.png" 
-                                    alt="Mercado Pago" 
+                                    src="/assets/Logos%20Mercado%20Pago%202025--fb6f16c9/Logos%20Mercado%20Pago%202025/Uso%20digital%20-%20RGB/SVGs/MP_RGB_HANDSHAKE_pluma_horizontal.svg" 
+                                    alt="Pagar con Mercado Pago" 
                                     className="h-6"
                                 />
-                                <span>Pagar con Mercado Pago</span>
                             </>
                         )}
                     </button>

@@ -14,6 +14,20 @@ export class AdminService {
     private dataSource: DataSource,
   ) {}
 
+  async debugTransactions() {
+    const result = await this.dataSource.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      AND table_name IN (
+        'transactions', 
+        'users', 
+        'leagues'
+      )
+    `);
+    return result;
+  }
+
   async seedUCLMatches() {
     try {
       // Check if tables exist, if not, sync schema

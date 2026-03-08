@@ -49,6 +49,7 @@ export class PaymentsController {
         amount,
         packageId,
         leagueId,
+        'WC2026',
         TransactionStatus.PENDING,
       );
 

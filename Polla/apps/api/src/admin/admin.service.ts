@@ -14,20 +14,6 @@ export class AdminService {
     private dataSource: DataSource,
   ) {}
 
-  async debugTransactions() {
-    const result = await this.dataSource.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-      AND table_name IN (
-        'transactions', 
-        'users', 
-        'leagues'
-      )
-    `);
-    return result;
-  }
-
   async seedUCLMatches() {
     try {
       // Check if tables exist, if not, sync schema
@@ -509,6 +495,24 @@ export class AdminService {
       );
       await queryRunner.release();
       return { success: true, message: `Role updated for ${body.email}` };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async debugTransactions() {
+    try {
+      const result = await this.dataSource.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        AND table_name IN (
+          'transactions', 
+          'users', 
+          'leagues'
+        )
+      `);
+      return { success: true, tables: result };
     } catch (error) {
       return { success: false, error: error.message };
     }

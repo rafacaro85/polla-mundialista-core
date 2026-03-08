@@ -4,10 +4,23 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
+import { DataSource } from 'typeorm';
 
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly dataSource: DataSource
+  ) {}
+
+  @Post('run-migrations')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async runMigrations() {
+    await this.dataSource.runMigrations();
+    return { success: true, message: 'Migraciones ejecutadas' };
+  }
 
   @Post('seed-ucl')
   @HttpCode(HttpStatus.OK)

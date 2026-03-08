@@ -517,6 +517,20 @@ export class AdminService {
       return { success: false, error: error.message };
     }
   }
+
+  async debugTransactionsColumns() {
+    try {
+      const result = await this.dataSource.query(`
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = 'transactions'
+        ORDER BY column_name;
+      `);
+      return { success: true, columns: result };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 

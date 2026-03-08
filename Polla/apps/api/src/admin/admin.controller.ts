@@ -70,6 +70,14 @@ export class AdminController {
   async debugTransactions() {
     return this.adminService.debugTransactions();
   }
+
+  @Get('debug-transactions-columns')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async debugTransactionsColumns() {
+    return this.adminService.debugTransactionsColumns();
+  }
   // --- END TEMPORARY DEBUG ---
 
   @Post('seed-staging-user')

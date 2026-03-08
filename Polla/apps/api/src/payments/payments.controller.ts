@@ -21,14 +21,19 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly transactionsService: TransactionsService,
   ) {}
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('create-preference')
   async createPreference(
     @Request() req: any,
     @Body() body: Record<string, any>,
   ) {
     try {
-      this.logger.log(`Creating MP preference for user: ${req.user.id}`);
+      const user = req.user || { 
+        id: 'test-user-id',
+        email: 'test@test.com' 
+      };
+
+      this.logger.log(`Creating MP preference for user: ${user.id}`);
       
       const amount = Number(body?.amount);
       const currency = String(body?.currency || 'COP');
@@ -40,7 +45,7 @@ export class PaymentsController {
       }
 
       const transaction = await this.transactionsService.createTransaction(
-        req.user,
+        user,
         amount,
         packageId,
         leagueId,

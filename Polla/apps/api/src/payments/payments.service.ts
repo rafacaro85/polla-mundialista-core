@@ -38,34 +38,48 @@ export class PaymentsService {
     transactionId: string,
     packageId?: string,
   ): Promise<{ init_point: string | undefined; transactionId: string }> {
-    const preference = new Preference(this.mpClient);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const apiUrl = process.env.API_URL || 'http://localhost:3001/api';
-    const response = await preference.create({
-      body: {
-        items: [
-          {
+    try {
+      const accessToken = process.env.MP_ACCESS_TOKEN;
+      if (!accessToken) {
+        throw new Error('MP_ACCESS_TOKEN no configurado');
+      }
+      this.logger.log(`MP_ACCESS_TOKEN presente: ${accessToken.substring(0, 10)}...`);
+      this.logger.log(`amount: ${amount}, currency: ${currency}, transactionId: ${transactionId}`);
+      
+      const client = new MercadoPagoConfig({ accessToken });
+      const preference = new Preference(client);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const apiUrl = process.env.API_URL || 'http://localhost:3001/api';
+
+      const response = await preference.create({
+        body: {
+          items: [{
             id: packageId || 'starter',
             title: `Plan ${packageId || 'Starter'} - La Polla Virtual`,
             quantity: 1,
             currency_id: currency,
             unit_price: parseFloat(amount.toString()),
+          }],
+          external_reference: transactionId,
+          back_urls: {
+            success: `${frontendUrl}/mis-pollas?payment=success`,
+            failure: `${frontendUrl}/mis-pollas?payment=failure`,
+            pending: `${frontendUrl}/mis-pollas?payment=pending`,
           },
-        ],
-        external_reference: transactionId,
-        back_urls: {
-          success: `${frontendUrl}/mis-pollas?payment=success`,
-          failure: `${frontendUrl}/mis-pollas?payment=failure`,
-          pending: `${frontendUrl}/mis-pollas?payment=pending`,
+          auto_return: 'approved',
+          notification_url: `${apiUrl}/payments/webhook`,
         },
-        auto_return: 'approved',
-        notification_url: `${apiUrl}/payments/webhook`,
-      },
-    });
-    return {
-      init_point: response.init_point ?? '',
-      transactionId,
-    };
+      });
+
+      this.logger.log(`MP preference creada: ${response.id}`);
+      return {
+        init_point: response.init_point ?? '',
+        transactionId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Error MP createPreference: ${error.message}`, error.stack);
+      throw error;
+    }
   }
   async processPayment(paymentId: string): Promise<void> {
     const paymentClient = new Payment(this.mpClient);

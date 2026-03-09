@@ -65,7 +65,11 @@ export class PaymentsController {
         `Error en createPreference: ${error.message}`,
         error.stack
       );
-      throw error;
+      return { 
+        error: error.message, 
+        stack: error.stack,
+        name: error.name 
+      };
     }
   }
   @Public()

@@ -21,17 +21,17 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly transactionsService: TransactionsService,
   ) {}
-  @Public()
+  @UseGuards(JwtAuthGuard)
   @Post('create-preference')
   async createPreference(
     @Request() req: any,
     @Body() body: Record<string, any>,
   ) {
     try {
-      const user = req.user || { 
-        id: 'test-user-id',
-        email: 'test@test.com' 
-      };
+      const user = req.user;
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
 
       this.logger.log(`Creating MP preference for user: ${user.id}`);
       

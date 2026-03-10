@@ -202,7 +202,7 @@ export class LeaguesService {
         user: creator,
         league: savedLeague,
         isAdmin: true,
-        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING,
+        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING_PAYMENT,
         isPaid: false,
         totalPoints: 0,
         triviaPoints: 0,

@@ -84,7 +84,7 @@ export class LeagueParticipantsService {
 
       // 5. Determine Initial Status
       // Logic: PENDING unless user is the Creator
-      let initialStatus = LeagueParticipantStatus.PENDING_PAYMENT;
+      let initialStatus = LeagueParticipantStatus.PENDING;
 
       const isCreator = league.creator && league.creator.id === userId;
       if (isCreator) {

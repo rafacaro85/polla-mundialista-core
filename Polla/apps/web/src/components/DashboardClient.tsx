@@ -267,6 +267,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
         {/* BLOQUEO DE PAGO PENDIENTE (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
         {/* El usuario prefiere que se pueda ingresar y ver el banner de estado en lugar de un bloqueo total */}
 
+        {(() => {
+          const status = currentLeague?.userStatus;
+          console.log('[DashboardClient] userStatus check:', status, 'league:', currentLeague?.id);
+          return null;
+        })()}
+
         {currentLeague && currentLeague.userStatus === 'PENDING_PAYMENT' && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (
           <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
             <PaymentLockOverlay

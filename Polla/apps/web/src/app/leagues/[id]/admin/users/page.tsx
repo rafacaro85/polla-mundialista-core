@@ -182,7 +182,7 @@ export default function AdminUsersPage() {
         total: participants.length,
         active: participants.filter(p => p.status === 'ACTIVE').length,
         blocked: participants.filter(p => p.status === 'BLOCKED' || p.isBlocked).length,
-        pending: participants.filter(p => p.status === 'PENDING').length,
+        pending: participants.filter(p => p.status === 'PENDING' || p.status === 'PENDING_PAYMENT').length,
     };
 
     if (loading) {
@@ -342,7 +342,7 @@ export default function AdminUsersPage() {
                                 
                                 {participant.status === 'ACTIVE' && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
                                 {participant.status === 'BLOCKED' && <span className="w-2 h-2 rounded-full bg-red-500"></span>}
-                                {participant.status === 'PENDING' && <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>}
+                                {(participant.status === 'PENDING' || participant.status === 'PENDING_PAYMENT') && <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>}
                             </div>
 
                             {/* User Info */}
@@ -406,6 +406,10 @@ export default function AdminUsersPage() {
                                             <X size={18} />
                                         </button>
                                     </>
+                                ) : participant.status === 'PENDING_PAYMENT' ? (
+                                    <div className="flex-1 flex items-center justify-center h-10 rounded-lg bg-orange-500/10 text-orange-400 font-bold text-sm border border-orange-500/20">
+                                        Pago Pendiente
+                                    </div>
                                 ) : (
                                     <>
                                         <button

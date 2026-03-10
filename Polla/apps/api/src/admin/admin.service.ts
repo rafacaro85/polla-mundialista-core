@@ -14,6 +14,22 @@ export class AdminService {
     private dataSource: DataSource,
   ) {}
 
+  async fixEnumsPendingPayment() {
+    try {
+      await this.dataSource.query(`
+        ALTER TYPE league_participant_status_enum 
+        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
+      `);
+      await this.dataSource.query(`
+        ALTER TYPE transaction_status_enum 
+        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
+      `);
+      return { success: true, message: 'Enums actualizados correctamente' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   async seedUCLMatches() {
     try {
       // Check if tables exist, if not, sync schema

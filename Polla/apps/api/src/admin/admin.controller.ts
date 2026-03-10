@@ -13,6 +13,13 @@ export class AdminController {
     private readonly dataSource: DataSource
   ) {}
 
+  @Post('fix-enums')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  async fixEnums() {
+    return this.adminService.fixEnumsPendingPayment();
+  }
+
   @Post('run-migrations')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)

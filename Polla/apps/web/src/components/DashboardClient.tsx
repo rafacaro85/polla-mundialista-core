@@ -259,6 +259,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           />
         )}
 
+        {/* PAYMENT BLOCK v2 */}
+
         {/* ESTATUS DE PAGO (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
 
 

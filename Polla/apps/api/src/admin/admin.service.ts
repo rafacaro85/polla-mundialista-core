@@ -16,15 +16,12 @@ export class AdminService {
 
   async fixEnumsPendingPayment() {
     try {
-      await this.dataSource.query(`
-        ALTER TYPE league_participant_status_enum 
-        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
+      const enums = await this.dataSource.query(`
+        SELECT typname FROM pg_type 
+        WHERE typtype = 'e' 
+        ORDER BY typname;
       `);
-      await this.dataSource.query(`
-        ALTER TYPE transaction_status_enum 
-        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-      `);
-      return { success: true, message: 'Enums actualizados correctamente' };
+      return { success: true, enums };
     } catch (error) {
       return { success: false, error: error.message };
     }

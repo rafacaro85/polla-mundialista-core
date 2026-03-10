@@ -51,7 +51,7 @@ export class PaymentsController {
         packageId,
         leagueId,
         'WC2026',
-        TransactionStatus.PENDING,
+        TransactionStatus.PENDING_PAYMENT,
       );
 
       return await this.paymentsService.createPreference(

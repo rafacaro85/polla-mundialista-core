@@ -19,6 +19,7 @@ export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueNa
     const { data: transaction } = useSWR(`/transactions/my-latest?leagueId=${leagueId}`, async (url) => (await api.get(url)).data);
 
     const isPending = transaction && transaction.status === 'PENDING';
+    const isPendingPayment = !transaction || transaction.status === 'PENDING_PAYMENT' || transaction.status === 'REJECTED';
 
     return (
         <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
@@ -30,7 +31,7 @@ export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueNa
                 La polla <strong className="text-white">{leagueName}</strong> requiere validación del pago para ser activada.
             </p>
 
-            {isPending ? (
+            {isPending && !isPendingPayment ? (
                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6 mb-8 max-w-sm w-full animate-in fade-in zoom-in-95">
                     <Shield size={48} className="text-yellow-500 mx-auto mb-4" />
                     <h3 className="text-yellow-500 font-russo text-xl uppercase mb-2">Pago en Revisión</h3>

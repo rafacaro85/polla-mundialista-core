@@ -108,15 +108,15 @@ export class TransactionsService {
         },
       });
 
-      if (
-        participant &&
-        participant.status === LeagueParticipantStatus.REJECTED
-      ) {
+      if (participant && (
+        participant.status === LeagueParticipantStatus.REJECTED ||
+        participant.status === LeagueParticipantStatus.PENDING_PAYMENT
+      )) {
         participant.status = LeagueParticipantStatus.PENDING;
         participant.isPaid = false;
         await this.leagueParticipantsRepository.save(participant);
         console.log(
-          `🔄 Participant status reset from REJECTED to PENDING for league ${league.id}`,
+          `🔄 Participant status reset to PENDING for league ${league.id}`,
         );
       }
     }

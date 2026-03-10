@@ -265,6 +265,30 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
         {/* BLOQUEO DE PAGO PENDIENTE (REMOVIDO PARA COINCIDIR CON FLUJO EMPRESARIAL) */}
         {/* El usuario prefiere que se pueda ingresar y ver el banner de estado en lugar de un bloqueo total */}
 
+        {currentLeague && currentLeague.userStatus === 'PENDING_PAYMENT' && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (
+          <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
+            <PaymentLockOverlay
+              leagueName={currentLeague.name}
+              leagueId={currentLeague.id}
+              amount={
+                (() => {
+                  const type = (currentLeague.packageType || '').toLowerCase();
+                  if (type === 'parche' || type === 'amateur') return 30000;
+                  if (type === 'amigos' || type === 'semi-pro') return 80000;
+                  if (type === 'lider' || type === 'pro') return 180000;
+                  if (type === 'influencer' || type === 'elite') return 350000;
+                  if (type === 'bronze' || type === 'enterprise_bronze') return 100000;
+                  if (type === 'silver' || type === 'enterprise_silver') return 175000;
+                  if (type === 'gold' || type === 'enterprise_gold') return 450000;
+                  if (type === 'platinum' || type === 'enterprise_platinum') return 750000;
+                  if (type === 'diamond' || type === 'enterprise_diamond') return 1000000;
+                  return 50000;
+                })()
+              }
+              packageId={currentLeague.packageType}
+            />
+          </div>
+        )}
 
         {/* PENDING APPROVAL OVERLAY (RE-IMPLEMENTADO COMO MENSAJE DE ESPERA) */}
         {currentLeague && currentLeague.userStatus === 'PENDING' && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (

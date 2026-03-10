@@ -172,6 +172,9 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
             {/* Action Buttons */}
             <div className="flex gap-2 mt-auto">
                 {league.isAdmin ? (
+                  (() => {
+                    const isBlocked = (league as any).userStatus === 'PENDING_PAYMENT' || (league as any).userStatus === 'PENDING' || league.status === 'PENDING_PAYMENT' || league.status === 'PENDING';
+                    return (
                     <div className="flex items-stretch gap-2 flex-1">
                         {/* INGRESAR: navega directo, no abre menú */}
                         <Link
@@ -184,22 +187,32 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
 
                         {/* WhatsApp Group Share - ONLY FOR ADMIN AND ACTIVE LEAGUES */}
                         {league.isAdmin && league.isEnterpriseActive && (league.accessCodePrefix || league.code) && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const code = league.accessCodePrefix || league.code;
-                                    const shareUrl = `${window.location.origin}/invite/${code}`;
-                                    const msg = `¡Hola! Te invito a mi Polla 🏆 *${league.name}*.\n\nÚnete súper fácil dando clic directo aquí:\n👉 ${shareUrl}\n\nO también puedes ingresar a la plataforma y usar el código: *${code}*`;
-                                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                                }}
-                                className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"
-                                title="Compartir enlace de invitación"
-                            >
-                                <WhatsAppIcon className="w-6 h-6" />
-                            </button>
+                            isBlocked ? (
+                                <button
+                                    className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white shrink-0 opacity-50 cursor-not-allowed"
+                                    title="Pago pendiente"
+                                >
+                                    <WhatsAppIcon className="w-6 h-6" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const code = league.accessCodePrefix || league.code;
+                                        const shareUrl = `${window.location.origin}/invite/${code}`;
+                                        const msg = `¡Hola! Te invito a mi Polla 🏆 *${league.name}*.\n\nÚnete súper fácil dando clic directo aquí:\n👉 ${shareUrl}\n\nO también puedes ingresar a la plataforma y usar el código: *${code}*`;
+                                        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                                    }}
+                                    className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"
+                                    title="Compartir enlace de invitación"
+                                >
+                                    <WhatsAppIcon className="w-6 h-6" />
+                                </button>
+                            )
                         )}
 
                         {/* ⋮ solo este botón abre el dropdown */}
+                        {!isBlocked && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button className="relative px-4 py-4 rounded-xl bg-[#00E676] text-[#0F172A] hover:bg-[#00C853] transition-all shadow-[0_0_15px_rgba(0,230,118,0.2)] flex items-center justify-center shrink-0">
@@ -262,8 +275,10 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        )}
                     </div>
-
+                    );
+                  })()
                 ) : (
                     <div className="flex items-stretch gap-2 flex-1">
                         <Link

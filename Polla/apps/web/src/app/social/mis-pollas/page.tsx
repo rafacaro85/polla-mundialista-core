@@ -215,6 +215,9 @@ function MisPollasContent() {
 
                 {/* Botón de Ingreso o Menú de Admin */}
                 {league.admin === 'Tú' ? (
+                  (() => {
+                      const isBlocked = (league as any).userStatus === 'PENDING_PAYMENT' || (league as any).userStatus === 'PENDING' || league.status === 'PENDING_PAYMENT' || league.status === 'PENDING';
+                      return (
                   <div className="flex items-stretch gap-2">
                     {/* INGRESAR: navega directo, no abre menú */}
                     <button
@@ -226,20 +229,30 @@ function MisPollasContent() {
                     </button>
 
                     {/* WhatsApp Group Share - ONLY FOR ADMIN AND ACTIVE LEAGUES */}
-                    {league.code && league.status !== 'PENDING' && league.status !== 'REJECTED' && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleShare(league);
-                            }}
-                            className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"
-                            title="Compartir enlace de invitación"
-                        >
-                            <WhatsAppIcon className="w-6 h-6" />
-                        </button>
+                    {league.code && league.status !== 'REJECTED' && (
+                        isBlocked ? (
+                            <button
+                                className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white shrink-0 opacity-50 cursor-not-allowed"
+                                title="Pago pendiente"
+                            >
+                                <WhatsAppIcon className="w-6 h-6" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShare(league);
+                                }}
+                                className="w-[52px] h-[52px] flex items-center justify-center rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-all shrink-0 hover:scale-105 shadow-lg shadow-[#25D366]/20"
+                                title="Compartir enlace de invitación"
+                            >
+                                <WhatsAppIcon className="w-6 h-6" />
+                            </button>
+                        )
                     )}
 
                     {/* ⋮ solo este botón abre el dropdown */}
+                    {!isBlocked && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="relative px-4 py-4 rounded-2xl bg-[#00E676] text-[#050505] hover:bg-[#00C853] transition-all shadow-lg shadow-[#00E676]/10 flex items-center justify-center shrink-0">
@@ -296,8 +309,10 @@ function MisPollasContent() {
                               )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    )}
                   </div>
-
+                      );
+                  })()
                 ) : (
                   <div className="flex items-stretch gap-2">
                       <button 

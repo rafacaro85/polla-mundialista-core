@@ -51,6 +51,12 @@ export const SocialLeagueView = ({ leagueId }: { leagueId: string }) => {
                     amount={amount}
                     packageId={league.packageType}
                 />
+                <button
+                    onClick={() => window.location.href = '/social/mis-pollas'}
+                    className="mt-2 mb-10 text-xs text-slate-500 hover:text-white underline transition-colors"
+                >
+                    ← Volver a Mis Pollas
+                </button>
             </div>
         );
     }

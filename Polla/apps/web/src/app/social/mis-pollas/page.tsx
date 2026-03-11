@@ -209,6 +209,17 @@ function MisPollasContent() {
                                     PENDIENTE
                                 </button>
                             )}
+                            {((league as any).userStatus === 'PENDING_PAYMENT' || league.status === 'PENDING_PAYMENT') && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/leagues/${league.id}`);
+                                    }}
+                                    className="h-8 px-3 rounded-md text-[10px] font-extrabold uppercase border border-red-500/50 cursor-pointer flex items-center justify-center bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                >
+                                    💳 PAGO PENDIENTE
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

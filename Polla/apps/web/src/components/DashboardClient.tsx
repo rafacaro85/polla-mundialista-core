@@ -233,8 +233,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   }
 
   // PREVENT CONTENT FLASH: Wait for league data (userStatus) before rendering
-  // This fixes the race condition where SmartLeagueHome renders before PENDING_PAYMENT check
-  const isWaitingForLeague = selectedLeagueId !== 'global' && (isLeagueLoading || currentLeague === null);
+  // Fix: use props.defaultLeagueId (available immediately) instead of selectedLeagueId
+  // (selectedLeagueId starts as 'global' in the store before useEffect syncs it)
+  const isWaitingForLeague = !!props.defaultLeagueId && (isLeagueLoading || currentLeague === null);
   if (isWaitingForLeague) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-[#0F172A]">

@@ -5,6 +5,7 @@ import { useLeagues } from './useLeagues';
 export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab: string) => {
     const [currentLeague, setCurrentLeague] = useState<any>(null);
     const [participants, setParticipants] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Use useLeagues to get robust user-specific data like isAdmin
     const { leagues } = useLeagues();
@@ -13,6 +14,7 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
     useEffect(() => {
         const fetchCurrentLeague = async () => {
             if (selectedLeagueId && selectedLeagueId !== 'global') {
+                setIsLoading(true);
                 try {
                     // Find basic info in loaded leagues list to get isAdmin/code reliably
                     const existingLeagueInfo = leagues.find(l => l.id === selectedLeagueId);
@@ -34,9 +36,12 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
                 } catch (error) {
                     console.error('Error fetching league metadata', error);
                     setCurrentLeague(null);
+                } finally {
+                    setIsLoading(false);
                 }
             } else {
                 setCurrentLeague(null);
+                setIsLoading(false);
             }
         };
         fetchCurrentLeague();
@@ -71,6 +76,7 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
         currentLeague,
         participants,
         isEnterpriseMode,
-        isWallEnabled
+        isWallEnabled,
+        isLoading
     };
 };

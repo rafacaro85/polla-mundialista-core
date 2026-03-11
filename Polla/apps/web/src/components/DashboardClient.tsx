@@ -113,7 +113,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
 
   // Custom Hooks
-  const { currentLeague, participants, isEnterpriseMode, isWallEnabled } = useCurrentLeague(selectedLeagueId, activeTab);
+  const { currentLeague, participants, isEnterpriseMode, isWallEnabled, isLoading: isLeagueLoading } = useCurrentLeague(selectedLeagueId, activeTab);
   // Pass league's tournamentId directly to ensure correct matches are fetched
   // (e.g. UCL2526 for Champions leagues, WC2026 for World Cup)
   const leagueTournamentId = currentLeague?.tournamentId;
@@ -228,6 +228,17 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00E676]"></div>
               {isCheckingInvite && <p className="text-slate-400 text-sm animate-pulse">Verificando invitaciones...</p>}
+          </div>
+      );
+  }
+
+  // PREVENT CONTENT FLASH: Wait for league data (userStatus) before rendering
+  // This fixes the race condition where SmartLeagueHome renders before PENDING_PAYMENT check
+  const isWaitingForLeague = selectedLeagueId !== 'global' && (isLeagueLoading || currentLeague === null);
+  if (isWaitingForLeague) {
+      return (
+          <div className="flex h-screen w-full items-center justify-center bg-[#0F172A]">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00E676]"></div>
           </div>
       );
   }

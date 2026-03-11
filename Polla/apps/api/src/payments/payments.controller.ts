@@ -66,24 +66,11 @@ export class PaymentsController {
         `Error en createPreference: ${error.message}`,
         error.stack
       );
-      return { 
-        error: error.message, 
-        stack: error.stack,
-        name: error.name 
-      };
+      throw error;
     }
   }
 
-  @Public()
-  @Get('debug-env')
-  debugEnv() {
-    return {
-      MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN ? 
-        process.env.MP_ACCESS_TOKEN.substring(0, 15) + '...' : 'NO DEFINIDO',
-      MP_PUBLIC_KEY: process.env.MP_PUBLIC_KEY ? 'DEFINIDO' : 'NO DEFINIDO',
-      NODE_ENV: process.env.NODE_ENV,
-    };
-  }
+
   @Public()
   @Post('webhook')
   @HttpCode(200)

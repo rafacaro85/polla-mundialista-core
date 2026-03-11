@@ -13,21 +13,6 @@ export class AdminController {
     private readonly dataSource: DataSource
   ) {}
 
-  @Post('fix-enums')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  async fixEnums() {
-    return this.adminService.fixEnumsPendingPayment();
-  }
-
-  @Post('run-migrations')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async runMigrations() {
-    await this.dataSource.runMigrations();
-    return { success: true, message: 'Migraciones ejecutadas' };
-  }
 
   @Post('seed-ucl')
   @HttpCode(HttpStatus.OK)
@@ -53,51 +38,5 @@ export class AdminController {
   }
   // --- END TEMPORARY UCL PHASES ENDPOINT ---
 
-  // --- START TEMPORARY DEBUG ---
-  @Get('debug-tables')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async debugTables() {
-    return this.adminService.debugTables();
-  }
 
-  @Get('debug-columns')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async debugColumns() {
-    return this.adminService.debugColumns();
-  }
-
-  @Get('debug-transactions')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async debugTransactions() {
-    return this.adminService.debugTransactions();
-  }
-
-  @Get('debug-transactions-columns')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
-  async debugTransactionsColumns() {
-    return this.adminService.debugTransactionsColumns();
-  }
-  // --- END TEMPORARY DEBUG ---
-
-  @Post('seed-staging-user')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  async seedStagingUser() {
-    return this.adminService.seedStagingUser();
-  }
-
-  @Post('update-role')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  async updateRole(@Body() body: { email: string; role: string }) {
-    return this.adminService.updateRole(body);
-  }
 }

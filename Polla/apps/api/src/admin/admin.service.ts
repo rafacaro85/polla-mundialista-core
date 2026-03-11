@@ -14,21 +14,7 @@ export class AdminService {
     private dataSource: DataSource,
   ) {}
 
-  async fixEnumsPendingPayment() {
-    try {
-      await this.dataSource.query(`
-        ALTER TYPE league_participants_status_enum 
-        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-      `);
-      await this.dataSource.query(`
-        ALTER TYPE transactions_status_enum 
-        ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-      `);
-      return { success: true, message: 'Enums actualizados correctamente' };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
+
 
   async seedUCLMatches() {
     try {
@@ -443,110 +429,7 @@ export class AdminService {
     return { success: true };
   }
 
-  // --- START TEMPORARY DEBUG ---
-  async debugTables() {
-    try {
-      const result = await this.dataSource.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-        ORDER BY table_name;
-      `);
-      return { success: true, count: result.length, tables: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
 
-  async debugColumns() {
-    try {
-      const result = await this.dataSource.query(`
-        SELECT column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'knockout_phase_status'
-        ORDER BY column_name;
-      `);
-      return { success: true, columns: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-  // --- END TEMPORARY DEBUG ---
-
-  async seedStagingUser() {
-    try {
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.query(`
-        INSERT INTO users 
-        (id, email, full_name, role, 
-         google_id, created_at)
-        VALUES (
-          gen_random_uuid(),
-          'admin@staging.com',
-          'Admin Staging',
-          'SUPER_ADMIN',
-          'staging-google-id-123',
-          NOW()
-        )
-        ON CONFLICT (email) DO NOTHING
-      `);
-      await queryRunner.release();
-      return { success: true, message: 'Admin staging creado' };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async updateRole(body: { email: string; role: string }) {
-    try {
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.query(
-        `
-        UPDATE users SET role = $1 
-        WHERE email = $2
-        `,
-        [body.role, body.email],
-      );
-      await queryRunner.release();
-      return { success: true, message: `Role updated for ${body.email}` };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async debugTransactions() {
-    try {
-      const result = await this.dataSource.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-        AND table_name IN (
-          'transactions', 
-          'users', 
-          'leagues'
-        )
-      `);
-      return { success: true, tables: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async debugTransactionsColumns() {
-    try {
-      const result = await this.dataSource.query(`
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = 'transactions'
-        ORDER BY column_name;
-      `);
-      return { success: true, columns: result };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
 }
 
 

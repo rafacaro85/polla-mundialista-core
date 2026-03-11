@@ -273,7 +273,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
           return null;
         })()}
 
-        {currentLeague && currentLeague.userStatus === 'PENDING_PAYMENT' && selectedLeagueId !== 'global' && user?.role !== 'SUPER_ADMIN' && (
+        {currentLeague && currentLeague.userStatus === 'PENDING_PAYMENT' && user?.role !== 'SUPER_ADMIN' && (
           <div className="fixed inset-0 z-[9999] bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
             <PaymentLockOverlay
               leagueName={currentLeague.name}

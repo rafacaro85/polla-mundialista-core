@@ -22,7 +22,7 @@ export const AppDataSource = new DataSource({
       ? { rejectUnauthorized: false }
       : undefined,
   synchronize: false,
-  logging: true,
+  logging: false,
   entities: [join(__dirname, '**', '*.entity.{ts,js}')],
   migrations: [join(__dirname, 'database', 'migrations', '*.{ts,js}')],
   subscribers: [],

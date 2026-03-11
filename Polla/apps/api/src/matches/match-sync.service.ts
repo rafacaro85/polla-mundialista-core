@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { TournamentService } from '../tournament/tournament.service';
@@ -41,20 +41,16 @@ export class MatchSyncService {
       const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
       const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
 
-      const activeMatches = await this.matchesRepository.find({
-        where: {
-          status: Not('FINISHED'),
-          externalId: Not(IsNull()),
-          date: Not(IsNull()), // Ensure date is present
-        },
-      });
+      const activeMatches = await this.matchesRepository
+        .createQueryBuilder('match')
+        .where('match.status != :finished', { finished: 'FINISHED' })
+        .andWhere('match.externalId IS NOT NULL')
+        .andWhere('match.date IS NOT NULL')
+        .andWhere('match.date >= :from', { from: threeHoursAgo })
+        .andWhere('match.date <= :to', { to: oneHourFromNow })
+        .getMany();
 
-      // Filter in memory for simplicity with TypeORM 'find' or use QueryBuilder for performance.
-      // Given the volume, filter is fine, but let's be strict with the window:
-      const filteredMatches = activeMatches.filter((m) => {
-        const matchDate = new Date(m.date);
-        return matchDate >= threeHoursAgo && matchDate <= oneHourFromNow;
-      });
+      const filteredMatches = activeMatches;
 
       if (filteredMatches.length === 0) {
         this.logger.log('💤 No active matches in the current time window.');

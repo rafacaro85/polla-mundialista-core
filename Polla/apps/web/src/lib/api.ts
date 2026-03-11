@@ -3,8 +3,6 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-// Log para debuggear en producción (aparecerá en la consola del navegador)
-console.log('🌍 API URL CONFIGURADA:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -85,7 +83,6 @@ api.interceptors.response.use(
       );
       
       if (!isPublicRoute) {
-        console.log('Sesión expirada (401). Redirigiendo a /login.');
         window.location.href = '/login';
       }
       // Si es pública, no hacer nada — dejar que la página maneje el estado de no autenticado

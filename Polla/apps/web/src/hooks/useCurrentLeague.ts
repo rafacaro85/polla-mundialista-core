@@ -14,6 +14,8 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
     useEffect(() => {
         const fetchCurrentLeague = async () => {
             if (selectedLeagueId && selectedLeagueId !== 'global') {
+                // RESET IMMEDIATELY: clear stale league data so guard blocks render
+                setCurrentLeague(null);
                 setIsLoading(true);
                 try {
                     // Find basic info in loaded leagues list to get isAdmin/code reliably

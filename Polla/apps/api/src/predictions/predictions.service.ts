@@ -594,6 +594,16 @@ export class PredictionsService {
   }
 
   async getPredictionsByLeagueAndMatch(leagueId: string, matchId: string) {
+    // 1. Validate if the match is locked or finished
+    const match = await this.matchesRepository.findOne({ where: { id: matchId } });
+    if (!match) {
+      throw new NotFoundException('Partido no encontrado');
+    }
+
+    if (!match.isManuallyLocked && !['FINISHED', 'LIVE', 'COMPLETED'].includes(match.status)) {
+      throw new ForbiddenException('Las predicciones de este partido aún no están disponibles');
+    }
+
     // Get all active participants of the league
     const participants = await this.leagueParticipantRepository.find({
       where: {

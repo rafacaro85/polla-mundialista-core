@@ -2,7 +2,8 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SocialFixture } from '@/modules/social-league/components/SocialFixture';
 import { BracketView } from '@/components/BracketView';
-import { Calendar, Activity } from 'lucide-react';
+import { Calendar, Activity, Users } from 'lucide-react';
+import { RivalsView } from '@/components/dashboard/views/RivalsView';
 
 interface PredictionsViewProps {
     // matches still used for BracketView display
@@ -23,20 +24,30 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
     return (
         <div className="h-full flex flex-col animate-in fade-in duration-300">
             <Tabs defaultValue="matches" className="w-full h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
+                <TabsList className="grid w-full grid-cols-3 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
                     <TabsTrigger 
                         value="matches"
-                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-2 transition-all"
                     >
                         <Calendar size={16} />
-                        Partidos
+                        <span className="hidden sm:inline">Partidos</span>
+                        <span className="sm:hidden">Partidos</span>
                     </TabsTrigger>
                     <TabsTrigger 
                         value="bracket"
-                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-2 transition-all"
                     >
                         <Activity size={16} />
-                        Llaves
+                        <span className="hidden sm:inline">Llaves</span>
+                        <span className="sm:hidden">Llaves</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                        value="rivals"
+                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-1 sm:gap-2 transition-all"
+                    >
+                        <Users size={16} />
+                        <span className="hidden sm:inline">Participantes</span>
+                        <span className="sm:hidden">Rivales</span>
                     </TabsTrigger>
                 </TabsList>
 
@@ -64,6 +75,10 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                        leagueId={leagueId}
                        tournamentId={tournamentId}
                      />
+                </TabsContent>
+
+                <TabsContent value="rivals" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
+                    <RivalsView leagueId={leagueId} tournamentId={tournamentId} />
                 </TabsContent>
             </Tabs>
         </div>

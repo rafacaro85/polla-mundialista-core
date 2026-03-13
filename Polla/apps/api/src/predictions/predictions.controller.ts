@@ -119,8 +119,7 @@ export class PredictionsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPER_ADMIN')
+  @UseGuards(JwtAuthGuard)
   @Get('league/:leagueId/match/:matchId')
   async getPredictionsByLeagueAndMatch(
     @Param('leagueId') leagueId: string,

@@ -11,8 +11,9 @@ import {
 } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { TimeLockGuard } from '../common/guards/time-lock.guard';
-
 import { CreatePredictionDto } from './dto/create-prediction.dto';
 import { CreateBulkPredictionsDto } from './dto/create-bulk-predictions.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -45,7 +46,7 @@ export class PredictionsController {
       );
     } catch (error) {
       console.error('Error upserting prediction:', error);
-      throw error; // Let NestJS handle known exceptions, or wrap unknown ones
+      throw error;
     }
   }
 
@@ -90,6 +91,7 @@ export class PredictionsController {
       tournamentId,
     );
   }
+
   @UseGuards(JwtAuthGuard, TimeLockGuard)
   @Post('bulk')
   async upsertBulkPredictions(
@@ -100,5 +102,15 @@ export class PredictionsController {
       req.user.id,
       body.predictions,
     );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  @Get('league/:leagueId/match/:matchId')
+  async getPredictionsByLeagueAndMatch(
+    @Param('leagueId') leagueId: string,
+    @Param('matchId') matchId: string,
+  ) {
+    return this.predictionsService.getPredictionsByLeagueAndMatch(leagueId, matchId);
   }
 }

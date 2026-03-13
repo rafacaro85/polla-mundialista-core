@@ -592,4 +592,61 @@ export class PredictionsService {
       await queryRunner.release();
     }
   }
+
+  async getPredictionsByLeagueAndMatch(leagueId: string, matchId: string) {
+    // Get all active participants of the league
+    const participants = await this.leagueParticipantRepository.find({
+      where: {
+        league: { id: leagueId },
+        status: LeagueParticipantStatus.ACTIVE,
+        isBlocked: false,
+      },
+      relations: ['user'],
+    });
+
+    if (!participants.length) return [];
+
+    const userIds = participants.map((p) => p.user.id);
+
+    // Get predictions for these users in this match (league-specific or global fallback)
+    const predictions = await this.predictionsRepository
+      .createQueryBuilder('p')
+      .select([
+        'p."userId" AS "userId"',
+        'p."homeScore" AS "homeScore"',
+        'p."awayScore" AS "awayScore"',
+        'p.points AS points',
+        'p."isJoker" AS "isJoker"',
+        'p."leagueId" AS "leagueId"',
+      ])
+      .where('p."matchId" = :matchId', { matchId })
+      .andWhere('p."userId" IN (:...userIds)', { userIds })
+      .andWhere('(p."leagueId" = :leagueId OR p."leagueId" IS NULL)', { leagueId })
+      .orderBy('p."leagueId"', 'DESC', 'NULLS LAST') // league-specific first
+      .getRawMany();
+
+    // Build a map: userId → best prediction (league-specific over global)
+    const predMap = new Map<string, typeof predictions[0]>();
+    for (const pred of predictions) {
+      const uid = pred.userId;
+      if (!predMap.has(uid) || pred.leagueId === leagueId) {
+        predMap.set(uid, pred);
+      }
+    }
+
+    // Build final result for each participant
+    return participants.map((p) => {
+      const pred = predMap.get(p.user.id);
+      return {
+        userId: p.user.id,
+        fullName: p.user.fullName,
+        avatarUrl: p.user.avatarUrl ?? null,
+        homeScore: pred?.homeScore ?? null,
+        awayScore: pred?.awayScore ?? null,
+        points: pred?.points ?? null,
+        isJoker: pred?.isJoker ?? false,
+        hasPrediction: !!pred,
+      };
+    });
+  }
 }

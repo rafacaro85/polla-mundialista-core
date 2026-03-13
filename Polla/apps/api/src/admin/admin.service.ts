@@ -429,6 +429,79 @@ export class AdminService {
     return { success: true };
   }
 
+  async getPlatformStats() {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      usersTotal, usersActiveToday, usersNewThisWeek,
+      leaguesTotal, leaguesActive, leaguesPendingPayment, leaguesByTournament,
+      predictionsTotal, predictionsToday,
+      paymentsPending, paymentsApprovedThisMonth,
+    ] = await Promise.all([
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM users`),
+      this.dataSource.query(
+        `SELECT COUNT(DISTINCT "userId") AS count FROM predictions WHERE "createdAt" >= $1`,
+        [startOfToday],
+      ),
+      this.dataSource.query(
+        `SELECT COUNT(*) AS count FROM users WHERE "createdAt" >= $1`,
+        [startOfWeek],
+      ),
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM leagues`),
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM leagues WHERE "isPaid" = true`),
+      this.dataSource.query(
+        `SELECT COUNT(*) AS count FROM league_participants WHERE status = 'PENDING_PAYMENT'`,
+      ),
+      this.dataSource.query(
+        `SELECT "tournamentId", COUNT(*) AS total,
+                SUM(CASE WHEN "isPaid" = true THEN 1 ELSE 0 END) AS active
+         FROM leagues GROUP BY "tournamentId"`,
+      ),
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM predictions`),
+      this.dataSource.query(
+        `SELECT COUNT(*) AS count FROM predictions WHERE "createdAt" >= $1`,
+        [startOfToday],
+      ),
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM transactions WHERE status = 'PENDING'`),
+      this.dataSource.query(
+        `SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS revenue
+         FROM transactions WHERE status IN ('APPROVED', 'PAID') AND "createdAt" >= $1`,
+        [startOfMonth],
+      ),
+    ]);
+
+    return {
+      users: {
+        total: Number(usersTotal[0]?.count ?? 0),
+        activeToday: Number(usersActiveToday[0]?.count ?? 0),
+        newThisWeek: Number(usersNewThisWeek[0]?.count ?? 0),
+      },
+      leagues: {
+        total: Number(leaguesTotal[0]?.count ?? 0),
+        active: Number(leaguesActive[0]?.count ?? 0),
+        pendingPayment: Number(leaguesPendingPayment[0]?.count ?? 0),
+        byTournament: leaguesByTournament.map((r: any) => ({
+          tournamentId: r.tournamentId,
+          total: Number(r.total),
+          active: Number(r.active),
+        })),
+      },
+      predictions: {
+        total: Number(predictionsTotal[0]?.count ?? 0),
+        today: Number(predictionsToday[0]?.count ?? 0),
+      },
+      payments: {
+        pendingCount: Number(paymentsPending[0]?.count ?? 0),
+        approvedThisMonth: Number(paymentsApprovedThisMonth[0]?.count ?? 0),
+        revenueThisMonth: Number(paymentsApprovedThisMonth[0]?.revenue ?? 0),
+      },
+    };
+  }
+
 
 }
 

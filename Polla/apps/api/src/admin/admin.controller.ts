@@ -38,5 +38,12 @@ export class AdminController {
   }
   // --- END TEMPORARY UCL PHASES ENDPOINT ---
 
+  @Get('platform-stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async getPlatformStats() {
+    return this.adminService.getPlatformStats();
+  }
 
 }
+

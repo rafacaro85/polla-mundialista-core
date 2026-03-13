@@ -87,6 +87,7 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
   const [userSearchText, setUserSearchText] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userLeagueId, setUserLeagueId] = useState('');
+  const [userSupportLeagues, setUserSupportLeagues] = useState<any[]>([]);
   // BY_LEAGUE mode states
   const [leagueSearchText, setLeagueSearchText] = useState('');
   const [selectedSupportLeague, setSelectedSupportLeague] = useState<any>(null);
@@ -170,11 +171,17 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
     ? allUsers.filter(u => `${u.fullName || ''} ${u.nickname || ''} ${u.email || ''}`.toLowerCase().includes(userSearchText.toLowerCase())).slice(0, 8)
     : [];
 
-  const handleSelectUser = (u: any) => {
+  const handleSelectUser = async (u: any) => {
     setSelectedUser(u);
     setUserSearchText(u.fullName || u.email);
     setUserLeagueId('');
     clearSupportData();
+    try {
+      const res = await api.get(`/users/${u.id}/details`);
+      setUserSupportLeagues(res.data?.leagues || []);
+    } catch {
+      setUserSupportLeagues([]);
+    }
   };
 
   // League search
@@ -206,13 +213,12 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
     clearSupportData();
     try {
       // 1. Get predictions (using new stats feature: we need all predictions of user for this league)
-      // Actually we have the /predictions/me route
-      const predsRes = await api.get('/predictions/me', { params: { leagueId: lId } });
+      const predsRes = await api.get(`/predictions/user/${uId}`, { params: { leagueId: lId } });
       const rawPreds = Array.isArray(predsRes.data) ? predsRes.data : [];
       
       // Need match data to show real scores. Load all matches for this tournament.
-      // Easiest is to get matches of the league.
-      const matchesRes = await api.get(`/leagues/${lId}/matches`);
+      const lg = leagues.find(l => l.id === lId);
+      const matchesRes = await api.get(`/matches`, { params: { tournamentId: lg?.tournamentId } });
       const matches = Array.isArray(matchesRes.data) ? matchesRes.data : [];
       
       const enrichedPreds = rawPreds.map(p => {
@@ -293,9 +299,9 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
 
     const matchRows = supportPredictions.map(p => [
       `${p.matchHomeTeam || 'Local'} vs ${p.matchAwayTeam || 'Visitante'}`,
-      `${p.homeScore} - ${p.awayScore}`,
-      p.matchStatus === 'FINISHED' || p.matchStatus === 'COMPLETED' ? `${p.realHomeScore} - ${p.realAwayScore}` : 'Pendiente',
-      p.points !== null ? p.points : '-',
+      p.homeScore !== null && p.homeScore !== undefined ? `${p.homeScore} - ${p.awayScore}` : 'Sin Predicción',
+      p.matchStatus === 'FINISHED' || p.matchStatus === 'COMPLETED' ? `${p.realHomeScore ?? '-'} - ${p.realAwayScore ?? '-'}` : 'Pendiente',
+      p.points !== null && p.points !== undefined ? String(p.points) : '—',
       p.isJoker ? 'Sí' : 'No'
     ]);
 
@@ -659,8 +665,8 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
                 <div style={{ marginBottom: '12px' }}>
                   <select style={S.select} value={userLeagueId} onChange={e => setUserLeagueId(e.target.value)}>
                     <option value="">— Seleccionar la polla del participante —</option>
-                    {leagues.filter((l: any) => l.participants?.some((p: any) => p.userId === selectedUser.id) || l.creator?.id === selectedUser.id).map((l: any) => (
-                      <option key={l.id} value={l.id}>{l.name} ({l.tournamentId})</option>
+                    {userSupportLeagues.map((l: any) => (
+                      <option key={l.leagueId} value={l.leagueId}>{l.leagueName} {l.leagueCode ? `(${l.leagueCode})` : ''}</option>
                     ))}
                   </select>
                 </div>

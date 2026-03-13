@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { api } from '@/lib/api';
+import api from '@/lib/api';
 import { ChevronDown, ChevronUp, Trophy } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 

@@ -627,13 +627,15 @@ export class PredictionsService {
         'p."awayScore" AS "awayScore"',
         'p.points AS points',
         'p."isJoker" AS "isJoker"',
-        'p."leagueId" AS "leagueId"',
+        'p.league_id AS "leagueId"',
       ])
       .where('p."matchId" = :matchId', { matchId })
       .andWhere('p."userId" IN (:...userIds)', { userIds })
-      .andWhere('(p."leagueId" = :leagueId OR p."leagueId" IS NULL)', { leagueId })
-      .orderBy('p."leagueId"', 'DESC', 'NULLS LAST') // league-specific first
+      .andWhere('(p.league_id = :leagueId OR p.league_id IS NULL)', { leagueId })
+      .orderBy('p.league_id', 'DESC', 'NULLS LAST') // league-specific first
       .getRawMany();
+
+    console.log(`[RIVALS] Found ${predictions.length} predictions for match ${matchId} in league ${leagueId}`);
 
     // Build a map: userId → best prediction (league-specific over global)
     const predMap = new Map<string, typeof predictions[0]>();

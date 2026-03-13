@@ -468,8 +468,8 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
                 <div>
                   <div style={S.rowLabel}>{l.name} <span style={{fontSize: '10px', color: '#94A3B8'}}>- {l.tournamentId}</span></div>
                   <div style={{...S.rowSub, display: 'flex', gap: '8px', marginTop: '4px'}}>
-                     <span style={{ backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>👥 {l.participants?.length ?? 0} parts.</span>
-                     <span style={{ backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>👑 {l.adminName || 'Admin'}</span>
+                     <span style={{ backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>👥 {l.participantCount ?? (l.participants?.length ?? 0)} parts.</span>
+                     <span style={{ backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>👑 {l.adminName || l.creator?.nickname || 'Admin'}</span>
                   </div>
                 </div>
                 <a href={`/leagues/${l.id}?actAsSuperAdmin=true`} target="_blank" rel="noreferrer">

@@ -31,17 +31,28 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
       secretOrKey: secret || 'temporary_unsafe_fallback_secret_change_immediately',
-      passReqToCallback: false,
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(req: Request, payload: { sub: string; email: string }) {
     const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    // El objeto que retornamos aquí se inyectará en el objeto `request` de Express.
-    // Podremos acceder a él como `req.user` en nuestros controladores.
+
+    // Lógica global de Impersonation para SUPER_ADMIN
+    const impersonateUserId = req.headers['x-impersonate-user'] as string;
+    if (impersonateUserId && user.role === 'SUPER_ADMIN') {
+      const impersonatedUser = await this.usersService.findById(impersonateUserId);
+      if (impersonatedUser) {
+        // Marcamos que la petición está siendo suplantada para posible auditoría futura
+        (impersonatedUser as any).isImpersonated = true;
+        (impersonatedUser as any).impersonatorId = user.id;
+        return impersonatedUser;
+      }
+    }
+
     return user;
   }
 }

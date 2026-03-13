@@ -132,9 +132,32 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     ]);
   };
 
+  const [isSuperAdminMode, setIsSuperAdminMode] = useState(false);
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string>('');
+
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('actAsSuperAdmin') === 'true') {
+        setIsSuperAdminMode(true);
+        const storedId = sessionStorage.getItem('impersonateUserId');
+        if (storedId) setImpersonatedUserId(storedId);
+      } else {
+        sessionStorage.removeItem('impersonateUserId');
+      }
+    }
   }, []);
+
+  const handleImpersonateUserChange = (uid: string) => {
+    setImpersonatedUserId(uid);
+    if (uid) {
+      sessionStorage.setItem('impersonateUserId', uid);
+    } else {
+      sessionStorage.removeItem('impersonateUserId');
+    }
+    window.location.reload();
+  };
 
   // Data Fetching
   const { data: latestTransaction } = useSWR(user ? '/transactions/my-latest?scope=account' : null, async (url) => {
@@ -261,6 +284,31 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             isEnterprise={isEnterpriseMode}
             backUrl={isEnterpriseMode ? '/empresa/mis-pollas' : '/social/mis-pollas'}
           />
+        )}
+
+        {/* IMPERSONATION BAR FOR SUPER ADMIN */}
+        {isSuperAdminMode && currentLeague && (
+          <div className="w-full bg-gradient-to-r from-purple-900 to-[#1E293B] border-b border-purple-500/30 p-3 flex flex-col md:flex-row items-center justify-between z-50 sticky top-0 md:static gap-3">
+            <div className="flex items-center gap-2 text-purple-300">
+              <Shield size={16} />
+              <span className="text-xs font-bold uppercase tracking-wider">Modo Super Admin</span>
+            </div>
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <span className="text-xs text-slate-300 hidden md:inline">Ver como:</span>
+              <select 
+                className="bg-[#0F172A] border border-purple-500/50 text-white text-xs rounded-lg px-2 py-1.5 outline-none w-full md:w-64"
+                value={impersonatedUserId}
+                onChange={(e) => handleImpersonateUserChange(e.target.value)}
+              >
+                <option value="">-- Mi vista (Admin) --</option>
+                {participants?.map((p: any) => (
+                  <option key={p.id} value={p.user?.id}>
+                    {p.user?.fullName || p.user?.nickname || p.user?.email} {p.isAdmin ? '(👑)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         )}
 
         {pendingInvite && (

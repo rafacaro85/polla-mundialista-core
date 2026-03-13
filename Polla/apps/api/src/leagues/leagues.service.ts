@@ -584,6 +584,9 @@ export class LeaguesService {
         welcomeMessage: l.welcomeMessage,
         companyName: l.companyName,
         isPaid: l.isPaid,
+        adminName: l.adminName,
+        adminPhone: l.adminPhone,
+        createdAt: l.createdAt,
       }));
 
       return {

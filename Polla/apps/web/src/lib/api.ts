@@ -16,6 +16,11 @@ api.interceptors.request.use(
 
     // 2. Tournament Context Injection (Dynamic Header)
     if (typeof window !== 'undefined') {
+      const impersonateUserId = sessionStorage.getItem('impersonateUserId');
+      if (impersonateUserId && config.headers) {
+        config.headers['x-impersonate-user'] = impersonateUserId;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const queryTournament = urlParams.get('tournament') || urlParams.get('tournamentId');
       

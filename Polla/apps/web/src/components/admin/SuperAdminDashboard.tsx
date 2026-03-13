@@ -25,6 +25,7 @@ import { BroadcastTab } from '@/components/admin/BroadcastTab';
 import { TournamentHeader } from '@/components/admin/TournamentHeader';
 import { Megaphone } from 'lucide-react';
 import { MainHeader } from '@/components/MainHeader';
+import PlatformDashboard from '@/components/admin/PlatformDashboard';
 
 /* =============================================================================
    DATOS MOCK
@@ -379,57 +380,8 @@ export default function SuperAdminDashboard() {
 
             {/* --- CONTENIDO DINÁMICO --- */}
 
-            {/* A. PESTAÑA DASHBOARD (KPIs + GRÁFICA) */}
-            {
-                activeTab === 'dashboard' && (
-                    <>
-                        {/* KPIs GRID */}
-                        <div style={STYLES.kpiGrid}>
-                            {KPI_DATA_REAL.map((kpi, index) => (
-                                <div key={index} style={STYLES.kpiCard}>
-                                    <div style={STYLES.kpiHeader}>
-                                        <kpi.icon size={14} color={kpi.color} />
-                                        {kpi.title}
-                                    </div>
-                                    <div style={{ ...STYLES.kpiValue, color: kpi.isSpecial ? '#00E676' : 'white' }}>
-                                        {kpi.value}
-                                    </div>
-                                    <div style={STYLES.kpiLabel}>{kpi.label}</div>
-                                    {/* Barra decorativa inferior */}
-                                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '3px', backgroundColor: kpi.color, opacity: 0.5 }} />
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* GRÁFICA DE INGRESOS */}
-                        <div style={STYLES.chartCard}>
-                            <div style={STYLES.chartTitle}>
-                                <TrendingUp size={16} color="#00E676" /> Tendencia de Ingresos
-                            </div>
-                            <div style={{ width: '100%', height: 200 }}>
-                                <ResponsiveContainer>
-                                    <AreaChart data={stats.salesTrend}>
-                                        <defs>
-                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#00E676" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#00E676" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: 'white', fontSize: '12px' }}
-                                            itemStyle={{ color: '#00E676' }}
-                                            formatter={(value: number) => [formatCurrency(value), 'Ventas']}
-                                        />
-                                        <Area type="monotone" dataKey="value" stroke="#00E676" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </>
-                )
-            }
+            {/* A. PESTAÑA DASHBOARD — PlatformDashboard */}
+            {activeTab === 'dashboard' && <PlatformDashboard tournamentId={tournamentId} />}
 
             {/* H. PESTAÑA EMPRESAS (NUEVO) */}
 

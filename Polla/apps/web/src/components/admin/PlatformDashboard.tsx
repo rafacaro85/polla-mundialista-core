@@ -11,12 +11,7 @@ import { superAdminService } from '@/services/superAdminService';
 
 // PDF generation
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-// Extender jsPDF para TypeScript
-interface jsPDFCustom extends jsPDF {
-  autoTable: (options: any) => void;
-  lastAutoTable: { finalY: number };
-}
+import autoTable from 'jspdf-autotable';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -284,7 +279,7 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
 
     if (!userName || !supportPredictions.length) return;
 
-    const doc = new jsPDF() as jsPDFCustom;
+    const doc = new jsPDF();
     doc.setFont('helvetica');
     
     // Header
@@ -308,7 +303,7 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
       p.isJoker ? 'Sí' : 'No'
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 60,
       head: [['Partido', 'Predicción', 'Resultado Real', 'Puntos', 'Comodín']],
       body: matchRows,
@@ -316,14 +311,14 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
       headStyles: { fillColor: [0, 230, 118], textColor: [0,0,0], fontStyle: 'bold' }
     });
 
-    const finalY = doc.lastAutoTable.finalY + 15;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
 
     // Bonus
     doc.setFontSize(14);
     doc.text('Preguntas Bonus', 14, finalY);
     
     const bonusRows = supportBonus.map(b => [b.question, b.points]);
-    doc.autoTable({
+    autoTable(doc, {
       startY: finalY + 5,
       head: [['Concepto', 'Puntos']],
       body: bonusRows,
@@ -335,7 +330,7 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
     const totalBonus = supportBonus.reduce((s, b) => s + (Number(b.points) || 0), 0);
     const finalTotal = totalMatchPoints + totalBonus;
     
-    const sumY = doc.lastAutoTable.finalY + 15;
+    const sumY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('RESUMEN FINAL', 14, sumY);

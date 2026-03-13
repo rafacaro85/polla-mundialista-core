@@ -17,8 +17,13 @@ api.interceptors.request.use(
     // 2. Tournament Context Injection (Dynamic Header)
     if (typeof window !== 'undefined') {
       const impersonateUserId = sessionStorage.getItem('impersonateUserId');
-      if (impersonateUserId && config.headers) {
+      if (impersonateUserId && config.headers && !config.headers['x-skip-impersonate']) {
         config.headers['x-impersonate-user'] = impersonateUserId;
+      }
+
+      // Cleanup local config flag
+      if (config.headers && config.headers['x-skip-impersonate']) {
+        delete config.headers['x-skip-impersonate'];
       }
 
       const urlParams = new URLSearchParams(window.location.search);

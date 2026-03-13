@@ -162,7 +162,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const [superAdminParticipants, setSuperAdminParticipants] = useState<any[]>([]);
   useEffect(() => {
     if (isSuperAdminMode && selectedLeagueId && selectedLeagueId !== 'global') {
-      api.get(`/leagues/${selectedLeagueId}/participants`)
+      api.get(`/leagues/${selectedLeagueId}/participants`, { headers: { 'x-skip-impersonate': 'true' } })
          .then(res => {
            const participantsArray = Array.isArray(res.data) ? res.data : (res.data?.data || []);
            setSuperAdminParticipants(participantsArray);

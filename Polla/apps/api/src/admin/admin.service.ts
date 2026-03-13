@@ -439,40 +439,39 @@ export class AdminService {
     const [
       usersTotal, usersActiveToday, usersNewThisWeek,
       leaguesTotal, leaguesActive, leaguesPendingPayment, leaguesByTournament,
-      predictionsTotal, predictionsToday,
+      predictionsTotal,
       paymentsPending, paymentsApprovedThisMonth,
     ] = await Promise.all([
       this.dataSource.query(`SELECT COUNT(*) AS count FROM users`),
       this.dataSource.query(
-        `SELECT COUNT(DISTINCT "userId") AS count FROM predictions WHERE "createdAt" >= $1`,
+        `SELECT COUNT(DISTINCT "userId") AS count FROM predictions
+         JOIN transactions t ON t.user_id = predictions."userId"
+         WHERE t.created_at >= $1`,
         [startOfToday],
       ),
       this.dataSource.query(
-        `SELECT COUNT(*) AS count FROM users WHERE "createdAt" >= $1`,
+        `SELECT COUNT(*) AS count FROM users WHERE created_at >= $1`,
         [startOfWeek],
       ),
       this.dataSource.query(`SELECT COUNT(*) AS count FROM leagues`),
-      this.dataSource.query(`SELECT COUNT(*) AS count FROM leagues WHERE "isPaid" = true`),
+      this.dataSource.query(`SELECT COUNT(*) AS count FROM leagues WHERE is_paid = true`),
       this.dataSource.query(
         `SELECT COUNT(*) AS count FROM league_participants WHERE status = 'PENDING_PAYMENT'`,
       ),
       this.dataSource.query(
         `SELECT "tournamentId", COUNT(*) AS total,
-                SUM(CASE WHEN "isPaid" = true THEN 1 ELSE 0 END) AS active
+                SUM(CASE WHEN is_paid = true THEN 1 ELSE 0 END) AS active
          FROM leagues GROUP BY "tournamentId"`,
       ),
       this.dataSource.query(`SELECT COUNT(*) AS count FROM predictions`),
-      this.dataSource.query(
-        `SELECT COUNT(*) AS count FROM predictions WHERE "createdAt" >= $1`,
-        [startOfToday],
-      ),
       this.dataSource.query(`SELECT COUNT(*) AS count FROM transactions WHERE status = 'PENDING'`),
       this.dataSource.query(
         `SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS revenue
-         FROM transactions WHERE status IN ('APPROVED', 'PAID') AND "createdAt" >= $1`,
+         FROM transactions WHERE status IN ('APPROVED', 'PAID') AND created_at >= $1`,
         [startOfMonth],
       ),
     ]);
+
 
     return {
       users: {
@@ -492,8 +491,9 @@ export class AdminService {
       },
       predictions: {
         total: Number(predictionsTotal[0]?.count ?? 0),
-        today: Number(predictionsToday[0]?.count ?? 0),
+        today: 0, // predictions table has no created_at column
       },
+
       payments: {
         pendingCount: Number(paymentsPending[0]?.count ?? 0),
         approvedThisMonth: Number(paymentsApprovedThisMonth[0]?.count ?? 0),

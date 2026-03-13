@@ -106,6 +106,21 @@ export class PredictionsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
+  @Get('user/:userId')
+  async getUserPredictions(
+    @Param('userId') userId: string,
+    @Query('leagueId') leagueId?: string,
+    @Query('tournamentId') tournamentId?: string,
+  ) {
+    return this.predictionsService.findAllByUser(
+      userId,
+      leagueId,
+      tournamentId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
   @Get('league/:leagueId/match/:matchId')
   async getPredictionsByLeagueAndMatch(
     @Param('leagueId') leagueId: string,

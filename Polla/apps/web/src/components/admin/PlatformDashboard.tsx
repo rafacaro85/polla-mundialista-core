@@ -212,26 +212,29 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
     setSupportDataLoading(true);
     clearSupportData();
     try {
-      // 1. Get predictions (using new stats feature: we need all predictions of user for this league)
+      // 1. Obtener predicciones
       const predsRes = await api.get(`/predictions/user/${uId}`, { params: { leagueId: lId } });
       const rawPreds = Array.isArray(predsRes.data) ? predsRes.data : [];
       
-      // Need match data to show real scores. Load all matches for this tournament.
+      // Solo tomamos en cuenta las predicciones exclusivas de esta polla (ignoramos contexto global)
+      const leaguePreds = rawPreds.filter((p: any) => p.leagueId === lId);
+
+      // Cargamos matches globales como respaldo por si falla la relación de TypeORM
       const lg = leagues.find(l => l.id === lId);
       const matchesRes = await api.get(`/matches`, { params: { tournamentId: lg?.tournamentId } });
       const matches = Array.isArray(matchesRes.data) ? matchesRes.data : [];
       
-      const enrichedPreds = rawPreds.map(p => {
-        const match = matches.find((m: any) => m.id === p.matchId);
+      const enrichedPreds = leaguePreds.map((p: any) => {
+        const matchObj = p.match || matches.find((m: any) => m.id === (p.matchId || p.match?.id)) || {};
         return {
           ...p,
-          matchStatus: match?.status,
-          matchHomeTeam: match?.homeTeam,
-          matchAwayTeam: match?.awayTeam,
-          realHomeScore: match?.homeScore,
-          realAwayScore: match?.awayScore,
+          matchStatus: matchObj.status || 'PENDING',
+          matchHomeTeam: matchObj.homeTeam || 'Local',
+          matchAwayTeam: matchObj.awayTeam || 'Visita',
+          realHomeScore: matchObj.homeScore,
+          realAwayScore: matchObj.awayScore,
         };
-      }).sort((a, b) => new Date(a.match?.date || 0).getTime() - new Date(b.match?.date || 0).getTime() ? -1 : 1);
+      }).sort((a: any, b: any) => new Date(a.match?.date || 0).getTime() - new Date(b.match?.date || 0).getTime() ? -1 : 1);
       
       setSupportPredictions(enrichedPreds);
 

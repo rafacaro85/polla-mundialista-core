@@ -48,7 +48,8 @@ export class PredictionsService {
       if (
         participant &&
         (participant.isBlocked ||
-          participant.status === LeagueParticipantStatus.PENDING)
+          participant.status === LeagueParticipantStatus.PENDING ||
+          participant.status === LeagueParticipantStatus.PENDING_PAYMENT)
       ) {
         throw new ForbiddenException(
           'No puedes realizar predicciones porque tu estado es PENDIENTE o BLOQUEADO en esta liga.',
@@ -117,6 +118,13 @@ export class PredictionsService {
         for (const joker of previousJokers) {
           // If it's a DIFFERENT match, we must deactivate the joker.
           if (joker.match.id !== matchId) {
+            // GUARD: Cannot move joker if the previous match already finished
+            const FINAL_STATUSES = ['FINISHED', 'COMPLETED'];
+            if (FINAL_STATUSES.includes(joker.match.status)) {
+              throw new BadRequestException(
+                'No puedes mover el comodín. Ya fue usado en un partido que terminó. El comodín es definitivo una vez que el partido comienza.',
+              );
+            }
             if (joker.leagueId === null && leagueId) {
               // CASE: Disabling a GLOBAL Joker inside a Specific League.
               // We cannot modify the global record directly (it would affect other leagues).

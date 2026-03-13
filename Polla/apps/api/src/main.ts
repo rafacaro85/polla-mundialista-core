@@ -60,6 +60,7 @@ async function bootstrap() {
       'Authorization',
       'Accept',
       'X-Tournament-Id',
+      'x-impersonate-user',
     ],
   });
 

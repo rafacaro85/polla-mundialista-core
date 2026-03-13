@@ -163,7 +163,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   useEffect(() => {
     if (isSuperAdminMode && selectedLeagueId && selectedLeagueId !== 'global') {
       api.get(`/leagues/${selectedLeagueId}/participants`)
-         .then(res => setSuperAdminParticipants(res.data))
+         .then(res => {
+           const participantsArray = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+           setSuperAdminParticipants(participantsArray);
+         })
          .catch(err => console.error('Error fetching participants for super admin:', err));
     }
   }, [isSuperAdminMode, selectedLeagueId]);

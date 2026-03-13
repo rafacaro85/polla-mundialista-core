@@ -159,6 +159,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     window.location.reload();
   };
 
+  const [superAdminParticipants, setSuperAdminParticipants] = useState<any[]>([]);
+  useEffect(() => {
+    if (isSuperAdminMode && selectedLeagueId && selectedLeagueId !== 'global') {
+      api.get(`/leagues/${selectedLeagueId}/participants`)
+         .then(res => setSuperAdminParticipants(res.data))
+         .catch(err => console.error('Error fetching participants for super admin:', err));
+    }
+  }, [isSuperAdminMode, selectedLeagueId]);
+
   // Data Fetching
   const { data: latestTransaction } = useSWR(user ? '/transactions/my-latest?scope=account' : null, async (url) => {
     try {
@@ -301,7 +310,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 onChange={(e) => handleImpersonateUserChange(e.target.value)}
               >
                 <option value="">-- Mi vista (Admin) --</option>
-                {participants?.map((p: any) => (
+                {superAdminParticipants?.map((p: any) => (
                   <option key={p.id} value={p.user?.id}>
                     {p.user?.fullName || p.user?.nickname || p.user?.email} {p.isAdmin ? '(👑)' : ''}
                   </option>

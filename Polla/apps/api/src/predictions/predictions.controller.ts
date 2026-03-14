@@ -124,7 +124,20 @@ export class PredictionsController {
   async getPredictionsByLeagueAndMatch(
     @Param('leagueId') leagueId: string,
     @Param('matchId') matchId: string,
+    @Request() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
   ) {
-    return this.predictionsService.getPredictionsByLeagueAndMatch(leagueId, matchId);
+    return this.predictionsService.getPredictionsByLeagueAndMatch(
+      leagueId, 
+      matchId,
+      req.user.id,
+      search,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 25,
+      (sortBy as 'points' | 'name') || 'points'
+    );
   }
 }

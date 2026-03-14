@@ -593,7 +593,15 @@ export class PredictionsService {
     }
   }
 
-  async getPredictionsByLeagueAndMatch(leagueId: string, matchId: string) {
+  async getPredictionsByLeagueAndMatch(
+    leagueId: string,
+    matchId: string,
+    currentUserId?: string,
+    search?: string,
+    page: number = 1,
+    limit: number = 25,
+    sortBy: 'points' | 'name' = 'points'
+  ) {
     // 1. Validate if the match is locked or finished
     const match = await this.matchesRepository.findOne({ where: { id: matchId } });
     if (!match) {
@@ -604,17 +612,23 @@ export class PredictionsService {
       throw new ForbiddenException('Las predicciones de este partido aún no están disponibles');
     }
 
-    // Get all active participants of the league
-    const participants = await this.leagueParticipantRepository.find({
-      where: {
-        league: { id: leagueId },
-        status: LeagueParticipantStatus.ACTIVE,
-        isBlocked: false,
-      },
-      relations: ['user'],
-    });
+    // 2. Query participants (with optional search filter)
+    const qb = this.leagueParticipantRepository
+      .createQueryBuilder('lp')
+      .leftJoinAndSelect('lp.user', 'user')
+      .where('lp.league_id = :leagueId', { leagueId })
+      .andWhere('lp.status = :status', { status: LeagueParticipantStatus.ACTIVE })
+      .andWhere('lp.isBlocked = false');
 
-    if (!participants.length) return [];
+    if (search) {
+      qb.andWhere('user.fullName ILIKE :search', { search: `%${search}%` });
+    }
+
+    const participants = await qb.getMany();
+
+    if (!participants.length) {
+      return { data: [], total: 0, page, hasMore: false, currentUser: null };
+    }
 
     const userIds = participants.map((p) => p.user.id);
 
@@ -629,8 +643,6 @@ export class PredictionsService {
       .orderBy('p.leagueId', 'DESC', 'NULLS LAST') // league-specific first
       .getMany();
 
-    console.log(`[RIVALS] Found ${predictions.length} predictions for match ${matchId} in league ${leagueId}`);
-
     // Build a map: userId → best prediction (league-specific over global)
     const predMap = new Map<string, Prediction>();
     for (const pred of predictions) {
@@ -642,7 +654,7 @@ export class PredictionsService {
     }
 
     // Build final result for each participant
-    return participants.map((p) => {
+    const results = participants.map((p) => {
       const pred = predMap.get(p.user.id);
       return {
         userId: p.user.id,
@@ -655,5 +667,31 @@ export class PredictionsService {
         hasPrediction: !!pred,
       };
     });
+
+    // Sorting
+    if (sortBy === 'name') {
+      results.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+    } else {
+      // Sort by points DESC. If points are null, treat as -1 or 0
+      results.sort((a, b) => {
+        const ptsA = a.points || 0;
+        const ptsB = b.points || 0;
+        return ptsB - ptsA;
+      });
+    }
+
+    const total = results.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedData = results.slice(startIndex, startIndex + limit);
+
+    const currentUserData = currentUserId ? results.find((r) => r.userId === currentUserId) || null : null;
+
+    return {
+      data: paginatedData,
+      total,
+      page,
+      hasMore: startIndex + limit < total,
+      currentUser: currentUserData,
+    };
   }
 }

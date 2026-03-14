@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '@/lib/api';
-import { ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trophy, Search, X, Loader2, ArrowUpDown } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface RivalsViewProps {
     leagueId?: string;
@@ -20,6 +22,7 @@ interface Match {
     date: string;
     isManuallyLocked: boolean;
     group?: string;
+    phase?: string;
 }
 
 interface Prediction {
@@ -33,13 +36,32 @@ interface Prediction {
     hasPrediction: boolean;
 }
 
+interface PredictionResponse {
+    data: Prediction[];
+    total: number;
+    page: number;
+    hasMore: boolean;
+    currentUser: Prediction | null;
+}
+
 export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }) => {
     const [matches, setMatches] = useState<Match[]>([]);
     const [loadingMatches, setLoadingMatches] = useState(true);
 
     const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
-    const [predictions, setPredictions] = useState<Record<string, Prediction[]>>({});
-    const [loadingPredictions, setLoadingPredictions] = useState<Record<string, boolean>>({});
+    const [summaryPredictions, setSummaryPredictions] = useState<Record<string, { top5: Prediction[], user: Prediction | null, total: number }>>({});
+    const [loadingSummary, setLoadingSummary] = useState<Record<string, boolean>>({});
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMatchId, setModalMatchId] = useState<string | null>(null);
+    const [modalData, setModalData] = useState<Prediction[]>([]);
+    const [modalLoading, setModalLoading] = useState(false);
+    const [modalPage, setModalPage] = useState(1);
+    const [modalHasMore, setModalHasMore] = useState(false);
+    const [modalSearch, setModalSearch] = useState('');
+    const [modalSortBy, setModalSortBy] = useState<'points' | 'name'>('points');
+    const [modalTotal, setModalTotal] = useState(0);
 
     useEffect(() => {
         if (!tournamentId) return;
@@ -73,24 +95,75 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
 
         setExpandedMatchId(matchId);
 
-        if (!leagueId || predictions[matchId]) return; // ya están cargadas
+        if (!leagueId || summaryPredictions[matchId]) return;
 
-        setLoadingPredictions(prev => ({ ...prev, [matchId]: true }));
+        setLoadingSummary(prev => ({ ...prev, [matchId]: true }));
         try {
-            const { data } = await api.get(`/predictions/league/${leagueId}/match/${matchId}`);
+            // Fetch top 5 + current user
+            const { data } = await api.get(`/predictions/league/${leagueId}/match/${matchId}?limit=5&sortBy=points`);
+            const res = data as PredictionResponse;
             
-            // Ordenar por puntos (mayor a menor)
-            const sortedData = (data || []).sort((a: Prediction, b: Prediction) => {
-                const ptsA = a.points || 0;
-                const ptsB = b.points || 0;
-                return ptsB - ptsA;
-            });
-
-            setPredictions(prev => ({ ...prev, [matchId]: sortedData }));
+            setSummaryPredictions(prev => ({ 
+                ...prev, 
+                [matchId]: { 
+                    top5: res.data, 
+                    user: res.currentUser,
+                    total: res.total
+                } 
+            }));
         } catch (err) {
-            console.error('Error fetching predictions for match:', err);
+            console.error('Error fetching summary predictions:', err);
         } finally {
-            setLoadingPredictions(prev => ({ ...prev, [matchId]: false }));
+            setLoadingSummary(prev => ({ ...prev, [matchId]: false }));
+        }
+    };
+
+    const openModal = (matchId: string) => {
+        setModalMatchId(matchId);
+        setModalData([]);
+        setModalPage(1);
+        setModalSearch('');
+        setModalSortBy('points');
+        setIsModalOpen(true);
+        fetchModalData(matchId, 1, '', 'points', true);
+    };
+
+    const fetchModalData = async (matchId: string, page: number, search: string, sortBy: 'points' | 'name', reset: boolean = false) => {
+        if (!leagueId) return;
+        setModalLoading(true);
+        try {
+            const { data } = await api.get(`/predictions/league/${leagueId}/match/${matchId}?page=${page}&limit=25&search=${search}&sortBy=${sortBy}`);
+            const res = data as PredictionResponse;
+            
+            setModalData(prev => reset ? res.data : [...prev, ...res.data]);
+            setModalHasMore(res.hasMore);
+            setModalTotal(res.total);
+            setModalPage(res.page);
+        } catch (err) {
+            console.error('Error fetching modal data:', err);
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!modalMatchId || modalLoading || !modalHasMore) return;
+        fetchModalData(modalMatchId, modalPage + 1, modalSearch, modalSortBy);
+    };
+
+    const handleSearchChange = (val: string) => {
+        setModalSearch(val);
+        if (modalMatchId) {
+            // Se puede agregar un debounce aquí si fuera necesario
+            fetchModalData(modalMatchId, 1, val, modalSortBy, true);
+        }
+    };
+
+    const handleSortChange = () => {
+        const nextSort = modalSortBy === 'points' ? 'name' : 'points';
+        setModalSortBy(nextSort);
+        if (modalMatchId) {
+            fetchModalData(modalMatchId, 1, modalSearch, nextSort, true);
         }
     };
 
@@ -110,24 +183,18 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
     const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
-    // Inicializar la última fase jugada por defecto
     useEffect(() => {
         if (matches.length > 0 && Object.keys(expandedPhases).length === 0) {
-            // Obtener todos los phases únicos de los partidos
             const phasesPresent = Array.from(new Set(matches.map(m => m.phase || 'GROUP')));
-            
-            // Ordenar de más avanzado a menos para encontrar el "actual" o más reciente
             phasesPresent.sort((a, b) => {
                 const orderA = phaseOrder.indexOf(a);
                 const orderB = phaseOrder.indexOf(b);
-                return orderB - orderA; // Descending (Final -> Grupos)
+                return orderB - orderA;
             });
 
             const mostAdvancedPhase = phasesPresent[0];
             if (mostAdvancedPhase) {
                 setExpandedPhases({ [mostAdvancedPhase]: true });
-                
-                // Además, autoexpandir la primera fecha de esa fase
                 const matchesOfPhase = matches.filter(m => (m.phase || 'GROUP') === mostAdvancedPhase);
                 if (matchesOfPhase.length > 0) {
                     const firstDateStr = new Date(matchesOfPhase[0].date).toLocaleDateString('es-ES', {
@@ -143,13 +210,10 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
     }, [matches]);
 
     const groupedMatches = useMemo(() => {
-        // Estructura: Record<Phase, Record<DateKey, Match[]>>
         const groups: Record<string, Record<string, Match[]>> = {};
-        
         matches.forEach(m => {
             const phase = m.phase || 'GROUP';
             if (!groups[phase]) groups[phase] = {};
-            
             const dateStr = new Date(m.date).toLocaleDateString('es-ES', {
                 weekday: 'long',
                 day: 'numeric',
@@ -157,17 +221,14 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
             });
             const key = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
             if (!groups[phase][key]) groups[phase][key] = [];
-            
             groups[phase][key].push(m);
         });
 
-        // Ordenar partidos dentro de cada fecha por hora
-        Object.keys(groups).forEach(phase => {
-            Object.keys(groups[phase]).forEach(dateKey => {
-                groups[phase][dateKey].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        Object.keys(groups).forEach(p => {
+            Object.keys(groups[p]).forEach(dk => {
+                groups[p][dk].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
             });
         });
-
         return groups;
     }, [matches]);
 
@@ -175,7 +236,6 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
         return Object.keys(groupedMatches).sort((a, b) => {
             const idxA = phaseOrder.indexOf(a);
             const idxB = phaseOrder.indexOf(b);
-            // Default fallback if unknown phase: push to end
             return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
         });
     }, [groupedMatches]);
@@ -183,7 +243,7 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
     if (loadingMatches) {
         return (
             <div className="flex justify-center items-center h-48">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00E676]"></div>
+                <Loader2 className="animate-spin h-8 w-8 text-[#00E676]" />
             </div>
         );
     }
@@ -193,186 +253,168 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
             <div className="text-center p-8 bg-[#1E293B] border border-[#334155] rounded-xl m-4">
                 <Trophy size={48} className="mx-auto text-slate-500 mb-4 opacity-50" />
                 <h3 className="text-slate-300 font-bold mb-2">Aún no hay predicciones reveladas</h3>
-                <p className="text-slate-400 text-sm">Las predicciones de tus rivales se revelarán aquí una vez que los partidos estén bloqueados o finalizados.</p>
+                <p className="text-slate-400 text-sm">Las predicciones se revelarán cuando los partidos estén bloqueados o finalizados.</p>
             </div>
         );
     }
 
+    const PredictionRow = ({ pred, isCurrentUser = false }: { pred: Prediction, isCurrentUser?: boolean }) => {
+        const hasPoints = pred.points !== null && pred.points !== undefined;
+        return (
+            <tr className={`border-b border-[#1E293B]/30 hover:bg-slate-800/30 transition-colors ${isCurrentUser ? 'bg-[#00E676]/5 border-l-2 border-l-[#00E676]' : ''}`}>
+                <td className="py-2 px-2 md:px-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-slate-700 overflow-hidden flex-shrink-0 border border-slate-600">
+                            {pred.avatarUrl ? (
+                                <img src={pred.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-400 text-[9px] md:text-xs font-bold uppercase">
+                                    {pred.fullName?.charAt(0) || '?'}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <span className={`font-bold truncate max-w-[80px] sm:max-w-[120px] md:max-w-xs text-xs md:text-sm ${isCurrentUser ? 'text-[#00E676]' : 'text-slate-200'}`}>
+                                {pred.fullName || 'Usuario'}
+                            </span>
+                            {isCurrentUser && <span className="text-[8px] uppercase font-black text-[#00E676]/60">Tú</span>}
+                        </div>
+                    </div>
+                </td>
+                <td className="py-2 px-2 md:px-4 text-center border-l border-[#334155]/20">
+                    {pred.hasPrediction ? (
+                        <div className="inline-flex items-center gap-1">
+                            {pred.isJoker && <span className="text-[10px] md:text-sm">🃏</span>}
+                            <span className="font-russo text-white text-xs md:text-base px-1.5 py-0.5 bg-[#1E293B] rounded border border-slate-700">
+                                {pred.homeScore}-{pred.awayScore}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-slate-500 text-[9px] italic">N/A</span>
+                    )}
+                </td>
+                <td className="py-2 px-1 md:px-4 text-center border-l border-[#334155]/20">
+                    {hasPoints ? (
+                        <span className={`font-black text-xs md:text-sm ${pred.points && pred.points > 0 ? 'text-[#00E676]' : 'text-slate-500'}`}>
+                            +{pred.points}
+                        </span>
+                    ) : (
+                        <span className="text-slate-600 text-xs">-</span>
+                    )}
+                </td>
+            </tr>
+        );
+    };
+
     return (
-        <div className="px-1 md:px-4 py-4 space-y-4 w-full max-w-full overflow-x-hidden">
+        <div className="px-1 md:px-4 py-4 space-y-4 w-full max-w-full overflow-x-hidden relative">
             {sortedPhases.map(phase => {
                 const datesObj = groupedMatches[phase];
-                const dateKeys = Object.keys(datesObj).sort((a, b) => {
-                    // Orden descendente (más recientes primero) dentro de la misma fase
-                    return new Date(datesObj[b][0].date).getTime() - new Date(datesObj[a][0].date).getTime();
-                });
-
-                const isPhaseExpanded = expandedPhases[phase];
-                const phaseTitle = phaseNames[phase] || phase;
-
+                const dateKeys = Object.keys(datesObj).sort((a, b) => new Date(datesObj[b][0].date).getTime() - new Date(datesObj[a][0].date).getTime());
                 return (
                     <div key={phase} className="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden shadow-sm">
-                        
-                        {/* BOTÓN DE FASE */}
                         <button 
                             onClick={() => setExpandedPhases(p => ({ ...p, [phase]: !p[phase] }))}
                             className="w-full flex items-center justify-between p-3 md:p-4 bg-slate-800 hover:bg-slate-700 transition-colors border-b border-[#334155]"
                         >
-                            <h2 className="text-sm md:text-base font-black text-white uppercase tracking-wider pl-1">
-                                {phaseTitle}
-                            </h2>
+                            <h2 className="text-sm md:text-base font-black text-white uppercase tracking-wider pl-1">{phaseNames[phase] || phase}</h2>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-400 font-bold bg-[#0F172A] px-2 py-1 rounded">
-                                    {Object.values(datesObj).flat().length} Partidos
-                                </span>
-                                {isPhaseExpanded ? <ChevronUp className="text-slate-400" /> : <ChevronDown className="text-slate-400" />}
+                                <span className="text-xs text-slate-400 font-bold bg-[#0F172A] px-2 py-1 rounded">{Object.values(datesObj).flat().length} Partidos</span>
+                                {expandedPhases[phase] ? <ChevronUp className="text-slate-400" /> : <ChevronDown className="text-slate-400" />}
                             </div>
                         </button>
 
-                        {/* CONTENIDO DE FASE */}
-                        {isPhaseExpanded && (
+                        {expandedPhases[phase] && (
                             <div className="p-2 md:p-4 space-y-5 bg-[#0F172A]">
                                 {dateKeys.map(dateKey => {
                                     const expandedDateKey = `${phase}-${dateKey}`;
-                                    const isDateExpanded = expandedDates[expandedDateKey];
                                     const matchesForDate = datesObj[dateKey];
-
                                     return (
                                         <div key={expandedDateKey} className="space-y-2">
-                                            {/* BOTÓN DE FECHA */}
                                             <button 
                                                 onClick={() => setExpandedDates(d => ({ ...d, [expandedDateKey]: !d[expandedDateKey] }))}
                                                 className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-800/60 transition-colors"
                                             >
-                                                <h3 className="text-xs md:text-sm font-bold text-[#00E676] uppercase tracking-widest text-left pl-1 border-l-2 border-[#00E676]">
-                                                    {dateKey}
-                                                </h3>
+                                                <h3 className="text-xs md:text-sm font-bold text-[#00E676] uppercase tracking-widest text-left pl-1 border-l-2 border-[#00E676]">{dateKey}</h3>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-slate-500 font-bold uppercase">{matchesForDate.length} Partidos</span>
-                                                    {isDateExpanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                                                    <span className="text-[10px] text-slate-500 font-bold uppercase">{matchesForDate.length} P.</span>
+                                                    {expandedDates[expandedDateKey] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                                 </div>
                                             </button>
 
-                                            {/* LISTA DE PARTIDOS POR FECHA */}
-                                            {isDateExpanded && (
+                                            {expandedDates[expandedDateKey] && (
                                                 <div className="space-y-3 px-0 md:px-2 animate-in slide-in-from-top-2 duration-300">
                                                     {matchesForDate.map(match => {
                                                         const isExpanded = expandedMatchId === match.id;
-                                                        const matchPredictions = predictions[match.id] || [];
-                                                        const isLoading = loadingPredictions[match.id];
-                                                        
+                                                        const summary = summaryPredictions[match.id];
+                                                        const isLoading = loadingSummary[match.id];
                                                         const isFinished = ['FINISHED', 'COMPLETED'].includes(match.status);
                                                         const isLive = match.status === 'LIVE';
 
                                                         return (
-                                                            <div key={match.id} className="bg-slate-800/40 border border-[#334155]/60 rounded-xl overflow-hidden transition-all">
-                                                                {/* Cabecera del Partido */}
+                                                            <div key={match.id} className="bg-slate-800/40 border border-[#334155]/60 rounded-xl overflow-hidden shadow-lg transition-transform">
                                                                 <button 
                                                                     onClick={() => handleExpandMatch(match.id)}
-                                                                    className="w-full flex items-center justify-between py-3 px-2 md:p-4 hover:bg-slate-700/50 transition-colors focus:outline-none"
+                                                                    className="w-full flex items-center justify-between py-3 px-2 md:p-4 hover:bg-slate-700/50 transition-colors"
                                                                 >
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center justify-center gap-2 md:gap-4 w-full">
-                                                                            <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
-                                                                                <span className="text-xs md:text-sm font-bold text-white text-right truncate">
-                                                                                    {match.homeTeam}
-                                                                                </span>
-                                                                                <img src={getTeamFlagUrl(match.homeTeam)} alt={match.homeTeam} className="w-5 md:w-6 h-auto rounded flex-shrink-0" />
-                                                                            </div>
-                                                                            
-                                                                            <div className="flex flex-col items-center justify-center w-16 md:w-20 flex-shrink-0">
-                                                                                {isFinished || isLive ? (
-                                                                                    <span className={`font-russo tracking-wider text-base md:text-xl ${isLive ? 'text-[#00E676]' : 'text-slate-200'} whitespace-nowrap`}>
-                                                                                        {match.homeScore} - {match.awayScore}
-                                                                                    </span>
-                                                                                ) : (
-                                                                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
-                                                                                        Blocked
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-
-                                                                            <div className="flex items-center gap-2 flex-1 justify-start min-w-0">
-                                                                                <img src={getTeamFlagUrl(match.awayTeam)} alt={match.awayTeam} className="w-5 md:w-6 h-auto rounded flex-shrink-0" />
-                                                                                <span className="text-xs md:text-sm font-bold text-white text-left truncate">
-                                                                                    {match.awayTeam}
-                                                                                </span>
-                                                                            </div>
+                                                                    <div className="flex-1 flex items-center justify-center gap-2 md:gap-4 w-full">
+                                                                        <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
+                                                                            <span className="text-xs md:text-sm font-bold text-white text-right truncate">{match.homeTeam}</span>
+                                                                            <img src={getTeamFlagUrl(match.homeTeam)} alt="" className="w-5 md:w-6 rounded flex-shrink-0" />
+                                                                        </div>
+                                                                        <div className="flex flex-col items-center justify-center w-16 md:w-20">
+                                                                            {isFinished || isLive ? (
+                                                                                <span className={`font-russo text-base md:text-xl ${isLive ? 'text-[#00E676]' : 'text-slate-200'}`}>{match.homeScore} - {match.awayScore}</span>
+                                                                            ) : (
+                                                                                <span className="text-[9px] font-bold text-slate-500 uppercase bg-slate-900 px-1.5 py-0.5 rounded outline outline-1 outline-slate-700">Blocked</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 flex-1 justify-start min-w-0">
+                                                                            <img src={getTeamFlagUrl(match.awayTeam)} alt="" className="w-5 md:w-6 rounded flex-shrink-0" />
+                                                                            <span className="text-xs md:text-sm font-bold text-white text-left truncate">{match.awayTeam}</span>
                                                                         </div>
                                                                     </div>
-                                                                    
-                                                                    <div className="ml-1 md:ml-4 text-slate-400 flex-shrink-0">
-                                                                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                                                    </div>
+                                                                    <div className="ml-1 md:ml-4 text-slate-400">{isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</div>
                                                                 </button>
 
-                                                                {/* Contenido de Rivales */}
                                                                 {isExpanded && (
-                                                                    <div className="border-t border-[#334155]/60 bg-[#0F172A]/80 p-0 md:p-4 pb-2">
+                                                                    <div className="border-t border-[#334155]/60 bg-[#0F172A]/80">
                                                                         {isLoading ? (
-                                                                            <div className="p-6 text-center text-slate-400 text-xs">Cargando rivales...</div>
-                                                                        ) : matchPredictions.length === 0 ? (
-                                                                            <div className="p-6 text-center text-slate-400 text-xs italic">Nadie ha pronosticado este partido aún.</div>
+                                                                            <div className="p-6 text-center text-slate-400 text-xs">Cargando participantes...</div>
+                                                                        ) : !summary ? (
+                                                                            <div className="p-6 text-center text-slate-400 text-xs italic">Error al cargar.</div>
+                                                                        ) : summary.total === 0 ? (
+                                                                            <div className="p-6 text-center text-slate-400 text-xs italic">Nadie ha pronosticado aún.</div>
                                                                         ) : (
-                                                                            <div className="w-full overflow-x-auto text-[11px] md:text-sm custom-scrollbar pb-1">
+                                                                            <div className="w-full">
                                                                                 <table className="w-full text-left border-collapse">
                                                                                     <thead>
-                                                                                        <tr className="border-b border-[#334155] text-slate-400 text-[9px] md:text-xs uppercase tracking-wider bg-slate-800/50">
-                                                                                            <th className="py-2 px-2 md:px-4 font-bold md:min-w-[150px]">Participante</th>
+                                                                                        <tr className="border-b border-[#334155] text-slate-400 text-[9px] md:text-xs uppercase bg-slate-800/50">
+                                                                                            <th className="py-2 px-2 md:px-4 font-bold">Participante</th>
                                                                                             <th className="py-2 px-2 md:px-4 font-bold text-center">Score</th>
-                                                                                            <th className="py-2 px-2 md:px-4 font-bold text-center whitespace-nowrap">Pts</th>
+                                                                                            <th className="py-2 px-2 md:px-4 font-bold text-center">Pts</th>
                                                                                         </tr>
                                                                                     </thead>
                                                                                     <tbody>
-                                                                                        {matchPredictions.map((pred, i) => {
-                                                                                            const hasPoints = pred.points !== null && pred.points !== undefined;
-                                                                                            
-                                                                                            return (
-                                                                                                <tr key={pred.userId || i} className="border-b border-[#1E293B]/30 hover:bg-slate-800/30 transition-colors">
-                                                                                                    <td className="py-2 px-2 md:px-4">
-                                                                                                        <div className="flex items-center gap-2 md:gap-3">
-                                                                                                            <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-slate-700 overflow-hidden flex-shrink-0 border border-slate-600">
-                                                                                                                {pred.avatarUrl ? (
-                                                                                                                    <img src={pred.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                                                                                                                ) : (
-                                                                                                                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-[9px] md:text-xs font-bold uppercase">
-                                                                                                                        {pred.fullName?.charAt(0) || '?'}
-                                                                                                                    </div>
-                                                                                                                )}
-                                                                                                            </div>
-                                                                                                            <span className="font-bold text-slate-200 truncate max-w-[80px] sm:max-w-[120px] md:max-w-xs text-xs md:text-sm">
-                                                                                                                {pred.fullName || 'Usuario Válido'}
-                                                                                                            </span>
-                                                                                                        </div>
-                                                                                                    </td>
-                                                                                                    <td className="py-2 px-2 md:px-4 text-center border-l border-[#334155]/20">
-                                                                                                        {pred.hasPrediction ? (
-                                                                                                            <div className="inline-flex items-center gap-1 md:gap-2">
-                                                                                                                {pred.isJoker && (
-                                                                                                                    <span className="text-[10px] md:text-sm" title="Comodín activado">🃏</span>
-                                                                                                                )}
-                                                                                                                <span className="font-russo text-white text-xs md:text-base px-1.5 md:px-2 py-0.5 md:py-1 bg-[#1E293B] rounded border border-slate-700 shadow-inner">
-                                                                                                                    {pred.homeScore}-{pred.awayScore}
-                                                                                                                </span>
-                                                                                                            </div>
-                                                                                                        ) : (
-                                                                                                            <span className="text-slate-500 text-[9px] md:text-xs italic">N/A</span>
-                                                                                                        )}
-                                                                                                    </td>
-                                                                                                    <td className="py-2 px-1 md:px-4 text-center border-l border-[#334155]/20 bg-slate-800/10">
-                                                                                                        {hasPoints ? (
-                                                                                                            <span className={`font-black text-xs md:text-sm ${pred.points && pred.points > 0 ? 'text-[#00E676]' : 'text-slate-500'}`}>
-                                                                                                                +{pred.points}
-                                                                                                            </span>
-                                                                                                        ) : (
-                                                                                                            <span className="text-slate-600 text-xs md:text-sm">-</span>
-                                                                                                        )}
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            );
-                                                                                        })}
+                                                                                        {summary.top5.map(pred => (
+                                                                                            <PredictionRow key={pred.userId} pred={pred} isCurrentUser={pred.userId === summary.user?.userId} />
+                                                                                        ))}
+                                                                                        
+                                                                                        {summary.user && !summary.top5.some(p => p.userId === summary.user?.userId) && (
+                                                                                            <>
+                                                                                                <tr className="bg-transparent"><td colSpan={3} className="py-1 text-center text-slate-600 text-[10px]">...</td></tr>
+                                                                                                <PredictionRow pred={summary.user} isCurrentUser={true} />
+                                                                                            </>
+                                                                                        )}
                                                                                     </tbody>
                                                                                 </table>
+                                                                                
+                                                                                <button 
+                                                                                    onClick={() => openModal(match.id)}
+                                                                                    className="w-full py-3 bg-slate-800/50 hover:bg-[#00E676]/10 text-[#00E676] text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                                                                >
+                                                                                    Ver todos ({summary.total})
+                                                                                </button>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -390,6 +432,108 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
                     </div>
                 );
             })}
+
+            {/* MODAL VER TODOS */}
+            {isModalOpen && modalMatchId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0F172A]/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div 
+                        className="bg-[#1E293B] w-full max-w-2xl h-[85vh] rounded-3xl border border-[#334155] shadow-2xl flex flex-col relative overflow-hidden"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header Modal */}
+                        <div className="p-6 border-b border-[#334155] bg-slate-800/50 flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <h2 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">
+                                    Participantes <span className="text-[#00E676] text-xs block md:inline md:ml-2 not-italic">({modalTotal})</span>
+                                </h2>
+                                <p className="text-[10px] text-slate-500 uppercase mt-1">Predictions Revealed</p>
+                            </div>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setIsModalOpen(false)}
+                                className="rounded-full hover:bg-red-500/20 text-slate-400 hover:text-red-400"
+                            >
+                                <X size={24} />
+                            </Button>
+                        </div>
+
+                        {/* Search & Sort */}
+                        <div className="p-4 bg-[#0F172A]/40 border-b border-[#334155]/60 flex flex-col md:flex-row gap-3">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                <Input 
+                                    placeholder="Buscar participante..."
+                                    className="pl-10 bg-slate-800/50 border-white/5 text-white h-10 text-sm rounded-xl focus:ring-[#00E676]"
+                                    value={modalSearch}
+                                    onChange={e => handleSearchChange(e.target.value)}
+                                />
+                            </div>
+                            <Button 
+                                variant="outline" 
+                                onClick={handleSortChange}
+                                className="bg-slate-800 border-white/10 text-xs font-bold gap-2 uppercase tracking-widest text-[#00E676]"
+                            >
+                                <ArrowUpDown size={14} />
+                                {modalSortBy === 'points' ? 'Por Puntos' : 'Por Nombre'}
+                            </Button>
+                        </div>
+
+                        {/* Lista de Predicciones */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="sticky top-0 z-10 bg-[#1E293B] shadow-lg">
+                                    <tr className="text-slate-500 text-[10px] uppercase font-black bg-slate-900/80 backdrop-blur">
+                                        <th className="py-3 px-4">Participante</th>
+                                        <th className="py-3 px-4 text-center">Score</th>
+                                        <th className="py-3 px-4 text-center">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {modalData.map((pred, i) => (
+                                        <PredictionRow 
+                                            key={`${pred.userId}-${i}`} 
+                                            pred={pred} 
+                                            isCurrentUser={pred.userId === (summaryPredictions[modalMatchId]?.user?.userId || '')} 
+                                        />
+                                    ))}
+                                    
+                                    {modalLoading && (
+                                        <tr>
+                                            <td colSpan={3} className="py-8 text-center">
+                                                <Loader2 className="animate-spin h-6 w-6 text-[#00E676] mx-auto" />
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {!modalLoading && modalData.length === 0 && (
+                                        <tr>
+                                            <td colSpan={3} className="py-20 text-center flex flex-col items-center">
+                                                <Search size={40} className="text-slate-800 mb-2" />
+                                                <p className="text-slate-500 italic text-sm">No se encontraron resultados para "{modalSearch}"</p>
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {modalHasMore && !modalLoading && (
+                                        <tr>
+                                            <td colSpan={3} className="p-4">
+                                                <Button 
+                                                    onClick={handleLoadMore}
+                                                    variant="ghost" 
+                                                    className="w-full bg-[#00E676]/5 text-[#00E676] hover:bg-[#00E676]/10 font-bold uppercase text-xs"
+                                                >
+                                                    Cargar más participantes
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

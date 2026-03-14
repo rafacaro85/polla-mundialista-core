@@ -10,6 +10,7 @@ import {
   Request,
   Query,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { BonusService } from './bonus.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -129,5 +130,14 @@ export class BonusController {
     @Body() dto: CreateQuestionDto,
   ) {
     return this.bonusService.updateQuestion(questionId, dto);
+  }
+
+  @Get('league-answers')
+  async getLeagueAnswers(
+    @Request() req: any,
+    @Query('leagueId') leagueId: string,
+  ) {
+    if (!leagueId) throw new BadRequestException('leagueId es requerido');
+    return this.bonusService.getLeagueAnswers(req.user.id, leagueId);
   }
 }

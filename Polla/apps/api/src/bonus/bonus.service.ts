@@ -2,9 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not, In } from 'typeorm';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
@@ -14,6 +15,7 @@ import { GradeQuestionDto } from './dto/grade-question.dto';
 
 import { League } from '../database/entities/league.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
 @Injectable()
 export class BonusService {
@@ -359,5 +361,76 @@ export class BonusService {
     // No actualizamos la liga aquí para evitar cambios accidentales
 
     return this.bonusQuestionRepository.save(question);
+  }
+
+  async getLeagueAnswers(requesterId: string, leagueId: string) {
+    // 1. Validar participación
+    const participantRes = await this.leagueParticipantRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: requesterId } },
+    });
+    if (!participantRes) {
+      throw new ForbiddenException('No eres participante de esta liga');
+    }
+
+    // 2. Obtener preguntas calificadas (league-specific + global)
+    const currentLeague = await this.leagueRepository.findOne({ where: { id: leagueId } });
+    if (!currentLeague) throw new NotFoundException('Liga no encontrada');
+
+    const globalLeague = await this.leagueRepository.findOne({
+      where: { type: LeagueType.GLOBAL, tournamentId: currentLeague.tournamentId || 'WC2026' },
+    });
+
+    const conditions: any[] = [
+      { leagueId: leagueId, correctAnswer: Not(IsNull()) }
+    ];
+    if (globalLeague) {
+      conditions.push({ leagueId: globalLeague.id, correctAnswer: Not(IsNull()) });
+    }
+
+    const gradedQuestions = await this.bonusQuestionRepository.find({
+      where: conditions,
+    });
+
+    if (gradedQuestions.length === 0) return [];
+
+    const questionIds = gradedQuestions.map(q => q.id);
+
+    // 3. Obtener todas las respuestas para esas preguntas en esa liga
+    const participants = await this.leagueParticipantRepository.find({
+      where: { league: { id: leagueId }, status: LeagueParticipantStatus.ACTIVE },
+      relations: ['user'],
+    });
+
+    const userIds = participants.map(p => p.user.id);
+    if (userIds.length === 0) return [];
+
+    const answers = await this.userBonusAnswerRepository.find({
+      where: {
+        questionId: In(questionIds),
+        userId: In(userIds),
+      },
+      relations: ['question'],
+    });
+
+    // 4. Transformar a la estructura deseada
+    const result = participants.map(p => {
+      const userAnswers = answers.filter(a => a.userId === p.user.id);
+      const formattedAnswers = userAnswers.map(ua => ({
+        questionText: ua.question.text,
+        answer: ua.answer,
+        pointsEarned: ua.pointsEarned,
+      }));
+
+      return {
+        userId: p.user.id,
+        fullName: p.user.fullName || p.user.nickname || 'Usuario',
+        avatarUrl: p.user.avatarUrl,
+        answers: formattedAnswers,
+        totalBonusPoints: formattedAnswers.reduce((sum, a) => sum + (a.pointsEarned || 0), 0),
+      };
+    });
+
+    // Ordenar por totalBonusPoints desc
+    return result.sort((a, b) => b.totalBonusPoints - a.totalBonusPoints);
   }
 }

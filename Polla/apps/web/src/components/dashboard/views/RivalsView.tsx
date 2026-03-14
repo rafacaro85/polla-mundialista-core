@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '@/lib/api';
-import { ChevronDown, ChevronUp, Trophy, Search, X, Loader2, ArrowUpDown } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trophy, Search, X, Loader2, ArrowUpDown, Star, Gift } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +63,10 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
     const [modalSortBy, setModalSortBy] = useState<'points' | 'name'>('points');
     const [modalTotal, setModalTotal] = useState(0);
 
+    // Bonus State
+    const [bonusAnswers, setBonusAnswers] = useState<any[]>([]);
+    const [loadingBonus, setLoadingBonus] = useState(false);
+
     useEffect(() => {
         if (!tournamentId) return;
 
@@ -84,8 +88,22 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
             }
         };
 
+        const fetchBonus = async () => {
+            if (!leagueId) return;
+            setLoadingBonus(true);
+            try {
+                const { data } = await api.get(`/bonus/league-answers?leagueId=${leagueId}`);
+                setBonusAnswers(data);
+            } catch (err) {
+                console.error('Error fetching bonus answers:', err);
+            } finally {
+                setLoadingBonus(false);
+            }
+        };
+
         fetchMatches();
-    }, [tournamentId]);
+        fetchBonus();
+    }, [tournamentId, leagueId]);
 
     const handleExpandMatch = async (matchId: string) => {
         if (expandedMatchId === matchId) {
@@ -239,6 +257,31 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
             return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
         });
     }, [groupedMatches]);
+
+    // Regrupar bonus por pregunta para mostrar tablas por desafío
+    const groupedByQuestion = useMemo(() => {
+        if (!bonusAnswers || bonusAnswers.length === 0) return [];
+        
+        const questionsMap: Record<string, any[]> = {};
+        bonusAnswers.forEach(user => {
+            user.answers.forEach((ans: any) => {
+                const qText = ans.questionText;
+                if (!questionsMap[qText]) questionsMap[qText] = [];
+                questionsMap[qText].push({
+                    userId: user.userId,
+                    fullName: user.fullName,
+                    avatarUrl: user.avatarUrl,
+                    answer: ans.answer,
+                    pointsEarned: ans.pointsEarned
+                });
+            });
+        });
+
+        return Object.keys(questionsMap).map(qText => ({
+            text: qText,
+            participants: questionsMap[qText].sort((a, b) => (b.pointsEarned || 0) - (a.pointsEarned || 0))
+        }));
+    }, [bonusAnswers]);
 
     if (loadingMatches) {
         return (
@@ -432,6 +475,78 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
                     </div>
                 );
             })}
+
+            {/* SECCIÓN BONUS */}
+            <div className="mt-8 space-y-6 pb-20">
+                <div className="flex items-center gap-3 px-2">
+                    <div className="p-2 bg-[#FACC15]/10 border border-[#FACC15]/30 rounded-lg">
+                        <Star size={20} className="text-[#FACC15]" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Preguntas Bonus</h2>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Desafíos Revelados</p>
+                    </div>
+                </div>
+
+                {loadingBonus ? (
+                    <div className="p-10 text-center"><Loader2 className="animate-spin h-6 w-6 text-[#00E676] mx-auto" /></div>
+                ) : groupedByQuestion.length > 0 ? (
+                    groupedByQuestion.map((q, idx) => (
+                        <div key={idx} className="bg-[#1E293B] border border-[#334155] rounded-2xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="p-4 bg-slate-800/50 border-b border-[#334155]">
+                                <h3 className="text-sm md:text-base font-bold text-[#00E676] leading-tight">
+                                    <span className="text-slate-500 mr-2">#{idx + 1}</span>
+                                    {q.text}
+                                </h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-[#334155] text-slate-500 text-[10px] uppercase bg-slate-900/40">
+                                            <th className="py-2 px-4 font-black">Participante</th>
+                                            <th className="py-2 px-4 font-black text-center">Respuesta</th>
+                                            <th className="py-2 px-4 font-black text-center">Pts</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {q.participants.map((p: any, pIdx: number) => {
+                                            const myUserId = summaryPredictions[expandedMatchId || '']?.user?.userId || bonusAnswers.find(b => b.fullName === 'Tú' || false)?.userId;
+                                            
+                                            return (
+                                                <tr key={pIdx} className={`border-b border-[#334155]/20 hover:bg-slate-800/40 transition-colors ${p.userId === myUserId ? 'bg-[#00E676]/5 border-l-2 border-l-[#00E676]' : ''}`}>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden border border-slate-600 flex-shrink-0">
+                                                                {p.avatarUrl ? <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">{p.fullName?.charAt(0)}</div>}
+                                                            </div>
+                                                            <span className="text-xs md:text-sm font-bold text-slate-200 truncate max-w-[120px]">{p.fullName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-center border-l border-[#334155]/10">
+                                                        <span className="text-xs font-medium text-white px-2 py-1 bg-slate-900 rounded border border-slate-700">
+                                                            {p.answer}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-center border-l border-[#334155]/10">
+                                                        <span className={`text-xs font-black ${p.pointsEarned > 0 ? 'text-[#00E676]' : 'text-slate-500'}`}>
+                                                            +{p.pointsEarned}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center p-8 bg-[#1E293B]/50 border border-[#334155]/50 border-dashed rounded-2xl">
+                        <Gift size={32} className="mx-auto text-slate-600 mb-3 opacity-30" />
+                        <p className="text-slate-400 text-xs italic">Los resultados del bonus se revelarán cuando sean calificados.</p>
+                    </div>
+                )}
+            </div>
 
             {/* MODAL VER TODOS */}
             {isModalOpen && modalMatchId && (

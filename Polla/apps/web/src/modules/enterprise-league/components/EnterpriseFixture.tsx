@@ -15,8 +15,9 @@ import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrappe
 import { useFilteredMatches } from '@/hooks/useFilteredMatches';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BracketView } from '@/components/BracketView';
-import { Calendar, Activity } from 'lucide-react';
+import { Calendar, Activity, Users } from 'lucide-react';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
+import { RivalsView } from '@/components/dashboard/views/RivalsView';
 
 // Helper to ensure flag is a URL
 const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
@@ -269,7 +270,7 @@ export const EnterpriseFixture = () => {
                 <Tabs defaultValue="matches" className="w-full">
                     <div className="w-full pt-4 mb-6">
                          <TabsList 
-                            className="grid w-full grid-cols-2 mb-4 p-1 h-auto rounded-xl border gap-1"
+                            className="grid w-full grid-cols-3 mb-4 p-1 h-auto rounded-xl border gap-1"
                             style={{ 
                                 backgroundColor: 'var(--brand-secondary, #1E293B)',
                                 borderColor: 'var(--brand-accent, #334155)'
@@ -297,6 +298,13 @@ export const EnterpriseFixture = () => {
                             >
                                 <Activity size={16} />
                                 Llaves
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="rivals"
+                                className="data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all tab-trigger-brand"
+                            >
+                                <Users size={16} />
+                                Participantes
                             </TabsTrigger>
                         </TabsList>
 
@@ -409,6 +417,12 @@ export const EnterpriseFixture = () => {
                                 awayTeamPlaceholder: m.awayTeamPlaceholder,
                             }))}
                             leagueId={leagueId}
+                        />
+                    </TabsContent>
+                    <TabsContent value="rivals" className="w-full mt-0">
+                        <RivalsView 
+                            leagueId={leagueId} 
+                            tournamentId={leagueMetadata?.tournamentId} 
                         />
                     </TabsContent>
                 </Tabs>

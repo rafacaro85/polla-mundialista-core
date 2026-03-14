@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,7 +13,6 @@ import { UserRole } from '../database/enums/user-role.enum';
 
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ConflictException } from '@nestjs/common';
 
 import { Prediction } from '../database/entities/prediction.entity';
 import { UserBracket } from '../database/entities/user-bracket.entity';
@@ -302,5 +302,17 @@ export class UsersService {
       console.error('❌ [UsersService] Error updating profile:', error);
       throw error;
     }
+  }
+
+  async updatePassword(userId: string, newPassword: string): Promise<void> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await this.usersRepository.save(user);
+    console.log(`🔐 Password updated for user: ${userId}`);
   }
 }

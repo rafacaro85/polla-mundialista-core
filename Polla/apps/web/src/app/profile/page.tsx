@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Phone, Save, Camera, ChevronLeft, CreditCard, Mail } from 'lucide-react';
+import { User, Phone, Save, Camera, ChevronLeft, CreditCard, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -25,6 +25,11 @@ export default function ProfilePage() {
     email: '',
     avatarUrl: ''
   });
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // CARGAR DATOS DEL USUARIO
   useEffect(() => {
@@ -91,6 +96,31 @@ export default function ProfilePage() {
       toast.error('Error al actualizar el perfil. Revisa la consola.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordSave = async () => {
+    if (!passwordData.newPassword || passwordData.newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await api.patch('/users/profile/password', {
+        password: passwordData.newPassword
+      });
+      toast.success('¡Contraseña actualizada correctamente!');
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast.error('Error al actualizar la contraseña');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -380,6 +410,48 @@ export default function ProfilePage() {
           )}
         </button>
 
+      </div>
+
+      {/* 4. CAMBIAR CONTRASEÑA */}
+      <div style={{ ...STYLES.formCard, marginTop: '24px' }}>
+        <h3 style={{ ...STYLES.label, fontSize: '14px', color: 'white', marginBottom: '8px', marginLeft: '0' }}>Cambiar Seguridad</h3>
+        <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '16px' }}>Define una nueva contraseña privada para tu cuenta.</p>
+        
+        <div style={STYLES.inputGroup}>
+          <label style={STYLES.label}>Nueva Contraseña</label>
+          <div style={STYLES.inputWrapper}>
+            <Lock size={18} style={STYLES.icon} />
+            <input
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+              style={STYLES.input}
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+        </div>
+
+        <div style={STYLES.inputGroup}>
+          <label style={STYLES.label}>Confirmar Contraseña</label>
+          <div style={STYLES.inputWrapper}>
+            <Lock size={18} style={STYLES.icon} />
+            <input
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              style={STYLES.input}
+              placeholder="Repite tu nueva contraseña"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handlePasswordSave}
+          style={{ ...STYLES.saveBtn, backgroundColor: '#334155', color: 'white', boxShadow: 'none' }}
+          disabled={passwordLoading}
+        >
+          {passwordLoading ? 'Actualizando...' : 'Actualizar Seguridad'}
+        </button>
       </div>
 
     </div>

@@ -67,6 +67,18 @@ export class UsersController {
     return this.usersService.updateProfile(userId, body);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile/password')
+  async updatePassword(
+    @Request() req: RequestWithUser,
+    @Body() body: { password: string }
+  ) {
+    if (!body.password || body.password.length < 6) {
+      throw new ForbiddenException('La contraseña debe tener al menos 6 caracteres');
+    }
+    return this.usersService.updatePassword(req.user.id, body.password);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
   @Get(':id/details')

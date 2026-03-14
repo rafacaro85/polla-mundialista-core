@@ -621,26 +621,21 @@ export class PredictionsService {
     // Get predictions for these users in this match (league-specific or global fallback)
     const predictions = await this.predictionsRepository
       .createQueryBuilder('p')
-      .select([
-        'p."userId" AS "userId"',
-        'p."homeScore" AS "homeScore"',
-        'p."awayScore" AS "awayScore"',
-        'p.points AS points',
-        'p."isJoker" AS "isJoker"',
-        'p.league_id AS "leagueId"',
-      ])
-      .where('p."matchId" = :matchId', { matchId })
-      .andWhere('p."userId" IN (:...userIds)', { userIds })
-      .andWhere('(p.league_id = :leagueId OR p.league_id IS NULL)', { leagueId })
-      .orderBy('p.league_id', 'DESC', 'NULLS LAST') // league-specific first
-      .getRawMany();
+      .leftJoin('p.user', 'user')
+      .addSelect(['user.id'])
+      .where('p.match = :matchId', { matchId })
+      .andWhere('user.id IN (:...userIds)', { userIds })
+      .andWhere('(p.leagueId = :leagueId OR p.leagueId IS NULL)', { leagueId })
+      .orderBy('p.leagueId', 'DESC', 'NULLS LAST') // league-specific first
+      .getMany();
 
     console.log(`[RIVALS] Found ${predictions.length} predictions for match ${matchId} in league ${leagueId}`);
 
     // Build a map: userId → best prediction (league-specific over global)
-    const predMap = new Map<string, typeof predictions[0]>();
+    const predMap = new Map<string, Prediction>();
     for (const pred of predictions) {
-      const uid = pred.userId;
+      if (!pred.user) continue; // safety check
+      const uid = pred.user.id;
       if (!predMap.has(uid) || pred.leagueId === leagueId) {
         predMap.set(uid, pred);
       }

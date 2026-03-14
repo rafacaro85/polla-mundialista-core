@@ -13,6 +13,8 @@ import { League } from '../database/entities/league.entity';
 import { AccessCode } from '../database/entities/access-code.entity';
 import { AccessCodeStatus } from '../database/enums/access-code-status.enum';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
+import { UserRole } from '../database/enums/user-role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class LeagueParticipantsService {
@@ -473,5 +475,72 @@ export class LeagueParticipantsService {
 
     participant.isPaid = !participant.isPaid;
     return this.leagueParticipantRepository.save(participant);
+  }
+
+  async bulkAdd(
+    leagueId: string,
+    data: { email: string; fullName: string; department?: string },
+    requesterId: string,
+    requesterRole: string,
+  ) {
+    console.log(`📥 [bulkAdd] Adding participant for email: ${data.email} in league: ${leagueId}`);
+    
+    // 1. Validar Liga y Permisos
+    const league = await this.leagueRepository.findOne({
+      where: { id: leagueId },
+      relations: ['creator'],
+    });
+
+    if (!league) throw new NotFoundException('League not found');
+
+    const isAdmin = league.creator.id === requesterId;
+    if (!isAdmin && requesterRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only league admins can import participants');
+    }
+
+    // 2. Buscar/Crear Usuario
+    const email = data.email.toLowerCase().trim();
+    let user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      console.log(`👤 Creating new user for: ${email}`);
+      const hashedPassword = await bcrypt.hash('polla123', 10);
+      user = this.userRepository.create({
+        email,
+        fullName: data.fullName,
+        password: hashedPassword,
+        role: UserRole.PLAYER,
+        isVerified: true,
+      });
+      user = await this.userRepository.save(user);
+    }
+
+    // 3. Verificar si ya es participante
+    const existing = await this.leagueParticipantRepository.findOne({
+      where: { league: { id: leagueId }, user: { id: user.id } },
+    });
+
+    if (existing) {
+      console.log(`✅ User ${email} already in league. Updating info.`);
+      if (data.department) {
+        existing.department = data.department;
+      }
+      existing.status = LeagueParticipantStatus.ACTIVE;
+      existing.isPaid = true;
+      return await this.leagueParticipantRepository.save(existing);
+    }
+
+    // 4. Crear Participante
+    const participant = this.leagueParticipantRepository.create({
+      league,
+      user,
+      department: data.department,
+      status: LeagueParticipantStatus.ACTIVE,
+      isPaid: true, // Importación masiva suele ser para pollas pagas por la empresa
+      isAdmin: false,
+    });
+
+    console.log(`✨ Participant ${email} added successfully`);
+    return await this.leagueParticipantRepository.save(participant);
   }
 }

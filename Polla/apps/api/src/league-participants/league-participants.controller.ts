@@ -57,4 +57,19 @@ export class LeagueParticipantsController {
       userPayload.role,
     );
   }
+
+  @Post('bulk')
+  async bulkAddParticipant(
+    @Param('leagueId') leagueId: string,
+    @Body() body: { email: string; fullName: string; department?: string },
+    @Req() req: any,
+  ) {
+    const userPayload = req.user as { id: string; role: string };
+    return this.leagueParticipantsService.bulkAdd(
+      leagueId,
+      body,
+      userPayload.id,
+      userPayload.role,
+    );
+  }
 }

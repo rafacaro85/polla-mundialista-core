@@ -695,9 +695,10 @@ export class PredictionsService {
       });
 
       // 2. Obtener todas las predicciones del usuario que son comodines para este torneo
+      // NOTA: usamos leftJoinAndSelect (no innerJoin + leftJoinAndSelect que causa error en TypeORM)
       const query = queryRunner.manager
         .createQueryBuilder(Prediction, 'p')
-        .innerJoin('p.match', 'm')
+        .leftJoinAndSelect('p.match', 'm')
         .where('p.userId = :userId', { userId })
         .andWhere('p.isJoker = :isJoker', { isJoker: true })
         .andWhere('m.tournamentId = :tournamentId', { tournamentId });
@@ -708,8 +709,6 @@ export class PredictionsService {
         query.andWhere('p.leagueId IS NULL');
       }
 
-      // Necesitamos cargar el partido para saber su phase y group
-      query.leftJoinAndSelect('p.match', 'matchData');
       const usedJokers = await query.getMany();
 
       const statusList = [];

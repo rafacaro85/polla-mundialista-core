@@ -263,16 +263,25 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
         if (finalMatches.length === 0) return 'GROUP';
         const phases = matchesByDate.map((m: any) => m.phase).filter(Boolean);
         return phases[0] || 'GROUP';
-    }, [finalMatches, matchesByDate]);
+    }, [matchesByDate]);
+
+    const currentGroup = useMemo(() => {
+        const groups = matchesByDate.map((m: any) => m.group).filter(Boolean);
+        return groups[0] || null;
+    }, [matchesByDate]);
 
     const currentPhaseJokerStatus = useMemo(() => {
         if (!jokerStatusList.length) return null;
         const isWCGroup = tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
         const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
         
-        // Match strictly by phase, falling back to any generic 'ALL' limit
-        return jokerStatusList.find(s => s.phase === phaseToFind) || jokerStatusList.find(s => s.phase === 'ALL');
-    }, [currentPhase, jokerStatusList, tournamentId]);
+        // Match by group (UCL) OR phase (WC) OR fallback to ALL
+        return (
+            jokerStatusList.find(s => s.phase === currentGroup) || 
+            jokerStatusList.find(s => s.phase === phaseToFind) || 
+            jokerStatusList.find(s => s.phase === 'ALL')
+        );
+    }, [currentPhase, currentGroup, jokerStatusList, tournamentId]);
 
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">

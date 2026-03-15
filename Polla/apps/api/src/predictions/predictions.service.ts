@@ -104,25 +104,27 @@ export class PredictionsService {
           phaseQueried = 'GROUP';
         }
 
-        const config = await queryRunner.manager.findOne(JokerConfig, {
-          where: {
-            tournamentId: match.tournamentId,
-            phase: phaseQueried ? phaseQueried : IsNull(),
-            group: match.group && match.tournamentId === 'UCL2526' ? match.group : IsNull(),
-          }
+        // Hierarchy lookup for configs
+        const configs = await queryRunner.manager.find(JokerConfig, {
+          where: { tournamentId: match.tournamentId }
         });
 
-        const maxJokers = config ? config.maxJokers : 1; // Default to 1 if no config found
+        let config = configs.find(c => c.phase === phaseQueried && c.group === match.group);
+        if (!config) config = configs.find(c => c.phase === phaseQueried && !c.group);
+        if (!config) config = configs.find(c => !c.phase && c.group === match.group);
+        if (!config) config = configs.find(c => !c.phase && !c.group);
 
-        // Count existing jokers for this user, phase, group, excluding current match
+        const maxJokers = config ? config.maxJokers : 1; 
+
+        // Count existing jokers
         const query = queryRunner.manager
           .createQueryBuilder(Prediction, 'p')
           .innerJoin('p.match', 'm')
           .setLock('pessimistic_write')
-          .where('p.userId = :userId', { userId })
+          .where('p.user = :userId', { userId })
           .andWhere('p.isJoker = :isJoker', { isJoker: true })
           .andWhere('m.tournamentId = :tournamentId', { tournamentId: match.tournamentId })
-          .andWhere('p.matchId != :currentMatchId', { currentMatchId: matchId })
+          .andWhere('m.id != :currentMatchId', { currentMatchId: match.id }) // Use match.id (already validated as UUID)
           .andWhere(
             leagueId
               ? '(p.leagueId = :leagueId OR p.leagueId IS NULL)'
@@ -130,16 +132,16 @@ export class PredictionsService {
             { leagueId },
           );
 
-        if (phaseQueried) {
-          if (phaseQueried === 'GROUP' && match.tournamentId === 'WC2026') {
-            query.andWhere("m.phase LIKE 'GROUP%'"); // All groups share the limit
+        // Apply same filters as config
+        if (config?.phase) {
+          if (config.phase === 'GROUP' && match.tournamentId === 'WC2026') {
+            query.andWhere("m.phase LIKE 'GROUP%'");
           } else {
-            query.andWhere('m.phase = :phase', { phase: match.phase });
+            query.andWhere('m.phase = :phase', { phase: config.phase });
           }
         }
-        
-        if (match.tournamentId === 'UCL2526' && match.group) {
-          query.andWhere('m.group = :group', { group: match.group });
+        if (config?.group) {
+          query.andWhere('m.group = :group', { group: config.group });
         }
 
         const currentActiveCount = await query.getCount();
@@ -155,7 +157,7 @@ export class PredictionsService {
       let prediction = await queryRunner.manager.findOne(Prediction, {
         where: {
           user: { id: userId },
-          match: { id: matchId },
+          match: { id: match.id }, // Use match.id
           leagueId: leagueId ? leagueId : IsNull(),
         },
       });
@@ -187,7 +189,7 @@ export class PredictionsService {
         const globalPrediction = await queryRunner.manager.findOne(Prediction, {
           where: {
             user: { id: userId },
-            match: { id: matchId },
+            match: { id: match.id }, // Use match.id
             leagueId: IsNull(),
           },
         });
@@ -696,7 +698,7 @@ export class PredictionsService {
       const query = queryRunner.manager
         .createQueryBuilder(Prediction, 'p')
         .innerJoin('p.match', 'm')
-        .where('p.userId = :userId', { userId })
+        .where('p.user = :userId', { userId })
         .andWhere('p.isJoker = :isJoker', { isJoker: true })
         .andWhere('m.tournamentId = :tournamentId', { tournamentId });
 
@@ -716,21 +718,31 @@ export class PredictionsService {
         // Contar cuantos de estos comodines aplican a esta config
         let count = 0;
         for (const p of usedJokers) {
-          const match = p.match;
-          if (tournamentId === 'WC2026' && config.phase === 'GROUP' && match.phase?.startsWith('GROUP')) {
-            count++;
-          } else if (config.phase && match.phase === config.phase) {
-            count++;
-          } else if (config.group && match.group === config.group && !config.phase) {
-            count++;
+          const m = p.match;
+          if (!m) continue;
+
+          let matchApplies = false;
+          let mPhase = m.phase || '';
+          if (m.tournamentId === 'WC2026' && mPhase.startsWith('GROUP')) mPhase = 'GROUP';
+
+          if (config.phase && config.group) {
+            matchApplies = mPhase === config.phase && m.group === config.group;
+          } else if (config.phase) {
+            matchApplies = mPhase === config.phase;
+          } else if (config.group) {
+            matchApplies = m.group === config.group;
+          } else {
+            matchApplies = true;
           }
+
+          if (matchApplies) count++;
         }
 
         statusList.push({
           phase: config.phase || config.group || 'ALL',
           max: config.maxJokers,
           used: count,
-          remaining: config.maxJokers - count
+          remaining: Math.max(0, config.maxJokers - count)
         });
       }
 

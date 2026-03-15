@@ -198,18 +198,25 @@ export const EnterpriseFixture = () => {
     const currentPhase = useMemo(() => {
         if (finalMatches.length === 0) return 'GROUP';
         const phases = matchesByDate.map((m: any) => m.phase).filter(Boolean);
-        // Simple logic: return the phase of the first match in the view, or GROUP
         return phases[0] || 'GROUP';
-    }, [finalMatches, matchesByDate]);
+    }, [matchesByDate]);
+
+    const currentGroup = useMemo(() => {
+        const groups = matchesByDate.map((m: any) => m.group).filter(Boolean);
+        return groups[0] || null;
+    }, [matchesByDate]);
 
     const currentPhaseJokerStatus = useMemo(() => {
         if (!jokerStatusList.length || !leagueMetadata?.tournamentId) return null;
         const isWCGroup = leagueMetadata.tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
         const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
         
-        // Match strictly by phase, falling back to any generic 'ALL' limit
-        return jokerStatusList.find(s => s.phase === phaseToFind) || jokerStatusList.find(s => s.phase === 'ALL');
-    }, [currentPhase, jokerStatusList, leagueMetadata?.tournamentId]);
+        return (
+            jokerStatusList.find(s => s.phase === currentGroup) || 
+            jokerStatusList.find(s => s.phase === phaseToFind) || 
+            jokerStatusList.find(s => s.phase === 'ALL')
+        );
+    }, [currentPhase, currentGroup, jokerStatusList, leagueMetadata?.tournamentId]);
 
     const handlePhaseClick = (phase: string) => {
         const phaseMatches = finalMatches.filter(m => m.phase === phase);

@@ -55,6 +55,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [loadingMatches, setLoadingMatches] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [jokerStatusList, setJokerStatusList] = useState<any[]>([]);
 
     // ┌─────────────────────────────────────────────────────────────┐
     // │  KEY FIX: Self-fetch from /leagues/:id/matches              │
@@ -92,6 +93,21 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     useEffect(() => {
         fetchMatches();
     }, [leagueId]);
+
+    const fetchJokerStatus = async () => {
+        if (!tournamentId) return;
+        try {
+            const { data } = await api.get(`/predictions/joker-status?tournamentId=${tournamentId}${leagueId && leagueId !== 'global' ? `&leagueId=${leagueId}` : ''}`);
+            setJokerStatusList(data || []);
+        } catch (e) {
+            console.error('Error fetching joker status', e);
+        }
+    };
+
+    // Refetch jokers when predictions change (like after a save)
+    useEffect(() => {
+        fetchJokerStatus();
+    }, [tournamentId, leagueId, predictions]);
 
     // Merge predictions + ai suggestions into matches
     const matches = useMemo(() => {
@@ -249,6 +265,15 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
         return phases[0] || 'GROUP';
     }, [finalMatches, matchesByDate]);
 
+    const currentPhaseJokerStatus = useMemo(() => {
+        if (!jokerStatusList.length) return null;
+        const isWCGroup = tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
+        const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
+        
+        // Match strictly by phase, falling back to any generic 'ALL' limit
+        return jokerStatusList.find(s => s.phase === phaseToFind) || jokerStatusList.find(s => s.phase === 'ALL');
+    }, [currentPhase, jokerStatusList, tournamentId]);
+
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
@@ -299,14 +324,22 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
                 </div>
             </div>
 
-            <div className="mb-4 flex items-center justify-between gap-2">
-                <div className="flex-1 overflow-x-auto">
+            <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex-1 overflow-x-auto min-w-[200px]">
                     <DateFilter
                         dates={dates}
                         selectedDate={selectedDate}
                         onSelect={setSelectedDate}
                     />
                 </div>
+                {currentPhaseJokerStatus && (
+                    <div className="flex items-center gap-1.5 bg-slate-800/80 rounded border border-slate-700/50 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
+                        <span className="text-base sm:text-lg leading-none">🃏</span>
+                        <span className="font-medium text-slate-300 tracking-tight">
+                            Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
+                        </span>
+                    </div>
+                )}
                 <Button
                     onClick={handleRefresh}
                     variant="outline"

@@ -12,6 +12,7 @@ import { Match } from '../database/entities/match.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
+import { JokerConfig } from '../database/entities/joker-config.entity';
 
 import { BracketsService } from '../brackets/brackets.service';
 
@@ -96,71 +97,57 @@ export class PredictionsService {
     let savedPrediction: Prediction;
 
     try {
-      // JOKER LOGIC: Only one joker per phase allowed PER LEAGUE context.
-      // We must ensure that if we set a joker here, any other joker visible in this league (Global or Local) is disabled.
+      // JOKER LOGIC: Verify limits from joker_config table
       if (isJoker) {
-        // SELECT FOR UPDATE: bloquea las filas para evitar activaciones concurrentes
-        const previousJokers = await queryRunner.manager
+        let phaseQueried = match.phase || null;
+        if (match.tournamentId === 'WC2026' && match.phase && match.phase.startsWith('GROUP')) {
+          phaseQueried = 'GROUP';
+        }
+
+        const config = await queryRunner.manager.findOne(JokerConfig, {
+          where: {
+            tournamentId: match.tournamentId,
+            phase: phaseQueried ? phaseQueried : IsNull(),
+            group: match.group && match.tournamentId === 'UCL2526' ? match.group : IsNull(),
+          }
+        });
+
+        const maxJokers = config ? config.maxJokers : 1; // Default to 1 if no config found
+
+        // Count existing jokers for this user, phase, group, excluding current match
+        const query = queryRunner.manager
           .createQueryBuilder(Prediction, 'p')
-          .leftJoinAndSelect('p.match', 'match')
+          .innerJoin('p.match', 'm')
           .setLock('pessimistic_write')
           .where('p.userId = :userId', { userId })
           .andWhere('p.isJoker = :isJoker', { isJoker: true })
-          .andWhere('match.phase = :phase', { phase: match.phase })
+          .andWhere('m.tournamentId = :tournamentId', { tournamentId: match.tournamentId })
+          .andWhere('p.matchId != :currentMatchId', { currentMatchId: matchId })
           .andWhere(
             leagueId
               ? '(p.leagueId = :leagueId OR p.leagueId IS NULL)'
               : 'p.leagueId IS NULL',
             { leagueId },
-          )
-          .getMany();
+          );
 
-        for (const joker of previousJokers) {
-          // If it's a DIFFERENT match, we must deactivate the joker.
-          if (joker.match.id !== matchId) {
-            // GUARD: Cannot move joker if the previous match already finished
-            const FINAL_STATUSES = ['FINISHED', 'COMPLETED'];
-            if (FINAL_STATUSES.includes(joker.match.status)) {
-              throw new BadRequestException(
-                'No puedes mover el comodín. Ya fue usado en un partido que terminó. El comodín es definitivo una vez que el partido comienza.',
-              );
-            }
-            if (joker.leagueId === null && leagueId) {
-              // CASE: Disabling a GLOBAL Joker inside a Specific League.
-              // We cannot modify the global record directly (it would affect other leagues).
-              // Instead, we create a LOCAL OVERRIDE for that match with isJoker=false.
-              const existingOverride = await queryRunner.manager.findOne(
-                Prediction,
-                {
-                  where: {
-                    user: { id: userId },
-                    match: { id: joker.match.id },
-                    leagueId,
-                  },
-                },
-              );
-
-              if (existingOverride) {
-                existingOverride.isJoker = false;
-                await queryRunner.manager.save(existingOverride);
-              } else {
-                // Create new override copying values but disabling joker
-                const override = queryRunner.manager.create(Prediction, {
-                  user: { id: userId } as User,
-                  match: { id: joker.match.id } as Match,
-                  leagueId: leagueId,
-                  homeScore: joker.homeScore,
-                  awayScore: joker.awayScore,
-                  isJoker: false, // Disabled locally
-                });
-                await queryRunner.manager.save(override);
-              }
-            } else {
-              // CASE: Local joker or Global context edit. Just update the record.
-              joker.isJoker = false;
-              await queryRunner.manager.save(joker);
-            }
+        if (phaseQueried) {
+          if (phaseQueried === 'GROUP' && match.tournamentId === 'WC2026') {
+            query.andWhere("m.phase LIKE 'GROUP%'"); // All groups share the limit
+          } else {
+            query.andWhere('m.phase = :phase', { phase: match.phase });
           }
+        }
+        
+        if (match.tournamentId === 'UCL2526' && match.group) {
+          query.andWhere('m.group = :group', { group: match.group });
+        }
+
+        const currentActiveCount = await query.getCount();
+
+        if (currentActiveCount >= maxJokers) {
+          throw new BadRequestException(
+            `Has alcanzado el límite de ${maxJokers} comodín(es) para esta fase/ronda.`
+          );
         }
       }
 
@@ -693,5 +680,63 @@ export class PredictionsService {
       hasMore: startIndex + limit < total,
       currentUser: currentUserData,
     };
+  }
+
+  async getJokerStatus(userId: string, tournamentId: string, leagueId?: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+
+    try {
+      // 1. Obtener todas las configuraciones de comodines para el torneo
+      const configs = await queryRunner.manager.find(JokerConfig, {
+        where: { tournamentId },
+      });
+
+      // 2. Obtener todas las predicciones del usuario que son comodines para este torneo
+      const query = queryRunner.manager
+        .createQueryBuilder(Prediction, 'p')
+        .innerJoin('p.match', 'm')
+        .where('p.userId = :userId', { userId })
+        .andWhere('p.isJoker = :isJoker', { isJoker: true })
+        .andWhere('m.tournamentId = :tournamentId', { tournamentId });
+
+      if (leagueId) {
+        query.andWhere('(p.leagueId = :leagueId OR p.leagueId IS NULL)', { leagueId });
+      } else {
+        query.andWhere('p.leagueId IS NULL');
+      }
+
+      // Necesitamos cargar el partido para saber su phase y group
+      query.leftJoinAndSelect('p.match', 'matchData');
+      const usedJokers = await query.getMany();
+
+      const statusList = [];
+
+      for (const config of configs) {
+        // Contar cuantos de estos comodines aplican a esta config
+        let count = 0;
+        for (const p of usedJokers) {
+          const match = p.match;
+          if (tournamentId === 'WC2026' && config.phase === 'GROUP' && match.phase?.startsWith('GROUP')) {
+            count++;
+          } else if (config.phase && match.phase === config.phase) {
+            count++;
+          } else if (config.group && match.group === config.group && !config.phase) {
+            count++;
+          }
+        }
+
+        statusList.push({
+          phase: config.phase || config.group || 'ALL',
+          max: config.maxJokers,
+          used: count,
+          remaining: config.maxJokers - count
+        });
+      }
+
+      return statusList;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

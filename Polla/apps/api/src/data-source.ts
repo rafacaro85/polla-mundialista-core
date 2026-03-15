@@ -16,11 +16,14 @@ export const AppDataSource = new DataSource({
   password: process.env.DATABASE_URL ? undefined : process.env.DB_PASSWORD,
   database: process.env.DATABASE_URL ? undefined : process.env.DB_DATABASE,
 
-  ssl: process.env.DATABASE_URL
-    ? { rejectUnauthorized: false }
-    : process.env.DB_SSL === 'true'
+  ssl:
+    process.env.DATABASE_URL &&
+    !process.env.DATABASE_URL.includes('localhost') &&
+    !process.env.DATABASE_URL.includes('127.0.0.1')
       ? { rejectUnauthorized: false }
-      : undefined,
+      : process.env.DB_SSL === 'true'
+        ? { rejectUnauthorized: false }
+        : undefined,
   synchronize: false,
   logging: false,
   entities: [join(__dirname, '**', '*.entity.{ts,js}')],

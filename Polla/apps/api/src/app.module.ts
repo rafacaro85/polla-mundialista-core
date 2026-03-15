@@ -48,6 +48,7 @@ import { GroupStandingOverride } from './database/entities/group-standing-overri
 import { Notification } from './database/entities/notification.entity';
 import { LeaguePrize } from './database/entities/league-prize.entity';
 import { LeagueBanner } from './database/entities/league-banner.entity';
+import { JokerConfig } from './database/entities/joker-config.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -113,6 +114,7 @@ import { HealthController } from './health/health.controller';
             Notification,
             LeaguePrize,
             LeagueBanner,
+            JokerConfig,
           ],
           synchronize: false, // Note: synchronize: true should not be used in production
           ssl:

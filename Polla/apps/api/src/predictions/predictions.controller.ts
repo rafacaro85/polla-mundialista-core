@@ -65,6 +65,23 @@ export class PredictionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('joker-status')
+  async getJokerStatus(
+    @Request() req: any,
+    @Query('tournamentId') tournamentId: string,
+    @Query('leagueId') leagueId?: string,
+  ) {
+    if (!tournamentId) {
+      return [];
+    }
+    return this.predictionsService.getJokerStatus(
+      req.user.id,
+      tournamentId,
+      leagueId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':matchId')
   async deletePrediction(
     @Request() req: any,

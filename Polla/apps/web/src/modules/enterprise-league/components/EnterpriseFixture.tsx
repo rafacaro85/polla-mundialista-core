@@ -40,6 +40,7 @@ export const EnterpriseFixture = () => {
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [loadingMatches, setLoadingMatches] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [jokerStatusList, setJokerStatusList] = useState<any[]>([]);
 
     const fetchMatches = async () => {
         try {
@@ -76,6 +77,21 @@ export const EnterpriseFixture = () => {
             fetchLeagueMetadata();
         }
     }, [leagueId]);
+
+    const fetchJokerStatus = async () => {
+        if (!leagueMetadata?.tournamentId) return;
+        try {
+            const { data } = await api.get(`/predictions/joker-status?tournamentId=${leagueMetadata.tournamentId}&leagueId=${leagueId}`);
+            setJokerStatusList(data || []);
+        } catch (e) {
+            console.error('Error fetching joker status', e);
+        }
+    };
+
+    // Refetch jokers when predictions change (like after a save)
+    useEffect(() => {
+        fetchJokerStatus();
+    }, [leagueMetadata?.tournamentId, leagueId, predictions]);
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -185,6 +201,15 @@ export const EnterpriseFixture = () => {
         // Simple logic: return the phase of the first match in the view, or GROUP
         return phases[0] || 'GROUP';
     }, [finalMatches, matchesByDate]);
+
+    const currentPhaseJokerStatus = useMemo(() => {
+        if (!jokerStatusList.length || !leagueMetadata?.tournamentId) return null;
+        const isWCGroup = leagueMetadata.tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
+        const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
+        
+        // Match strictly by phase, falling back to any generic 'ALL' limit
+        return jokerStatusList.find(s => s.phase === phaseToFind) || jokerStatusList.find(s => s.phase === 'ALL');
+    }, [currentPhase, jokerStatusList, leagueMetadata?.tournamentId]);
 
     const handlePhaseClick = (phase: string) => {
         const phaseMatches = finalMatches.filter(m => m.phase === phase);
@@ -364,14 +389,22 @@ export const EnterpriseFixture = () => {
                     </div>
 
                     <TabsContent value="matches" className="w-full mt-0">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="flex-1 overflow-x-auto">
+                        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                            <div className="flex-1 overflow-x-auto min-w-[200px]">
                                 <DateFilter
                                     dates={dates}
                                     selectedDate={selectedDate}
                                     onSelect={setSelectedDate}
                                 />
                             </div>
+                            {currentPhaseJokerStatus && (
+                                <div className="flex items-center gap-1.5 bg-[#1E293B]/80 rounded border border-white/10 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
+                                    <span className="text-base sm:text-lg leading-none">🃏</span>
+                                    <span className="font-medium text-slate-300 tracking-tight">
+                                        Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
+                                    </span>
+                                </div>
+                            )}
                             <Button
                                 onClick={handleRefresh}
                                 variant="outline"

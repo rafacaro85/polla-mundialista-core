@@ -9,6 +9,7 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { BracketsModule } from '../brackets/brackets.module';
 import { UserBracket } from '../database/entities/user-bracket.entity';
 import { MatchesModule } from '../matches/matches.module';
+import { JokerConfig } from '../database/entities/joker-config.entity';
 
 @Module({
   imports: [
@@ -17,8 +18,10 @@ import { MatchesModule } from '../matches/matches.module';
       Match,
       LeagueParticipant,
       UserBracket,
+      JokerConfig,
     ]),
     BracketsModule,
+
     MatchesModule,
   ],
   controllers: [PredictionsController],

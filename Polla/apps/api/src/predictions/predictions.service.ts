@@ -121,7 +121,7 @@ export class PredictionsService {
           .createQueryBuilder(Prediction, 'p')
           .innerJoin('p.match', 'm')
           .setLock('pessimistic_write')
-          .where('p.user = :userId', { userId })
+          .where('p.userId = :userId', { userId })
           .andWhere('p.isJoker = :isJoker', { isJoker: true })
           .andWhere('m.tournamentId = :tournamentId', { tournamentId: match.tournamentId })
           .andWhere('m.id != :currentMatchId', { currentMatchId: match.id }) // Use match.id (already validated as UUID)
@@ -698,7 +698,7 @@ export class PredictionsService {
       const query = queryRunner.manager
         .createQueryBuilder(Prediction, 'p')
         .innerJoin('p.match', 'm')
-        .where('p.user = :userId', { userId })
+        .where('p.userId = :userId', { userId })
         .andWhere('p.isJoker = :isJoker', { isJoker: true })
         .andWhere('m.tournamentId = :tournamentId', { tournamentId });
 

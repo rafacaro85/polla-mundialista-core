@@ -17,18 +17,6 @@ import { SaveBracketDto } from './dto/save-bracket.dto';
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const PHASE_POINTS = {
-  ROUND_32: 2,
-  PLAYOFF_1: 2,
-  PLAYOFF_2: 2,
-  ROUND_16: 3,
-  QUARTER: 6,
-  QUARTER_FINAL: 6,   // UCL alias
-  SEMI: 10,
-  SEMI_FINAL: 10,     // UCL alias
-  '3RD_PLACE': 15,
-  FINAL: 20,
-};
 
 @Injectable()
 export class BracketsService {
@@ -324,12 +312,8 @@ export class BracketsService {
       return;
     }
 
-    // Get points for this phase
-    const points = PHASE_POINTS[match.phase as keyof typeof PHASE_POINTS];
-    if (!points) {
-      console.log('No points defined for phase:', match.phase);
-      return;
-    }
+    // Normalization: Todos los aciertos de bracket valen 2 puntos, sin importar la fase.
+    const points = 2;
 
     // Find all brackets that predicted this winner for this match AND belong to the same tournament
     const allBrackets = await this.userBracketRepository.find({

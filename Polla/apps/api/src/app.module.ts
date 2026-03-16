@@ -116,7 +116,8 @@ import { HealthController } from './health/health.controller';
             LeagueBanner,
             JokerConfig,
           ],
-          synchronize: false, // Note: synchronize: true should not be used in production
+          synchronize: false,
+          migrationsRun: true,
           ssl:
             url && !url.includes('localhost') && !url.includes('127.0.0.1')
               ? { rejectUnauthorized: false }

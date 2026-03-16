@@ -117,10 +117,11 @@ export class PredictionsService {
         const maxJokers = config ? config.maxJokers : 1; 
 
         // Count existing jokers
+        // NOTE: We MUST NOT use .setLock('pessimistic_write') here because
+        // TypeORM translates it to 'FOR UPDATE' which is not allowed with COUNT
         const query = queryRunner.manager
           .createQueryBuilder(Prediction, 'p')
           .innerJoin('p.match', 'm')
-          .setLock('pessimistic_write')
           .where('p.userId = :userId', { userId })
           .andWhere('p.isJoker = :isJoker', { isJoker: true })
           .andWhere('m.tournamentId = :tournamentId', { tournamentId: match.tournamentId })

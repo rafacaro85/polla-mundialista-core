@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In, LessThanOrEqual } from 'typeorm';
+import { Repository, DataSource, In, IsNull } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { ScoringService } from '../scoring/scoring.service';
@@ -14,6 +14,11 @@ import { UserBracket } from '../database/entities/user-bracket.entity';
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MatchFinishedEvent } from './listeners/match.listener';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
+import { BonusQuestion } from '../database/entities/bonus-question.entity';
+import { League } from '../database/entities/league.entity';
 
 @Injectable()
 export class MatchesService {
@@ -30,6 +35,7 @@ export class MatchesService {
     private tournamentService: TournamentService,
     private knockoutPhasesService: KnockoutPhasesService,
     private eventEmitter: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async findAll(
@@ -1148,6 +1154,26 @@ export class MatchesService {
       }
       await qbBrackets.execute();
 
+      // NEW 3.5: Limpiar respuestas de Bonus (esto suele ensuciar simulaciones)
+      console.log('🧹 [RESET] Eliminando respuestas de bonus...');
+      const bonusSubQuery = queryRunner.manager
+        .createQueryBuilder()
+        .subQuery()
+        .select('q.id')
+        .from(BonusQuestion, 'q');
+      
+      if (tid) {
+        bonusSubQuery.where('q."tournamentId" = :tid', { tid });
+      }
+
+      await queryRunner.manager
+        .createQueryBuilder()
+        .delete()
+        .from(UserBonusAnswer)
+        .where(`"questionId" IN ${bonusSubQuery.getQuery()}`)
+        .setParameters(bonusSubQuery.getParameters())
+        .execute();
+
       // 4. Resetear estados de fases eliminatorias
       const qbPhases = queryRunner.manager
         .createQueryBuilder()
@@ -1183,34 +1209,60 @@ export class MatchesService {
       }
 
       // 5. RECALCULAR Puntos de Participantes
-      // Si reseteamos un torneo específico, no podemos poner totalPoints a 0 indiscriminadamente.
-      // Debemos sumar los puntos válidos restantes de las tablas Predictions y UserBrackets.
+      // Ponemos TODO en 0 para las columnas de caché de participantes del torneo afectado.
+      // Así evitamos que queden rastros de la simulación.
+      console.log('🔄 [RESET] Reseteando columnas de puntos en participantes...');
 
-      console.log('🔄 [RESET] Recalculando puntos de participantes...');
+      // Estrategia Nuclear: Si es para un torneo, reseteamos participants de ese torneo.
+      // Nota: participants están ligados a leagues, y leagues a tournaments.
+      
+      await queryRunner.query(`
+          UPDATE league_participants lp
+          SET 
+            prediction_points = 0,
+            bracket_points = 0,
+            joker_points = 0,
+            total_points = COALESCE(lp.trivia_points, 0)
+          FROM leagues l
+          WHERE lp.league_id = l.id
+          ${tid ? `AND l."tournamentId" = '${tid}'` : ''}
+      `);
 
-      // Recalcular predictionPoints con casts explícitos para evitar errores de tipo
+      // Opcional: Recalcular basándonos en lo que quedó (si reseteamos un torneo pero el usuario está en otros)
+      // Pero como ya seteamos predictions.points=0 arriba, este recalculo dejará los puntos del torneo en 0 
+      // y mantendrá los de otros torneos si los hubiera.
+      
+      console.log('🔄 [RESET] Recalculando puntos remanentes (otros torneos)...');
+
+      // Recalcular predictionPoints + jokerPoints combinados
       await queryRunner.query(`
                 UPDATE league_participants lp 
-                SET prediction_points = (
-                    SELECT COALESCE(SUM(p.points), 0) 
+                SET prediction_points = COALESCE((
+                    SELECT SUM(CASE WHEN p."isJoker" IS TRUE THEN p.points / 2 ELSE p.points END)
                     FROM predictions p 
                     WHERE CAST(p.league_id AS VARCHAR) = CAST(lp.league_id AS VARCHAR) 
                     AND p."userId" = lp.user_id
-                )
+                ), 0),
+                joker_points = COALESCE((
+                    SELECT SUM(CASE WHEN p."isJoker" IS TRUE THEN p.points / 2 ELSE 0 END)
+                    FROM predictions p 
+                    WHERE CAST(p.league_id AS VARCHAR) = CAST(lp.league_id AS VARCHAR) 
+                    AND p."userId" = lp.user_id
+                ), 0)
             `);
 
-      // Recalcular bracketPoints con casts explícitos
+      // Recalcular bracketPoints
       await queryRunner.query(`
                 UPDATE league_participants lp 
-                SET bracket_points = (
-                    SELECT COALESCE(SUM(ub.points), 0) 
+                SET bracket_points = COALESCE((
+                    SELECT SUM(ub.points)
                     FROM user_brackets ub 
                     WHERE CAST(ub."leagueId" AS VARCHAR) = CAST(lp.league_id AS VARCHAR) 
                     AND ub."userId" = lp.user_id
-                )
+                ), 0)
             `);
 
-      // Update Total (asegurando COALESCE para evitar NULLs que rompan la suma)
+      // Update Total Final
       await queryRunner.query(`
                 UPDATE league_participants 
                 SET total_points = COALESCE(prediction_points, 0) + COALESCE(bracket_points, 0) + COALESCE(trivia_points, 0) + COALESCE(joker_points, 0)
@@ -1218,8 +1270,29 @@ export class MatchesService {
 
       await queryRunner.commitTransaction();
 
+      // 6. INVALIDACIÓN DE CACHÉ NUCLEAR
+      console.log('🧹 [RESET] Invalidando caché de rankings...');
+      try {
+        const currentTid = tid || DEFAULT_TOURNAMENT_ID;
+        await this.cacheManager.del(`ranking:global:${currentTid}`);
+        if (!tid) await this.cacheManager.del(`ranking:global:UCL2526`);
+
+        // Obtener todas las ligas afectadas para borrar sus cachés individuales
+        const affectedLeagues = await this.dataSource.getRepository(League).find({
+           where: tid ? { tournamentId: tid } : {},
+           select: ['id']
+        });
+
+        for (const league of affectedLeagues) {
+           await this.cacheManager.del(`ranking:league:${league.id}`);
+        }
+        console.log(`✅ [RESET] Caché invalidada para ${affectedLeagues.length} ligas.`);
+      } catch (cacheErr) {
+        console.error('⚠️ [RESET] Error invalidando caché (no crítico):', cacheErr);
+      }
+
       return {
-        message: `Sistema reiniciado correctamente para ${tid || 'TODOS'}. Puntos recalculados.`,
+        message: `Sistema reiniciado correctamente para ${tid || 'TODOS'}. Puntos recalculados y caché limpia.`,
         reset: 1,
       };
     } catch (error) {

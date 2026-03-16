@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Info, Star } from 'lucide-react';
+import { toast } from 'sonner';
 
 /* ======================================================
    MATCHCARD - DISEÑO NIKE STYLE
@@ -126,6 +127,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
     if (h === '' && a === '') {
       // Intención de borrar: Mandamos nulls al padre
+      if (isJoker) setIsJoker(false);
       if (onSavePrediction) onSavePrediction(match.id, null, null);
       return;
     }
@@ -141,10 +143,16 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const toggleJoker = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isInputLocked) return;
+
+    if (homeScore === '' || awayScore === '') {
+      toast.warning('Primero debes ingresar un marcador para usar el comodín');
+      return;
+    }
+
     const newState = !isJoker;
     setIsJoker(newState);
     // Guardar el cambio del joker inmediatamente si hay marcador
-    if (homeScore !== '' && awayScore !== '' && onSavePrediction) {
+    if (onSavePrediction) {
       onSavePrediction(match.id, homeScore, awayScore, newState);
     }
   };

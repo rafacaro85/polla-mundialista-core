@@ -122,18 +122,8 @@ export const useMyPredictions = (leagueId?: string, tournamentId?: string) => {
 
         mutate((currentData: any) => {
             let list = Array.isArray(currentData) ? [...currentData] : [];
-            if (isJoker) {
-                list = list.map((p: any) => {
-                    const pMatchId = p.matchId || p.match?.id;
-                    const pLeagueId = p.leagueId || null;
-                    if (pMatchId !== matchId && pLeagueId === targetLeagueId) {
-                        if (!phase || p.match?.phase === phase) {
-                            return { ...p, isJoker: false };
-                        }
-                    }
-                    return p;
-                });
-            }
+            // Removemos el unset local de isJoker en otros partidos porque 
+            // ahora las reglas permiten múltiples comodines (la API valida límites).
 
             const index = list.findIndex((p: any) =>
                 (p.matchId === matchId || p.match?.id === matchId) &&

@@ -40,7 +40,22 @@ export class TimeLockGuard implements CanActivate {
   }
 
   private async validateMatchLock(matchId: string) {
-    const match = await this.matchesService.findMatchById(matchId);
+    // Validar que el matchId sea un UUID válido antes de hacer query a PostgreSQL
+    // Un ID no-UUID causaría error 22P02 (invalid_text_representation) → 500
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(matchId)) {
+      console.error(`TimeLockGuard: matchId inválido (no UUID): "${matchId}"`);
+      throw new NotFoundException(`ID de partido inválido: ${matchId}`);
+    }
+
+    let match;
+    try {
+      match = await this.matchesService.findMatchById(matchId);
+    } catch (err) {
+      console.error(`TimeLockGuard: Error al buscar partido ${matchId}:`, err.message, err.code);
+      throw err;
+    }
+
     if (!match) {
       throw new NotFoundException(`Partido no encontrado con ID: ${matchId}`);
     }
@@ -62,14 +77,6 @@ export class TimeLockGuard implements CanActivate {
     const now = new Date();
     const matchDate = new Date(match.date);
 
-    // ⏰ PRIORITY 2: Check auto-lock (5 minutes before match per user request)
-    // User requested 5 minutes, but constant was 10. Let's update or keep buffer.
-    // The constant says 10 * 60 * 1000. Let's update logic to be stricter if needed.
-    // User request: "5 minutos antes de comenzar el siguiente". This might refer to phase unlocking.
-    // But for locking prediction: "partidos tienen que estar bloqueados... si ya finalizó".
-    // We already handled FINISHED above.
-
-    // We keep the buffer for "before start" lock.
     const lockTime = new Date(matchDate.getTime() - this.LOCK_BUFFER_MS);
 
     if (now >= lockTime) {

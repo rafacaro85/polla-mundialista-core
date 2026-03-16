@@ -217,6 +217,13 @@ export class PredictionsService {
 
       await queryRunner.commitTransaction();
     } catch (error) {
+      console.error('ERROR upsertPrediction:', {
+        message: error.message,
+        stack: error.stack,
+        query: error.query,
+        detail: error.detail,
+        code: error.code,
+      });
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {

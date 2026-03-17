@@ -523,7 +523,7 @@ export default function LandingPage() {
               </li>
               <li className="flex items-start gap-3 text-[#1E293B] font-medium bg-purple-50 p-3 rounded-lg border border-purple-100 mt-2">
                 <div className="bg-purple-200 p-1 rounded-full text-purple-700 mt-0.5"><Crown size={16} strokeWidth={3} /></div>
-                <div><strong className="text-[#0F172A] block">+ Puntos: Simulador de Fases</strong><span className="text-sm text-[#94A3B8]">Suma puntos extra acertando los equipos clasificados en cada fase final.</span></div>
+                <div><strong className="text-[#0F172A] block">2 Puntos: Aciertos de Fase (Simulador)</strong><span className="text-sm text-[#94A3B8]">Gana 2 puntos fijos por cada equipo que aciertes que avanza de ronda o gana en el bracket final.</span></div>
               </li>
             </ul>
           </div>
@@ -671,7 +671,7 @@ export default function LandingPage() {
           <div className="space-y-2">
             <FAQItem question="¿Qué es el Comodín (Joker)?" answer="Es una estrategia de juego que puedes usar una vez por fase. Al activarlo en tu predicción más segura, duplicará (x2) los puntos que obtengas en ese partido específico. ¡Úsalo sabiamente!" />
             <FAQItem question="¿Qué son las Preguntas Bonus?" answer="Son predicciones adicionales configuradas por el administrador de la polla (ej: ¿Quién será el Campeón? ¿Máximo Goleador?). Estas preguntas otorgan puntos extra al final del torneo." />
-            <FAQItem question="¿Cómo funciona el Simulador de Bracket?" answer="Es una herramienta visual donde predices el camino de los clasificados desde Dieciseisavos de Final hasta la Gran Final. Acertar qué equipos avanzan de ronda te suma puntos adicionales." />
+            <FAQItem question="¿Cómo funciona el Simulador de Bracket?" answer="Es una herramienta visual donde predices el camino de los clasificados desde Dieciseisavos de Final hasta la Gran Final. Por cada equipo que aciertes que avanza de ronda (sin importar la fase) sumarás 2 puntos adicionales a tu puntaje global." />
             <FAQItem question="¿Es seguro ingresar con mi cuenta?" answer="Totalmente. Usamos OAuth 2.0 de Google. No almacenamos contraseñas. Además, el sistema de 'Bloqueo Anti-Fraude' valida la hora atómica para evitar cambios en pronósticos una vez iniciado el partido." />
           </div>
         </div>

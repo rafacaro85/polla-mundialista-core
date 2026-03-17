@@ -335,11 +335,11 @@ export class LeaguesService {
     }
 
     if (!league) {
-      console.log(`[DEBUG] League ${leagueId} not found`);
+      this.logger.log(`[DEBUG] League ${leagueId} not found`);
       throw new NotFoundException(`League with ID ${leagueId} not found.`);
     }
 
-    console.log(
+    this.logger.log(
       `[DEBUG] League Details ${leagueId}: Found ${league.participants?.length || 0} participants`,
     );
 
@@ -464,7 +464,7 @@ export class LeaguesService {
       return cached;
     }
 
-    console.log(`   Iniciando Global Ranking para: ${tournamentId}`);
+    this.logger.log(`   Iniciando Global Ranking para: ${tournamentId}`);
 
     const rawQuery = `
       WITH 
@@ -520,11 +520,11 @@ export class LeaguesService {
       tournamentId,
     ]);
 
-    console.log(`   Global Ranking Count (${tournamentId}):`, results.length);
+    this.logger.log(`   Global Ranking Count (${tournamentId}):`, results.length);
     if (results.length > 0) {
-      console.log('Sample User:', results[0]);
+      this.logger.log('Sample User:', results[0]);
     } else {
-      console.warn('   Global Ranking is EMPTY.');
+      this.logger.warn('   Global Ranking is EMPTY.');
     }
 
     const finalResults = results.map((user: any, index: number) => ({
@@ -563,7 +563,7 @@ export class LeaguesService {
         take: limitNum,
       });
 
-      console.log(`    Found ${leagues.length} leagues (Total: ${total})`);
+      this.logger.log(`    Found ${leagues.length} leagues (Total: ${total})`);
 
       const data = leagues.map((l) => ({
         id: l.id,
@@ -600,8 +600,7 @@ export class LeaguesService {
         },
       };
     } catch (error) {
-      console.error('    CRITICAL ERROR in getAllLeagues:', error);
-      console.error('Error stack:', error.stack);
+      this.logger.error('    CRITICAL ERROR in getAllLeagues:', error);
       throw new InternalServerErrorException(
         `Error al cargar ligas: ${error.message}`,
       );
@@ -609,7 +608,7 @@ export class LeaguesService {
   }
 
   async getMyLeagues(userId: string, tournamentId?: string) {
-    console.log(
+    this.logger.log(
       `[LeaguesService] getMyLeagues for user: ${userId}, tournament: ${tournamentId}`,
     );
 
@@ -681,7 +680,7 @@ export class LeaguesService {
 
       return finalResult;
     } catch (error) {
-      console.error('❌ Error in getMyLeagues:', {
+      this.logger.error('❌ Error in getMyLeagues:', {
         message: error.message,
         detail: error.detail,
         code: error.code,
@@ -914,7 +913,7 @@ export class LeaguesService {
         'League not found or user is not a participant',
       );
     } catch (error) {
-      console.error(
+      this.logger.error(
         `❌ Error in getLeagueForUser (ID: ${leagueId}, User: ${userId}):`,
         error,
       );
@@ -1203,7 +1202,7 @@ export class LeaguesService {
     if (bracketPoints !== undefined) participant.bracketPoints = bracketPoints;
     if (jokerPoints !== undefined) participant.jokerPoints = jokerPoints;
 
-    console.log(
+    this.logger.log(
       `       [updateParticipantScore] Updated ${userId} in ${leagueId}. Tot:${totalPoints} Triv:${triviaPoints} Pred:${predictionPoints} Bra:${bracketPoints} Jok:${jokerPoints}`,
     );
 
@@ -1309,7 +1308,7 @@ export class LeaguesService {
         );
       }
       league.tournamentId = updateLeagueDto.tournamentId;
-      console.log(`🏆 [updateLeague] Cambiando torneo de liga ${leagueId} a ${updateLeagueDto.tournamentId}`);
+      this.logger.log(`🏆 [updateLeague] Cambiando torneo de liga ${leagueId} a ${updateLeagueDto.tournamentId}`);
     }
 
     if (updateLeagueDto.isEnterpriseActive !== undefined) {
@@ -1332,7 +1331,7 @@ export class LeaguesService {
 
     const updatedLeague = await this.leaguesRepository.save(league);
 
-    console.log(`    [updateLeague] Liga actualizada: ${updatedLeague.name}`);
+    this.logger.log(`    [updateLeague] Liga actualizada: ${updatedLeague.name}`);
     return updatedLeague;
   }
 
@@ -1398,7 +1397,7 @@ export class LeaguesService {
     newAdminParticipant.isAdmin = true;
     await this.leagueParticipantsRepository.save(newAdminParticipant);
 
-    console.log(
+    this.logger.log(
       `    [transferOwner] Propiedad transferida de ${oldAdminId} a ${newAdminId}`,
     );
 
@@ -1409,11 +1408,11 @@ export class LeaguesService {
   }
 
   async deleteLeague(leagueId: string, userId: string, userRole: string) {
-    console.log(
+    this.logger.log(
       `    [deleteLeague] Solicitud de eliminacion para leagueId: ${leagueId}`,
     );
-    console.log(`   User ID: ${userId}`);
-    console.log(`   User Role: ${userRole}`);
+    this.logger.log(`   User ID: ${userId}`);
+    this.logger.log(`   User Role: ${userRole}`);
 
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
@@ -1424,14 +1423,14 @@ export class LeaguesService {
       throw new NotFoundException(`Liga con ID ${leagueId} no encontrada`);
     }
 
-    console.log(`   Creator ID: ${league.creator?.id}`);
+    this.logger.log(`   Creator ID: ${league.creator?.id}`);
 
     // Check permissions: Only SUPER_ADMIN (any casing) or League Admin (Creator)
     const isSuperAdmin = userRole?.toUpperCase() === 'SUPER_ADMIN';
     const isCreator = league.creator?.id === userId;
 
     if (!isSuperAdmin && !isCreator) {
-      console.error(
+      this.logger.error(
         `  [deleteLeague] Permiso denegado. No es Super Admin ni Creador.`,
       );
       throw new ForbiddenException(
@@ -1442,7 +1441,7 @@ export class LeaguesService {
     const manager = this.leaguesRepository.manager;
 
     try {
-      console.log(
+      this.logger.log(
         `    [deleteLeague] Iniciando eliminacion nuclear de liga ${leagueId}...`,
       );
 
@@ -1455,14 +1454,14 @@ export class LeaguesService {
             where: { league: { id: leagueId } },
           },
         );
-        console.log(
+        this.logger.log(
           `      Paso 1: Encontrados ${participantsCount} participantes para eliminar.`,
         );
 
         // NOTA: Las predicciones son globales, no se tocan.
 
         // PASO 2: Eliminar respuestas de bonus questions
-        console.log(`     Paso 2: Eliminando respuestas de bonus...`);
+        this.logger.log(`     Paso 2: Eliminando respuestas de bonus...`);
         // Primero buscamos las preguntas de esta liga
         const questions = await transactionalEntityManager.find(BonusQuestion, {
           where: { league: { id: leagueId } },
@@ -1474,84 +1473,84 @@ export class LeaguesService {
           await transactionalEntityManager.delete(UserBonusAnswer, {
             questionId: In(questionIds),
           });
-          console.log(
+          this.logger.log(
             `     Respuestas de bonus eliminadas (${questionIds.length} preguntas afectadas)`,
           );
         } else {
-          console.log(`     No hay respuestas de bonus para eliminar`);
+          this.logger.log(`     No hay respuestas de bonus para eliminar`);
         }
 
         // PASO 2.5: Eliminar comentarios del muro (LeagueComment)
-        console.log(`      Paso 2.5: Eliminando comentarios del muro...`);
+        this.logger.log(`      Paso 2.5: Eliminando comentarios del muro...`);
         await transactionalEntityManager.delete(LeagueComment, {
           league: { id: leagueId },
         });
-        console.log(`     Comentarios eliminados`);
+        this.logger.log(`     Comentarios eliminados`);
 
         // PASO 2.6: Eliminar predicciones especificas de la liga
-        console.log(`      Paso 2.6: Eliminando predicciones de la liga...`);
+        this.logger.log(`      Paso 2.6: Eliminando predicciones de la liga...`);
         await transactionalEntityManager.delete(Prediction, {
           leagueId: leagueId,
         });
-        console.log(`     Predicciones de liga eliminadas`);
+        this.logger.log(`     Predicciones de liga eliminadas`);
 
         // PASO 3: Eliminar bonus questions
-        console.log(`     Paso 3: Eliminando bonus questions...`);
+        this.logger.log(`     Paso 3: Eliminando bonus questions...`);
         await transactionalEntityManager.delete(BonusQuestion, {
           league: { id: leagueId },
         });
-        console.log(`     Bonus questions eliminadas`);
+        this.logger.log(`     Bonus questions eliminadas`);
 
         // PASO 4: Eliminar brackets de usuarios
-        console.log(`      Paso 4: Eliminando brackets...`);
+        this.logger.log(`      Paso 4: Eliminando brackets...`);
         await transactionalEntityManager.delete(UserBracket, {
           league: { id: leagueId },
         });
-        console.log(`     Brackets eliminados`);
+        this.logger.log(`     Brackets eliminados`);
 
         // PASO 5: Eliminar codigos de acceso
-        console.log(`      Paso 5: Eliminando codigos de acceso...`);
+        this.logger.log(`      Paso 5: Eliminando codigos de acceso...`);
         await transactionalEntityManager.delete(AccessCode, {
           league: { id: leagueId },
         });
-        console.log(`     Codigos de acceso eliminados`);
+        this.logger.log(`     Codigos de acceso eliminados`);
 
         // PASO 6: Eliminar transacciones/pagos
-        console.log(`      Paso 6: Eliminando transacciones...`);
+        this.logger.log(`      Paso 6: Eliminando transacciones...`);
         await transactionalEntityManager.delete(Transaction, {
           league: { id: leagueId },
         });
-        console.log(`     Transacciones eliminadas`);
+        this.logger.log(`     Transacciones eliminadas`);
 
         // PASO 7: Eliminar participantes de la liga
-        console.log(`      Paso 7: Eliminando participantes...`);
+        this.logger.log(`      Paso 7: Eliminando participantes...`);
         await transactionalEntityManager.delete(LeagueParticipant, {
           league: { id: leagueId },
         });
-        console.log(`     Participantes eliminados`);
+        this.logger.log(`     Participantes eliminados`);
 
         // PASO 8: FINALMENTE eliminar la liga
-        console.log(`      Paso 8: Eliminando la liga...`);
+        this.logger.log(`      Paso 8: Eliminando la liga...`);
         const deleteResult = await transactionalEntityManager.delete(
           League,
           leagueId,
         );
 
         if (deleteResult.affected === 0) {
-          console.warn(
+          this.logger.warn(
             `   [deleteLeague] No se encontro la liga en el paso final (Ya fue eliminada?)`,
           );
         } else {
-          console.log(`     Liga eliminada`);
+          this.logger.log(`     Liga eliminada`);
         }
       });
 
-      console.log(
+      this.logger.log(
         `  [deleteLeague] Liga ${leagueId} eliminada exitosamente con todas sus dependencias`,
       );
       return { success: true, message: 'Liga eliminada correctamente' };
     } catch (error: any) {
-      console.error('  [deleteLeague] Error FATAL eliminando liga:', error);
+      this.logger.error('  [deleteLeague] Error FATAL eliminando liga:', error);
 
       // Si ya es Forbidden, relanzar
       if (error instanceof ForbiddenException) throw error;
@@ -1729,7 +1728,7 @@ export class LeaguesService {
         departmentRanking,
       };
     } catch (error) {
-      console.error('Error in getAnalyticsSummary:', error);
+      this.logger.error('Error in getAnalyticsSummary:', error);
       // Return empty structure on error to prevent UI crash
       return {
         totalParticipants: 0,

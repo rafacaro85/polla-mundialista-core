@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In, IsNull } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
@@ -22,6 +22,8 @@ import { League } from '../database/entities/league.entity';
 
 @Injectable()
 export class MatchesService {
+  private readonly logger = new Logger(MatchesService.name);
+
   constructor(
     @InjectRepository(Match)
     private matchesRepository: Repository<Match>,
@@ -163,7 +165,7 @@ export class MatchesService {
       // 4. Calcular puntos de bracket (fuera de la transacción)
       const winner = homeScore > awayScore ? match.homeTeam : match.awayTeam;
       await this.bracketsService.calculateBracketPoints(matchId, winner);
-      console.log(
+      this.logger.log(
         `🏆 Bracket points calculated for match ${matchId}, winner: ${winner}`,
       );
 
@@ -173,7 +175,7 @@ export class MatchesService {
           match.phase,
           match.tournamentId,
         );
-        console.log(`🔓 Checked phase unlock for ${match.phase}`);
+        this.logger.log(`🔓 Checked phase unlock for ${match.phase}`);
       }
 
       // 6. Trigger automático de promoción si es partido de grupo
@@ -181,7 +183,7 @@ export class MatchesService {
         this.tournamentService
           .promoteFromGroup(match.group, match.tournamentId)
           .catch((err) =>
-            console.error(`❌ Error promoting from group ${match.group}:`, err),
+            this.logger.error(`❌ Error promoting from group ${match.group}:`, err),
           );
       }
 
@@ -239,7 +241,7 @@ export class MatchesService {
         'match.finished',
         new MatchFinishedEvent(savedMatch, match.homeScore, match.awayScore),
       );
-      console.log(`⚡ Event 'match.finished' emitted for match ${id}`);
+      this.logger.log(`⚡ Event 'match.finished' emitted for match ${id}`);
     }
 
     return savedMatch;
@@ -882,7 +884,7 @@ export class MatchesService {
         }
       }
 
-      console.log(
+      this.logger.log(
         `🤖 [SIMULATOR] Iniciando simulación para fase: ${targetPhase} (${tid})`,
       );
 
@@ -890,7 +892,7 @@ export class MatchesService {
       const integrityCheck = await this.ensureTournamentIntegrity(tid);
       if (integrityCheck.repaired) {
         // If structure was repaired, we must re-sync any pending promotions
-        console.log(
+        this.logger.log(
           `🔄 [SIMULATOR] Integrity repair detected for ${tid}. Re-running promotions to fill new slots...`,
         );
         await this.tournamentService.promotePhaseWinners('ROUND_16', tid);
@@ -926,7 +928,7 @@ export class MatchesService {
         const prevIndex = phaseOrder.indexOf(targetPhase) - 1;
         if (prevIndex >= 0) {
           const prevPhase = phaseOrder[prevIndex];
-          console.log(
+          this.logger.log(
             `🚑 [SELF-HEALING] Verificando propagación desde ${prevPhase}...`,
           );
           if (prevPhase === 'GROUP') {
@@ -953,7 +955,7 @@ export class MatchesService {
         },
       });
 
-      console.log(
+      this.logger.log(
         `🤖 [SIMULATOR] Encontrados ${matches.length} partidos pendientes en fase ${targetPhase}`,
       );
 
@@ -1018,7 +1020,7 @@ export class MatchesService {
           updatedCount++;
 
           if (updatedCount % 10 === 0) {
-            console.log(
+            this.logger.log(
               `🤖 [SIMULATOR] Progreso: ${updatedCount}/${matches.length} partidos procesados...`,
             );
           }
@@ -1034,7 +1036,7 @@ export class MatchesService {
           resolvedTid,
         );
       if (isPhaseComplete) {
-        console.log(
+        this.logger.log(
           `✅ Phase ${targetPhase} simulation complete. Promoting and Unlocking next phase...`,
         );
 
@@ -1061,7 +1063,7 @@ export class MatchesService {
         updated: updatedCount,
       };
     } catch (error) {
-      console.error(
+      this.logger.error(
         `❌ [SIMULATOR ERROR] Error simulando resultados para fase ${phase}:`,
         error,
       );
@@ -1071,7 +1073,7 @@ export class MatchesService {
           JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
         );
       } catch (e) {
-        console.error('Log write failed', e);
+        this.logger.error('Log write failed', e);
       }
       throw error;
     }
@@ -1085,7 +1087,7 @@ export class MatchesService {
     await queryRunner.startTransaction();
 
     try {
-      console.log(
+      this.logger.log(
         `🧹 [RESET] Iniciando reseteo de partidos. TournamentId: ${tid || 'ALL'}`,
       );
 
@@ -1155,7 +1157,7 @@ export class MatchesService {
       await qbBrackets.execute();
 
       // NEW 3.5: Limpiar respuestas de Bonus (esto suele ensuciar simulaciones)
-      console.log('🧹 [RESET] Eliminando respuestas de bonus...');
+      this.logger.log('🧹 [RESET] Eliminando respuestas de bonus...');
       const bonusSubQuery = queryRunner.manager
         .createQueryBuilder()
         .subQuery()
@@ -1211,7 +1213,7 @@ export class MatchesService {
       // 5. RECALCULAR Puntos de Participantes
       // Ponemos TODO en 0 para las columnas de caché de participantes del torneo afectado.
       // Así evitamos que queden rastros de la simulación.
-      console.log('🔄 [RESET] Reseteando columnas de puntos en participantes...');
+      this.logger.log('🔄 [RESET] Reseteando columnas de puntos en participantes...');
 
       // Estrategia Nuclear: Si es para un torneo, reseteamos participants de ese torneo.
       // Nota: participants están ligados a leagues, y leagues a tournaments.
@@ -1232,7 +1234,7 @@ export class MatchesService {
       // Pero como ya seteamos predictions.points=0 arriba, este recalculo dejará los puntos del torneo en 0 
       // y mantendrá los de otros torneos si los hubiera.
       
-      console.log('🔄 [RESET] Recalculando puntos remanentes (otros torneos)...');
+      this.logger.log('🔄 [RESET] Recalculando puntos remanentes (otros torneos)...');
 
       // Recalcular predictionPoints + jokerPoints combinados
       await queryRunner.query(`
@@ -1271,7 +1273,7 @@ export class MatchesService {
       await queryRunner.commitTransaction();
 
       // 6. INVALIDACIÓN DE CACHÉ NUCLEAR
-      console.log('🧹 [RESET] Invalidando caché de rankings...');
+      this.logger.log('🧹 [RESET] Invalidando caché de rankings...');
       try {
         const currentTid = tid || DEFAULT_TOURNAMENT_ID;
         await this.cacheManager.del(`ranking:global:${currentTid}`);
@@ -1286,9 +1288,9 @@ export class MatchesService {
         for (const league of affectedLeagues) {
            await this.cacheManager.del(`ranking:league:${league.id}`);
         }
-        console.log(`✅ [RESET] Caché invalidada para ${affectedLeagues.length} ligas.`);
+        this.logger.log(`✅ [RESET] Caché invalidada para ${affectedLeagues.length} ligas.`);
       } catch (cacheErr) {
-        console.error('⚠️ [RESET] Error invalidando caché (no crítico):', cacheErr);
+        this.logger.error('⚠️ [RESET] Error invalidando caché (no crítico):', cacheErr);
       }
 
       return {
@@ -1296,7 +1298,7 @@ export class MatchesService {
         reset: 1,
       };
     } catch (error) {
-      console.error('❌ Error profundo en resetAllMatches:', error);
+      this.logger.error('❌ Error profundo en resetAllMatches:', error);
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -1311,7 +1313,7 @@ export class MatchesService {
       .andWhere("m.date >= '2026-06-28'")
       .getMany();
 
-    console.log(`Found ${badGroupMatches.length} misplaced group matches.`);
+    this.logger.log(`Found ${badGroupMatches.length} misplaced group matches.`);
 
     // Fix: Move them to June 11 (Opening day default)
     // This clears the schedule for the Knockout Phase.
@@ -1334,7 +1336,7 @@ export class MatchesService {
    * This is an IDEMPOTENT operation safe to run multiple times.
    */
   async ensureTournamentIntegrity(tid: string = DEFAULT_TOURNAMENT_ID) {
-    console.log(`🛡️ [INTEGRITY] Checking Tournament Structure for ${tid}...`);
+    this.logger.log(`🛡️ [INTEGRITY] Checking Tournament Structure for ${tid}...`);
 
     // En el Mundial 2026 esperamos: 16 R32, 8 R16, 4 QF, 2 SEMI, 1 FINAL, 1 3RD_PLACE
     const counts = await this.matchesRepository
@@ -1357,7 +1359,7 @@ export class MatchesService {
       (tid === 'UCL2526' && (phaseCounts['ROUND_16'] || 0) < 16); // UCL 25/26 beta has 16 matches for R16 (8 ida + 8 vuelta)
 
     if (isCorrupted) {
-      console.log(
+      this.logger.log(
         `🚨 [INTEGRITY] DETECTED MISSING PHASES IN ${tid}. Auto-Repair DISABLED to prevent data loss.`,
       );
       return {
@@ -1367,7 +1369,7 @@ export class MatchesService {
 
       /*
       // 0. SAFETY: Unlink Foreign Keys before deletion
-      console.log('🧹 [INTEGRITY] Unlinking FK references...');
+      this.logger.log('🧹 [INTEGRITY] Unlinking FK references...');
       const phasesToDelete = [
         'ROUND_32',
         'ROUND_16',
@@ -1395,7 +1397,7 @@ export class MatchesService {
       });
 
       // 2. Re-create using the official seeder logic
-      console.log(`🔨 [INTEGRITY] Re-seeding knockout structure for ${tid}...`);
+      this.logger.log(`🔨 [INTEGRITY] Re-seeding knockout structure for ${tid}...`);
 
       if (tid === 'WC2026') {
         // For World Cup, we use the standard 32-team knockout (starts at R32)
@@ -1405,17 +1407,17 @@ export class MatchesService {
         await this.seedUCLKnockout();
       }
 
-      console.log('✅ [INTEGRITY] Tournament structure repaired.');
+      this.logger.log('✅ [INTEGRITY] Tournament structure repaired.');
       return { repaired: true, message: 'Structure restored from seeds.' };
       */
     }
 
-    console.log('✅ [INTEGRITY] Structure appears healthy.');
+    this.logger.log('✅ [INTEGRITY] Structure appears healthy.');
     return { repaired: false, message: 'Structure OK.' };
   }
 
   async rebuildBrackets(tid: string = DEFAULT_TOURNAMENT_ID) {
-    console.log(`🔄 STARTING EMERGENCY BRACKET REBUILD FOR ${tid}`);
+    this.logger.log(`🔄 STARTING EMERGENCY BRACKET REBUILD FOR ${tid}`);
     // 1. Resetear Bracket (Borrar y Crear placeholders limpios)
     await this.seedRound32(tid);
 
@@ -1428,12 +1430,12 @@ export class MatchesService {
     // 3. Promover Terceros
     await this.tournamentService.promoteBestThirds(tid);
 
-    console.log(`✅ EMERGENCY BRACKET REBUILD COMPLETE FOR ${tid}`);
+    this.logger.log(`✅ EMERGENCY BRACKET REBUILD COMPLETE FOR ${tid}`);
     return { message: `Brackets Rebuilt Cleanly for ${tid}` };
   }
 
   async fixUCLMatchData() {
-    console.log(
+    this.logger.log(
       '🔧 [FIX] Running manual fix for UCL Matches tagged as WC2026...',
     );
     const uclTeams = [
@@ -1474,7 +1476,7 @@ export class MatchesService {
       .execute();
 
     const total = (res1.affected || 0) + (res2.affected || 0);
-    console.log(`✅ [FIX] Updated ${total} UCL matches found in WC2026.`);
+    this.logger.log(`✅ [FIX] Updated ${total} UCL matches found in WC2026.`);
 
     return {
       message: `Corregidos ${total} partidos de Champions que estaban en Mundial`,
@@ -1483,7 +1485,7 @@ export class MatchesService {
   }
 
   async fixEmptyTeamFields() {
-    console.log('🔧 [FIX] Fixing empty team fields in knockout matches...');
+    this.logger.log('🔧 [FIX] Fixing empty team fields in knockout matches...');
     const knockoutPhases = [
       'ROUND_32',
       'ROUND_16',
@@ -1509,10 +1511,10 @@ export class MatchesService {
         .execute();
 
       totalFixed += result.affected || 0;
-      console.log(`✅ [FIX] Fixed ${result.affected || 0} matches in ${phase}`);
+      this.logger.log(`✅ [FIX] Fixed ${result.affected || 0} matches in ${phase}`);
     }
 
-    console.log(`✅ [FIX] Total matches fixed: ${totalFixed}`);
+    this.logger.log(`✅ [FIX] Total matches fixed: ${totalFixed}`);
     return {
       message: 'Fixed empty team fields',
       totalFixed,
@@ -1557,7 +1559,7 @@ export class MatchesService {
         homeTeam: savedMatch.homeTeam,
         awayTeam: savedMatch.awayTeam,
       });
-      console.log(
+      this.logger.log(
         `⚡ Event 'match.teams.assigned' emitted for ${savedMatch.homeTeam} vs ${savedMatch.awayTeam}`,
       );
     }

@@ -266,11 +266,11 @@ export default function InstructionsPage() {
                                     </thead>
                                     <tbody className="divide-y divide-slate-700 bg-slate-800">
                                         <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Dieciseisavos (Round 32)</td><td className="p-3 text-center text-white font-bold">2</td></tr>
-                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Octavos de Final</td><td className="p-3 text-center text-white font-bold">3</td></tr>
-                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Cuartos de Final</td><td className="p-3 text-center text-white font-bold">6</td></tr>
-                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Semifinal</td><td className="p-3 text-center text-white font-bold">10</td></tr>
-                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">3er Puesto</td><td className="p-3 text-center text-white font-bold">15</td></tr>
-                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3 text-[#00E676] font-bold">GRAN FINAL</td><td className="p-3 text-center text-[#00E676] font-bold text-lg">20</td></tr>
+                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Octavos de Final</td><td className="p-3 text-center text-white font-bold">2</td></tr>
+                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Cuartos de Final</td><td className="p-3 text-center text-white font-bold">2</td></tr>
+                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">Semifinal</td><td className="p-3 text-center text-white font-bold">2</td></tr>
+                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3">3er Puesto</td><td className="p-3 text-center text-white font-bold">2</td></tr>
+                                        <tr className="hover:bg-slate-700/30 transition-colors"><td className="p-3 text-[#00E676] font-bold">GRAN FINAL</td><td className="p-3 text-center text-[#00E676] font-bold text-lg">2</td></tr>
                                     </tbody>
                                 </table>
                             </div>

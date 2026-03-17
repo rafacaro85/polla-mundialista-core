@@ -102,11 +102,13 @@ export class AuthService {
       const verificationCode = Math.floor(
         100000 + Math.random() * 900000,
       ).toString();
+      const verificationCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
       // Actualizar usuario con contraseña y código de verificación
       const updatedUser = await this.usersService.update(existingUser, {
         password: hashedPassword,
         verificationCode,
+        verificationCodeExpiresAt,
         isVerified: false, // Requiere verificación para el método de contraseña
         fullName: registerDto.name || existingUser.fullName, // Actualizar nombre si se proporciona
         phoneNumber: registerDto.phoneNumber || existingUser.phoneNumber,
@@ -136,6 +138,7 @@ export class AuthService {
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
+    const verificationCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
     const user = await this.usersService.create(
       registerDto.email,
@@ -149,6 +152,7 @@ export class AuthService {
     // Guardar código de verificación
     await this.usersService.update(user, {
       verificationCode,
+      verificationCodeExpiresAt,
       isVerified: false,
     });
 
@@ -195,10 +199,15 @@ export class AuthService {
       throw new BadRequestException('Invalid verification code');
     }
 
+    if (user.verificationCodeExpiresAt && user.verificationCodeExpiresAt < new Date()) {
+      throw new BadRequestException('El código de verificación ha expirado. Por favor solicita uno nuevo.');
+    }
+
     // Verificar usuario
     const updatedUser = await this.usersService.update(user, {
       isVerified: true,
       verificationCode: null,
+      verificationCodeExpiresAt: null,
     });
 
     return this.login(updatedUser);
@@ -217,7 +226,12 @@ export class AuthService {
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-    await this.usersService.update(user, { verificationCode });
+    const verificationCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    await this.usersService.update(user, { 
+      verificationCode, 
+      verificationCodeExpiresAt 
+    });
 
     // Enviar código en segundo plano
     this.mailService

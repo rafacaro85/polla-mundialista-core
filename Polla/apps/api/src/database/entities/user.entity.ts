@@ -56,6 +56,9 @@ export class User {
   @Column({ name: 'verification_code', type: 'varchar', nullable: true })
   verificationCode?: string | null;
 
+  @Column({ type: 'timestamp', nullable: true })
+  verificationCodeExpiresAt?: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 

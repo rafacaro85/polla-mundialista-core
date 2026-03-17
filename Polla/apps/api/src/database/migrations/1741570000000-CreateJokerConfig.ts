@@ -4,6 +4,18 @@ export class CreateJokerConfig1741570000000 implements MigrationInterface {
   name = 'CreateJokerConfig1741570000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const tableExists = await queryRunner.query(`
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'joker_config'
+        );
+    `);
+    
+    if (tableExists[0]?.exists) {
+        console.log("Skipping CreateJokerConfig since table already exists.");
+        return;
+    }
+
     await queryRunner.query(`
       CREATE TABLE "joker_config" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),

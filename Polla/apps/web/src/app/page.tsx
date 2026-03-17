@@ -332,7 +332,7 @@ export default function LandingPage() {
           <LogoLight />
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-[#94A3B8]">
             <a href="#como-se-juega" className="hover:text-[#00E676] transition-colors">Cómo Jugar</a>
-            <a href="#comunidad" className="hover:text-[#00E676] transition-colors text-[#00E676]">Torneo Global</a>
+            <a href="#comunidad" className="hover:text-[#00E676] transition-colors text-[#00E676]">Ligas Privadas</a>
             <Link href="/planes" className="hover:text-[#00E676] transition-colors">Planes</Link>
             <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
             <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
@@ -347,7 +347,7 @@ export default function LandingPage() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-[#94A3B8]/20 p-6 flex flex-col gap-4 shadow-xl absolute w-full animate-in slide-in-from-top-5 top-20 left-0 z-40">
             <a href="#como-se-juega" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Cómo Jugar</a>
-            <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Torneo Global</a>
+            <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Ligas Privadas</a>
             <Link href="/planes" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</Link>
             <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
             <button
@@ -392,7 +392,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- SECCIÓN: TORNEO GLOBAL Y COMUNIDAD --- */}
+      {/* --- SECCIÓN: LIGAS PRIVADAS Y COMUNIDAD --- */}
       <section id="comunidad" className="py-20 bg-[#0F172A] text-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
           <div className="absolute top-10 left-10 w-64 h-64 bg-[#1E293B] rounded-full blur-[100px]"></div>
@@ -408,26 +408,26 @@ export default function LandingPage() {
                 <RankingCardVisual />
               </div>
               <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 absolute">
-                <Globe size={48} className="text-[#00E676] animate-spin-slow" />
+                <Users size={48} className="text-[#00E676] animate-pulse" />
               </div>
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00E676]/20 border border-[#00E676]/50 text-[#00E676] text-[10px] font-bold uppercase tracking-widest mb-6">
-                <Globe size={12} /> Comunidad Global
+                <Users size={12} /> Ligas Privadas
               </div>
               <h2 className="font-russo text-4xl lg:text-5xl mb-6 leading-tight">
-                COMPITE CONTRA <br /> <span className="text-[#00E676]">TODO EL MUNDO</span>
+                COMPITE CON <br /> <span className="text-[#00E676]">LOS TUYOS</span>
               </h2>
               <p className="text-[#94A3B8] text-lg mb-8 leading-relaxed">
-                Al registrarte, no solo juegas con tus amigos. Automáticamente participas en la <strong>Polla Global</strong> contra todos los usuarios de la plataforma.
+                Crea tu propia liga privada y compite contra tus <strong>compañeros de trabajo, amigos del barrio o tu familia</strong>. Demuestra quién es el verdadero experto en fútbol en un entorno cerrado y exclusivo.
               </p>
               <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 flex items-center gap-6">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#FACC15] to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Gift size={32} className="text-white" />
+                  <Trophy size={32} className="text-white" />
                 </div>
                 <div>
-                  <h4 className="font-black text-xl mb-1 text-white">Premio Sorpresa al Ganador</h4>
-                  <p className="text-[#94A3B8] text-sm">El usuario con más puntos al finalizar el mundial se lleva un premio increíble cortesía de la plataforma.</p>
+                  <h4 className="font-black text-xl mb-1 text-white">Honor y Gloria</h4>
+                  <p className="text-[#94A3B8] text-sm">El ganador se lleva el respeto de todos (¡y el premio que ustedes mismos definan en su grupo!).</p>
                 </div>
               </div>
             </div>

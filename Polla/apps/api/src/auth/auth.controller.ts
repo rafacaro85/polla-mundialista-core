@@ -51,16 +51,22 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: { user: User }, @Res() res: Response) {
-    const { access_token } = await this.authService.googleLogin(req.user);
-    const isProduction = process.env.NODE_ENV === 'production';
+    try {
+      const { access_token } = await this.authService.googleLogin(req.user);
+      const isProduction = process.env.NODE_ENV === 'production';
 
-    // Limpiar cookie de sesión de OAuth y setear token como httpOnly
-    res.clearCookie('connect.sid');
-    res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
+      // Limpiar cookie de sesión de OAuth y setear token como httpOnly
+      res.clearCookie('connect.sid');
+      res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-    console.log('🔄 Redirigiendo a frontend (sin token en URL):', `${frontendUrl}/auth/success`);
-    return res.redirect(`${frontendUrl}/auth/success`);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+      console.log('🔄 Redirigiendo a frontend (sin token en URL):', `${frontendUrl}/auth/success`);
+      return res.redirect(`${frontendUrl}/auth/success`);
+    } catch (error) {
+      console.error('❌ [AuthController Google Redirect] Error:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+      return res.redirect(`${frontendUrl}/auth/error?message=GoogleLoginFailed`);
+    }
   }
 
   @Post('register')

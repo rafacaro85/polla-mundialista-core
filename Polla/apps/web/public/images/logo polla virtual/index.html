@@ -1,0 +1,25 @@
+<html><body style='background: #fff; padding: 20px;'>
+<script>
+fetch('./').then(r => r.text()).then(t => {
+// just hardcode the ones we saw
+const files = [
+"LPV_LOGO (1).png",
+"LPV_LOGO.png",
+"LPV_LOGO1.png",
+"LPV_LOGO2.png",
+"LPV_LOGO3.png",
+"LPV_LOGO4.png",
+"LPV_LOGO5.png",
+"LPV_LOGO6.png",
+"LPV_LOGO7.png",
+"LPV_LOGO8.png",
+"LPV_LOGO9.png"
+];
+let html = '';
+files.forEach(f => {
+    html += `<div style='margin-bottom: 50px;'><h2>${f}</h2><img src='${f}' style='max-width: 400px; border: 1px solid #ccc; background: #eee;' /></div>`;
+});
+document.body.innerHTML += html;
+});
+</script>
+</body></html>

@@ -59,6 +59,8 @@ export class LeaguesService {
     @InjectDataSource() private dataSource: DataSource,
   ) {}
 
+  private rankingInFlight = new Map<string, Promise<any>>();
+
   async createLeague(
     userId: string,
     createLeagueDto: CreateLeagueDto,
@@ -948,7 +950,22 @@ export class LeaguesService {
       return cached;
     }
 
-    // ... rest of logic
+    // Single-flight deduplication
+    if (this.rankingInFlight.has(cacheKey)) {
+      return this.rankingInFlight.get(cacheKey);
+    }
+
+    const promise = this._computeLeagueRanking(leagueId, userId, cacheKey);
+    this.rankingInFlight.set(cacheKey, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.rankingInFlight.delete(cacheKey);
+    }
+  }
+
+  private async _computeLeagueRanking(leagueId: string, userId: string, cacheKey: string) {
 
     const league = await this.leaguesRepository.findOne({
       where: { id: leagueId },
@@ -965,38 +982,66 @@ export class LeaguesService {
     const activeParticipants = participants.filter((p) => !p.isBlocked);
     const userIds = activeParticipants.map((p) => p.user.id);
 
-    // Goles Reales para Tiebreaker
-    const goalsResult = await this.leaguesRepository.manager
-      .createQueryBuilder(Match, 'm')
-      .select(
-        'SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))',
-        'total',
-      )
-      .where("m.status IN ('FINISHED', 'COMPLETED')")
-      .andWhere('m.tournamentId = :tournamentId', {
-        tournamentId: league.tournamentId,
-      })
-      .getRawOne();
-    const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
-
-    // Prediction Points (Improved to include Global Fallback and Joker separation)
+    // Paralelizamos todas las consultas a la base de datos
     const isGlobal = league.type === LeagueType.GLOBAL;
-    const allPredictions = await this.predictionRepository
-      .createQueryBuilder('p')
-      .innerJoin('p.match', 'm')
-      .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId', 'p.isJoker'])
-      .where('p.userId IN (:...userIds)', { userIds })
-      .andWhere(
-        isGlobal
-          ? 'p.leagueId IS NULL'
-          : '(p.leagueId = :leagueId OR p.leagueId IS NULL)',
-        { leagueId, tournamentId: league.tournamentId },
-      )
-      .andWhere('m.tournamentId = :tournamentId', {
-        tournamentId: league.tournamentId,
-      })
-      .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
-      .getRawMany();
+    const [goalsResult, allPredictions, bracketPointsRows, bonusPointsRows] = await Promise.all([
+      // Goles Reales para Tiebreaker
+      this.leaguesRepository.manager
+        .createQueryBuilder(Match, 'm')
+        .select(
+          'SUM(COALESCE(m.homeScore, 0) + COALESCE(m.awayScore, 0))',
+          'total',
+        )
+        .where("m.status IN ('FINISHED', 'COMPLETED')")
+        .andWhere('m.tournamentId = :tournamentId', {
+          tournamentId: league.tournamentId,
+        })
+        .getRawOne(),
+        
+      // Prediction Points (Improved to include Global Fallback and Joker separation)
+      this.predictionRepository
+        .createQueryBuilder('p')
+        .innerJoin('p.match', 'm')
+        .select(['p.userId', 'p.matchId', 'p.points', 'p.leagueId', 'p.isJoker'])
+        .where('p.userId IN (:...userIds)', { userIds })
+        .andWhere(
+          isGlobal
+            ? 'p.leagueId IS NULL'
+            : '(p.leagueId = :leagueId OR p.leagueId IS NULL)',
+          { leagueId, tournamentId: league.tournamentId },
+        )
+        .andWhere('m.tournamentId = :tournamentId', {
+          tournamentId: league.tournamentId,
+        })
+        .andWhere("m.status IN ('FINISHED', 'COMPLETED')")
+        .getRawMany(),
+
+      // Bracket Points
+      this.userRepository.manager
+        .createQueryBuilder(UserBracket, 'b')
+        .select('b.userId', 'userId')
+        .addSelect('MAX(b.points)', 'points')
+        .where('b.userId IN (:...userIds)', { userIds })
+        .andWhere('(b.leagueId = :leagueId OR b.leagueId IS NULL)', { leagueId })
+        .andWhere('b.tournamentId = :tournamentId', {
+          tournamentId: league.tournamentId,
+        })
+        .groupBy('b.userId')
+        .getRawMany(),
+
+      // Bonus Points
+      this.userRepository.manager
+        .createQueryBuilder(UserBonusAnswer, 'uba')
+        .innerJoin('uba.question', 'bq')
+        .select('uba.userId', 'userId')
+        .addSelect('SUM(uba.pointsEarned)', 'points')
+        .where('uba.userId IN (:...userIds)', { userIds })
+        .andWhere('bq.leagueId = :leagueId', { leagueId })
+        .groupBy('uba.userId')
+        .getRawMany()
+    ]);
+
+    const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
 
     // Map to keep track of points: { userId: { matchId: { points, isJoker } } }
     // We prioritize league-specific predictions over global fallback
@@ -1057,19 +1102,6 @@ export class LeaguesService {
       predJokerMap.set(uId, jokerTotal);
     });
 
-    // Bracket Points
-    const bracketPointsRows = await this.userRepository.manager
-      .createQueryBuilder(UserBracket, 'b')
-      .select('b.userId', 'userId')
-      .addSelect('MAX(b.points)', 'points')
-      .where('b.userId IN (:...userIds)', { userIds })
-      .andWhere('(b.leagueId = :leagueId OR b.leagueId IS NULL)', { leagueId })
-      .andWhere('b.tournamentId = :tournamentId', {
-        tournamentId: league.tournamentId,
-      }) // FIX: Filter by Tournament
-      .groupBy('b.userId')
-      .getRawMany();
-
     const bracketMap = new Map(
       bracketPointsRows.map((r) => [
         r.userId || r.userid,
@@ -1077,23 +1109,13 @@ export class LeaguesService {
       ]),
     );
 
-    // Bonus Points
-    const bonusPointsRows = await this.userRepository.manager
-      .createQueryBuilder(UserBonusAnswer, 'uba')
-      .innerJoin('uba.question', 'bq')
-      .select('uba.userId', 'userId')
-      .addSelect('SUM(uba.pointsEarned)', 'points')
-      .where('uba.userId IN (:...userIds)', { userIds })
-      .andWhere('bq.leagueId = :leagueId', { leagueId })
-      .groupBy('uba.userId')
-      .getRawMany();
-
     const bonusMap = new Map(
       bonusPointsRows.map((r) => [
         r.userId || r.userid,
         Number(r.points || r.POINTS || 0),
       ]),
     );
+
 
     const finalRanking = activeParticipants.map((lp) => {
       const uId = lp.user.id;

@@ -125,7 +125,9 @@ import { HealthController } from './health/health.controller';
                 ? { rejectUnauthorized: false }
                 : undefined,
           extra: {
-            max: 50, // Aumentado para soportar alta concurrencia
+            max: 10,
+            min: 2,
+            idleTimeoutMillis: 30000,
             connectionTimeoutMillis: 5000,
           },
         };

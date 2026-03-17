@@ -1,10 +1,8 @@
-import {
-  Injectable,
+import { Injectable,
   BadRequestException,
   NotFoundException,
   ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+  InternalServerErrorException, Logger } from '@nestjs/common';;
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In, DataSource } from 'typeorm';
 import { Prediction } from '../database/entities/prediction.entity';
@@ -18,6 +16,8 @@ import { BracketsService } from '../brackets/brackets.service';
 
 @Injectable()
 export class PredictionsService {
+  private readonly logger = new Logger(PredictionsService.name);
+
   constructor(
     @InjectRepository(Prediction)
     private predictionsRepository: Repository<Prediction>,
@@ -218,7 +218,7 @@ export class PredictionsService {
 
       await queryRunner.commitTransaction();
     } catch (error) {
-      console.error('ERROR upsertPrediction:', {
+      this.logger.error('ERROR upsertPrediction:', {
         message: error.message,
         stack: error.stack,
         query: error.query,
@@ -343,7 +343,7 @@ export class PredictionsService {
         tId = null;
       }
 
-      console.log(
+      this.logger.log(
         `🚀 [CLEAR DEBUG] Normalizado -> User: ${userId} | League: ${lId} | Tournament: ${tId}`,
       );
 
@@ -355,7 +355,7 @@ export class PredictionsService {
           tId || undefined,
         );
       } catch (e) {
-        console.error('❌ Error en clearBracket:', e.message);
+        this.logger.error('❌ Error en clearBracket:', e.message);
       }
 
       // 3. Limpieza de Marcadores (Scores)
@@ -364,14 +364,14 @@ export class PredictionsService {
         relations: ['match'],
       });
 
-      console.log(
+      this.logger.log(
         `📊 [CLEAR DEBUG] DB Total: ${allUserPredictions.length}. Filtros: T=${tId}, L=${lId}`,
       );
 
       // Log sample to see what's in DB
       if (allUserPredictions.length > 0) {
         const sample = allUserPredictions[0];
-        console.log(
+        this.logger.log(
           `📝 [CLEAR DEBUG] Sample DB Prediction: ID=${sample.id}, T=${sample.tournamentId}, L=${sample.leagueId}`,
         );
       }
@@ -408,15 +408,15 @@ export class PredictionsService {
         return true;
       });
 
-      console.log(
+      this.logger.log(
         `🔥 [CLEAR DEBUG] ${toDelete.length} marcadores pasan los filtros.`,
       );
 
       // Log details if nothing found to delete but there are predictions
       if (toDelete.length === 0 && allUserPredictions.length > 0) {
-        console.log('🔍 [CLEAR DEBUG] ¿Por qué no se borró nada?');
+        this.logger.log('🔍 [CLEAR DEBUG] ¿Por qué no se borró nada?');
         allUserPredictions.slice(0, 3).forEach((p) => {
-          console.log(
+          this.logger.log(
             `   - Pred ID: ${p.id} | T_Pred: ${p.tournamentId} | T_Match: ${p.match?.tournamentId} | League: ${p.leagueId}`,
           );
         });
@@ -425,7 +425,7 @@ export class PredictionsService {
       if (toDelete.length > 0) {
         const ids = toDelete.map((p) => p.id);
         await this.predictionsRepository.delete(ids);
-        console.log(`✅ [CLEAR DEBUG] Borrados IDs: ${ids.join(', ')}`);
+        this.logger.log(`✅ [CLEAR DEBUG] Borrados IDs: ${ids.join(', ')}`);
       }
 
       return {
@@ -434,7 +434,7 @@ export class PredictionsService {
         count: toDelete.length,
       };
     } catch (error) {
-      console.error('🔥 [CLEAR DEBUG FATAL]:', error);
+      this.logger.error('🔥 [CLEAR DEBUG FATAL]:', error);
       throw new InternalServerErrorException(
         `Fallo crítico al limpiar: ${error.message}`,
       );

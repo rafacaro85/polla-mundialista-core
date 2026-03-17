@@ -1,10 +1,8 @@
-import {
-  Injectable,
+import { Injectable,
   NotFoundException,
   ForbiddenException,
   InternalServerErrorException,
-  BadRequestException,
-} from '@nestjs/common';
+  BadRequestException, Logger } from '@nestjs/common';;
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { UserBracket } from '../database/entities/user-bracket.entity';
@@ -20,6 +18,8 @@ const UUID_REGEX =
 
 @Injectable()
 export class BracketsService {
+  private readonly logger = new Logger(BracketsService.name);
+
   constructor(
     @InjectRepository(UserBracket)
     private userBracketRepository: Repository<UserBracket>,
@@ -105,7 +105,7 @@ export class BracketsService {
       }
       return await this.userBracketRepository.save(bracket);
     } catch (error) {
-      console.error('Error saving bracket:', error);
+      this.logger.error('Error saving bracket:', error);
       throw error;
     }
   }
@@ -124,7 +124,7 @@ export class BracketsService {
 
     // Get all match IDs from picks
     const rawIds = Object.keys(picks);
-    console.log(
+    this.logger.log(
       `[DEBUG] SaveBracket - Raw Keys (${rawIds.length}):`,
       rawIds.slice(0, 3),
     ); // Log first 3
@@ -132,16 +132,16 @@ export class BracketsService {
     // FILTER: Only valid UUIDs to prevent DB errors
     const matchIds = rawIds.filter((id) => {
       const isValid = UUID_REGEX.test(id);
-      if (!isValid) console.warn(`[WARN] Invalid UUID filtered: ${id}`);
+      if (!isValid) this.logger.warn(`[WARN] Invalid UUID filtered: ${id}`);
       return isValid;
     });
 
-    console.log(
+    this.logger.log(
       `[DEBUG] SaveBracket - Valid UUIDs: ${matchIds.length} / ${rawIds.length}`,
     );
 
     if (matchIds.length === 0) {
-      console.warn(
+      this.logger.warn(
         '[WARN] SaveBracket - No valid match IDs found after filtering.',
       );
       if (rawIds.length > 0) {
@@ -158,7 +158,7 @@ export class BracketsService {
     });
 
     if (matches.length === 0) {
-      console.warn(
+      this.logger.warn(
         `[WARN] SaveBracket - ALL ${matchIds.length} match IDs were rejected (not found in DB). First ID: ${matchIds[0]}`,
       );
       throw new BadRequestException(
@@ -167,7 +167,7 @@ export class BracketsService {
     }
 
     if (matches.length < matchIds.length) {
-      console.warn(
+      this.logger.warn(
         `[WARN] SaveBracket - Partial mismatch. Received ${matchIds.length}, found ${matches.length}.`,
       );
       // Opcional: Podríamos lanzar error aquí también si queremos consistencia estricta
@@ -293,7 +293,7 @@ export class BracketsService {
     }
 
     await this.userBracketRepository.delete(whereClause);
-    console.log(
+    this.logger.log(
       `🗑️ Bracket cleared for user ${userId} in tournament ${tournamentId}`,
     );
   }
@@ -308,7 +308,7 @@ export class BracketsService {
     });
 
     if (!match || !match.phase) {
-      console.log('Match not found or has no phase:', matchId);
+      this.logger.log('Match not found or has no phase:', matchId);
       return;
     }
 
@@ -332,18 +332,18 @@ export class BracketsService {
 
     if (bracketsToUpdate.length > 0) {
       await this.userBracketRepository.save(bracketsToUpdate);
-      console.log(
+      this.logger.log(
         `✅ Bulk updated ${bracketsToUpdate.length} brackets for ${match.phase} prediction`,
       );
     }
 
-    console.log(
+    this.logger.log(
       `🏆 Updated ${bracketsToUpdate.length} brackets with ${points}pts for match ${matchId}`,
     );
   }
 
   async recalculateAllBracketPoints(): Promise<void> {
-    console.log('🔄 Starting bracket points recalculation...');
+    this.logger.log('🔄 Starting bracket points recalculation...');
     try {
       // 1. Reset all points to 0
       // TypeORM prevents update({}) for safety. We use QueryBuilder for global update.
@@ -352,13 +352,13 @@ export class BracketsService {
         .update(UserBracket)
         .set({ points: 0 })
         .execute();
-      console.log('✅ Points reset to 0 for all brackets');
+      this.logger.log('✅ Points reset to 0 for all brackets');
 
       // 2. Get all finished matches
       const finishedMatches = await this.matchRepository.find({
         where: { status: 'FINISHED' },
       });
-      console.log(
+      this.logger.log(
         `📊 Found ${finishedMatches.length} finished matches to process`,
       );
 
@@ -383,18 +383,18 @@ export class BracketsService {
             processedCount++;
           }
         } catch (matchError) {
-          console.error(
+          this.logger.error(
             `❌ Error processing match ${match.id} (${match.homeTeam} vs ${match.awayTeam}):`,
             matchError,
           );
         }
       }
 
-      console.log(
+      this.logger.log(
         `✅ Bracket points recalculation complete. Processed ${processedCount} matches.`,
       );
     } catch (error) {
-      console.error('🔥 FATAL ERROR in recalculateAllBracketPoints:', error);
+      this.logger.error('🔥 FATAL ERROR in recalculateAllBracketPoints:', error);
       throw new InternalServerErrorException(
         `Failed to recalculate bracket points: ${error.message}`,
       );

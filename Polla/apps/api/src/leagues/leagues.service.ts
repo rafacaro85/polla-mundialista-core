@@ -1690,11 +1690,11 @@ export class LeaguesService {
 
       const totalParticipants = ranking.length;
       const activeParticipants = ranking.filter(
-        (r) => r.totalPoints > 0,
+        (r: any) => r.totalPoints > 0,
       ).length;
 
       // Calculate global average
-      const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
+      const sumTotal = ranking.reduce((acc: any, r: any) => acc + r.totalPoints, 0);
       const averagePoints =
         totalParticipants > 0
           ? (sumTotal / totalParticipants).toFixed(1)
@@ -1703,7 +1703,7 @@ export class LeaguesService {
       // 2. Group by Department in Memory
       const deptMap = new Map<string, { total: number; count: number }>();
 
-      ranking.forEach((r) => {
+      ranking.forEach((r: any) => {
         // @ts-ignore - Property 'department' comes from our modified getLeagueRanking returning extended object
         const dept = r.department || 'General';
         const current = deptMap.get(dept) || { total: 0, count: 0 };

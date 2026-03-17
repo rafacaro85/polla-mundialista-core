@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 const LogoLight = () => (
     <div className="flex items-center gap-3 select-none">
         <img 
-            src="/images/lpv/lpv-full-logo.png" 
+            src="/images/lpv/lpv-logo-gold.png" 
             alt="La Polla Virtual" 
             className="h-12 w-auto object-contain"
         />

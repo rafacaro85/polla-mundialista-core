@@ -16,7 +16,7 @@ const LogoLight = () => (
     <div className="flex items-center gap-3 select-none shrink-0 group">
         <div className="bg-[#0F172A] p-2 rounded-xl border border-white/5 shadow-lg group-hover:scale-105 transition-transform duration-300">
             <img 
-                src="/images/lpv/lpv-full-logo.png" 
+                src="/images/lpv/lpv-logo-gold.png" 
                 alt="La Polla Virtual" 
                 className="h-8 md:h-10 w-auto object-contain"
             />

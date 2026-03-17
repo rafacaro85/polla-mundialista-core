@@ -11,4 +11,4 @@
   cmd = "npm install && npx nx build api && echo 'BUSCANDO MAIN.JS...' && find . -name main.js"
 
 [phases.start]
-  cmd = "FILE=$(find . -type f -name 'main.js' -not -path '*/node_modules/*' | head -n 1); if [ -z \"$FILE\" ]; then echo '❌ NO ENCONTRADO'; exit 1; else echo '✅ ENCONTRADO: $FILE'; node \"$FILE\"; fi"
+  cmd = "FILE=$(find . -type f -name 'main.js' -not -path '*/node_modules/*' | head -n 1); if [ -z \"$FILE\" ]; then echo '❌ NO ENCONTRADO'; exit 1; else echo '✅ ENCONTRADO: $FILE'; cd apps/api && npm run typeorm:migration:run && cd ../.. && node \"$FILE\"; fi"

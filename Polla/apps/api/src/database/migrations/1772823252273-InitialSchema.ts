@@ -4,6 +4,18 @@ export class InitialSchema1772823252273 implements MigrationInterface {
     name = 'InitialSchema1772823252273'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        const tableExists = await queryRunner.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'system_settings'
+            );
+        `);
+        
+        if (tableExists[0]?.exists) {
+            console.log("Skipping InitialSchema since database already exists.");
+            return;
+        }
+
         await queryRunner.query(`CREATE TABLE "system_settings" ("id" SERIAL NOT NULL, "instagram" character varying NOT NULL DEFAULT 'https://instagram.com/tupolla', "facebook" character varying NOT NULL DEFAULT 'https://facebook.com/tupolla', "whatsapp" character varying NOT NULL DEFAULT 'https://wa.me/123456', "tiktok" character varying NOT NULL DEFAULT 'https://tiktok.com/@tupolla', "support" character varying NOT NULL DEFAULT 'mailto:soporte@tupolla.com', "termsUrl" character varying NOT NULL DEFAULT '/terminos', "privacyUrl" character varying NOT NULL DEFAULT '/privacidad', "copyright" character varying NOT NULL DEFAULT 'Copyright © 2026 TuApp. Todos los derechos reservados.', CONSTRAINT "PK_82521f08790d248b2a80cc85d40" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "matches" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tournamentId" character varying NOT NULL DEFAULT 'WC2026', "homeTeam" character varying NOT NULL, "awayTeam" character varying NOT NULL, "homeScore" integer, "awayScore" integer, "date" TIMESTAMP NOT NULL DEFAULT now(), "homeFlag" character varying, "awayFlag" character varying, "phase" character varying, "group" character varying, "homeTeamPlaceholder" character varying, "awayTeamPlaceholder" character varying, "bracketId" integer, "nextMatchId" character varying, "status" character varying NOT NULL DEFAULT 'PENDING', "externalId" integer, "minute" character varying, "isManuallyLocked" boolean NOT NULL DEFAULT false, "isTimerActive" boolean NOT NULL DEFAULT false, "stadium" character varying, "ai_prediction" text, "ai_prediction_score" character varying(10), "ai_prediction_generated_at" TIMESTAMP, CONSTRAINT "PK_8a22c7b2e0828988d51256117f4" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "predictions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "tournamentId" character varying NOT NULL DEFAULT 'WC2026', "league_id" character varying, "homeScore" integer NOT NULL, "awayScore" integer NOT NULL, "points" integer NOT NULL DEFAULT '0', "isJoker" boolean NOT NULL DEFAULT false, "userId" uuid, "matchId" uuid, CONSTRAINT "PK_b92c9e4db595214b289f5e28adc" PRIMARY KEY ("id"))`);

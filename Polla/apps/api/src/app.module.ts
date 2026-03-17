@@ -118,6 +118,7 @@ import { HealthController } from './health/health.controller';
           ],
           synchronize: false,
           migrationsRun: true,
+          migrations: [join(__dirname, 'database', 'migrations', '*.{ts,js}')],
           ssl:
             url && !url.includes('localhost') && !url.includes('127.0.0.1')
               ? { rejectUnauthorized: false }

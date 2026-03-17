@@ -27,7 +27,7 @@ export default function InstructionsPage() {
             {/* HERO HEADER */}
             <div className="relative bg-gradient-to-br from-[#020617] to-[#1e293b] pt-12 pb-16 px-6 text-center border-b border-slate-800">
                 <div className="absolute top-4 left-4 z-20">
-                    <Link href="/dashboard">
+                    <Link href="/social/mis-pollas">
                         <Button variant="ghost" className="text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
                             <ArrowLeft className="mr-2 h-5 w-5" /> Volver
                         </Button>

@@ -2,6 +2,18 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateKnockoutPhaseStatus1734912000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const tableExists = await queryRunner.query(`
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'knockout_phase_status'
+        );
+    `);
+    
+    if (tableExists[0]?.exists) {
+        console.log("Skipping CreateKnockoutPhaseStatus since table already exists.");
+        return;
+    }
+
     await queryRunner.createTable(
       new Table({
         name: 'knockout_phase_status',

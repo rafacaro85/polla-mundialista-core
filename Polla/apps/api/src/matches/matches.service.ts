@@ -15,7 +15,7 @@ import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MatchFinishedEvent } from './listeners/match.listener';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { UserBonusAnswer } from '../database/entities/user-bonus-answer.entity';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { League } from '../database/entities/league.entity';

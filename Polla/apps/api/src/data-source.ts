@@ -29,4 +29,10 @@ export const AppDataSource = new DataSource({
   entities: [join(__dirname, '**', '*.entity.{ts,js}')],
   migrations: [join(__dirname, 'database', 'migrations', '*.{ts,js}')],
   subscribers: [],
+  extra: {
+    max: 10,
+    min: 2,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  },
 });

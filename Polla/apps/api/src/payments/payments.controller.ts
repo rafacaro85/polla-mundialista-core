@@ -76,7 +76,42 @@ export class PaymentsController {
   @HttpCode(200)
   async handleWebhook(@Body() webhookData: MercadoPagoWebhookDto) {
     this.logger.log(`MP webhook received: ${webhookData.action} - ${webhookData.type}`);
-    const result = await this.paymentsService.handleMPWebhook(webhookData);
-    return result;
+    return await this.paymentsService.handleMPWebhook(webhookData);
+  }
+
+  @Public()
+  @Post('mp-webhook')
+  @HttpCode(200)
+  async handleMPWebhook(@Body() webhookData: MercadoPagoWebhookDto) {
+    this.logger.log(`MP mp-webhook received: ${webhookData.action} - ${webhookData.type}`);
+    return await this.paymentsService.handleMPWebhook(webhookData);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('process-card')
+  async processCard(
+    @Request() req: any,
+    @Body() body: Record<string, any>,
+  ) {
+    const user = req.user;
+    if (!user) throw new Error('Usuario no autenticado');
+
+    const { formData, amount, packageId, leagueId } = body;
+    if (!formData || !amount) throw new Error('formData y amount son requeridos');
+
+    const transaction = await this.transactionsService.createTransaction(
+      user,
+      Number(amount),
+      packageId || 'SOCIAL_BASIC',
+      leagueId || null,
+      'WC2026',
+      TransactionStatus.PENDING_PAYMENT,
+    );
+
+    return await this.paymentsService.processCardPayment(
+      formData,
+      Number(amount),
+      transaction.id,
+    );
   }
 }

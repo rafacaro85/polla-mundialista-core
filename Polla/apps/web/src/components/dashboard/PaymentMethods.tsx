@@ -5,6 +5,7 @@ import { Upload, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useTournament } from '@/hooks/useTournament';
+import { MercadoPagoButton } from '@/components/payments/MercadoPagoButton';
 
 interface PaymentMethodsProps {
     leagueId: string;
@@ -94,32 +95,22 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
         <div className="w-full flex flex-col items-center gap-6">
             <div className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6">
                 
-                {/* BLOQUE MERCADO PAGO (OCULTO TEMPORALMENTE) */}
-                <div className="mb-6 hidden">
+                {/* BLOQUE MERCADO PAGO - Pago automático con tarjeta */}
+                <div className="mb-6">
                     <h3 className="text-white font-black uppercase text-lg mb-4 text-center">
-                        Pago en línea
+                        Pago automático con tarjeta
                     </h3>
-                    <button
-                        onClick={handleMercadoPago}
-                        disabled={loadingMP}
-                        className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white font-bold py-2 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
-                    >
-                        {loadingMP ? (
-                            <span>Procesando...</span>
-                        ) : (
-                            <>
-                                <img 
-                                    src="/assets/Logos%20Mercado%20Pago%202025--fb6f16c9/Logos%20Mercado%20Pago%202025/Uso%20digital%20-%20RGB/SVGs/MP_RGB_HANDSHAKE_pluma_horizontal.svg" 
-                                    alt="Pagar con Mercado Pago" 
-                                    className="h-12 w-auto"
-                                />
-                            </>
-                        )}
-                    </button>
+                    <MercadoPagoButton
+                        amount={amount}
+                        packageId={packageId}
+                        leagueId={leagueId}
+                        onSuccess={onSuccess}
+                        onError={(err) => console.error('MP error:', err)}
+                    />
                 </div>
 
-                {/* SEPARADOR (OCULTO TEMPORALMENTE) */}
-                <div className="hidden items-center gap-3 mb-6">
+                {/* SEPARADOR */}
+                <div className="flex items-center gap-3 mb-6">
                     <div className="flex-1 h-px bg-white/20"/>
                     <span className="text-white/50 text-sm">
                         o paga manualmente

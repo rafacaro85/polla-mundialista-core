@@ -27,7 +27,7 @@ export function MercadoPagoButton({
     }
   }, []);
 
-  const handleSubmit = async (_selectedPaymentMethod: unknown, formData: Record<string, unknown>) => {
+  const handleSubmit = async ({ formData }: { selectedPaymentMethod: string; formData: Record<string, unknown> }) => {
     try {
       const response = await api.post("/payments/process-card", {
         formData,

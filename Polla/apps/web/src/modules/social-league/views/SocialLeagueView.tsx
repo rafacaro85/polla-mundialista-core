@@ -37,6 +37,7 @@ export const SocialLeagueView = ({ leagueId }: { leagueId: string }) => {
     if (league?.userStatus === 'PENDING_PAYMENT' || league?.userStatus === 'REJECTED') {
         const type = (league.packageType || '').toLowerCase();
         const amount =
+            type === 'familia' ? 2000 :
             type === 'parche' || type === 'amateur' ? 30000 :
             type === 'amigos' || type === 'semi-pro' ? 80000 :
             type === 'lider' || type === 'pro' ? 180000 :

@@ -353,6 +353,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
               amount={
                 (() => {
                   const type = (currentLeague.packageType || '').toLowerCase();
+                  if (type === 'familia') return 2000;
                   if (type === 'parche' || type === 'amateur') return 30000;
                   if (type === 'amigos' || type === 'semi-pro') return 80000;
                   if (type === 'lider' || type === 'pro') return 180000;
@@ -435,6 +436,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                                 (() => {
                                   const type = (currentLeague.packageType || '').toLowerCase();
                                   // Social Plans
+                                  if (type === 'familia') return 2000;
                                   if (type === 'parche' || type === 'amateur') return 30000;
                                   if (type === 'amigos' || type === 'semi-pro') return 80000;
                                   if (type === 'lider' || type === 'pro') return 180000;

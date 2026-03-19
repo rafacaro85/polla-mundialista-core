@@ -90,27 +90,54 @@ export class PaymentsService {
       this.logger.error(`Failed to fetch MP payment ${paymentId}: ${error.message}`);
       return;
     }
+
+    this.logger.log(`MP processPayment: id=${paymentId}, status=${paymentData.status}, external_reference=${paymentData.external_reference}`);
+
     const transactionId = paymentData.external_reference;
-    if (!transactionId) return;
+    if (!transactionId) {
+      this.logger.warn(`MP payment ${paymentId} has no external_reference — skipping`);
+      return;
+    }
+
     const dbTransaction = await this.transactionsRepository.findOne({
       where: { id: transactionId },
       relations: ['user', 'league'],
     });
-    if (!dbTransaction) return;
+
+    if (!dbTransaction) {
+      this.logger.warn(`MP payment ${paymentId}: no transaction found for id=${transactionId}`);
+      return;
+    }
+
+    // Evitar re-procesar pagos ya aprobados
     if (
       dbTransaction.status === TransactionStatus.APPROVED ||
       dbTransaction.status === TransactionStatus.PAID
-    ) return;
+    ) {
+      this.logger.log(`Payment ${paymentId} already approved — skipping`);
+      return;
+    }
+
     if (paymentData.status === 'approved') {
+      this.logger.log(`✅ MP payment ${paymentId} APPROVED — activating league ${dbTransaction.league?.id}`);
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.APPROVED,
         `Pago aprobado por Mercado Pago. Ref MP: ${paymentId}`,
       );
+    } else if (paymentData.status === 'in_process' || paymentData.status === 'pending') {
+      // PSE primero llega como in_process — marcamos como PENDING (esperando confirmación bancaria)
+      this.logger.log(`⏳ MP payment ${paymentId} IN PROCESS (PSE/Nequi) — marking as PENDING`);
+      await this.transactionsService.updateStatus(
+        dbTransaction.id,
+        TransactionStatus.PENDING,
+        `Pago en proceso. Método: ${paymentData.payment_method_id || 'PSE'}. Ref MP: ${paymentId}`,
+      );
     } else if (
       paymentData.status === 'rejected' ||
       paymentData.status === 'cancelled'
     ) {
+      this.logger.log(`❌ MP payment ${paymentId} REJECTED`);
       await this.transactionsService.updateStatus(
         dbTransaction.id,
         TransactionStatus.REJECTED,

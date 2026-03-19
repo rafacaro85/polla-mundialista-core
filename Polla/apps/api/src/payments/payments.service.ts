@@ -123,7 +123,7 @@ export class PaymentsService {
     amount: number,
     transactionId: string,
     ipAddress: string = '0.0.0.0',
-  ): Promise<{ paymentId: string; status: string }> {
+  ): Promise<{ paymentId: string; status: string; redirectUrl: string | null }> {
     const paymentClient = new Payment(this.mpClient);
     try {
       // Construir body dinámico: spread de formData del Brick,

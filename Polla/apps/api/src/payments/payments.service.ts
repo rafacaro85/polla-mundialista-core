@@ -150,7 +150,7 @@ export class PaymentsService {
     amount: number,
     transactionId: string,
     ipAddress: string = '0.0.0.0',
-  ): Promise<{ paymentId: string; status: string; redirectUrl: string | null }> {
+  ): Promise<{ paymentId: string; status: string; status_detail: string; redirectUrl: string | null }> {
     const paymentClient = new Payment(this.mpClient);
     try {
       // Construir body dinámico: spread de formData del Brick,
@@ -165,6 +165,16 @@ export class PaymentsService {
       // Para pagos con tarjeta, installments mínimo 1
       if (formData.token) {
         paymentBody.installments = formData.installments || 1;
+      }
+
+      // CORRECCIÓN PARA PSE COLOMBIA: MP solo acepta "individual" o "association"
+      if (paymentBody.payer && paymentBody.payer.entity_type) {
+        const et = paymentBody.payer.entity_type.toLowerCase();
+        if (et === 'natural') {
+           paymentBody.payer.entity_type = 'individual';
+        } else if (et === 'juridica' || et === 'jurídica') {
+           paymentBody.payer.entity_type = 'association';
+        }
       }
 
       // IP requerida por MP para PSE y otros métodos de transferencia
@@ -198,13 +208,14 @@ export class PaymentsService {
         await this.transactionsService.updateStatus(
           transactionId,
           TransactionStatus.REJECTED,
-          `Pago rechazado. Estado: ${paymentResponse.status}`,
+          `Pago rechazado. Detalle MP: ${(paymentResponse as any).status_detail || 'No detallado'}`,
         );
       }
 
       return {
         paymentId: String(paymentResponse.id),
         status: paymentResponse.status || 'unknown',
+        status_detail: (paymentResponse as any).status_detail || '',
         redirectUrl: (paymentResponse as any).transaction_details?.external_resource_url || null,
       };
     } catch (error: any) {

@@ -54,7 +54,7 @@ export function MercadoPagoButton({
         leagueId,
       });
 
-      const { status, redirectUrl } = response.data;
+      const { status, status_detail, redirectUrl } = response.data;
 
       if (status === "approved") {
         toast.success("¡Pago exitoso! Tu liga ha sido activada.");
@@ -68,7 +68,8 @@ export function MercadoPagoButton({
         toast.info("Pago en proceso de verificación. Te notificaremos cuando se confirme.");
         onSuccess?.();
       } else {
-        const msg = "Pago rechazado. Intenta con otro método de pago.";
+        const detailMsg = status_detail ? ` (Motivo: ${status_detail})` : '';
+        const msg = `Pago rechazado${detailMsg}. Intenta con otro método de pago.`;
         toast.error(msg);
         onError?.(msg);
       }

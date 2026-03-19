@@ -19,7 +19,8 @@ export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueNa
     const { data: transaction } = useSWR(`/transactions/my-latest?leagueId=${leagueId}`, async (url) => (await api.get(url)).data);
 
     const isPending = transaction && transaction.status === 'PENDING';
-    const isPendingPayment = !transaction || transaction.status === 'PENDING_PAYMENT' || transaction.status === 'REJECTED';
+    const isRejected = transaction && transaction.status === 'REJECTED';
+    const isPendingPayment = !transaction || transaction.status === 'PENDING_PAYMENT' || isRejected;
 
     return (
         <div className="absolute inset-x-0 bottom-0 top-16 z-50 bg-[#0F172A] flex flex-col items-center justify-start p-6 pt-12 text-center animate-in fade-in duration-500 overflow-y-auto">
@@ -44,6 +45,13 @@ export const PaymentLockOverlay: React.FC<PaymentLockOverlayProps> = ({ leagueNa
                 </div>
             ) : (
                 <>
+                    {isRejected && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-4 max-w-sm w-full">
+                            <p className="text-red-400 text-sm font-bold text-center uppercase">Pago rechazado</p>
+                            <p className="text-slate-400 text-xs text-center mt-1">Intenta con otro método de pago.</p>
+                        </div>
+                    )}
+
                     <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-4 py-2 mb-8 inline-block">
                         <span className="text-emerald-400 font-bold text-lg">
                             ${amount.toLocaleString('es-CO')} COP

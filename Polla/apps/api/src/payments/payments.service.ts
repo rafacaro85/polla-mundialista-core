@@ -178,6 +178,7 @@ export class PaymentsService {
       return {
         paymentId: String(paymentResponse.id),
         status: paymentResponse.status || 'unknown',
+        redirectUrl: (paymentResponse as any).transaction_details?.external_resource_url || null,
       };
     } catch (error: any) {
       this.logger.error(`Error processCardPayment: ${error.message}`, error.stack);

@@ -15,7 +15,7 @@ const PLANS = [
     {
         id: 'familia',
         name: 'Familia',
-        price: 'GRATIS',
+        price: '$2.000',
         members: 5,
         icon: < Shield size={20} />,
         color: '#94A3B8', // Slate

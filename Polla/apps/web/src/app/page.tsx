@@ -544,7 +544,10 @@ export default function LandingPage() {
             <div className="border-2 border-emerald-100 bg-white rounded-2xl p-6 hover:shadow-xl hover:border-emerald-300 transition-all flex flex-col relative overflow-hidden group">
               <div className="mb-4 relative z-10">
                 <h3 className="font-black text-lg text-emerald-600 flex items-center gap-2"><Shield size={18} /> FAMILIA</h3>
-                <div className="text-3xl font-black text-[#0F172A] mt-2">GRATIS</div>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-3xl font-black text-[#0F172A]">$2k</span>
+                  <span className="text-xs font-bold text-[#94A3B8]">COP</span>
+                </div>
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded mt-2 inline-block">Hasta 5 Jugadores</span>
               </div>
               <ul className="space-y-2 mb-6 flex-1 relative z-10">

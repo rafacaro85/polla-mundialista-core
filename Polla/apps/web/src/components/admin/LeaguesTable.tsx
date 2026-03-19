@@ -149,7 +149,7 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                 try {
                     // Precios Hardcodeados para matchear PLANES (debería venir de config)
                     const PRICES: Record<string, number> = {
-                        'familia': 0, 'starter': 0,
+                        'starter': 0, 'FREE': 0, 'launch_promo': 0,
                         'parche': 30000, 'amateur': 30000, // Legacy/New map
                         'amigos': 80000, 'semi-pro': 80000,
                         'lider': 180000, 'pro': 180000,
@@ -193,8 +193,8 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             l.code.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'FREE') {
-            // Consideramos GRATIS las del plan 'familia' (o null que asume gratis legacy)
-            return matchesSearch && ((l as any).packageType === 'familia' || !(l as any).packageType);
+            // Consideramos GRATIS las del plan 'starter', 'FREE' o 'launch_promo'
+            return matchesSearch && (['starter', 'FREE', 'launch_promo'].includes((l as any).packageType) || !(l as any).packageType);
         }
 
         return matchesSearch;

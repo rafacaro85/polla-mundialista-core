@@ -88,7 +88,7 @@ export class TelegramService {
     const name = this.formatName(fullName || '');
     const waLink = this.formatWhatsAppLink(phone || '');
 
-    const isFree = ['familia', 'starter', 'free', 'amateur'].includes(
+    const isFree = ['starter', 'free', 'launch_promo', 'amateur'].includes(
       packageType.toLowerCase(),
     );
     const typeEmoji = isFree ? '🆓 GRATIS' : '💲 PAGA';

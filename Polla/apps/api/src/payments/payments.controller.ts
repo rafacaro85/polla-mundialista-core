@@ -96,7 +96,8 @@ export class PaymentsController {
     const user = req.user;
     if (!user) throw new Error('Usuario no autenticado');
 
-    const { formData, amount, packageId, leagueId } = body;
+    const { formData, selectedPaymentMethod, amount, packageId, leagueId } = body;
+    this.logger.log(`process-card: method=${selectedPaymentMethod}, amount=${amount}, hasFormData=${!!formData}`);
     if (!formData || !amount) throw new Error('formData y amount son requeridos');
 
     const transaction = await this.transactionsService.createTransaction(

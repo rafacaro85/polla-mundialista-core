@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { initMercadoPago, CardPayment } from "@mercadopago/sdk-react";
+import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -27,11 +27,28 @@ export function MercadoPagoButton({
     }
   }, []);
 
-  const handleSubmit = async ({ formData }: { selectedPaymentMethod: string; formData: Record<string, unknown> }) => {
+  // Garantiza un amount válido mayor a 0
+  const safeAmount = amount && amount > 0 ? amount : 50000;
+
+  const handleSubmit = async ({
+    selectedPaymentMethod,
+    formData,
+  }: {
+    selectedPaymentMethod: string;
+    formData: Record<string, unknown>;
+  }) => {
+    if (!formData) {
+      const msg = "No se recibieron datos del formulario de pago.";
+      toast.error(msg);
+      onError?.(msg);
+      return;
+    }
+
     try {
       const response = await api.post("/payments/process-card", {
         formData,
-        amount,
+        selectedPaymentMethod,
+        amount: safeAmount,
         packageId,
         leagueId,
       });
@@ -45,7 +62,7 @@ export function MercadoPagoButton({
         toast.info("Pago en proceso de verificación. Te notificaremos cuando se confirme.");
         onSuccess?.();
       } else {
-        const msg = "Pago rechazado. Intenta con otra tarjeta.";
+        const msg = "Pago rechazado. Intenta con otro método de pago.";
         toast.error(msg);
         onError?.(msg);
       }
@@ -57,18 +74,18 @@ export function MercadoPagoButton({
     }
   };
 
-  const handleBrickError = async (brickError: unknown) => {
-    console.error("Error en CardPayment Brick:", brickError);
-  };
-
   return (
     <div className="w-full">
-      <CardPayment
-        initialization={{ amount }}
+      <Payment
+        initialization={{
+          amount: safeAmount,
+          preferenceId: undefined,
+        }}
         customization={{
           paymentMethods: {
-            minInstallments: 1,
-            maxInstallments: 1,
+            bankTransfer: "all",
+            creditCard: "all",
+            debitCard: "all",
           },
           visual: {
             style: {
@@ -78,7 +95,7 @@ export function MercadoPagoButton({
         }}
         onSubmit={handleSubmit}
         onReady={() => {}}
-        onError={handleBrickError}
+        onError={(brickError) => console.error("MP Brick error:", brickError)}
       />
     </div>
   );

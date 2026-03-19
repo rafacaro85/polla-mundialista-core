@@ -224,7 +224,12 @@ export const CreateBusinessLeagueDialog = ({
                 setStep(4); // A pagar
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al crear la polla');
+            let errorMsg = 'Error al crear la polla corporativa';
+            if (error.response?.data?.message) {
+                const msg = error.response.data.message;
+                errorMsg = Array.isArray(msg) ? msg.join(' | ') : msg;
+            }
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }

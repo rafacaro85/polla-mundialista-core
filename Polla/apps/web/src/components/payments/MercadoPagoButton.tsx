@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -80,18 +80,17 @@ export function MercadoPagoButton({
     }
   };
 
+  const initializationObj = useMemo(() => ({
+    amount: safeAmount,
+    preferenceId: undefined,
+    payer: user?.email ? { email: user.email } : undefined,
+  }), [safeAmount, user?.email]);
+
+  // Se añade un key basado en el leagueId para que se monte limpio y no arrastre re-renders
   return (
-    <div className="w-full">
+    <div key={leagueId || 'mp'} className="w-full min-h-[400px]">
       <Payment
-        initialization={{
-          amount: safeAmount,
-          preferenceId: undefined,
-          // Pasar el email del usuario logueado al Brick —
-          // esto es requerido por MP Colombia para tokenizar tarjetas de crédito
-          payer: user?.email ? {
-            email: user.email,
-          } : undefined,
-        }}
+        initialization={initializationObj}
         customization={{
           paymentMethods: {
             bankTransfer: "all",

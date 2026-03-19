@@ -146,6 +146,10 @@ export class PaymentsService {
         ip_address: ipAddress,
       };
 
+      // callback_url requerido por MP para PSE y transferencias bancarias
+      const frontendUrl = process.env.FRONTEND_URL || 'https://lapollavirtual.com';
+      paymentBody.callback_url = `${frontendUrl}/payment/success?ref=${transactionId}`;
+
       this.logger.log(`processCardPayment body: ${JSON.stringify({
         payment_method_id: paymentBody.payment_method_id,
         transaction_amount: paymentBody.transaction_amount,

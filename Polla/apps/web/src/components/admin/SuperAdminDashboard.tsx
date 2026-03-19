@@ -11,7 +11,7 @@ import {
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
     Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon,
-    ListOrdered
+    ListOrdered, CreditCard
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
@@ -26,6 +26,7 @@ import { TournamentHeader } from '@/components/admin/TournamentHeader';
 import { Megaphone } from 'lucide-react';
 import { MainHeader } from '@/components/MainHeader';
 import PlatformDashboard from '@/components/admin/PlatformDashboard';
+import { MPTransactionsPanel } from '@/components/admin/MPTransactionsPanel';
 
 /* =============================================================================
    DATOS MOCK
@@ -310,6 +311,7 @@ export default function SuperAdminDashboard() {
     };
 
     const pendingCount = stats.recentTransactions.filter((tx: any) => tx.status === 'PENDING').length;
+    const pendingMPCount = stats.recentTransactions.filter((tx: any) => tx.status === 'PENDING_PAYMENT' && !tx.imageUrl).length;
 
     const KPI_DATA_REAL = [
         { title: "Ingresos Totales", value: formatCompact(stats.kpis.totalIncome), label: "COP", icon: Banknote, color: "#00E676" },
@@ -344,6 +346,7 @@ export default function SuperAdminDashboard() {
                     { id: 'standings', label: 'Posiciones', icon: <ListOrdered size={14} /> },
                     { id: 'questions', label: 'Preguntas', icon: <HelpCircle size={14} /> },
                     { id: 'transactions', label: 'Ventas', icon: <Banknote size={14} />, badge: pendingCount },
+                    { id: 'mp-payments', label: 'Pagos MP', icon: <CreditCard size={14} />, badge: pendingMPCount },
                     { id: 'communication', label: 'Difusión', icon: <Megaphone size={14} /> },
                     // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
                     { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> }
@@ -730,7 +733,12 @@ export default function SuperAdminDashboard() {
                 )
             }
 
-            {/* I. PESTAÑA COMUNICACIÓN */}
+            {/* I Nueva. PESTAÑA PAGOS MERCADO PAGO */}
+            {activeTab === 'mp-payments' && (
+                <MPTransactionsPanel tournamentId={tournamentId} />
+            )}
+
+            {/* J. PESTAÑA COMUNICACIÓN */}
             {activeTab === 'communication' && <BroadcastTab tournamentId={tournamentId} />}
 
             {/* Image Modal for Transactions */}

@@ -209,7 +209,7 @@ export const superAdminService = {
                 salesTrend.push({ date: displayDate, value: dailyTotal });
             }
 
-            const freeLeaguesCount = leagues.filter((l: any) => l.packageType === 'familia' || (!l.isPaid && l.type !== 'COMPANY')).length;
+            const freeLeaguesCount = leagues.filter((l: any) => ['starter', 'FREE', 'launch_promo'].includes(l.packageType) || (!l.isPaid && l.type !== 'COMPANY')).length;
 
             return {
                 kpis: {

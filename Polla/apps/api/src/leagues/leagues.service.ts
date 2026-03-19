@@ -132,7 +132,7 @@ export class LeaguesService {
       }
 
       const targetTournamentId = tournamentId || DEFAULT_TOURNAMENT_ID;
-      const isFreePlan = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
+      const isFreePlan = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
       // 1. Operación: Verificar límite de ligas
       if (isFreePlan) {
@@ -157,7 +157,7 @@ export class LeaguesService {
         }
       }
 
-      const isActuallyPaid = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
+      const isActuallyPaid = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
       // 2. Operación: Guardar la liga
       const league = queryRunner.manager.create(League, {

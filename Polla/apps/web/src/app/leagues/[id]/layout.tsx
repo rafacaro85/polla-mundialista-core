@@ -149,6 +149,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
             if (type === 'gold' || type === 'enterprise_gold') return 450000;
             if (type === 'platinum' || type === 'enterprise_platinum') return 750000;
             if (type === 'diamond' || type === 'enterprise_diamond') return 1000000;
+            if (type === 'familia') return 2000;
             if (type === 'parche' || type === 'amateur') return 30000;
             if (type === 'amigos' || type === 'semi-pro') return 80000;
             if (type === 'lider' || type === 'pro') return 180000;
@@ -264,6 +265,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
         // Si es el creador, le cobramos:
         const getAmount = () => {
             const type = (league.packageType || '').toLowerCase();
+            if (type === 'familia') return 2000;
             if (type === 'parche' || type === 'amateur') return 30000;
             if (type === 'amigos' || type === 'semi-pro') return 80000;
             if (type === 'lider' || type === 'pro') return 180000;

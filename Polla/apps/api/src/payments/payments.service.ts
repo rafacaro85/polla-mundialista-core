@@ -62,9 +62,9 @@ export class PaymentsService {
           }],
           external_reference: transactionId,
           back_urls: {
-            success: `${frontendUrl}/mis-pollas?payment=success`,
-            failure: `${frontendUrl}/mis-pollas?payment=failure`,
-            pending: `${frontendUrl}/mis-pollas?payment=pending`,
+            success: `${frontendUrl}/payment/success?ref=${transactionId}`,
+            failure: `${frontendUrl}/payment/success?ref=${transactionId}&status=failure`,
+            pending: `${frontendUrl}/payment/success?ref=${transactionId}&status=pending`,
           },
           auto_return: 'approved',
           notification_url: `${apiUrl}/payments/webhook`,

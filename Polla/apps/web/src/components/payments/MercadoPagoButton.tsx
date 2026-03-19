@@ -53,12 +53,17 @@ export function MercadoPagoButton({
         leagueId,
       });
 
-      const { status } = response.data;
+      const { status, redirectUrl } = response.data;
 
       if (status === "approved") {
         toast.success("¡Pago exitoso! Tu liga ha sido activada.");
         onSuccess?.();
       } else if (status === "in_process" || status === "pending") {
+        if (redirectUrl) {
+          toast.info("Redirigiendo a tu banco para completar el pago...");
+          window.location.href = redirectUrl;
+          return;
+        }
         toast.info("Pago en proceso de verificación. Te notificaremos cuando se confirme.");
         onSuccess?.();
       } else {

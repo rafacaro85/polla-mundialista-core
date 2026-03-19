@@ -125,27 +125,33 @@ export class PaymentsService {
   ): Promise<{ paymentId: string; status: string }> {
     const paymentClient = new Payment(this.mpClient);
     try {
-      const paymentResponse = await paymentClient.create({
-        body: {
-          token: formData.token,
-          issuer_id: formData.issuer_id,
-          payment_method_id: formData.payment_method_id,
-          transaction_amount: amount,
-          installments: formData.installments || 1,
-          description: 'La Polla Virtual - Activación de Liga',
-          external_reference: transactionId,
-          payer: {
-            email: formData.payer?.email,
-            identification: formData.payer?.identification,
-          },
-        },
-      });
+      // Construir body dinámico: spread de formData del Brick,
+      // sobreescribiendo amount y external_reference con los valores confiables del backend
+      const paymentBody: Record<string, any> = {
+        ...formData,
+        transaction_amount: amount,
+        description: 'La Polla Virtual - Activación de Liga',
+        external_reference: transactionId,
+      };
+
+      // Para pagos con tarjeta, installments mínimo 1
+      if (formData.token) {
+        paymentBody.installments = formData.installments || 1;
+      }
+
+      this.logger.log(`processCardPayment body: ${JSON.stringify({
+        payment_method_id: paymentBody.payment_method_id,
+        transaction_amount: paymentBody.transaction_amount,
+        has_token: !!formData.token,
+      })}`);
+
+      const paymentResponse = await paymentClient.create({ body: paymentBody });
 
       if (paymentResponse.status === 'approved') {
         await this.transactionsService.updateStatus(
           transactionId,
           TransactionStatus.APPROVED,
-          `Pago aprobado por tarjeta. ID MP: ${paymentResponse.id}`,
+          `Pago aprobado. Método: ${paymentBody.payment_method_id}. ID MP: ${paymentResponse.id}`,
         );
       } else if (
         paymentResponse.status === 'rejected' ||

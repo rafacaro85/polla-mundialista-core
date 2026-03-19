@@ -16,7 +16,7 @@ function PaymentStatusContent() {
   useEffect(() => {
     const checkStatus = async () => {
       // Si MP ya indica fallo directamente en la URL, no consultamos la API
-      if (mpStatus === "failure") {
+      if (mpStatus === "failure" || mpStatus === "rejected") {
         setStatus("rejected");
         return;
       }
@@ -52,11 +52,8 @@ function PaymentStatusContent() {
   }, [reference, mpStatus]);
 
   useEffect(() => {
-    if (status === "loading") return;
-    const timer = setTimeout(() => {
-      router.push("/social/mis-pollas");
-    }, 4000);
-    return () => clearTimeout(timer);
+    // Redirigir automáticamente FUE ELIMINADO a petición del usuario.
+    // La página ahora es estática para permitir descargar el voucher.
   }, [status, router]);
 
   return (
@@ -73,30 +70,54 @@ function PaymentStatusContent() {
             <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-[#00E676]" />
             <h1 className="text-2xl font-bold text-white mb-2">¡Pago exitoso!</h1>
             <p className="text-slate-400 mb-4">Tu pago fue aprobado. Ya puedes acceder a tu polla.</p>
-            <p className="text-sm text-slate-500">Redirigiendo a Mis Pollas...</p>
+            <div className="flex flex-col gap-3 mt-6">
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await api.get(`/transactions/${reference}/voucher`, { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `voucher-${reference || 'mp'}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                  } catch (e) {
+                      alert("Aún no se ha generado el comprobante. Intenta en unos minutos desde Mis Pollas.");
+                  }
+                }}
+                className="w-full px-6 py-3 bg-[#00E676] text-[#0F172A] rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-[#00C853] transition-colors flex items-center justify-center gap-2"
+              >
+                📥 Descargar Comprobante
+              </button>
+              <button
+                onClick={() => router.push("/social/mis-pollas")}
+                className="w-full px-6 py-3 border border-[#334155] text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-slate-700 transition-colors"
+              >
+                Entrar a Mi Polla
+              </button>
+            </div>
           </>
         ) : status === "rejected" ? (
           <>
             <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h1 className="text-2xl font-bold text-white mb-2">Pago rechazado</h1>
-            <p className="text-slate-400 mb-4">El banco rechazó la transacción. Intenta con otro método de pago.</p>
-            <p className="text-sm text-slate-500">Redirigiendo a Mis Pollas...</p>
+            <h1 className="text-2xl font-bold text-white mb-2">Pago Rechazado</h1>
+            <p className="text-slate-400 mb-4">El banco rechazó la transacción por fondos insuficientes u otras razones de seguridad. Verificaremos que no te hayan debitado.</p>
           </>
         ) : (
           <>
             <Clock className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
             <h1 className="text-2xl font-bold text-white mb-2">Pago en proceso</h1>
-            <p className="text-slate-400 mb-4">Tu pago está siendo verificado. Te notificaremos cuando se confirme.</p>
-            <p className="text-sm text-slate-500">Redirigiendo a Mis Pollas...</p>
+            <p className="text-slate-400 mb-4">Tu pago está siendo verificado por la pasarela. Te notificaremos cuando se confirme.</p>
           </>
         )}
 
-        {status !== "loading" && (
+        {status !== "loading" && status !== "approved" && (
           <button
             onClick={() => router.push("/social/mis-pollas")}
-            className="mt-4 px-6 py-3 bg-slate-700 text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-slate-600 transition-colors"
+            className="mt-6 w-full px-6 py-3 bg-slate-700 text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-slate-600 transition-colors"
           >
-            Ir a Mis Pollas ahora
+            Volver a Mis Pollas
           </button>
         )}
       </div>

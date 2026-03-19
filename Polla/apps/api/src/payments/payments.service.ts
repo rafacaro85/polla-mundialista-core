@@ -122,6 +122,7 @@ export class PaymentsService {
     formData: Record<string, any>,
     amount: number,
     transactionId: string,
+    ipAddress: string = '0.0.0.0',
   ): Promise<{ paymentId: string; status: string }> {
     const paymentClient = new Payment(this.mpClient);
     try {
@@ -138,6 +139,12 @@ export class PaymentsService {
       if (formData.token) {
         paymentBody.installments = formData.installments || 1;
       }
+
+      // IP requerida por MP para PSE y otros métodos de transferencia
+      paymentBody.additional_info = {
+        ...(formData.additional_info || {}),
+        ip_address: ipAddress,
+      };
 
       this.logger.log(`processCardPayment body: ${JSON.stringify({
         payment_method_id: paymentBody.payment_method_id,

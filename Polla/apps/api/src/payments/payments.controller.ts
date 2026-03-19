@@ -109,10 +109,16 @@ export class PaymentsController {
       TransactionStatus.PENDING_PAYMENT,
     );
 
+    const ipAddress =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      '0.0.0.0';
+
     return await this.paymentsService.processCardPayment(
       formData,
       Number(amount),
       transaction.id,
+      ipAddress,
     );
   }
 }

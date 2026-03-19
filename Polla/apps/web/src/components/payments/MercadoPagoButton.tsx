@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { useAppStore } from "@/store/useAppStore";
 
 interface MercadoPagoButtonProps {
   amount: number;
@@ -20,6 +21,8 @@ export function MercadoPagoButton({
   onSuccess,
   onError,
 }: MercadoPagoButtonProps) {
+  const user = useAppStore((s) => s.user);
+
   useEffect(() => {
     const publicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
     if (publicKey) {
@@ -83,6 +86,11 @@ export function MercadoPagoButton({
         initialization={{
           amount: safeAmount,
           preferenceId: undefined,
+          // Pasar el email del usuario logueado al Brick —
+          // esto es requerido por MP Colombia para tokenizar tarjetas de crédito
+          payer: user?.email ? {
+            email: user.email,
+          } : undefined,
         }}
         customization={{
           paymentMethods: {

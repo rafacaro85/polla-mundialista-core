@@ -95,7 +95,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
         <div className="w-full flex flex-col items-center gap-6">
             <div className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6">
                 
-                {/* BLOQUE MERCADO PAGO - Pago automático con tarjeta */}
+                {/* BLOQUE MERCADO PAGO - Pago automático con tarjeta 
                 <div className="mb-6">
                     <h3 className="text-white font-black uppercase text-lg mb-4 text-center">
                         Pago automático con tarjeta
@@ -109,7 +109,6 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
                     />
                 </div>
 
-                {/* SEPARADOR */}
                 <div className="flex items-center gap-3 mb-6">
                     <div className="flex-1 h-px bg-white/20"/>
                     <span className="text-white/50 text-sm">
@@ -117,6 +116,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
                     </span>
                     <div className="flex-1 h-px bg-white/20"/>
                 </div>
+                */}
 
                 {/* Manual Payment Section */}
                 <h3 className="text-white font-black uppercase text-lg mb-4 text-center">

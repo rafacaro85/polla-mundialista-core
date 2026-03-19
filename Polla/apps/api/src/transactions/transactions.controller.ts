@@ -77,6 +77,14 @@ export class TransactionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id/status')
+  async getTransactionStatus(@Param('id') id: string) {
+    const tx = await this.transactionsService.findOne(id);
+    if (!tx) throw new NotFoundException('Transacción no encontrada');
+    return { id: tx.id, status: tx.status };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadTransaction(

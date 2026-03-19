@@ -27,16 +27,14 @@ export function MercadoPagoButton({
     }
   }, []);
 
-  // Garantiza un amount válido mayor a 0
-  const safeAmount = amount && amount > 0 ? amount : 50000;
+  // Garantiza un amount válido. Mínimo 1000 (límite inferior de MP para COL)
+  const safeAmount = amount && amount > 0 ? amount : 1000;
 
-  const handleSubmit = async ({
-    selectedPaymentMethod,
-    formData,
-  }: {
-    selectedPaymentMethod: string;
-    formData: Record<string, unknown>;
-  }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = async (paymentData: any) => {
+    const selectedPaymentMethod = paymentData?.selectedPaymentMethod ?? paymentData?.payment_method_id;
+    const formData = paymentData?.formData ?? paymentData;
+
     if (!formData) {
       const msg = "No se recibieron datos del formulario de pago.";
       toast.error(msg);

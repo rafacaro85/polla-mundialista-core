@@ -9,10 +9,22 @@ function PaymentStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get("ref");
+  // MP puede enviar `status` en back_urls de failure/pending
+  const mpStatus = searchParams.get("status"); // 'failure' | 'pending' | null
   const [status, setStatus] = useState<"loading" | "approved" | "pending" | "rejected">("loading");
 
   useEffect(() => {
     const checkStatus = async () => {
+      // Si MP ya indica fallo directamente en la URL, no consultamos la API
+      if (mpStatus === "failure") {
+        setStatus("rejected");
+        return;
+      }
+      if (mpStatus === "pending") {
+        setStatus("pending");
+        return;
+      }
+
       if (!reference) {
         setStatus("pending");
         return;
@@ -37,12 +49,12 @@ function PaymentStatusContent() {
     };
 
     checkStatus();
-  }, [reference]);
+  }, [reference, mpStatus]);
 
   useEffect(() => {
     if (status === "loading") return;
     const timer = setTimeout(() => {
-      router.push("/mis-pollas");
+      router.push("/social/mis-pollas");
     }, 4000);
     return () => clearTimeout(timer);
   }, [status, router]);
@@ -81,7 +93,7 @@ function PaymentStatusContent() {
 
         {status !== "loading" && (
           <button
-            onClick={() => router.push("/mis-pollas")}
+            onClick={() => router.push("/social/mis-pollas")}
             className="mt-4 px-6 py-3 bg-slate-700 text-white rounded-xl font-bold uppercase text-sm tracking-wider hover:bg-slate-600 transition-colors"
           >
             Ir a Mis Pollas ahora

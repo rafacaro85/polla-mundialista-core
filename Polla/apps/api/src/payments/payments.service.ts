@@ -118,6 +118,56 @@ export class PaymentsService {
       );
     }
   }
+  async processCardPayment(
+    formData: Record<string, any>,
+    amount: number,
+    transactionId: string,
+  ): Promise<{ paymentId: string; status: string }> {
+    const paymentClient = new Payment(this.mpClient);
+    try {
+      const paymentResponse = await paymentClient.create({
+        body: {
+          token: formData.token,
+          issuer_id: formData.issuer_id,
+          payment_method_id: formData.payment_method_id,
+          transaction_amount: amount,
+          installments: formData.installments || 1,
+          description: 'La Polla Virtual - Activación de Liga',
+          external_reference: transactionId,
+          payer: {
+            email: formData.payer?.email,
+            identification: formData.payer?.identification,
+          },
+        },
+      });
+
+      if (paymentResponse.status === 'approved') {
+        await this.transactionsService.updateStatus(
+          transactionId,
+          TransactionStatus.APPROVED,
+          `Pago aprobado por tarjeta. ID MP: ${paymentResponse.id}`,
+        );
+      } else if (
+        paymentResponse.status === 'rejected' ||
+        paymentResponse.status === 'cancelled'
+      ) {
+        await this.transactionsService.updateStatus(
+          transactionId,
+          TransactionStatus.REJECTED,
+          `Pago rechazado. Estado: ${paymentResponse.status}`,
+        );
+      }
+
+      return {
+        paymentId: String(paymentResponse.id),
+        status: paymentResponse.status || 'unknown',
+      };
+    } catch (error: any) {
+      this.logger.error(`Error processCardPayment: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
   async handleMPWebhook(
     webhookData: MercadoPagoWebhookDto
   ): Promise<{ received: boolean }> {

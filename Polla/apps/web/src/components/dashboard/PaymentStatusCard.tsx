@@ -5,7 +5,7 @@ import { Upload, CheckCircle, Clock, CreditCard, AlertCircle, X } from 'lucide-r
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useSWRConfig } from 'swr';
-import { WompiButton } from '@/components/payments/WompiButton';
+import { MercadoPagoButton } from '@/components/payments/MercadoPagoButton';
 import { useTournament } from '@/hooks/useTournament';
 
 interface PaymentStatusCardProps {
@@ -148,6 +148,23 @@ export default function PaymentStatusCard({ user, pendingTransaction }: PaymentS
 
                         {/* Body */}
                         <div className="p-6 overflow-y-auto">
+                            {/* Pago automático con tarjeta */}
+                            <div className="mb-6">
+                                <h4 className="text-white font-bold uppercase text-sm mb-3 text-center">Pago automático con tarjeta</h4>
+                                <MercadoPagoButton
+                                    amount={50000}
+                                    onSuccess={() => { setIsModalOpen(false); mutate('/auth/profile'); window.location.reload(); }}
+                                    onError={(err) => console.error('MP error:', err)}
+                                />
+                            </div>
+
+                            {/* Separador */}
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="flex-1 h-px bg-white/20"/>
+                                <span className="text-white/50 text-sm">o paga manualmente</span>
+                                <div className="flex-1 h-px bg-white/20"/>
+                            </div>
+
                             {/* Manual Payment Section */}
                             <div className="mb-4">
                                 <h4 className="text-white font-bold uppercase text-sm mb-3 text-center">Selecciona Método de Pago</h4>
@@ -232,13 +249,6 @@ export default function PaymentStatusCard({ user, pendingTransaction }: PaymentS
                                 </div>
                             </div>
                             
-                            {/* Wompi (Hidden) */}
-                             <div className="mb-4 opacity-50 grayscale pointer-events-none hidden">
-                                <div className="bg-gradient-to-br from-[#00E676]/10 to-emerald-500/5 border border-[#00E676]/20 rounded-2xl p-5 text-center">
-                                    <h4 className="text-white font-black uppercase text-sm">Wompi (Mantenimiento)</h4>
-                                </div>
-                             </div>
-
                         </div>
                     </div>
                 </div>

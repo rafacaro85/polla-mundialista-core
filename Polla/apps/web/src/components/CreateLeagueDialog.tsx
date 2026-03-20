@@ -13,9 +13,9 @@ import { useTournament } from '@/hooks/useTournament';
    ============================================================================= */
 const PLANS = [
     {
-        id: 'familia',
+        id: 'starter',
         name: 'Familia',
-        price: '$2.000',
+        price: 'GRATIS',
         members: 5,
         icon: < Shield size={20} />,
         color: '#94A3B8', // Slate

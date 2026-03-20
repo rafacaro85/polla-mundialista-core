@@ -185,7 +185,7 @@ const SOCIAL_PLANS = [
     {
         name: 'FAMILIA',
         subtitle: 'Para jugar en casa',
-        price: '$2.000',
+        price: 'GRATIS',
         capacity: 'Hasta 5 Jugadores',
         desc: 'Para la familia pequeña. Vive la emoción del mundial y compite sanamente.',
         icon: <Shield size={24} className="text-emerald-500" />,

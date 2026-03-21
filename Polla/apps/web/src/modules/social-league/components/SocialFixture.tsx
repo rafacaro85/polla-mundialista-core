@@ -250,9 +250,10 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
             {/* Phase Progress */}
             <div className="mb-6">
-                <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={tournamentId} />
+                {tournamentId !== 'HEIMCORE' && <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={tournamentId} />}
 
                 <div className="mt-4 flex flex-col gap-3">
+
                     <AiAssistButton
                     matches={finalMatches}
                     onPredictionsGenerated={handleAiPredictions}

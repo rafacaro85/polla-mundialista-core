@@ -38,11 +38,14 @@ export const RankingView: React.FC<RankingViewProps> = ({
     const hookTournament = useTournament();
     const tournamentId = propTournamentId || hookTournament.tournamentId;
     const isChampions = tournamentId === 'UCL2526';
+    const isHeimcore = tournamentId === 'HEIMCORE';
+
 
     return (
         <div className="h-full flex flex-col animate-in fade-in duration-300">
             <Tabs defaultValue="participants" className="w-full h-full flex flex-col">
-                <TabsList className={`w-full mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155] ${isChampions ? 'flex' : 'grid grid-cols-2'}`}>
+                <TabsList className={`w-full mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155] ${isChampions || isHeimcore ? 'flex' : 'grid grid-cols-2'}`}>
+
                     <TabsTrigger 
                         value="participants"
                         className="w-full data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
@@ -51,9 +54,10 @@ export const RankingView: React.FC<RankingViewProps> = ({
                         Participantes
                     </TabsTrigger>
                     
-                    {!isChampions && (
+                    {!isChampions && !isHeimcore && (
                         <TabsTrigger 
                             value="fifa"
+
                             className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                         >
                             <Globe size={16} />
@@ -75,11 +79,12 @@ export const RankingView: React.FC<RankingViewProps> = ({
                       ) : null}
                 </TabsContent>
 
-                {!isChampions && (
+                {!isChampions && !isHeimcore && (
                     <TabsContent value="fifa" className="flex-1 overflow-y-auto mt-0 custom-scrollbar pb-24">
                         <GroupStageView matches={matches} />
                     </TabsContent>
                 )}
+
             </Tabs>
         </div>
     );

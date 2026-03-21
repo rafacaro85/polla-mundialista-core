@@ -82,33 +82,7 @@ export function Header({ userName, leagueName }: HeaderProps) {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
-          
-          {/* Quick Admin Access for HEIMCORE */}
-          {tournamentId === 'HEIMCORE' && (
-            <div className="hidden sm:flex items-center gap-2 mr-2">
-              {selectedLeagueId && selectedLeagueId !== 'global' && isAdmin && (
-                <Link 
-                  href={`/leagues/${selectedLeagueId}/admin`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
-                >
-                  <Settings size={14} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Admin Polla</span>
-                </Link>
-              )}
-              
-              {user?.role === 'SUPER_ADMIN' && (
-                <Link 
-                  href="/super-admin"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-colors"
-                >
-                  <ShieldAlert size={14} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Super Admin</span>
-                </Link>
-              )}
-            </div>
-          )}
-
+        <div className="flex items-center gap-4">
           <NotificationBell />
           <UserNav />
         </div>

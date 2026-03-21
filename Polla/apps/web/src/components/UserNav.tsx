@@ -1,11 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid, HelpCircle, ChevronDown } from 'lucide-react';
+import { User, LogOut, Settings, ChevronRight, Shield, LayoutGrid, HelpCircle, ChevronDown, ShieldAlert } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
+
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { useTournament } from '@/hooks/useTournament';
+import api from '@/lib/api';
+import { toast } from 'sonner';
+
 
 /* =============================================================================
    COMPONENTE: USER MENU (DROPDOWN TACTICAL)
@@ -13,6 +18,8 @@ import { Button } from "@/components/ui/button";
 export function UserNav() {
   const { user, isLoading, logout, selectedLeagueId } = useAppStore();
   const router = useRouter();
+  const { tournamentId } = useTournament();
+
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -60,7 +67,30 @@ export function UserNav() {
     router.push('/super-admin');
   };
 
+  const handleAdminHeimcore = async () => {
+    try {
+      // Find HEIMCORE league to get its ID, or use selected
+      const currentLeague = selectedLeagueId !== 'global' ? selectedLeagueId : null;
+      if (currentLeague) {
+        router.push(`/leagues/${currentLeague}/admin`);
+        return;
+      }
+
+      // If they are not natively in the league context, find it via SuperAdmin god access
+      const { data } = await api.get('/leagues');
+      const heimcoreLeague = data.find((l: any) => l.tournamentId === 'HEIMCORE' && l.isEnterprise);
+      if (heimcoreLeague) {
+        router.push(`/leagues/${heimcoreLeague.id}/admin`);
+      } else {
+        toast.error("No se encontró la configuración del panel de HEIMCORE");
+      }
+    } catch {
+      toast.error("Error conectando con base de datos de ligas");
+    }
+  };
+
   const isAdmin = userData.role === 'ADMIN' || userData.role === 'SUPER_ADMIN';
+
 
   // SISTEMA DE DISEÑO
   const STYLES = {
@@ -278,7 +308,26 @@ export function UserNav() {
             hasArrow
           />
 
-          {selectedLeagueId && selectedLeagueId !== 'global' ? (
+          {tournamentId === 'HEIMCORE' && isAdmin && (
+            <>
+              <MenuItem
+                icon={Settings}
+                label="Admin Polla"
+                onClick={handleAdminHeimcore}
+                isSpecial
+                hasArrow
+              />
+              <MenuItem
+                icon={ShieldAlert}
+                label="Super Admin"
+                onClick={handleSuperAdmin}
+                isSpecial
+                hasArrow
+              />
+            </>
+          )}
+
+          {selectedLeagueId && selectedLeagueId !== 'global' && tournamentId !== 'HEIMCORE' ? (
             <>
               <MenuItem
                 icon={Settings}
@@ -292,7 +341,8 @@ export function UserNav() {
             <></>
           )}
 
-          {isAdmin && (
+          {isAdmin && tournamentId !== 'HEIMCORE' && (
+
             <MenuItem
               icon={Shield}
               label="Super Admin"

@@ -275,8 +275,9 @@ export class AdminService {
         homeFlag: 'https://flagcdn.com/w80/hr.png',
         awayFlag: 'https://flagcdn.com/w80/co.png',
         date: new Date('2026-03-26T20:00:00Z'),
-        phase: 'AMISTOSO',
+        phase: 'GROUP',
         group: 'UNICO',
+
         stadium: 'TBD',
         status: 'SCHEDULED',
         isManuallyLocked: false,

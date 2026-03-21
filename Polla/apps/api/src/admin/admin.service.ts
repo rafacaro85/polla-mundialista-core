@@ -274,11 +274,11 @@ export class AdminService {
         awayTeam: 'Colombia',
         homeFlag: 'https://flagcdn.com/w80/hr.png',
         awayFlag: 'https://flagcdn.com/w80/co.png',
-        date: new Date('2026-03-26T20:00:00Z'),
+        date: new Date('2026-03-26T23:30:00Z'),
         phase: 'GROUP',
-        group: 'UNICO',
+        group: 'FECHA FIFA',
 
-        stadium: 'TBD',
+        stadium: 'Camping World Stadium',
         status: 'SCHEDULED',
         isManuallyLocked: false,
       });

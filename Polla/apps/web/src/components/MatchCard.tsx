@@ -470,18 +470,19 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 </div>
 
                 {/* JOKER BUTTON */}
-                {!isInputLocked ? (
+                {!isInputLocked && match.tournamentId !== 'HEIMCORE' ? (
                   <button style={STYLES.jokerBtn} onClick={toggleJoker} title="Usar Comodín (x2 Puntos)">
                     <Star size={12} fill={isJoker ? "#0F172A" : "none"} strokeWidth={isJoker ? 0 : 2} />
                     {isJoker ? 'COMODÍN ACTIVO' : 'COMODÍN'}
                   </button>
                 ) : (
-                  isJoker && (
+                  isJoker && match.tournamentId !== 'HEIMCORE' && (
                     <div style={{ ...STYLES.jokerBtn, cursor: 'default', opacity: 1 }}>
                       <Star size={12} fill="#0F172A" strokeWidth={0} /> x2
                     </div>
                   )
                 )}
+
               </>
             )}
           </div>

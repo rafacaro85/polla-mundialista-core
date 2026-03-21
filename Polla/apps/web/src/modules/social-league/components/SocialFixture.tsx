@@ -248,7 +248,15 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
 
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+            {tournamentId === 'HEIMCORE' && (
+                <div className="text-center py-4 px-2 mb-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl animate-in zoom-in duration-500">
+                     <p className="text-emerald-400 text-sm font-bold uppercase tracking-wider italic">
+                         Partido amistoso preparatorio para la copa del mundo
+                     </p>
+                </div>
+            )}
             {/* Phase Progress */}
+
             <div className="mb-6">
                 {tournamentId !== 'HEIMCORE' && <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={tournamentId} />}
 
@@ -301,30 +309,48 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
             </div>
 
             <div className="mb-4 flex items-center justify-between gap-2">
-                <div className="flex-1 overflow-x-auto">
-                    <DateFilter
-                        dates={dates}
-                        selectedDate={selectedDate}
-                        onSelect={setSelectedDate}
-                    />
-                </div>
-                <Button
-                    onClick={onRefresh}
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
-                    title="Actualizar Marcadores"
-                >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--brand-primary,#00E676)]' : ''}`} />
-                </Button>
+                {tournamentId !== 'HEIMCORE' ? (
+                   <>
+                    <div className="flex-1 overflow-x-auto">
+                        <DateFilter
+                            dates={dates}
+                            selectedDate={selectedDate}
+                            onSelect={setSelectedDate}
+                        />
+                    </div>
+                    <Button
+                        onClick={onRefresh}
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
+                        title="Actualizar Marcadores"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--brand-primary,#00E676)]' : ''}`} />
+                    </Button>
+                   </>
+                ) : (
+                    <div className="flex-1 flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-white/5">
+                        <span className="text-white font-black uppercase tracking-widest italic text-sm">Próximo Partido</span>
+                        <Button
+                            onClick={onRefresh}
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
+                        >
+                            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
+                        </Button>
+                    </div>
+                )}
             </div>
+
 
             <div className="flex flex-col gap-4 pb-4">
                 {loading ? (
-                    <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partidos...</div>
+                    <div className="text-center py-20 text-slate-400 animate-pulse">Cargando partido...</div>
                 ) : matchesByDate.length === 0 ? (
-                    <div className="text-center py-10 text-slate-500">No hay partidos para esta fecha</div>
+                    <div className="text-center py-10 text-slate-500">No hay partidos disponibles</div>
                 ) : (
+
                     matchesByDate.map((match: any) => (
                         <MatchCard
                             key={match.id}

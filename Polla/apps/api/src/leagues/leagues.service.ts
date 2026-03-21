@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -1459,7 +1459,7 @@ export class LeaguesService {
     try {
       // 1. Get real-time calculated ranking (includes updated points from predictions)
       // This solves the issue of stale data in DB (0 points)
-      const ranking = await this.getLeagueRanking(leagueId, userId);
+      const ranking = (await this.getLeagueRanking(leagueId, userId)) as any[];
 
       const totalParticipants = ranking.length;
       const activeParticipants = ranking.filter(

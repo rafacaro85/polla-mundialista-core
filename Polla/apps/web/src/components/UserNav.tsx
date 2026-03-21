@@ -77,9 +77,13 @@ export function UserNav() {
       }
 
       // If they are not natively in the league context, find it via SuperAdmin god access
-      const { data } = await api.get('/leagues');
-      const heimcoreLeague = data.find((l: any) => l.tournamentId === 'HEIMCORE' && l.isEnterprise);
+      const { data } = await api.get('/leagues/all?tournamentId=HEIMCORE');
+      const heimcoreLeague = data.find((l: any) => l.isEnterprise);
+
       if (heimcoreLeague) {
+
+
+
         router.push(`/leagues/${heimcoreLeague.id}/admin`);
       } else {
         toast.error("No se encontró la configuración del panel de HEIMCORE");

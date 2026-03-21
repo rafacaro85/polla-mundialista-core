@@ -248,14 +248,8 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
 
     return (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-            {tournamentId === 'HEIMCORE' && (
-                <div className="text-center py-4 px-2 mb-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl animate-in zoom-in duration-500">
-                     <p className="text-emerald-400 text-sm font-bold uppercase tracking-wider italic">
-                         Partido amistoso preparatorio para la copa del mundo
-                     </p>
-                </div>
-            )}
             {/* Phase Progress */}
+
 
             <div className="mb-6">
                 {tournamentId !== 'HEIMCORE' && <PhaseProgressDashboard onPhaseClick={handlePhaseClick} tournamentId={tournamentId} />}
@@ -329,19 +323,14 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                     </Button>
                    </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-white/5">
-                        <span className="text-white font-black uppercase tracking-widest italic text-sm">Próximo Partido</span>
-                        <Button
-                            onClick={onRefresh}
-                            variant="outline"
-                            size="icon"
-                            className="shrink-0 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white"
-                        >
-                            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
-                        </Button>
+                    <div className="flex-1 flex flex-col items-center justify-center bg-emerald-500/10 p-5 rounded-2xl border border-emerald-500/20 text-center">
+                        <span className="text-emerald-400 font-black uppercase tracking-widest italic text-[11px] leading-tight">
+                            Partido amistoso preparatorio para la copa del mundo
+                        </span>
                     </div>
                 )}
             </div>
+
 
 
             <div className="flex flex-col gap-4 pb-4">

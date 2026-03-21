@@ -15,7 +15,8 @@ const formatMatchDate = (isoDate: string) => {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Bogota'
     }).format(d).toUpperCase();
   } catch {
     return 'FECHA TBD';

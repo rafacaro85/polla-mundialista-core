@@ -3,6 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { KnockoutPhaseStatus } from '../database/entities/knockout-phase-status.entity';
+import { League } from '../database/entities/league.entity';
+import { LeagueType } from '../database/enums/league-type.enum';
+import { BonusQuestion } from '../database/entities/bonus-question.entity';
+import { User } from '../database/entities/user.entity';
+import { LeagueStatus } from '../database/enums/league-status.enum';
+import { UserRole } from '../database/enums/user-role.enum';
+
+
 
 @Injectable()
 export class AdminService {
@@ -13,6 +21,127 @@ export class AdminService {
     private phaseStatusRepository: Repository<KnockoutPhaseStatus>,
     private dataSource: DataSource,
   ) {}
+
+  async seedHeimcore() {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      console.log('🧹 [Heimcore Seed] Iniciando limpieza de tablas...');
+
+      // Limpieza drástica (Delete para evitar problemas de constraints si no hay Truncate Cascade)
+      const tables = [
+        'user_bonus_answers',
+        'predictions',
+        'user_brackets',
+        'league_participants',
+        'league_comments',
+        'league_prizes',
+        'league_banners',
+        'access_codes',
+        'bonus_questions',
+        'leagues',
+        'matches',
+        'notifications',
+        'transactions'
+      ];
+
+      for (const table of tables) {
+        await queryRunner.query(`DELETE FROM "${table}"`);
+      }
+
+      console.log('✅ [Heimcore Seed] Limpieza completada.');
+
+      // 1. Torneo / Referencia Heimcore (No hay entidad Tournament, se usa ID)
+      const TOURNAMENT_ID = 'HEIMCORE';
+
+      // 2. Crear Partido Único: Croacia vs Colombia
+      const match = queryRunner.manager.create(Match, {
+        tournamentId: TOURNAMENT_ID,
+        homeTeam: 'Croacia',
+        awayTeam: 'Colombia',
+        homeFlag: 'https://flagcdn.com/w80/hr.png',
+        awayFlag: 'https://flagcdn.com/w80/co.png',
+        date: new Date('2026-03-26T20:00:00Z'), // Fecha solicitada
+        phase: 'AMISTOSO',
+        group: 'UNICO',
+        stadium: 'TBD',
+        status: 'SCHEDULED',
+        isManuallyLocked: false,
+      });
+      await queryRunner.manager.save(match);
+      console.log('✅ [Heimcore Seed] Partido Croacia vs Colombia creado.');
+
+      // 3. Crear 2 Trivias (Bonus Questions)
+      const trivia1 = queryRunner.manager.create(BonusQuestion, {
+        text: '¿Quién anotará el primer gol?',
+        points: 10,
+        tournamentId: TOURNAMENT_ID,
+        isActive: true,
+        type: 'OPEN'
+      });
+      const trivia2 = queryRunner.manager.create(BonusQuestion, {
+        text: '¿Habrá tarjetas rojas?',
+        points: 5,
+        tournamentId: TOURNAMENT_ID,
+        isActive: true,
+        type: 'OPEN'
+      });
+      await queryRunner.manager.save([trivia1, trivia2]);
+      console.log('✅ [Heimcore Seed] 2 Trivias creadas.');
+
+      // 4. Buscar o crear un usuario administrador para la liga
+      // (Buscamos el primer usuario o uno de sistema)
+      let admin = await queryRunner.manager.findOne(User, { where: {} });
+      if (!admin) {
+        admin = queryRunner.manager.create(User, {
+          email: 'admin@heimcore.com',
+          fullName: 'Heimcore Admin',
+          role: UserRole.ADMIN,
+          isVerified: true
+        });
+        await queryRunner.manager.save(admin);
+      }
+
+      // 5. Crear Liga Corporativa Heimcore
+      const league = queryRunner.manager.create(League, {
+        name: 'Heimcore',
+        tournamentId: TOURNAMENT_ID,
+        type: LeagueType.COMPANY,
+        creator: admin,
+        maxParticipants: 30,
+        status: LeagueStatus.ACTIVE,
+        isPaid: true,
+        isEnterprise: true,
+        isEnterpriseActive: true,
+        packageType: 'ENTERPRISE',
+        companyName: 'Heimcore',
+        brandColorPrimary: '#00E676',
+        brandColorSecondary: '#1E293B',
+        accessCodePrefix: 'HEIM'
+      });
+      await queryRunner.manager.save(league);
+      console.log('✅ [Heimcore Seed] Liga Corporativa Heimcore creada.');
+
+      await queryRunner.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Entorno reciclado exitosamente para Heimcore.',
+        match: 'Croacia vs Colombia',
+        league: 'Heimcore (30 users)',
+        trivias: 2
+      };
+    } catch (error) {
+      console.error('❌ Error en Seed Heimcore:', error);
+      await queryRunner.rollbackTransaction();
+      return { success: false, error: error.message };
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
 
 
 

@@ -74,8 +74,14 @@ import { HealthController } from './health/health.controller';
           console.warn('⚠️ REDIS_URL no definido. Usando caché en memoria.');
           return { ttl: 10000 };
         }
-        const store = await redisStore({ url: redisUrl, ttl: 10000 });
-        return { store: store as any, ttl: 10000 };
+        try {
+          const store = await redisStore({ url: redisUrl, ttl: 10000 });
+          return { store: store as any, ttl: 10000 };
+        } catch (error: any) {
+          console.error(`❌ Error conectando a Redis en PEOPLE branch: ${error.message}`);
+          console.warn('⚠️ Fallback a caché en memoria para evitar crash en build/start.');
+          return { ttl: 10000 };
+        }
       },
       inject: [ConfigService],
     }),

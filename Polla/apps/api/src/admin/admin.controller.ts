@@ -38,6 +38,13 @@ export class AdminController {
   }
   // --- END TEMPORARY UCL PHASES ENDPOINT ---
 
+  @Post('seed-heimcore')
+  @HttpCode(HttpStatus.OK)
+  @Public() // Para que puedas correrlo sin JWT durante esta transición si es necesario, pero úsala con precaución.
+  async seedHeimcore() {
+    return this.adminService.seedHeimcore();
+  }
+
   @Get('platform-stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')

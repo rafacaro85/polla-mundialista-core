@@ -18,6 +18,12 @@ import {
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import { TelegramService } from '../telegram/telegram.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
+
 
 @Injectable()
 export class AuthService {
@@ -26,6 +32,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly telegramService: TelegramService,
+    @InjectRepository(AccessCode)
+    private readonly accessCodeRepository: Repository<AccessCode>,
+    @InjectRepository(LeagueParticipant)
+    private readonly leagueParticipantRepository: Repository<LeagueParticipant>,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<User | null> {
@@ -81,35 +91,46 @@ export class AuthService {
   }
 
   async loginWithCompanyCode(fullName: string, accessCode: string) {
-    const validCode = process.env.COMPANY_ACCESS_CODE;
+    // 1. Validar código en la BD
+    const codeEntry = await this.accessCodeRepository.findOne({
+      where: { code: accessCode },
+      relations: ['league']
+    });
     
-    if (!validCode) {
-        throw new ConflictException('Company Access Code not configured on server.');
-    }
+    // Check fallback for ENV var just in case
+    const envCode = process.env.COMPANY_ACCESS_CODE;
 
-    if (accessCode !== validCode) {
+    if (!codeEntry && accessCode !== envCode) {
         throw new UnauthorizedException('Código de acceso inválido.');
     }
 
-    // Generar un email ficticio basado en el nombre para compatibilidad
-    // Ej: Juan Perez -> juan.perez.corp@ptwp.com
+    // 2. Preparar usuario
     const sanitized = fullName.toLowerCase().replace(/[^a-z0-9]/g, '.');
-    const email = `${sanitized}@ptwp.com`;
+    const email = `${sanitized}.corp@ptwp.com`;
 
     let user = await this.usersService.findByEmail(email);
 
     if (!user) {
-        // Crear usuario automáticamente
-        user = await this.usersService.create(
-            email,
-            fullName,
-            undefined, // Sin password
-            undefined, 
-            undefined,
-            undefined
-        );
-        // Auto verificar
+        user = await this.usersService.create(email, fullName);
         await this.usersService.update(user, { isVerified: true });
+    }
+
+    // 3. Vincular a la liga si el código pertenece a una
+    if (codeEntry?.league) {
+        const participant = await this.leagueParticipantRepository.findOne({
+            where: { league: { id: codeEntry.league.id }, user: { id: user.id } }
+        });
+
+        if (!participant) {
+            await this.leagueParticipantRepository.save({
+                league: codeEntry.league,
+                user: user,
+                status: LeagueParticipantStatus.ACTIVE,
+                isAdmin: false,
+                totalPoints: 0
+            });
+            console.log(`✅ [AuthService] Usuario ${fullName} vinculado a liga ${codeEntry.league.name}`);
+        }
     }
 
     return this.login(user);

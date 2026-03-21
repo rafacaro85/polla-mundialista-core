@@ -9,6 +9,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TelegramModule } from '../telegram/telegram.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AccessCode } from '../database/entities/access-code.entity';
+import { League } from '../database/entities/league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
+
 
 @Module({
   imports: [
@@ -16,6 +21,7 @@ import { TelegramModule } from '../telegram/telegram.module';
     PassportModule,
     ConfigModule,
     TelegramModule,
+    TypeOrmModule.forFeature([AccessCode, League, LeagueParticipant]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

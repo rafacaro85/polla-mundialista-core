@@ -37,8 +37,17 @@ const TOURNAMENT_THEMES: Record<string, {
         icon: <Shield size={24} color="#F59E0B" />,
         textColor: '#F59E0B',
         accentColor: '#F59E0B'
+    },
+    'HEIMCORE': {
+        name: 'Heimcore',
+        bgColor: '#0F172A',
+        borderColor: '#10B981', // Emerald
+        icon: <Trophy size={24} color="#10B981" />,
+        textColor: '#10B981',
+        accentColor: '#10B981'
     }
 };
+
 
 export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
     const router = useRouter();
@@ -99,10 +108,11 @@ export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
                             verticalAlign: 'middle',
                             whiteSpace: 'nowrap'
                         }}>
-                            {tournamentId === 'UCL2526' ? 'UCL' : 'WC'}
+                            {tournamentId === 'UCL2526' ? 'UCL' : tournamentId === 'HEIMCORE' ? 'HEIMCORE' : 'WC'}
                         </span>
                     </h1>
                     <span style={{
+
                         fontSize: '12px',
                         color: '#94A3B8',
                         fontWeight: 'bold',
@@ -181,8 +191,10 @@ export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
                         <option value="WC2026">🏆 Mundial</option>
                         <option value="UCL2526">⭐ Champions</option>
                         <option value="TEST_LIVE_MONDAY">🧪 Pruebas en Vivo</option>
+                        <option value="HEIMCORE">🏢 Heimcore</option>
                     </select>
                 </div>
+
             </div>
         </div>
     );

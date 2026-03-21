@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { UserNav } from '@/components/UserNav';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { Settings, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { Settings, ChevronLeft, LayoutGrid, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+
 import { useTournament } from '@/hooks/useTournament';
 
 interface HeaderProps {
@@ -81,22 +82,37 @@ export function Header({ userName, leagueName }: HeaderProps) {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-4">
-          {/* <Link 
-            href="/hub" 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
-              isChampionsTheme 
-                ? 'bg-blue-800/50 hover:bg-blue-700 text-blue-200' 
-                : 'bg-emerald-900/50 hover:bg-emerald-800 text-emerald-200'
-            }`}
-          >
-            <LayoutGrid size={16} />
-            <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Torneos</span>
-          </Link> */}
+        <div className="flex items-center gap-2 md:gap-4">
+          
+          {/* Quick Admin Access for HEIMCORE */}
+          {tournamentId === 'HEIMCORE' && (
+            <div className="hidden sm:flex items-center gap-2 mr-2">
+              {selectedLeagueId && selectedLeagueId !== 'global' && isAdmin && (
+                <Link 
+                  href={`/leagues/${selectedLeagueId}/admin`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                >
+                  <Settings size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Admin Polla</span>
+                </Link>
+              )}
+              
+              {user?.role === 'SUPER_ADMIN' && (
+                <Link 
+                  href="/super-admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-colors"
+                >
+                  <ShieldAlert size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Super Admin</span>
+                </Link>
+              )}
+            </div>
+          )}
 
           <NotificationBell />
           <UserNav />
         </div>
+
 
       </div>
     </header>

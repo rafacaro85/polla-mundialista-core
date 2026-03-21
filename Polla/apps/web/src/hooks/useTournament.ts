@@ -17,15 +17,21 @@ export const useTournament = () => {
       return queryTournament as TournamentId;
     }
 
-    // 2. LocalStorage
+    // 2. LocalStorage (Ignore for railway/dev to force switch if user was in WC previously)
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const stored = localStorage.getItem('selectedTournament');
-    if (stored) {
+    if (stored && !hostname.includes('railway')) {
       return stored as TournamentId;
     }
 
+
     // 3. Fallback: Hostname/Env
-    const hostname = window.location.hostname;
     const envTheme = process.env.NEXT_PUBLIC_APP_THEME;
+
+    
+    // Explicitly check for railway/heimcore context
+    if (hostname.includes('railway') || envTheme === 'HEIMCORE') return 'HEIMCORE';
+    
     return (hostname.includes('champions') || envTheme === 'CHAMPIONS') ? 'UCL2526' : 'FWC2026';
   };
 

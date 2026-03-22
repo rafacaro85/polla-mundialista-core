@@ -233,12 +233,13 @@ export default function AdminDashboardPage() {
                 <div className="mb-8">
                     {/* Back Button */}
                     <button
-                        onClick={() => router.push(`/leagues/${params.id}`)}
+                        onClick={() => router.push('/dashboard')}
                         className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-brand-primary transition-colors mb-6 group"
                     >
                         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                         Volver a la Polla
                     </button>
+
 
                     {/* Title & Subtitle */}
                     <div className="flex items-start justify-between flex-wrap gap-4">

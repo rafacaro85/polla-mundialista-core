@@ -116,7 +116,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { refetch: refetchPhases } = useKnockoutPhases();
   
   // Implement useLeagues to determine smart onboarding state
-  const { leagues, loading: loadingLeagues } = useLeagues();
+  const { leagues, enterpriseLeagues, loading: loadingLeagues } = useLeagues();
   const hasLeagues = leagues && leagues.length > 0;
   
   const isCorporate = process.env.NEXT_PUBLIC_IS_CORPORATE === 'true';
@@ -148,7 +148,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     if (props.defaultLeagueId) {
       setSelectedLeague(props.defaultLeagueId);
     } else {
-      setSelectedLeague('global');
+      // FORCE Heimcore context into the Global Dashboard if we are in corporate mode and they have the league
+      if (isCorporate && enterpriseLeagues && enterpriseLeagues.length > 0) {
+        setSelectedLeague(enterpriseLeagues[0].id);
+      } else {
+        setSelectedLeague('global');
+      }
     }
     if (props.initialTab) {
       setActiveTab(props.initialTab);
@@ -231,7 +236,17 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
   // CORPORATE LOBBY CHECK
   if (isCorporate && activeTab === 'home') {
-      return <CorporateWelcomeView onEnterGame={() => setActiveTab('predictions')} />;
+      return (
+         <CorporateWelcomeView 
+             onEnterGame={() => {
+                // When entering, ensure we have the context set
+                if (enterpriseLeagues && enterpriseLeagues.length > 0) {
+                   setSelectedLeague(enterpriseLeagues[0].id);
+                }
+                setActiveTab('predictions');
+             }} 
+         />
+      );
   }
 
   return (

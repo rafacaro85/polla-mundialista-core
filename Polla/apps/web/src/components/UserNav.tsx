@@ -8,8 +8,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { useTournament } from '@/hooks/useTournament';
+import { useLeagues } from '@/hooks/useLeagues';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+
+
 
 
 /* =============================================================================
@@ -19,9 +22,10 @@ export function UserNav() {
   const { user, isLoading, logout, selectedLeagueId } = useAppStore();
   const router = useRouter();
   const { tournamentId } = useTournament();
-
+  const { enterpriseLeagues, loading: leaguesLoading } = useLeagues();
 
   const [isOpen, setIsOpen] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Cerrar al hacer clic fuera
@@ -76,22 +80,31 @@ export function UserNav() {
         return;
       }
 
-      // If they are not natively in the league context, find it via SuperAdmin god access
-      const { data } = await api.get('/leagues/all?tournamentId=HEIMCORE');
-      const heimcoreLeague = data.find((l: any) => l.isEnterprise);
+      if (leaguesLoading) {
+        toast.info("Cargando ligas, un momento...");
+        return;
+      }
 
+      // If they are not natively in the league context, find it via SWR cache
+      const heimcoreLeague = enterpriseLeagues.find(l => l.isEnterprise);
+      
       if (heimcoreLeague) {
-
-
-
         router.push(`/leagues/${heimcoreLeague.id}/admin`);
       } else {
-        toast.error("No se encontró la configuración del panel de HEIMCORE");
+        // Fallback safely fetching direct if not in my leagues (SuperAdmin only fallback)
+        const { data } = await api.get('/leagues/all?tournamentId=HEIMCORE');
+        const fallbackLeague = data.find((l: any) => l.isEnterprise);
+        if (fallbackLeague) {
+           router.push(`/leagues/${fallbackLeague.id}/admin`);
+        } else {
+           toast.error("No se encontró la configuración corporativa (Heimcore).");
+        }
       }
     } catch {
       toast.error("Error conectando con base de datos de ligas");
     }
   };
+
 
   const isAdmin = userData.role === 'ADMIN' || userData.role === 'SUPER_ADMIN';
 

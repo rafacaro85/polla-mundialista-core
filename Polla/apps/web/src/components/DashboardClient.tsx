@@ -9,6 +9,7 @@ import { PlusIcon, Shield, Trophy } from 'lucide-react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Header } from './ui/Header';
+import { LeagueHeader } from '@/components/leagues/LeagueHeader';
 import { GroupStageView } from './GroupStageView';
 import { BracketView } from './BracketView';
 import { BonusView } from './BonusView';
@@ -257,7 +258,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
       >
-        {!isEnterpriseMode && (
+        {isEnterpriseMode ? (
+          <LeagueHeader />
+        ) : (
           <Header
             userName={user?.nickname || 'Invitado'}
             leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}

@@ -112,7 +112,7 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
     const COLORS = {
         bg: '#0F172A',
         card: '#1E293B',
-        signal: '#00E676',
+        signal: 'var(--brand-primary, #00E676)',
         gold: '#FACC15',
         alert: '#FF1744',
         text: '#F8FAFC',

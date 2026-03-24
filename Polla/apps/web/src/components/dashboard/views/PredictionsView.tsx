@@ -33,7 +33,7 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
 
                     <TabsTrigger 
                         value="matches"
-                        className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        className="data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                     >
                         <Calendar size={16} />
                         {isHeimcore ? 'Partido' : 'Partidos'}
@@ -41,7 +41,7 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
                     {!isHeimcore && (
                         <TabsTrigger 
                             value="bracket"
-                            className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                            className="data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                         >
                             <Activity size={16} />
                             Llaves

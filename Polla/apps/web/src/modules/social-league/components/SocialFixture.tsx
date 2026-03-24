@@ -265,8 +265,12 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({ matchesData, loadi
                         <Button
                             onClick={handleSaveAiPredictions}
                             disabled={Object.keys(aiSuggestions).length === 0}
+                            style={{ 
+                                backgroundColor: Object.keys(aiSuggestions).length > 0 ? 'var(--brand-primary, #16a34a)' : undefined,
+                                color: Object.keys(aiSuggestions).length > 0 ? 'var(--brand-bg, #ffffff)' : undefined
+                            }}
                             className={`flex-1 gap-2 font-bold shadow-md transition-all ${Object.keys(aiSuggestions).length > 0
-                                    ? 'bg-green-600 hover:bg-green-500 text-white hover:scale-[1.02] shadow-green-900/20'
+                                    ? 'hover:brightness-110 text-white hover:scale-[1.02] shadow-green-900/20 shadow-lg'
                                     : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                                 }`}
                         >

@@ -186,15 +186,7 @@ interface BrandingTabProps {
 }
 
 const getPlanLevel = (type?: string) => {
-    if (!type) return 1;
-    const t = type.toUpperCase();
-    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
-    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
-    if (t.includes('BUSINESS_CORP')) return 4;
-    if (t.includes('GOLD') || t.includes('ORO')) return 3;
-    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
-    if (t.includes('BUSINESS_GROWTH')) return 2;
-    return 1;
+    return 5; // Siempre nivel Diamante para activar todas las funciones premium.
 };
 
 export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) => {

@@ -84,15 +84,7 @@ interface DashboardClientProps {
 }
 
 const getPlanLevel = (type?: string) => {
-  if (!type) return 1;
-  const t = type.toUpperCase();
-  if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
-  if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
-  if (t.includes('BUSINESS_CORP')) return 4;
-  if (t.includes('GOLD') || t.includes('ORO')) return 3;
-  if (t.includes('SILVER') || t.includes('PLATA')) return 2;
-  if (t.includes('BUSINESS_GROWTH')) return 2;
-  return 1;
+  return 5; // Global Premium status for this branch.
 };
 
 export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
@@ -238,18 +230,25 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // CORPORATE LOBBY CHECK
   if (isCorporate && activeTab === 'home') {
       return (
-         <EnterpriseLeagueHome
-             league={currentLeague}
-             participants={participants}
-             matches={matches}
-             onEnterGame={() => {
-                // When entering, ensure we have the context set
-                if (enterpriseLeagues && enterpriseLeagues.length > 0) {
-                   setSelectedLeague(enterpriseLeagues[0].id);
-                }
-                setActiveTab('predictions');
-             }} 
-         />
+        <LeagueThemeProvider
+          primaryColor={currentLeague?.brandColorPrimary}
+          secondaryColor={currentLeague?.brandColorSecondary}
+          bgColor={currentLeague?.brandColorBg}
+          textColor={currentLeague?.brandColorText}
+        >
+          <EnterpriseLeagueHome
+              league={currentLeague}
+              participants={participants}
+              matches={matches}
+              onEnterGame={() => {
+                 // When entering, ensure we have the context set
+                 if (enterpriseLeagues && enterpriseLeagues.length > 0) {
+                    setSelectedLeague(enterpriseLeagues[0].id);
+                 }
+                 setActiveTab('predictions');
+              }} 
+          />
+        </LeagueThemeProvider>
       );
   }
 
@@ -257,6 +256,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     <LeagueThemeProvider
       primaryColor={currentLeague?.brandColorPrimary}
       secondaryColor={currentLeague?.brandColorSecondary}
+      bgColor={currentLeague?.brandColorBg}
+      textColor={currentLeague?.brandColorText}
     >
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"

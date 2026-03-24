@@ -16,15 +16,7 @@ interface RankingViewProps {
 }
 
 const getPlanLevel = (type?: string) => {
-    if (!type) return 1;
-    const t = type.toUpperCase();
-    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
-    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
-    if (t.includes('BUSINESS_CORP')) return 4;
-    if (t.includes('GOLD') || t.includes('ORO')) return 3;
-    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
-    if (t.includes('BUSINESS_GROWTH')) return 2;
-    return 1;
+    return 5; // Premium status for this branch.
 };
 
 export const RankingView: React.FC<RankingViewProps> = ({
@@ -48,7 +40,7 @@ export const RankingView: React.FC<RankingViewProps> = ({
 
                     <TabsTrigger 
                         value="participants"
-                        className="w-full data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                        className="w-full data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                     >
                         <Users size={16} />
                         Participantes
@@ -58,7 +50,7 @@ export const RankingView: React.FC<RankingViewProps> = ({
                         <TabsTrigger 
                             value="fifa"
 
-                            className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                            className="data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                         >
                             <Globe size={16} />
                             Tabla de posiciones

@@ -190,10 +190,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const hasWon = points > 0;
 
   const inputBorderColor = isFinished
-    ? (hasWon ? '#00E676' : '#FF1744')
+    ? (hasWon ? 'var(--brand-primary, #00E676)' : '#FF1744')
     : '#475569';
 
-  const resultColor = hasWon ? '#00E676' : '#FF1744';
+  const resultColor = hasWon ? 'var(--brand-primary, #00E676)' : '#FF1744';
 
   // Calculo Desglose Simplificado (Frontend Visual)
   const getBreakdown = () => {
@@ -374,7 +374,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
             <Info size={18} />
           </div>
           <div style={STYLES.metaData}>
-            <div style={{ color: '#00E676' }}>
+            <div style={{ color: 'var(--brand-primary, #00E676)' }}>
               {(() => {
                 // Priority 1: Use group field if it's a custom label (not a single letter)
                 if (groupName && groupName.length > 1 && !['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(groupName)) {
@@ -439,7 +439,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
           <div style={STYLES.inputs}>
             {isLive ? (
               <>
-                <span style={{ fontSize: '32px', color: '#00E676', fontWeight: 'bold', letterSpacing: '-1px' }}>
+                <span style={{ fontSize: '32px', color: 'var(--brand-primary, #00E676)', fontWeight: 'bold', letterSpacing: '-1px' }}>
                   {match.scoreH || 0}-{match.scoreA || 0}
                 </span>
                 <div style={STYLES.liveIndicator}>

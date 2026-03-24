@@ -22,11 +22,14 @@ export function Header({ userName, leagueName }: HeaderProps) {
   const isChampionsTheme = tournamentId === 'UCL2526';
 
   return (
-    <header className={`sticky top-0 z-40 w-full border-b shadow-md ${
-      isChampionsTheme 
-        ? 'bg-[#1e293b] border-blue-900' // Dark slate/blue for Champions
-        : 'bg-[#0F172A] border-slate-800' // Default dark
-    }`}>
+    <header
+      className={`sticky top-0 z-40 w-full border-b shadow-md ${
+        isChampionsTheme
+          ? 'bg-[#1e293b] border-blue-900'
+          : 'border-slate-800'
+      }`}
+      style={{ backgroundColor: isChampionsTheme ? undefined : 'var(--brand-bg, #0F172A)' }}
+    >
       <div className="container flex h-20 items-center justify-between px-4">
 
         {/* Left: Logo or Back Button */}

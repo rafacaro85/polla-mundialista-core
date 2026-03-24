@@ -75,14 +75,9 @@ export default function BrandThemeProvider({
             root.style.setProperty('--brand-logo-url', `url(${logoUrl})`);
         }
 
-        // Cleanup: Restaurar valores por defecto al desmontar
-        return () => {
-            root.style.setProperty('--brand-primary', '#00E676');
-            root.style.setProperty('--brand-secondary', '#1E293B');
-            root.style.setProperty('--brand-bg', '#0F172A');
-            root.style.setProperty('--brand-text', '#F8FAFC');
-            root.style.setProperty('--brand-accent', '#00E676');
-        };
+        // IMPORTANTE: NO se limpian las variables al desmontar para evitar
+        // flash de colores default al navegar entre páginas corporativas.
+
     }, [primaryColor, secondaryColor, bgColor, textColor, logoUrl]);
 
     const brandValue: BrandContextType = {

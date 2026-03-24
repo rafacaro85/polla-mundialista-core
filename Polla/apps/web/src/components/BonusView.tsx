@@ -124,7 +124,7 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
         container: {
             padding: '16px',
             paddingBottom: '120px',
-            backgroundColor: COLORS.bg,
+            backgroundColor: 'var(--brand-bg, #0F172A)',
             minHeight: '100vh',
             fontFamily: 'sans-serif'
         },
@@ -215,8 +215,8 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
             outline: 'none'
         },
         saveBtn: {
-            backgroundColor: COLORS.signal,
-            color: '#0F172A',
+            backgroundColor: 'var(--brand-primary, #00E676)',
+            color: 'var(--brand-bg, #0F172A)',
             border: 'none',
             borderRadius: '8px',
             padding: '0 16px',

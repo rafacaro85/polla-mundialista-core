@@ -260,7 +260,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       textColor={currentLeague?.brandColorText}
     >
       <div
-        className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
+        className="min-h-screen bg-[var(--brand-bg,#0F172A)] text-white flex flex-col font-sans relative pb-24 overflow-x-hidden w-full"
       >
         {isEnterpriseMode ? (
           <LeagueHeader />

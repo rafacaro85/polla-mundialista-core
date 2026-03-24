@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 
 interface LeagueThemeProviderProps {
     primaryColor?: string;
@@ -10,34 +10,26 @@ interface LeagueThemeProviderProps {
     children: React.ReactNode;
 }
 
+/**
+ * Inyecta los colores de marca como CSS variables en el :root del documento.
+ * - Solo actualiza una variable si hay un valor concreto (nunca borra si recibe undefined).
+ * - NO limpia las variables al desmontarse, para evitar flashes de color
+ *   al navegar entre páginas dentro de la misma app corporativa.
+ */
 export default function LeagueThemeProvider({ primaryColor, secondaryColor, bgColor, textColor, children }: LeagueThemeProviderProps) {
-    // Track which vars were set by this provider instance so cleanup is safe
-    const setVars = useRef<string[]>([]);
-
     useEffect(() => {
         const root = document.documentElement;
-        const apply = (varName: string, value?: string) => {
-            if (value) {
-                root.style.setProperty(varName, value);
-                if (!setVars.current.includes(varName)) setVars.current.push(varName);
-            }
-            // Si value es undefined/empty, conservar lo que ya está — no borrar
-        };
 
-        apply('--brand-primary', primaryColor);
-        apply('--brand-secondary', secondaryColor);
-        apply('--brand-bg', bgColor);
-        apply('--brand-text', textColor);
+        if (primaryColor) root.style.setProperty('--brand-primary', primaryColor);
+        if (secondaryColor) root.style.setProperty('--brand-secondary', secondaryColor);
+        if (bgColor) root.style.setProperty('--brand-bg', bgColor);
+        if (textColor) root.style.setProperty('--brand-text', textColor);
+
+        // IMPORTANTE: No se limpian las variables al desmontar.
+        // Esto evita el flash de colores default cuando el usuario navega
+        // entre /leagues/:id y /dashboard, mientras el nuevo ThemeProvider carga.
 
     }, [primaryColor, secondaryColor, bgColor, textColor]);
-
-    // Limpiar solo al desmontar, y solo las vars que este provider efectivamente seteó
-    useEffect(() => {
-        return () => {
-            const root = document.documentElement;
-            setVars.current.forEach(v => root.style.removeProperty(v));
-        };
-    }, []);
 
     return <>{children}</>;
 }

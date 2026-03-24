@@ -17,17 +17,17 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
                     // Find basic info in loaded leagues list to get isAdmin/code reliably
                     const existingLeagueInfo = leagues.find(l => l.id === selectedLeagueId);
 
-                    // FETCH FULL DETAILS (Previous: /metadata) to get userStatus
-                    const { data } = await api.get(`/leagues/${selectedLeagueId}`);
-                    console.log('🔍 [useCurrentLeague] League Full Details Received:', data);
+                    // FETCH FULL DETAILS via /metadata - returns all branding fields (brandColorPrimary, etc.)
+                    const { data } = await api.get(`/leagues/${selectedLeagueId}/metadata`);
+                    const leagueData = data.league || data; // metadata returns { league: {...} }
+                    console.log('🔍 [useCurrentLeague] League Full Details Received:', leagueData);
                     
                     // Merge API metadata with local list data if available (prioritize list for isAdmin)
-                    // The GET /leagues/:id endpoint returns the league object directly
                     const mergedLeague = {
-                        ...data,
-                        isAdmin: existingLeagueInfo ? existingLeagueInfo.isAdmin : data.isAdmin,
-                        code: existingLeagueInfo ? existingLeagueInfo.code : data.code,
-                        userStatus: data.userStatus // Ensure this is captured
+                        ...leagueData,
+                        isAdmin: existingLeagueInfo ? existingLeagueInfo.isAdmin : leagueData.isAdmin,
+                        code: existingLeagueInfo ? existingLeagueInfo.code : leagueData.code,
+                        userStatus: leagueData.userStatus
                     };
 
                     setCurrentLeague(mergedLeague);

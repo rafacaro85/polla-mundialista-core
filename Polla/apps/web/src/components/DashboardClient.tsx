@@ -42,7 +42,7 @@ import { useTournament } from '@/hooks/useTournament';
 import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
 import { OnboardingMissions } from './dashboard/home/OnboardingMissions';
-import { CorporateWelcomeView } from '@/components/CorporateWelcomeView';
+import { EnterpriseLeagueHome } from '@/modules/enterprise-league/components/EnterpriseLeagueHome';
 
 interface Match {
   id: string;
@@ -238,7 +238,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   // CORPORATE LOBBY CHECK
   if (isCorporate && activeTab === 'home') {
       return (
-         <CorporateWelcomeView 
+         <EnterpriseLeagueHome
+             league={currentLeague}
+             participants={participants}
+             matches={matches}
              onEnterGame={() => {
                 // When entering, ensure we have the context set
                 if (enterpriseLeagues && enterpriseLeagues.length > 0) {

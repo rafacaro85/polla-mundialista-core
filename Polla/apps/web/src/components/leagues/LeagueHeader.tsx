@@ -2,22 +2,15 @@
 
 import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { LogOut, Settings, User, ChevronDown } from 'lucide-react';
-import { useAppStore } from '@/store/useAppStore';
+import { ChevronDown } from 'lucide-react';
 import { useBrand } from '@/components/providers/BrandThemeProvider';
+import { UserNav } from '@/components/UserNav';
 import api from '@/lib/api';
 
 export function LeagueHeader() {
     const router = useRouter();
     const params = useParams();
-    const { user, logout } = useAppStore();
     const brand = useBrand();
-    const [showMenu, setShowMenu] = useState(false);
-
-    const handleLogout = () => {
-        logout();
-        router.push('/');
-    };
 
     const [leagueData, setLeagueData] = useState<{ isLeagueAdmin: boolean; isEnterprise: boolean } | null>(null);
 
@@ -113,116 +106,8 @@ export function LeagueHeader() {
                     )}
                 </div>
 
-                {/* Avatar & Menu Usuario */}
-                <div className="relative">
-                    <button
-                        onClick={() => setShowMenu(!showMenu)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
-                        style={{ color: brand.brandColorText }}
-                    >
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
-                            style={{
-                                backgroundColor: brand.brandColorPrimary,
-                                color: brand.brandColorBg
-                            }}
-                        >
-                            {user?.nickname?.[0]?.toUpperCase() || user?.fullName?.[0]?.toUpperCase() || 'U'}
-                        </div>
-                        <span className="hidden md:block text-sm font-medium">
-                            {user?.nickname || user?.fullName || 'Usuario'}
-                        </span>
-                        <ChevronDown size={16} className={`transition-transform ${showMenu ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {showMenu && (
-                        <>
-                            {/* Overlay para cerrar el menú */}
-                            <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setShowMenu(false)}
-                            />
-
-                            {/* Menu */}
-                            <div
-                                className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl border z-50 overflow-hidden"
-                                style={{
-                                    backgroundColor: brand.brandColorSecondary,
-                                    borderColor: `${brand.brandColorText}20`
-                                }}
-                            >
-                                {/* User Info */}
-                                <div
-                                    className="px-4 py-3 border-b"
-                                    style={{ borderColor: `${brand.brandColorText}20` }}
-                                >
-                                    <p
-                                        className="text-sm font-bold truncate"
-                                        style={{ color: brand.brandColorText }}
-                                    >
-                                        {user?.nickname || user?.fullName}
-                                    </p>
-                                    <p
-                                        className="text-xs truncate opacity-60"
-                                        style={{ color: brand.brandColorText }}
-                                    >
-                                        {user?.email}
-                                    </p>
-                                </div>
-
-                                {/* Menu Items */}
-                                <div className="py-2">
-                                    <button
-                                        onClick={() => {
-                                            setShowMenu(false);
-                                            router.push('/profile');
-                                        }}
-                                        className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-white/10"
-                                        style={{ color: brand.brandColorText }}
-                                    >
-                                        <User size={16} />
-                                        Mi Perfil
-                                    </button>
-
-                                    {canManageLeague && (
-                                        <button
-                                            onClick={() => {
-                                                setShowMenu(false);
-                                                // Check if we have an ID from params, otherwise try to extract from path
-                                                const leagueId = params?.id as string || window.location.pathname.split('/')[2];
-                                                if (leagueId) {
-                                                    // Route to main admin dashboard
-                                                    const targetPath = `/leagues/${leagueId}/admin`;
-                                                    router.push(targetPath);
-                                                }
-                                            }}
-                                            className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-white/10"
-                                            style={{ color: brand.brandColorText }}
-                                        >
-                                            <Settings size={16} />
-                                            {leagueData?.isEnterprise ? 'Panel de Control' : 'Administrar Polla'}
-                                        </button>
-                                    )}
-
-                                    <div
-                                        className="my-2 border-t"
-                                        style={{ borderColor: `${brand.brandColorText}20` }}
-                                    />
-
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-red-500/20"
-                                        style={{ color: '#ef4444' }}
-                                    >
-                                        <LogOut size={16} />
-                                        Cerrar Sesión
-                                    </button>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
+                {/* Avatar & Menu Usuario (Restaurado estándar) */}
+                <UserNav />
             </div>
         </header>
     );

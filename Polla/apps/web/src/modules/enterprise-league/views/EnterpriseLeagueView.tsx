@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { EnterpriseLeagueHome } from '../components/EnterpriseLeagueHome';
+import LeagueThemeProvider from '@/components/LeagueThemeProvider';
 import api from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
@@ -39,8 +40,19 @@ export const EnterpriseLeagueView = ({ leagueId }: { leagueId: string }) => {
     );
 
     return (
-        <div className="w-full min-h-screen bg-[#0F172A]">
-            <EnterpriseLeagueHome league={data.league} participants={data.participants} analytics={data.analytics} />
-        </div>
+        <LeagueThemeProvider
+            primaryColor={data.league?.brandColorPrimary}
+            secondaryColor={data.league?.brandColorSecondary}
+            bgColor={data.league?.brandColorBg}
+            textColor={data.league?.brandColorText}
+        >
+            <div className="w-full min-h-screen bg-[var(--brand-bg,#0F172A)]">
+                <EnterpriseLeagueHome
+                    league={data.league}
+                    participants={data.participants}
+                    analytics={data.analytics}
+                />
+            </div>
+        </LeagueThemeProvider>
     );
 };

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { useBrand } from '@/components/providers/BrandThemeProvider';
+import { useAppStore } from '@/store/useAppStore';
 import { UserNav } from '@/components/UserNav';
 import api from '@/lib/api';
 
@@ -11,6 +12,7 @@ export function LeagueHeader() {
     const router = useRouter();
     const params = useParams();
     const brand = useBrand();
+    const { user } = useAppStore();
 
     const [leagueData, setLeagueData] = useState<{ isLeagueAdmin: boolean; isEnterprise: boolean } | null>(null);
 

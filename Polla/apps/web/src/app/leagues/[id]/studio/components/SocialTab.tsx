@@ -26,7 +26,7 @@ const SocialInput = ({
     disabled?: boolean
 }) => (
     <div className={`group ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
-        <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-focus-within:text-[#00E676] transition-colors">
+        <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2 group-focus-within:text-[var(--brand-primary,#00E676)] transition-colors">
             <Icon size={14} /> {label}
         </label>
         <div className="relative">
@@ -40,7 +40,7 @@ const SocialInput = ({
                 value={value || ''}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all font-mono ${prefix && 'md:pl-[35%]'}`} // Simple alignment for prefix
+                className={`w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[var(--brand-primary,#00E676)] focus:ring-1 focus:ring-[var(--brand-primary,#00E676)] transition-all font-mono ${prefix && 'md:pl-[35%]'}`} // Simple alignment for prefix
                 disabled={disabled}
             />
         </div>
@@ -71,7 +71,7 @@ const SocialInputSimple = ({
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all"
+            className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[var(--brand-primary,#00E676)] focus:ring-1 focus:ring-[var(--brand-primary,#00E676)] transition-all"
             disabled={disabled}
         />
     </div>
@@ -159,7 +159,7 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig, planLev
                             value={config.socialTiktok || ''}
                             onChange={(e) => handleChange('socialTiktok', e.target.value)}
                             placeholder="https://tiktok.com/@miempresa"
-                            className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#00E676] focus:ring-1 focus:ring-[#00E676] transition-all"
+                            className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[var(--brand-primary,#00E676)] focus:ring-1 focus:ring-[var(--brand-primary,#00E676)] transition-all"
                             disabled={isLocked}
                         />
                     </div>

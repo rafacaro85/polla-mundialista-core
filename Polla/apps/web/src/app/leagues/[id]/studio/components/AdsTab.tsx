@@ -24,8 +24,8 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                 <div className={`bg-[#0F172A] border border-[#334155] rounded-2xl p-6 space-y-6 relative overflow-hidden transition-all ${planLevel < 5 ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
                      {planLevel < 5 && (
                         <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center backdrop-blur-[1px]">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 rounded-full border border-[#00E676]/30 text-[#00E676]">
-                                <Megaphone size={12} className="text-[#00E676]" /> <span className="text-[10px] font-bold uppercase tracking-wider">Plan Diamante Requerido</span>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 rounded-full border border-[var(--brand-primary,#00E676)]/30 text-[var(--brand-primary,#00E676)]">
+                                <Megaphone size={12} className="text-[var(--brand-primary,#00E676)]" /> <span className="text-[10px] font-bold uppercase tracking-wider">Plan Diamante Requerido</span>
                             </div>
                         </div>
                     )}
@@ -34,7 +34,7 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                     <div className="flex items-center justify-between">
                         <div>
                             <h4 className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-                                <Megaphone className="text-[#00E676]" size={18} />
+                                <Megaphone className="text-[var(--brand-primary,#00E676)]" size={18} />
                                 Mostrar Publicidad
                             </h4>
                             <p className="text-slate-400 text-xs mt-1">Habilita el banner rotativo en el inicio.</p>
@@ -47,7 +47,7 @@ export const AdsTab: React.FC<AdsTabProps> = ({ config, setConfig, onUploadAdIma
                                 className="sr-only peer"
                                 disabled={planLevel < 5}
                             />
-                            <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#00E676]"></div>
+                            <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[var(--brand-primary,#00E676)]"></div>
                         </label>
                     </div>
 

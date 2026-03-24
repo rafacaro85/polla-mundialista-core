@@ -82,7 +82,7 @@ export function LeagueHeader() {
                             onClick={() => router.push('/dashboard')}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E293B] hover:bg-[#334155] border border-white/10 text-white transition-all group shadow-lg"
                         >
-                            <ChevronDown size={16} className="rotate-90 text-[#00E676] group-hover:-translate-x-1 transition-transform" />
+                            <ChevronDown size={16} className="rotate-90 text-[var(--brand-primary,#00E676)] group-hover:-translate-x-1 transition-transform" />
                             <span className="text-[10px] font-black uppercase tracking-widest">VOLVER</span>
                         </button>
                     )}

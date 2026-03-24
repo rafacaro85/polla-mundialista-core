@@ -242,7 +242,7 @@ export const EnterpriseFixture = () => {
     if (loadingMatches && loadingPredictions) {
         return (
             <div className="min-h-screen bg-transparent flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#00E676]" size={48} />
+                <Loader2 className="animate-spin text-[var(--brand-primary,#00E676)]" size={48} />
             </div>
         );
     }
@@ -257,14 +257,14 @@ export const EnterpriseFixture = () => {
                          <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1E293B] p-1 h-auto rounded-xl border border-[#334155]">
                             <TabsTrigger 
                                 value="matches"
-                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                                className="data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                             >
                                 <Calendar size={16} />
                                 Partidos
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="bracket"
-                                className="data-[state=active]:bg-[#00E676] data-[state=active]:text-[#0F172A] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                                className="data-[state=active]:bg-[var(--brand-primary,#00E676)] data-[state=active]:text-[var(--brand-bg,#0F172A)] text-slate-400 py-2.5 rounded-lg text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
                             >
                                 <Activity size={16} />
                                 Llaves
@@ -335,7 +335,7 @@ export const EnterpriseFixture = () => {
                                 onClick={handleRefresh}
                                 variant="outline"
                                 size="icon"
-                                className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[#00E676]"
+                                className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[var(--brand-primary,#00E676)]"
                                 title="Actualizar Marcadores"
                             >
                                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -385,7 +385,7 @@ export const EnterpriseFixture = () => {
     // Only wrap with DynamicPredictionsWrapper for Champions League
     if (isChampionsLeague) {
         return (
-            <DynamicPredictionsWrapper currentPhase={currentPhase} tournamentId={leagueMetadata?.tournamentId}>
+            <DynamicPredictionsWrapper tournamentId={leagueMetadata?.tournamentId}>
                 {mainContent}
             </DynamicPredictionsWrapper>
         );

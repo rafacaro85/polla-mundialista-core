@@ -132,7 +132,7 @@ export function UserNav() {
       height: '36px',
       borderRadius: '50%',
       backgroundColor: '#1E293B',
-      border: `2px solid ${isOpen ? '#00E676' : '#334155'}`, // Borde verde si está abierto
+      border: `2px solid ${isOpen ? 'var(--brand-primary, #00E676)' : '#334155'}`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -151,7 +151,7 @@ export function UserNav() {
       fontSize: '14px'
     },
     chevronDown: {
-      color: isOpen ? '#00E676' : '#94A3B8',
+      color: isOpen ? 'var(--brand-primary, #00E676)' : '#94A3B8',
       transition: 'all 0.2s ease',
       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
     },
@@ -231,7 +231,7 @@ export function UserNav() {
       backgroundColor: 'rgba(255, 255, 255, 0.05)'
     },
     icon: {
-      color: '#00E676', // Iconos verdes
+      color: 'var(--brand-primary, #00E676)', // Iconos de marca
       width: '16px',
       height: '16px'
     },
@@ -270,10 +270,10 @@ export function UserNav() {
           ...STYLES.menuItem,
           ...(hover ? STYLES.menuItemHover : {}),
           ...(isDanger ? STYLES.logoutItem : {}),
-          ...(isSpecial ? { border: '1px solid #00E676', backgroundColor: 'rgba(0, 230, 118, 0.1)', color: '#00E676', fontWeight: 'bold' } : {})
+          ...(isSpecial ? { border: '1px solid var(--brand-primary, #00E676)', backgroundColor: 'rgba(0, 230, 118, 0.1)', color: 'var(--brand-primary, #00E676)', fontWeight: 'bold' } : {})
         }}
       >
-        <Icon style={{ ...STYLES.icon, color: isDanger ? '#FF1744' : (isSpecial ? '#00E676' : '#00E676') }} />
+        <Icon style={{ ...STYLES.icon, color: isDanger ? '#FF1744' : 'var(--brand-primary, #00E676)' }} />
         {label}
         {hasArrow && <ChevronRight style={STYLES.chevron} />}
       </button>

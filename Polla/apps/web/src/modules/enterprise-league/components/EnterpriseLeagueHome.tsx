@@ -22,10 +22,10 @@ interface EnterpriseLeagueHomeProps {
 export function EnterpriseLeagueHome({ league = {}, participants = [], matches = [], onEnterGame }: EnterpriseLeagueHomeProps) {
     const { user } = useAppStore();
 
-    const coverUrl = process.env.NEXT_PUBLIC_COVER_URL || league?.brandCoverUrl || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000';
-    const logoUrl = process.env.NEXT_PUBLIC_COMPANY_LOGO_URL || league?.brandingLogoUrl;
-    const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || league?.companyName || league?.name || 'EMPRESA';
-    const primaryColor = process.env.NEXT_PUBLIC_PRIMARY_COLOR || league?.brandColorPrimary || '#00E676';
+    const coverUrl = league?.brandCoverUrl || process.env.NEXT_PUBLIC_COVER_URL || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000';
+    const logoUrl = league?.brandingLogoUrl || process.env.NEXT_PUBLIC_COMPANY_LOGO_URL;
+    const companyName = league?.companyName || league?.name || process.env.NEXT_PUBLIC_COMPANY_NAME || 'EMPRESA';
+    // primaryColor viene de --brand-primary (inyectado por LeagueThemeProvider), NO de process.env
     const welcomeMsg = league?.welcomeMessage || 'Únete a la emoción del fútbol corporativo. ¡Pronostica, compite y gana con tus compañeros!';
 
     return (
@@ -38,7 +38,7 @@ export function EnterpriseLeagueHome({ league = {}, participants = [], matches =
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                     alt="Hero Corporativo" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-bg,#0F172A)] via-[var(--brand-bg,#0F172A)]/80 to-transparent" />
                 
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 flex flex-col items-start gap-4">
                     {logoUrl && (
@@ -49,7 +49,7 @@ export function EnterpriseLeagueHome({ league = {}, participants = [], matches =
                     
                     <h2 className="text-4xl md:text-6xl font-black italic uppercase text-white leading-[0.9] tracking-tighter drop-shadow-lg">
                         ¡BIENVENIDO A LA <br /> 
-                        <span style={{ color: primaryColor }}>POLLA {companyName}!</span>
+                        <span style={{ color: 'var(--brand-primary, #00E676)' }}>POLLA {companyName}!</span>
                     </h2>
                     
                     <p className="text-slate-300 text-sm md:text-lg max-w-xl leading-relaxed drop-shadow-md font-medium">
@@ -62,8 +62,8 @@ export function EnterpriseLeagueHome({ league = {}, participants = [], matches =
                                 if (onEnterGame) onEnterGame();
                                 else window.dispatchEvent(new CustomEvent('polla:navigate', { detail: 'predictions' }));
                             }}
-                            className="text-[#0F172A] px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-[0_10px_40px_rgba(0,230,118,0.3)] hover:scale-105 hover:translate-y-[-2px] active:scale-95 transition-all flex items-center gap-3"
-                            style={{ backgroundColor: primaryColor }}
+                            className="px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-[0.2em] hover:scale-105 hover:translate-y-[-2px] active:scale-95 transition-all flex items-center gap-3"
+                            style={{ backgroundColor: 'var(--brand-primary, #00E676)', color: 'var(--brand-bg, #0F172A)', boxShadow: '0 10px 40px rgba(var(--brand-primary-rgb, 0,230,118),0.3)' }}
                         >
                             <PlayCircle size={20} fill="currentColor" /> INGRESAR A JUGAR
                         </button>
@@ -75,7 +75,7 @@ export function EnterpriseLeagueHome({ league = {}, participants = [], matches =
                 {/* 2. RANKING DE PARTICIPANTES */}
                 <div className="bg-[#1E293B] border border-white/10 rounded-3xl p-6 shadow-xl">
                     <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-                        <Trophy size={24} style={{ color: primaryColor }} />
+                        <Trophy size={24} style={{ color: 'var(--brand-primary, #00E676)' }} />
                         <h3 className="text-xl font-black uppercase italic tracking-widest text-white">Ranking</h3>
                     </div>
                     {/* Renderizamos solo el TOP 5 en el Home, el componente EnterpriseRankingTable busca su propia data de hecho */}
@@ -97,7 +97,7 @@ export function EnterpriseLeagueHome({ league = {}, participants = [], matches =
                 {/* 3. PRÓXIMOS PARTIDOS */}
                 <div className="bg-[#1E293B] border border-white/10 rounded-3xl p-6 shadow-xl overflow-hidden">
                     <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-                        <CalendarDays size={24} style={{ color: primaryColor }} />
+                        <CalendarDays size={24} style={{ color: 'var(--brand-primary, #00E676)' }} />
                         <h3 className="text-xl font-black uppercase italic tracking-widest text-white">Próximos Partidos</h3>
                     </div>
                     <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">

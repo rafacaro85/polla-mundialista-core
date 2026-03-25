@@ -204,13 +204,22 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     }, [leagueId, tournamentId]);
 
     const lockDate = useMemo(() => {
-        const r32 = effectiveMatches.filter(m => m.phase === 'ROUND_32');
-        const r16 = effectiveMatches.filter(m => m.phase === 'ROUND_16');
-        const relevantMatches = r32.length > 0 ? r32 : r16;
-        if (relevantMatches.length === 0) return null;
-        const dates = relevantMatches.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
-        if (dates.length === 0) return null;
-        return new Date(Math.min(...dates) - (30 * 60 * 1000));
+        // Determinar la fase activa más temprana (aún NO completada).
+        // El lock global se aplica 30 min antes del PRIMER partido de esa fase.
+        // Esto evita que una fase pasada (ej: ROUND_16 de UCL en marzo) bloquee las fases futuras.
+        const phaseOrder = ['ROUND_32', 'ROUND_16', 'QUARTER', 'QUARTER_FINAL', 'SEMI', 'SEMI_FINAL', 'FINAL'];
+        for (const phase of phaseOrder) {
+            const phaseMatches = effectiveMatches.filter(m => m.phase === phase);
+            if (phaseMatches.length === 0) continue;
+            // Si todos los partidos de esta fase terminaron, saltar a la siguiente
+            const allDone = phaseMatches.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
+            if (allDone) continue;
+            // Fase activa encontrada: calcular lock a 30 min antes del primer partido
+            const dates = phaseMatches.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
+            if (dates.length === 0) continue;
+            return new Date(Math.min(...dates) - (30 * 60 * 1000));
+        }
+        return null; // Torneo terminado o sin partidos: sin lock
     }, [effectiveMatches]);
 
     const isLocked = useMemo(() => {

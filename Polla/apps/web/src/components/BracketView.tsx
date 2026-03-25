@@ -217,17 +217,17 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
         return new Date() > lockDate;
     }, [lockDate]);
 
-    // Filtrar partidos por ronda - Usando IDs reales para evitar desajustes
-    const getMatchesByPhase = (phase: string) => {
+    // Filtrar partidos por ronda - Acepta aliases para compatibilidad con UCL (QUARTER_FINAL, SEMI_FINAL)
+    const getMatchesByPhase = (...phases: string[]) => {
         return matches
-            .filter(m => m.phase === phase)
+            .filter(m => phases.includes(m.phase || ''))
             .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0));
     };
 
-    const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [matches]);
-    const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [matches]);
-    const quarterMatches = useMemo(() => getMatchesByPhase('QUARTER'), [matches]);
-    const semiMatches = useMemo(() => getMatchesByPhase('SEMI'), [matches]);
+    const r32Matches   = useMemo(() => getMatchesByPhase('ROUND_32'), [matches]);
+    const r16Matches   = useMemo(() => getMatchesByPhase('ROUND_16'), [matches]);
+    const quarterMatches = useMemo(() => getMatchesByPhase('QUARTER', 'QUARTER_FINAL'), [matches]);
+    const semiMatches  = useMemo(() => getMatchesByPhase('SEMI', 'SEMI_FINAL'), [matches]);
     const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
     const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
@@ -244,20 +244,22 @@ export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) =
     const phasesStatus = useMemo(() => {
         const isFinished = (list: Match[]) => list.length > 0 && list.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
         
-        const r32Finished = isFinished(r32Matches);
-        const r16Finished = isFinished(r16Matches);
+        const r32Finished     = isFinished(r32Matches);
+        const r16Finished     = isFinished(r16Matches);
         const quarterFinished = isFinished(quarterMatches);
-        const semiFinished = isFinished(semiMatches);
+        const semiFinished    = isFinished(semiMatches);
 
-        // Una fase está abierta SOLO si la anterior terminó.
-        // ROUND_32 siempre está 'abierta' a menos que el tiempo expire (isLocked global).
+        // Mapa de fase → está habilitada para pronosticar (la anterior terminó)
+        // Se incluyen aliases UCL (QUARTER_FINAL, SEMI_FINAL) para compatibilidad
         return {
-            ROUND_32: true, 
-            ROUND_16: r32Finished,
-            QUARTER: r16Finished,
-            SEMI: quarterFinished,
-            FINAL: semiFinished,
-            '3RD_PLACE': semiFinished
+            ROUND_32:     true,
+            ROUND_16:     r32Finished,
+            QUARTER:      r16Finished,
+            QUARTER_FINAL: r16Finished,    // alias UCL
+            SEMI:         quarterFinished,
+            SEMI_FINAL:   quarterFinished, // alias UCL
+            FINAL:        semiFinished,
+            '3RD_PLACE':  semiFinished
         };
     }, [r32Matches, r16Matches, quarterMatches, semiMatches]);
 

@@ -216,37 +216,20 @@ export class KnockoutPhasesService {
       );
 
       // Unlock next phase
-      let nextPhase = this.getNextPhase(currentPhase, tournamentId);
-      
-      // EXCEPTION: UCL Round of 16 requires manual seeding/unlock
-      if (tournamentId === 'UCL2526' && nextPhase === 'ROUND_16') {
-          console.log(`🛑 Stopping auto-unlock for ${nextPhase} in ${tournamentId} (Manual Unlock Required)`);
-          return;
-      }
+      const nextPhase = this.getNextPhase(currentPhase, tournamentId);
 
       if (!nextPhase) {
         console.log(`🏆 ${currentPhase} is the final phase`);
         return;
       }
 
-      // Create next status if not exists
-      let nextStatus = await this.phaseStatusRepository.findOne({
-        where: { phase: nextPhase, tournamentId },
-      });
-      if (!nextStatus) {
-        nextStatus = this.phaseStatusRepository.create({
-          phase: nextPhase,
-          tournamentId,
-          isUnlocked: false,
-        });
-      }
-
-      if (!nextStatus.isUnlocked) {
-        nextStatus.isUnlocked = true;
-        nextStatus.unlockedAt = new Date();
-        await this.phaseStatusRepository.save(nextStatus);
-        console.log(`🔓 ${nextPhase} has been unlocked!`);
-      }
+      // Upsert robusto: crea o actualiza en un solo paso.
+      // Evita race conditions y falla si el registro no existe previamente.
+      await this.phaseStatusRepository.upsert(
+        { phase: nextPhase, tournamentId, isUnlocked: true, unlockedAt: new Date() },
+        ['phase', 'tournamentId'],
+      );
+      console.log(`🔓 ${nextPhase} has been unlocked for ${tournamentId}!`);
     } else {
       console.log(
         `ℹ️ ${currentPhase} was already completed or updated by another process.`,

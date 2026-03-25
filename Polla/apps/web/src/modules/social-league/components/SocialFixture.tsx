@@ -275,12 +275,26 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
         const isWCGroup = tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
         const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
         
-        // Match by group (UCL) OR phase (WC) OR fallback to ALL
-        return (
-            jokerStatusList.find(s => s.phase === currentGroup) || 
-            jokerStatusList.find(s => s.phase === phaseToFind) || 
-            jokerStatusList.find(s => s.phase === 'ALL')
+        // 1. Exact match: phase AND group (e.g. QUARTER_FINAL + LEG_2)
+        if (currentGroup) {
+            const exactMatch = jokerStatusList.find(
+                (s: any) => s.phase === phaseToFind && s.group === currentGroup
+            );
+            if (exactMatch) return exactMatch;
+        }
+
+        // 2. Phase-only match (no group filter)
+        const phaseMatch = jokerStatusList.find(
+            (s: any) => s.phase === phaseToFind && !s.group
         );
+        if (phaseMatch) return phaseMatch;
+
+        // 3. Fallback to older behavior (s.phase might be the group name in legacy backend)
+        const fallbackMatch = jokerStatusList.find(s => s.phase === currentGroup);
+        if (fallbackMatch) return fallbackMatch;
+
+        // 4. ALL fallback
+        return jokerStatusList.find((s: any) => s.phase === 'ALL') || null;
     }, [currentPhase, currentGroup, jokerStatusList, tournamentId]);
 
     return (

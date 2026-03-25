@@ -17,27 +17,29 @@ const PHASE_ORDER = [
   'ROUND_32',
   'ROUND_16',
   'QUARTER',
-  'QUARTER_FINAL',
   'SEMI',
-  'SEMI_FINAL',
   '3RD_PLACE',
   'FINAL',
 ];
 
 // Next phase mapping
 const NEXT_PHASE: { [key: string]: string | null } = {
-  GROUP: 'PLAYOFF',
+  GROUP: 'PLAYOFF', // WC2026 goes GROUP -> ROUND_32 usually, but we handle logic dynamically?
+  // Actually WC2026 is GROUP -> ROUND_32. UCL is PLAYOFF -> ROUND_16.
+  // We need dynamic next phase based on tournament?
+  // For now, let's map loosely, or better, keep it simple mapping.
+  // If tournamentId='WC2026', GROUP -> ROUND_32.
+  // If 'UCL2526', PLAYOFF -> ROUND_16.
   // UCL Flow
   PLAYOFF_1: 'PLAYOFF_2',
   PLAYOFF_2: 'ROUND_16',
-  // Generic
+  
+  // Existing
   PLAYOFF: 'ROUND_16',
   ROUND_32: 'ROUND_16',
-  ROUND_16: 'QUARTER',         // WC2026 / legacy
+  ROUND_16: 'QUARTER',
   QUARTER: 'SEMI',
-  QUARTER_FINAL: 'SEMI_FINAL', // UCL
   SEMI: '3RD_PLACE',
-  SEMI_FINAL: 'FINAL',         // UCL
   '3RD_PLACE': 'FINAL',
   FINAL: null,
 };
@@ -57,17 +59,15 @@ export class KnockoutPhasesService {
 
   private getNextPhase(current: string, tournamentId: string): string | null {
     if (tournamentId === 'WC2026' && current === 'GROUP') return 'ROUND_32';
-
-    // UCL Specific overrides
+    
+    // UCL Specific
     if (tournamentId === 'UCL2526') {
-      if (current === 'PLAYOFF_1') return 'PLAYOFF_2';
-      if (current === 'PLAYOFF_2') return 'ROUND_16';
-      if (current === 'GROUP') return 'PLAYOFF_1';
-      if (current === 'PLAYOFF') return 'ROUND_16';
-      if (current === 'ROUND_16') return 'QUARTER_FINAL';   // ← UCL uses QUARTER_FINAL
-      if (current === 'QUARTER_FINAL') return 'SEMI_FINAL'; // ← UCL uses SEMI_FINAL
-      if (current === 'SEMI_FINAL') return 'FINAL';
+        if (current === 'PLAYOFF_1') return 'PLAYOFF_2';
+        if (current === 'PLAYOFF_2') return 'ROUND_16';
+        if (current === 'GROUP') return 'PLAYOFF_1'; // Just in case
     }
+    
+    if (tournamentId === 'UCL2526' && current === 'PLAYOFF') return 'ROUND_16'; // Legacy/Fallback
 
     return NEXT_PHASE[current] || null;
   }
@@ -218,37 +218,18 @@ export class KnockoutPhasesService {
       // Unlock next phase
       const nextPhase = this.getNextPhase(currentPhase, tournamentId);
 
-      // EXCEPTION: UCL Round of 16 requires manual seeding/unlock
-      if (tournamentId === 'UCL2526' && nextPhase === 'ROUND_16') {
-        console.log(
-          `🛑 Stopping auto-unlock for ${nextPhase} in ${tournamentId} (Manual Unlock Required)`,
-        );
-        return;
-      }
-
       if (!nextPhase) {
         console.log(`🏆 ${currentPhase} is the final phase`);
         return;
       }
 
-      // Create next status if not exists
-      let nextStatus = await this.phaseStatusRepository.findOne({
-        where: { phase: nextPhase, tournamentId },
-      });
-      if (!nextStatus) {
-        nextStatus = this.phaseStatusRepository.create({
-          phase: nextPhase,
-          tournamentId,
-          isUnlocked: false,
-        });
-      }
-
-      if (!nextStatus.isUnlocked) {
-        nextStatus.isUnlocked = true;
-        nextStatus.unlockedAt = new Date();
-        await this.phaseStatusRepository.save(nextStatus);
-        console.log(`🔓 ${nextPhase} has been unlocked!`);
-      }
+      // Upsert robusto: crea o actualiza en un solo paso.
+      // Evita race conditions y falla si el registro no existe previamente.
+      await this.phaseStatusRepository.upsert(
+        { phase: nextPhase, tournamentId, isUnlocked: true, unlockedAt: new Date() },
+        ['phase', 'tournamentId'],
+      );
+      console.log(`🔓 ${nextPhase} has been unlocked for ${tournamentId}!`);
     } else {
       console.log(
         `ℹ️ ${currentPhase} was already completed or updated by another process.`,

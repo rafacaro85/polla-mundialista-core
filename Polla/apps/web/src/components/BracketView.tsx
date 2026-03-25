@@ -19,7 +19,6 @@ interface Match {
     homeScore?: number | null;
     awayScore?: number | null;
     phase?: string;
-    group?: string; // A,B,C para grupos; LEG_1, LEG_2 para Champions ida/vuelta
     bracketId?: number;
     status?: string;
     homeFlag?: string;
@@ -65,14 +64,18 @@ const MatchNode = ({
     };
 
     const getStatusColor = (team: string) => {
+        // Loose comparison: Ensure both are strings and trimmed
         const isSelected = winner && String(winner).trim() === String(team).trim();
-        if (!isSelected) return 'bg-[var(--brand-secondary,#1E293B)]/80 text-slate-300';
+        
+        if (!isSelected) return 'bg-[#1E293B]/80 text-slate-300'; // No selected or other team
+        
         if (isFinished && correctWinner) {
-            return correctWinner === team
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                : 'bg-red-500/20 text-red-400 border-red-500/50';
+            return correctWinner === team 
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' // WON
+                : 'bg-red-500/20 text-red-400 border-red-500/50'; // LOST
         }
-        return 'bg-[var(--brand-primary,#00E676)]/20 text-[var(--brand-primary,#00E676)]';
+        
+        return 'bg-[#00E676]/20 text-[#00E676]'; // Pending/Selected
     };
 
     return (
@@ -112,6 +115,11 @@ const MatchNode = ({
                     )}
                 </button>
             </div>
+
+            {/* CONECTOR (Línea hacia la derecha) */}
+            {nextId && (
+                <div className={`absolute top-1/2 -right-6 w-6 h-[1px] ${winner ? (isFinished && correctWinner && winner === correctWinner ? 'bg-emerald-500' : 'bg-[#00E676] shadow-[0_0_2px_rgba(0,230,118,0.5)]') : 'bg-slate-700'}`}></div>
+            )}
         </div>
     );
 };
@@ -119,23 +127,20 @@ const MatchNode = ({
 interface BracketViewProps {
     matches: Match[];
     leagueId?: string;
-    tournamentId?: string; // From the league entity — takes priority over useTournament() hook
 }
 
 /* =============================================================================
    3. COMPONENTE PRINCIPAL: KNOCKOUT VIEW
    ============================================================================= */
-export const BracketView: React.FC<BracketViewProps> = (props) => {
-    const { matches, leagueId, tournamentId: propTournamentId } = props;
-    const { tournamentId: detectedTournamentId } = useTournament();
-    // CRITICAL: Prefer league's own tournamentId over the hook's theme-based detection
-    // Without this, a WC2026 league shows UCL2526 bracket when app theme is Champions
-    const tournamentId = propTournamentId || detectedTournamentId;
+export const BracketView: React.FC<BracketViewProps> = ({ matches, leagueId }) => {
 
+    // ESTADO: Guardamos quién ganó cada partido
     const [winners, setWinners] = useState<Record<string, string>>({});
     const [bracketPoints, setBracketPoints] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    // MAPA DE BANDERAS: Construimos un mapa de TeamName -> FlagURL basado en los partidos recibidos
+    // Esto asegura que usemos las mismas banderas que en el resto de la app
     const teamFlags = useMemo(() => {
         const map: Record<string, string> = {};
         matches.forEach(m => {
@@ -149,45 +154,39 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         return getTeamFlagUrl(teamName);
     };
 
-    const [allBracketMatches, setAllBracketMatches] = useState<Match[]>([]);
-
-    useEffect(() => {
-        if (!tournamentId) return;
-        const fetchAllMatches = async () => {
-            try {
-                const { data } = await api.get(`/matches?tournamentId=${tournamentId}`);
-                if (Array.isArray(data) && data.length > 0) {
-                    setAllBracketMatches(data);
-                }
-            } catch (err) {
-                console.error('[BracketView] Error fetching bracket matches:', err);
-            }
-        };
-        fetchAllMatches();
-    }, [tournamentId]);
-
-    const effectiveMatches = allBracketMatches.length > 0 ? allBracketMatches : matches;
+    // Cargar bracket guardado desde la API
+    // Usamos useTournament para saber en qué contexto estamos (WC2026 o UCL2526)
+    const { tournamentId } = useTournament();
 
     useEffect(() => {
         if (!tournamentId) return;
 
         const loadBracket = async () => {
             try {
+                // Si estamos en una liga, intentamos cargar el bracket de esa liga (o el global como fallback)
                 let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
+                
+                // CRITICAL: Append tournamentId to isolate data
                 const separator = url.includes('?') ? '&' : '?';
                 url += `${separator}tournamentId=${tournamentId}`;
 
                 const { data } = await api.get(url);
-
+                
+                // console.log(`[DEBUG] Bracket Loaded for ${leagueId || 'Global'}:`, data);
+                
                 if (data && data.picks) {
                     const pickKeys = Object.keys(data.picks);
+                    
+                    // Force Keys to String to avoid Type Mismatch
                     const normalizedPicks: Record<string, string> = {};
                     pickKeys.forEach(key => {
                         normalizedPicks[String(key)] = data.picks[key];
                     });
+                    
                     setWinners(normalizedPicks);
                     setBracketPoints(data.points || 0);
                 } else {
+                    // Reset if no data for this tournament
                     setWinners({});
                     setBracketPoints(0);
                 }
@@ -203,149 +202,102 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         loadBracket();
     }, [leagueId, tournamentId]);
 
+    // --- LÓGICA DE BLOQUEO ---
     const lockDate = useMemo(() => {
-        const r32 = effectiveMatches.filter(m => m.phase === 'ROUND_32');
-        const r16 = effectiveMatches.filter(m => m.phase === 'ROUND_16');
-        const relevantMatches = r32.length > 0 ? r32 : r16;
-        if (relevantMatches.length === 0) return null;
-        const dates = relevantMatches.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
+        const r32 = matches.filter(m => m.phase === 'ROUND_32');
+        if (r32.length === 0) return null;
+        const dates = r32.map(m => new Date(m.date).getTime()).filter(d => !isNaN(d));
         if (dates.length === 0) return null;
+        // El bloqueo ocurre 30 minutos antes del primer partido
         return new Date(Math.min(...dates) - (30 * 60 * 1000));
-    }, [effectiveMatches]);
+    }, [matches]);
 
     const isLocked = useMemo(() => {
         if (!lockDate) return false;
         return new Date() > lockDate;
     }, [lockDate]);
 
-    const getMatchesByPhase = (phase: string) => {
-        return effectiveMatches
-            .filter(m => {
-                const isPhaseMatch = m.phase === phase;
-                if (!isPhaseMatch) return false;
-                const group = (m as any).group || '';
-                if (group.startsWith('LEG_') && group !== 'LEG_1') return false;
-                return true;
-            })
+    // Filtrar partidos por ronda - Acepta aliases para compatibilidad con UCL (QUARTER_FINAL, SEMI_FINAL)
+    const getMatchesByPhase = (...phases: string[]) => {
+        return matches
+            .filter(m => phases.includes(m.phase || ''))
             .sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0));
     };
 
-    const r32Matches = useMemo(() => getMatchesByPhase('ROUND_32'), [effectiveMatches]);
-    const r16Matches = useMemo(() => getMatchesByPhase('ROUND_16'), [effectiveMatches]);
-    const quarterMatches = useMemo(() => [
-        ...getMatchesByPhase('QUARTER'),
-        ...getMatchesByPhase('QUARTER_FINAL'),
-    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [effectiveMatches]);
-    const semiMatches = useMemo(() => [
-        ...getMatchesByPhase('SEMI'),
-        ...getMatchesByPhase('SEMI_FINAL'),
-    ].sort((a, b) => (a.bracketId || 0) - (b.bracketId || 0)), [effectiveMatches]);
-    const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [effectiveMatches]);
-    const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [effectiveMatches]);
+    const r32Matches   = useMemo(() => getMatchesByPhase('ROUND_32'), [matches]);
+    const r16Matches   = useMemo(() => getMatchesByPhase('ROUND_16'), [matches]);
+    const quarterMatches = useMemo(() => getMatchesByPhase('QUARTER', 'QUARTER_FINAL'), [matches]);
+    const semiMatches  = useMemo(() => getMatchesByPhase('SEMI', 'SEMI_FINAL'), [matches]);
+    const finalMatches = useMemo(() => getMatchesByPhase('FINAL'), [matches]);
+    const thirdPlaceMatches = useMemo(() => getMatchesByPhase('3RD_PLACE'), [matches]);
 
     const getActualWinner = (match: Match) => {
-        if ((match as any).group === 'LEG_1') {
-            const leg2 = effectiveMatches.find(m =>
-                (m as any).group === 'LEG_2' &&
-                m.phase === match.phase &&
-                m.bracketId === match.bracketId
-            );
-            if (!leg2 || (leg2.status !== 'FINISHED' && leg2.status !== 'COMPLETED')) return null;
-            if (leg2.homeScore === null || leg2.awayScore === null) return null;
-            if (match.homeScore === null || match.awayScore === null) return null;
-            const teamAGoals = (match.homeScore ?? 0) + (leg2.awayScore ?? 0);
-            const teamBGoals = (match.awayScore ?? 0) + (leg2.homeScore ?? 0);
-            if (teamAGoals > teamBGoals) return match.homeTeam;
-            if (teamBGoals > teamAGoals) return match.awayTeam;
-            return null;
-        }
         if (match.status !== 'FINISHED' && match.status !== 'COMPLETED') return null;
         if (typeof match.homeScore === 'number' && typeof match.awayScore === 'number') {
             if (match.homeScore > match.awayScore) return match.homeTeam;
             if (match.awayScore > match.homeScore) return match.awayTeam;
         }
-        return null;
+        return null; 
     };
 
+    // LÓGICA DE FASES SECUENCIALES (PHASE BY PHASE)
     const phasesStatus = useMemo(() => {
-        const isPhaseFinished = (phaseNames: string[]) => {
-            const matchesOfPhase = effectiveMatches.filter(m => phaseNames.includes(m.phase || ''));
-            return matchesOfPhase.length > 0 && matchesOfPhase.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
-        };
-
-        const r32Finished = isPhaseFinished(['ROUND_32']);
-        const r16Finished = isPhaseFinished(['ROUND_16']);
-        const quarterFinished = isPhaseFinished(['QUARTER', 'QUARTER_FINAL']);
-        const semiFinished = isPhaseFinished(['SEMI', 'SEMI_FINAL']);
-
-        const hasR32 = effectiveMatches.some(m => m.phase === 'ROUND_32');
+        const isFinished = (list: Match[]) => list.length > 0 && list.every(m => m.status === 'FINISHED' || m.status === 'COMPLETED');
         
+        const r32Finished     = isFinished(r32Matches);
+        const r16Finished     = isFinished(r16Matches);
+        const quarterFinished = isFinished(quarterMatches);
+        const semiFinished    = isFinished(semiMatches);
+
+        // Mapa de fase → está habilitada para pronosticar (la anterior terminó)
+        // Se incluyen aliases UCL (QUARTER_FINAL, SEMI_FINAL) para compatibilidad
         return {
-            ROUND_32: true,
-            ROUND_16: !hasR32 || r32Finished,
-            QUARTER: r16Finished,
-            QUARTER_FINAL: r16Finished,
-            SEMI: quarterFinished,
-            SEMI_FINAL: quarterFinished,
-            FINAL: semiFinished,
-            '3RD_PLACE': semiFinished
+            ROUND_32:     true,
+            ROUND_16:     r32Finished,
+            QUARTER:      r16Finished,
+            QUARTER_FINAL: r16Finished,    // alias UCL
+            SEMI:         quarterFinished,
+            SEMI_FINAL:   quarterFinished, // alias UCL
+            FINAL:        semiFinished,
+            '3RD_PLACE':  semiFinished
         };
-    }, [effectiveMatches]);
+    }, [r32Matches, r16Matches, quarterMatches, semiMatches]);
 
     const isMatchLocked = (match: Match) => {
+        // 1. Bloqueo Global por Tiempo (30 min antes del primer partido del torneo)
         if (isLocked) return true;
-        if (match.phase && phasesStatus[match.phase as keyof typeof phasesStatus] === false) return true;
+
+        // 2. Bloqueo Secuencial (Fase por Fase)
+        // Si la fase anterior NO ha terminado, esta fase está BLOQUEADA.
+        if (match.phase && phasesStatus[match.phase as keyof typeof phasesStatus] === false) {
+            return true;
+        }
+
         return false;
     };
 
-    // Nueva función para obtener equipos del Tercer Puesto (Losers of Semis)
-    const getLoserFor3rdPlace = (match: Match, side: 'home' | 'away') => {
-        // En el formato FIFA 2026, los partidos 101 y 102 alimentan la Final (104) y el 3er Puesto (103)
-        // Buscamos los partidos que alimentan la Final
-        const finalMatch = finalMatches[0];
-        if (!finalMatch) return undefined;
-
-        // Las semis son los partidos cuyo nextMatchId es la Final
-        const semis = effectiveMatches.filter(m => (m as any).nextMatchId === finalMatch.id);
-        if (semis.length < 2) return undefined;
-
-        // S1 suele ser el de bracketId menor (o el que alimenta Home del final)
-        const s1 = semis.find(m => (m.bracketId || 0) % 2 !== 0) || semis[0];
-        const s2 = semis.find(m => (m.bracketId || 0) % 2 === 0) || semis[1];
-
-        const targetSemi = side === 'home' ? s1 : s2;
-        if (!targetSemi) return undefined;
-
-        const winner = winners[targetSemi.id];
-        if (!winner) return undefined;
-
-        const t1 = getTeamForSlot(targetSemi, 'home');
-        const t2 = getTeamForSlot(targetSemi, 'away');
-
-        // El perdedor es el que NO es el ganador seleccionado
-        return winner === t1 ? t2 : t1;
-    };
-
+    // LÓGICA DE PROPAGACIÓN: Obtenemos el equipo que debe mostrarse en cada slot
     const getTeamForSlot = (match: Match, side: 'home' | 'away') => {
-        const realTeam = side === 'home' ? match.homeTeam : match.awayTeam;
-        if (realTeam && realTeam.trim() !== '' && realTeam !== 'LOC' && realTeam !== 'VIS' && realTeam !== 'TBD' && realTeam !== 'Por definir' && !realTeam.match(/^W\d+$/)) {
-            return realTeam;
+        // 1. Si el partido ya tiene equipos reales en la DB, los usamos
+        const team = side === 'home' ? match.homeTeam : match.awayTeam;
+        
+        // Check if team is valid (not empty, not placeholder values)
+        if (team && team.trim() !== '' && team !== 'LOC' && team !== 'VIS' && team !== 'TBD') {
+            return team;
         }
-        const sourceMatch = effectiveMatches.find(m =>
-            (m as any).nextMatchId === match.id &&
-            (side === 'home' ? (m.bracketId || 0) % 2 !== 0 : (m.bracketId || 0) % 2 === 0)
-        );
-        if (sourceMatch && winners[sourceMatch.id]) {
-            return winners[sourceMatch.id];
-        }
+
+        // 2. RETIRADO: No propagamos la predicción del usuario a la siguiente fase visualmente.
+        // El usuario solicitó que la siguiente casilla permanezca vacía hasta que el partido real termine.
         return undefined;
     };
 
+    // FUNCIÓN: Seleccionar Ganador
     const pickWinner = (matchId: string, teamCode: string) => {
         if (isLocked) return;
         setWinners(prev => ({ ...prev, [matchId]: teamCode }));
     };
 
+    // FUNCIÓN: Guardar Bracket
     const handleSaveBracket = async () => {
         if (isLocked) {
             toast.error("El tiempo para guardar tu bracket ha expirado");
@@ -354,8 +306,8 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         try {
             const { data } = await api.post('/brackets', {
                 picks: winners,
-                tournamentId: tournamentId,
-                leagueId: leagueId
+                tournamentId: tournamentId, // CRITICAL: Save to correct tournament
+                leagueId: leagueId // Fix: Pass the current league context so we save to the correct bracket (league vs global)
             });
             setBracketPoints(data.points || 0);
             toast.success('Bracket guardado exitosamente! 🏆');
@@ -365,14 +317,12 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
         }
     };
 
+    // FUNCIÓN: Limpiar Bracket
     const clearBracket = async () => {
         if (isLocked) return;
         if (confirm("¿Estás seguro de borrar todo tu bracket?")) {
             try {
-                let url = leagueId ? `/brackets/me?leagueId=${leagueId}` : '/brackets/me';
-                const separator = url.includes('?') ? '&' : '?';
-                url += `${separator}tournamentId=${tournamentId}`;
-                await api.delete(url);
+                await api.delete('/brackets/me');
                 setWinners({});
                 setBracketPoints(0);
                 toast.info('Bracket reiniciado exitosamente');
@@ -390,18 +340,10 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
     const champion = winners[finalMatches[0]?.id || ''];
 
     return (
-        <div
-            className="min-h-screen text-white font-sans pb-32"
-            style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
-        >
-            {/* HEADER */}
-            <div
-                className="p-6 pt-24 sticky top-0 backdrop-blur z-30 border-b"
-                style={{
-                    backgroundColor: 'color-mix(in srgb, var(--brand-bg, #0F172A), transparent 5%)',
-                    borderColor: 'var(--brand-accent, #334155)'
-                }}
-            >
+        <div className="bg-[#0F172A] min-h-screen text-white font-sans pb-32">
+
+            {/* HEADER INSTRUCCIONES & ACCIONES */}
+            <div className="p-6 pt-24 sticky top-0 bg-[#0F172A]/95 backdrop-blur z-30 border-b border-slate-800">
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="font-russo text-xl uppercase text-white mb-1">Llaves del Torneo</h2>
@@ -411,28 +353,27 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
                                 : "Haz clic en los equipos para avanzar de ronda."}
                         </p>
                     </div>
+
+                    {/* INFO PUNTOS BRACKET */}
                     <div className="bg-slate-800/50 border border-slate-700 px-3 py-2 rounded-lg text-center">
                         <span className="text-[9px] text-[#94A3B8] block font-bold uppercase tracking-widest">Puntos</span>
-                        <span className="font-russo text-lg" style={{ color: 'var(--brand-primary, #00E676)' }}>{bracketPoints}</span>
+                        <span className="font-russo text-lg text-[#00E676]">{bracketPoints}</span>
                     </div>
                 </div>
 
+                {/* LOCK STATUS WARNING */}
                 {isLocked && (
                     <div className="mb-4 p-2 bg-red-500/10 border border-red-500/30 rounded text-[10px] text-red-400 font-bold uppercase text-center">
                         🔒 Pronósticos cerrados desde {lockDate?.toLocaleString()}
                     </div>
                 )}
 
+                {/* BOTONES DE ACCIÓN */}
                 {!isLocked && (
                     <div className="flex gap-3">
                         <button
                             onClick={handleSaveBracket}
-                            className="flex-1 py-2 rounded-lg font-black text-xs uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
-                            style={{
-                                backgroundColor: 'var(--brand-primary, #00E676)',
-                                color: 'var(--brand-bg, #0F172A)',
-                                boxShadow: '0 0 15px rgba(0,230,118,0.2)'
-                            }}
+                            className="flex-1 bg-[#00E676] hover:bg-[#00C853] text-[#0F172A] py-2 rounded-lg font-black text-xs uppercase flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,230,118,0.2)] transition-all active:scale-95"
                         >
                             <Save size={14} /> Guardar ({Object.keys(winners).length})
                         </button>
@@ -448,267 +389,171 @@ export const BracketView: React.FC<BracketViewProps> = (props) => {
 
             {/* ZONA DE BRACKET (SCROLLABLE) */}
             <div className="overflow-x-auto p-4 custom-scrollbar">
-              {(() => {
-                // ── Build rounds ──
-                const rounds: { label: string; matches: Match[]; isFinal?: boolean }[] = [];
-                if (r32Matches.length > 0)      rounds.push({ label: 'Dieciseisavos', matches: r32Matches });
-                if (r16Matches.length > 0)      rounds.push({ label: 'Octavos',       matches: r16Matches });
-                if (quarterMatches.length > 0)  rounds.push({ label: 'Cuartos',       matches: quarterMatches });
-                if (semiMatches.length > 0)     rounds.push({ label: 'Semis',         matches: semiMatches });
-                if (finalMatches.length > 0)    rounds.push({ label: 'Final',         matches: finalMatches, isFinal: true });
+                <div className="flex gap-8 min-w-max pb-10 pl-2">
 
-                if (rounds.length === 0) return null;
-
-                // ── Layout constants ──────────────────────────────────────────
-                const CARD_W    = 128;  // px - width of each match card
-                const CARD_H    = 62;   // px - height of each match card
-                const MATCH_GAP = 24;   // px - vertical gap between consecutive matches in first round
-                const COL_GAP   = 48;   // px - horizontal space between columns (connectors live here)
-                const HEADER_H  = 36;   // px - column header height
-                const LC        = 'rgba(148,163,184,0.35)'; // connector line colour
-
-                // Number of matches in the FIRST round (determines total height)
-                const n0 = rounds[0].matches.length;
-
-                // Total bracket height (content area, below headers)
-                // Each match in the first round occupies CARD_H + MATCH_GAP pixels
-                const UNIT   = CARD_H + MATCH_GAP; // 86px per first-round match slot
-                const totalH = n0 * UNIT;
-
-                // Column X positions
-                const colSlotW = CARD_W + COL_GAP;
-                const totalW   = rounds.length * CARD_W + (rounds.length - 1) * COL_GAP;
-
-                // Y-center of match `mi` in round `ri`
-                // Tournament tree formula: centers are equally distributed so that
-                // each round's match center is always the midpoint of the two matches it came from.
-                // For round ri with nRound = n0/2^ri matches:
-                //   centerY(ri, mi) = (2*mi + 1) * totalH / (2 * nRound)
-                const getCY = (ri: number, mi: number): number => {
-                  const nRound = n0 / Math.pow(2, ri);
-                  return (2 * mi + 1) * totalH / (2 * nRound);
-                };
-
-                // X start of round column `ri`
-                const getColX = (ri: number) => ri * colSlotW;
-
-                const makeNode = (m: Match) => (
-                  <MatchNode
-                    key={m.id}
-                    matchId={m.id}
-                    team1={getTeamForSlot(m, 'home') || ''}
-                    team2={getTeamForSlot(m, 'away') || ''}
-                    placeholder1={m.homeTeamPlaceholder}
-                    placeholder2={m.awayTeamPlaceholder}
-                    winner={winners[m.id]}
-                    onPickWinner={pickWinner}
-                    getTeamFlag={getTeamFlag}
-                    nextId={(m as any).nextMatchId}
-                    isLocked={isMatchLocked(m)}
-                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
-                    correctWinner={getActualWinner(m)}
-                  />
-                );
-
-                return (
-                  <div style={{ position: 'relative', width: totalW, height: totalH + HEADER_H + (thirdPlaceMatches.length > 0 ? 180 : 80), minWidth: totalW }}>
-
-                    {/* ── Column Headers ── */}
-                    {rounds.map((round, ri) => (
-                      <div
-                        key={`hdr-${ri}`}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: getColX(ri),
-                          width: CARD_W,
-                          textAlign: 'center',
-                        }}
-                      >
-                        <span style={{
-                          fontSize: 9,
-                          fontWeight: 900,
-                          color: round.isFinal ? '#FACC15' : '#94A3B8',
-                          textTransform: 'uppercase',
-                          letterSpacing: 3,
-                          background: round.isFinal ? 'rgba(250,204,21,0.1)' : '#0F172A',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          border: round.isFinal ? '1px solid rgba(250,204,21,0.3)' : 'none',
-                          display: 'inline-block',
-                        }}>
-                          {round.label}
-                        </span>
-                      </div>
-                    ))}
-
-                    {/* ── Match Cards (absolutely positioned using tournament tree formula) ── */}
-                    {rounds.map((round, ri) =>
-                      round.matches.map((m, mi) => {
-                        const cy = getCY(ri, mi);
-                        const cardTop  = HEADER_H + cy - CARD_H / 2;
-                        const cardLeft = getColX(ri);
-                        return (
-                          <div
-                            key={m.id}
-                            style={{
-                              position: 'absolute',
-                              top: cardTop,
-                              left: cardLeft,
-                              width: CARD_W,
-                              zIndex: 1,
-                            }}
-                          >
-                            {makeNode(m)}
-                          </div>
-                        );
-                      })
+                    {/* COLUMNA 0: DIECISEISAVOS (ROUND_32) */}
+                    {r32Matches.length > 0 && (
+                        <div className="flex flex-col justify-around gap-1">
+                            <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Dieciseisavos</span></div>
+                            {r32Matches.map((m) => (
+                                <MatchNode
+                                    key={m.id}
+                                    matchId={m.id}
+                                    team1={m.homeTeam}
+                                    team2={m.awayTeam}
+                                    placeholder1={m.homeTeamPlaceholder}
+                                    placeholder2={m.awayTeamPlaceholder}
+                                    winner={winners[m.id]}
+                                    onPickWinner={pickWinner}
+                                    getTeamFlag={getTeamFlag}
+                                    nextId={(m as any).nextMatchId}
+                                    isLocked={isMatchLocked(m)}
+                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                    correctWinner={getActualWinner(m)}
+                                />
+                            ))}
+                        </div>
                     )}
 
-                    {/* ── Final: Trophy icon above the final card ── */}
-                    {finalMatches.length > 0 && (() => {
-                      const ri  = rounds.length - 1;
-                      const cy  = getCY(ri, 0);
-                      const top = HEADER_H + cy - CARD_H / 2 - 42;
-                      return (
-                        <div style={{ position: 'absolute', top: Math.max(HEADER_H + 2, top), left: getColX(ri), width: CARD_W, display: 'flex', justifyContent: 'center', zIndex: 1 }}>
-                          <div className={`transition-all duration-500 ${winners[finalMatches[0]?.id || ''] ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
-                            <Trophy size={28} className={winners[finalMatches[0]?.id || ''] ? 'text-[#FACC15]' : 'text-slate-600'} />
-                          </div>
-                        </div>
-                      );
-                    })()}
+                    {/* COLUMNA 1: OCTAVOS */}
+                    <div className="flex flex-col justify-around gap-4 pt-4">
+                        <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Octavos</span></div>
+                        {r16Matches.length > 0 ? r16Matches.map((m) => (
+                            <MatchNode
+                                key={m.id}
+                                matchId={m.id}
+                                team1={getTeamForSlot(m, 'home') || ''}
+                                team2={getTeamForSlot(m, 'away') || ''}
+                                placeholder1={m.homeTeamPlaceholder}
+                                placeholder2={m.awayTeamPlaceholder}
+                                winner={winners[m.id]}
+                                onPickWinner={pickWinner}
+                                getTeamFlag={getTeamFlag}
+                                nextId={(m as any).nextMatchId}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
+                            />
+                        )) : (
+                            <div className="text-gray-500 text-xs p-4">Sin partidos</div>
+                        )}
+                    </div>
 
-                    {/* ── Champion card (below final card) ── */}
-                    {winners[finalMatches[0]?.id || ''] && (() => {
-                      const ri       = rounds.length - 1;
-                      const cy       = getCY(ri, 0);
-                      const champTop = HEADER_H + cy + CARD_H / 2 + 12;
-                      return (
-                        <div style={{ position: 'absolute', top: champTop, left: getColX(ri), width: CARD_W, zIndex: 1 }} className="animate-in zoom-in duration-500">
-                          <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-                            <div className="bg-[#0F172A] rounded-lg p-3 text-center">
-                              <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
-                              <img src={getTeamFlag(winners[finalMatches[0]?.id || ''])} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
-                              <p className="font-russo text-sm text-white truncate">{winners[finalMatches[0]?.id || '']}</p>
+                    {/* COLUMNA 2: CUARTOS */}
+                    <div className="flex flex-col justify-around gap-8 pt-8">
+                        <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Cuartos</span></div>
+                        {quarterMatches.map(m => (
+                            <MatchNode
+                                key={m.id}
+                                matchId={m.id}
+                                team1={getTeamForSlot(m, 'home') || ''}
+                                team2={getTeamForSlot(m, 'away') || ''}
+                                placeholder1={m.homeTeamPlaceholder}
+                                placeholder2={m.awayTeamPlaceholder}
+                                winner={winners[m.id]}
+                                onPickWinner={pickWinner}
+                                getTeamFlag={getTeamFlag}
+                                nextId={(m as any).nextMatchId}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* COLUMNA 3: SEMIFINALES */}
+                    <div className="flex flex-col justify-around gap-16 pt-12">
+                        <div className="text-center mb-1"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded">Semis</span></div>
+                        {semiMatches.map(m => (
+                            <MatchNode
+                                key={m.id}
+                                matchId={m.id}
+                                team1={getTeamForSlot(m, 'home') || ''}
+                                team2={getTeamForSlot(m, 'away') || ''}
+                                placeholder1={m.homeTeamPlaceholder}
+                                placeholder2={m.awayTeamPlaceholder}
+                                winner={winners[m.id]}
+                                onPickWinner={pickWinner}
+                                getTeamFlag={getTeamFlag}
+                                nextId={(m as any).nextMatchId}
+                                isLocked={isMatchLocked(m)}
+                                isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                correctWinner={getActualWinner(m)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* COLUMNA 4: FINAL y 3ER PUESTO */}
+                    <div className="flex flex-col justify-center items-center gap-6 pt-16 pr-4">
+                        {/* COPA */}
+                        <div className={`transition-all duration-500 ${champion ? 'scale-110 drop-shadow-[0_0_20px_#FACC15]' : 'opacity-30'}`}>
+                            <Trophy size={32} className={champion ? 'text-[#FACC15]' : 'text-slate-600'} />
+                        </div>
+
+                        <div>
+                            <div className="text-center mb-2"><span className="text-[9px] font-black text-[#FACC15] uppercase tracking-widest bg-[#FACC15]/10 px-2 py-0.5 rounded border border-[#FACC15]/30">Final</span></div>
+                            {finalMatches.map(m => (
+                                <MatchNode
+                                    key={m.id}
+                                    matchId={m.id}
+                                    team1={getTeamForSlot(m, 'home') || ''}
+                                    team2={getTeamForSlot(m, 'away') || ''}
+                                    placeholder1={m.homeTeamPlaceholder}
+                                    placeholder2={m.awayTeamPlaceholder}
+                                    winner={winners[m.id]}
+                                    onPickWinner={pickWinner}
+                                    getTeamFlag={getTeamFlag}
+                                    nextId={null}
+                                    isLocked={isMatchLocked(m)}
+                                    isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                    correctWinner={getActualWinner(m)}
+                                />
+                            ))}
+                        </div>
+
+                        {/* 3ER PUESTO */}
+                        {thirdPlaceMatches.length > 0 && (
+                            <div className="mt-4">
+                                <div className="text-center mb-2"><span className="text-[9px] font-black text-[#94A3B8] uppercase tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-700">3er Puesto</span></div>
+                                {thirdPlaceMatches.map(m => (
+                                    <MatchNode
+                                        key={m.id}
+                                        matchId={m.id}
+                                        team1={m.homeTeam || ''}
+                                        team2={m.awayTeam || ''}
+                                        placeholder1={m.homeTeamPlaceholder}
+                                        placeholder2={m.awayTeamPlaceholder}
+                                        winner={winners[m.id]}
+                                        onPickWinner={pickWinner}
+                                        getTeamFlag={getTeamFlag}
+                                        nextId={null}
+                                        isLocked={isMatchLocked(m)}
+                                        isFinished={m.status === 'FINISHED' || m.status === 'COMPLETED'}
+                                        correctWinner={getActualWinner(m)}
+                                    />
+                                ))}
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
+                        )}
 
-                    {/* ── 3RD PLACE card (below champion/final, same column as Final) ── */}
-                    {thirdPlaceMatches.length > 0 && finalMatches.length > 0 && (() => {
-                      const ri       = rounds.length - 1;
-                      const cy       = getCY(ri, 0);
-                      // Position below champion card (or below final card + gap if no champion yet)
-                      const champOffset = winners[finalMatches[0]?.id || ''] ? 90 : 20;
-                      const thirdTop = HEADER_H + cy + CARD_H / 2 + champOffset + 28;
-                      const m3rd = thirdPlaceMatches[0];
-                      
-                      // Intentar obtener perdedores de semis, o valor real, o nada (evitar placeholders raros)
-                      const hRaw = getLoserFor3rdPlace(m3rd, 'home') || getTeamForSlot(m3rd, 'home') || m3rd.homeTeam;
-                      const aRaw = getLoserFor3rdPlace(m3rd, 'away') || getTeamForSlot(m3rd, 'away') || m3rd.awayTeam;
-                      
-                      const h = (hRaw && hRaw !== 'LSF-1' && hRaw !== 'LSF-2' && hRaw !== 'LSF1' && hRaw !== 'LSF2' && hRaw !== 'Por definir') ? hRaw : '-';
-                      const a = (aRaw && aRaw !== 'LSF-1' && aRaw !== 'LSF-2' && aRaw !== 'LSF1' && aRaw !== 'LSF2' && aRaw !== 'Por definir') ? aRaw : '-';
-                      
-                      const w3rd = winners[m3rd.id];
-                      const actual3rd = getActualWinner(m3rd);
-                      const locked3rd = isMatchLocked(m3rd);
-                      return (
-                        <div style={{ position: 'absolute', top: thirdTop - 18, left: getColX(ri), width: CARD_W, zIndex: 1 }}>
-                          {/* Label */}
-                          <div style={{ textAlign: 'center', marginBottom: 4 }}>
-                            <span style={{ fontSize: 8, fontWeight: 900, color: '#CD7F32', textTransform: 'uppercase', letterSpacing: 2, background: 'rgba(205,127,50,0.1)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(205,127,50,0.3)', display: 'inline-block' }}>
-                              🥉 3er Puesto
-                            </span>
-                          </div>
-                          {/* Card */}
-                          <div style={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(205,127,50,0.3)', borderRadius: 8, padding: '4px 6px' }}>
-                            {/* Home */}
-                            <button
-                              onClick={() => !locked3rd && h && h !== '-' && pickWinner(m3rd.id, h)}
-                              disabled={locked3rd || !h || h === '-'}
-                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, marginBottom: 2, background: w3rd === h ? 'rgba(205,127,50,0.2)' : actual3rd === h ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === h ? '1px solid rgba(205,127,50,0.5)' : actual3rd === h ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: (locked3rd || h === '-') ? 'default' : 'pointer' }}
-                            >
-                              {h !== '-' && <img src={getTeamFlag(h)} alt={h} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />}
-                              <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h}</span>
-                              {actual3rd === h && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
-                            </button>
-                            {/* Away */}
-                            <button
-                              onClick={() => !locked3rd && a && a !== '-' && pickWinner(m3rd.id, a)}
-                              disabled={locked3rd || !a || a === '-'}
-                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, background: w3rd === a ? 'rgba(205,127,50,0.2)' : actual3rd === a ? 'rgba(34,197,94,0.15)' : 'transparent', border: w3rd === a ? '1px solid rgba(205,127,50,0.5)' : actual3rd === a ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent', cursor: (locked3rd || a === '-') ? 'default' : 'pointer' }}
-                            >
-                              {a !== '-' && <img src={getTeamFlag(a)} alt={a} style={{ width: 14, height: 'auto', borderRadius: 2 }} onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />}
-                              <span style={{ fontSize: 10, fontWeight: 700, color: 'white', flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a}</span>
-                              {actual3rd === a && <span style={{ fontSize: 8, color: '#22C55E', fontWeight: 700 }}>3°</span>}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })()}
+                        {/* CAMPEÓN CARD */}
+                        {champion && (
+                            <div className="mt-2 animate-in zoom-in duration-500">
+                                <div className="bg-gradient-to-b from-[#FACC15] to-[#B45309] p-[1px] rounded-lg shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                                    <div className="bg-[#0F172A] rounded-lg p-3 text-center w-32">
+                                        <p className="text-[8px] text-[#FACC15] font-bold uppercase tracking-widest mb-1">Campeón</p>
+                                        <img src={getTeamFlag(champion)} alt="Champ" className="w-10 h-auto mx-auto rounded shadow-sm mb-1" />
+                                        <p className="font-russo text-sm text-white truncate">{champion}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
-
-
-                    {/* ── SINGLE SVG for ALL connector lines ────────────────────
-                         The key insight: all Y coordinates use the SAME getCY() formula,
-                         so connector endpoints and card centers are mathematically guaranteed
-                         to align - no CSS coordinate system confusion.
-                    ── */}
-                    <svg
-                      style={{
-                        position: 'absolute',
-                        top: HEADER_H,
-                        left: 0,
-                        width: totalW,
-                        height: totalH,
-                        pointerEvents: 'none',
-                        overflow: 'visible',
-                        zIndex: 0,
-                      }}
-                    >
-                      {rounds.slice(0, rounds.length - 1).map((round, ri) => {
-                        const nRound = round.matches.length;
-                        const xRight = getColX(ri) + CARD_W;   // right edge of this round's cards
-                        const xLeft  = getColX(ri + 1);         // left edge of next round's cards
-                        const xMid   = xRight + COL_GAP / 2;    // midpoint in the connector zone
-
-                        const lineElems: React.ReactNode[] = [];
-
-                        // For each PAIR of consecutive matches (k, k+1) that feed match k/2 in next round
-                        for (let k = 0; k < nRound; k += 2) {
-                          const y1   = getCY(ri, k);       // center of upper match
-                          const y2   = getCY(ri, k + 1);   // center of lower match
-                          const ymid = (y1 + y2) / 2;      // guaranteed = getCY(ri+1, k/2)
-
-                          // Horizontal stub rightward from upper match center
-                          lineElems.push(<line key={`h1-${ri}-${k}`} x1={xRight} y1={y1}   x2={xMid}  y2={y1}   stroke={LC} strokeWidth="1.5" />);
-                          // Horizontal stub rightward from lower match center
-                          lineElems.push(<line key={`h2-${ri}-${k}`} x1={xRight} y1={y2}   x2={xMid}  y2={y2}   stroke={LC} strokeWidth="1.5" />);
-                          // Vertical bar connecting both stubs
-                          lineElems.push(<line key={`v-${ri}-${k}`}  x1={xMid}   y1={y1}   x2={xMid}  y2={y2}   stroke={LC} strokeWidth="1.5" />);
-                          // Horizontal exit from midpoint to next round's card
-                          lineElems.push(<line key={`o-${ri}-${k}`}  x1={xMid}   y1={ymid} x2={xLeft} y2={ymid} stroke={LC} strokeWidth="1.5" />);
-                        }
-
-                        return lineElems;
-                      })}
-                    </svg>
-
-                  </div>
-                );
-              })()}
+                </div>
             </div>
 
-
-
-
-            {/* PODIUM */}
-            <TournamentPodium matches={effectiveMatches} />
-
+            {/* PODIUM - Shows when Final and 3rd Place are completed */}
+            <TournamentPodium matches={matches} />
         </div>
     );
 };

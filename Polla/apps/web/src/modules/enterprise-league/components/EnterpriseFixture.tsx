@@ -211,11 +211,22 @@ export const EnterpriseFixture = () => {
         const isWCGroup = leagueMetadata.tournamentId === 'WC2026' && currentPhase.startsWith('GROUP');
         const phaseToFind = isWCGroup ? 'GROUP' : currentPhase;
         
-        return (
-            jokerStatusList.find(s => s.phase === currentGroup) || 
-            jokerStatusList.find(s => s.phase === phaseToFind) || 
-            jokerStatusList.find(s => s.phase === 'ALL')
+        // 1. Exact match: phase AND group (e.g. QUARTER_FINAL + LEG_2)
+        if (currentGroup) {
+            const exactMatch = jokerStatusList.find(
+                (s: any) => s.phase === phaseToFind && s.group === currentGroup
+            );
+            if (exactMatch) return exactMatch;
+        }
+
+        // 2. Phase-only match (no group filter)
+        const phaseMatch = jokerStatusList.find(
+            (s: any) => s.phase === phaseToFind && !s.group
         );
+        if (phaseMatch) return phaseMatch;
+
+        // 3. ALL fallback
+        return jokerStatusList.find((s: any) => s.phase === 'ALL') || null;
     }, [currentPhase, currentGroup, jokerStatusList, leagueMetadata?.tournamentId]);
 
     const handlePhaseClick = (phase: string) => {

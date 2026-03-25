@@ -746,7 +746,11 @@ export class PredictionsService {
         }
 
         statusList.push({
-          phase: config.phase || config.group || 'ALL',
+          phase: config.phase || 'ALL',
+          group: config.group || null,
+          label: config.phase && config.group
+            ? `${config.phase}_${config.group}`
+            : config.phase || config.group || 'ALL',
           max: config.maxJokers,
           used: count,
           remaining: Math.max(0, config.maxJokers - count)

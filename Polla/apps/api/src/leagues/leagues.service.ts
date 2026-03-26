@@ -90,9 +90,6 @@ export class LeaguesService {
 
       this.logger.log('Creating league', { userId, packageType });
 
-      if (packageType === 'starter' && maxParticipants > 3) {
-        throw new BadRequestException('El plan Starter solo permite hasta 3 participantes.');
-      }
 
       if (type === LeagueType.VIP && maxParticipants > 5) {
         throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');

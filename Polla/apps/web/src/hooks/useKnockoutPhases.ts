@@ -52,9 +52,47 @@ export function useKnockoutPhases(tournamentId?: string) {
     };
 
     useEffect(() => {
-        fetchPhases();
-        fetchNextPhaseInfo();
+        const controller = new AbortController();
+
+        const fetchPhasesSafe = async () => {
+            try {
+                setLoading(true);
+                const params = tournamentId ? { tournamentId } : {};
+                const { data } = await api.get('/knockout-phases/status', {
+                    params,
+                    signal: controller.signal,
+                });
+                setPhases(data);
+                setError(null);
+            } catch (err: any) {
+                if (err.name === 'AbortError' || err.name === 'CanceledError') return;
+                console.error('❌ Error fetching phases:', err);
+                setError(err.message || 'Error al cargar fases');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const fetchNextPhaseSafe = async () => {
+            try {
+                const params = tournamentId ? { tournamentId } : {};
+                const { data } = await api.get('/knockout-phases/next/info', {
+                    params,
+                    signal: controller.signal,
+                });
+                setNextPhaseInfo(data);
+            } catch (err: any) {
+                if (err.name === 'AbortError' || err.name === 'CanceledError') return;
+                console.error('❌ Error fetching next phase info:', err);
+            }
+        };
+
+        fetchPhasesSafe();
+        fetchNextPhaseSafe();
+
+        return () => controller.abort();
     }, [tournamentId]);
+
 
     const isPhaseUnlocked = useCallback((phase: string): boolean => {
         // UCL no tiene fase GROUP — siempre bloqueada para evitar mostrar partidos incorrectos

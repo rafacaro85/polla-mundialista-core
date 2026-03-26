@@ -34,14 +34,15 @@ export const useLeagues = () => {
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchLeagues = useCallback(async () => {
+    const fetchLeagues = useCallback(async (signal?: AbortSignal) => {
         if (!isReady) return;
 
         try {
             setLoading(true);
             console.log(`[useLeagues] Fetching all leagues for user`);
             const { data } = await api.get('/leagues/my', {
-                params: { tournamentId: 'all' }
+                params: { tournamentId: 'all' },
+                signal,
             });
             console.log(`[useLeagues] Received ${data.length} leagues`);
 
@@ -73,7 +74,8 @@ export const useLeagues = () => {
             }));
 
             setLeagues(mappedLeagues);
-        } catch (error) {
+        } catch (error: any) {
+            if (error.name === 'AbortError' || error.name === 'CanceledError') return;
             console.error('Error loading leagues', error);
         } finally {
             setLoading(false);
@@ -81,8 +83,11 @@ export const useLeagues = () => {
     }, [tournamentId, isReady]);
 
     useEffect(() => {
-        fetchLeagues();
+        const controller = new AbortController();
+        fetchLeagues(controller.signal);
+        return () => controller.abort();
     }, [fetchLeagues]);
+
 
     const socialLeagues = leagues.filter(l => !l.isEnterprise);
     const enterpriseLeagues = leagues.filter(l => l.isEnterprise);

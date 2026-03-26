@@ -22,10 +22,15 @@ async function bootstrap() {
   // 1. Validación Básica
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      transform: true,
+      whitelist: true,              // elimina campos no declarados en el DTO
+      forbidNonWhitelisted: true,   // lanza error 400 si hay campos extra
+      transform: true,              // transforma tipos automáticamente
+      transformOptions: {
+        enableImplicitConversion: true, // convierte strings a number/bool según el tipo del DTO
+      },
     }),
   );
+
 
   // 2. Prefijo Global
   app.setGlobalPrefix('api');

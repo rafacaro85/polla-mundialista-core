@@ -215,8 +215,8 @@ export class UsersService {
         { usedBy: null as any, status: AccessCodeStatus.AVAILABLE },
       );
 
-      // 2. Eliminar Predicciones
-      await this.predictionRepository.delete({ user: { id } });
+      // 2. Soft-delete Predicciones (se preservan en BD con deleted_at)
+      await this.predictionRepository.softDelete({ user: { id } });
 
       // 3. Eliminar Participaciones en Ligas
       await this.leagueParticipantRepository.delete({ user: { id } });
@@ -227,8 +227,8 @@ export class UsersService {
       // 5. Eliminar Brackets
       await this.userBracketRepository.delete({ userId: id });
 
-      // 6. Eliminar Usuario
-      const result = await this.usersRepository.delete(id);
+      // 6. Soft-delete Usuario (queda en BD con deleted_at para auditoría)
+      const result = await this.usersRepository.softDelete(id);
       if (result.affected === 0) {
         throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
       }

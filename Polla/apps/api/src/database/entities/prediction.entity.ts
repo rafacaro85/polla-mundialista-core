@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   Index,
+  DeleteDateColumn,
 } from 'typeorm';
 import { User } from './user.entity'; // Corrected path
 import { Match } from './match.entity';
@@ -39,4 +40,7 @@ export class Prediction {
 
   @Column({ default: false })
   isJoker: boolean;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }

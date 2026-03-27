@@ -7,9 +7,12 @@ import {
   Param,
   Query,
   UseGuards,
+  UseInterceptors,
   Request,
   Header,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { SkipThrottle } from '@nestjs/throttler';
 import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { MatchesService } from './matches.service';
 import { Match } from '../database/entities/match.entity';
@@ -28,7 +31,10 @@ export class MatchesController {
     private readonly matchSyncService: MatchSyncService,
   ) {}
 
+  @SkipThrottle()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(15000)
   @Get()
   async findAll(@Request() req: any): Promise<Match[]> {
     const isAdmin =
@@ -38,7 +44,10 @@ export class MatchesController {
     return this.matchesService.findAll(req.user.id, isAdmin, tournamentId);
   }
 
+  @SkipThrottle()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000)
   @Get('live')
   @Header('Cache-Control', 'public, max-age=30')
   async findLive(@Request() req: any): Promise<Match[]> {

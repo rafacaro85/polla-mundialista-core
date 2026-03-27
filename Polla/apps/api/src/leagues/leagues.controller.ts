@@ -4,6 +4,7 @@ import {
   Body,
   Param,
   UseGuards,
+  UseInterceptors,
   Req,
   Get,
   Patch,
@@ -16,6 +17,8 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { SkipThrottle } from '@nestjs/throttler';
 import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { LeaguesService } from './leagues.service';
 import { CreateLeagueDto } from './dto/create-league.dto';
@@ -124,7 +127,10 @@ export class LeaguesController {
     return this.leaguesService.getLeagueByCode(code);
   }
 
+  @SkipThrottle()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(20000)
   @Get(':id/ranking')
   async getLeagueRanking(@Param('id') leagueId: string, @Req() req: Request) {
     const userPayload = req.user as { id: string };

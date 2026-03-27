@@ -153,7 +153,7 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
                                                     <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
                                                 </div>
                                                 <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
-                                                    <span className="text-xl">🃏</span>
+                                                    <span className="text-xl">⭐</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
                                                     <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
                                                 </div>

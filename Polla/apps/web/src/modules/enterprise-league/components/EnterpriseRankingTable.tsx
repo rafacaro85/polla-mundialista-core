@@ -255,15 +255,15 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
                                             </div>
-                                            <div 
+                                            <div
                                                 className="flex flex-col items-center gap-1 p-2 rounded-lg"
                                                 style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
                                             >
-                                                <span className="text-xl">🃏</span>
+                                                <span className="text-xl">⭐</span>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
                                                 <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
                                             </div>
-                                            <div 
+                                            <div
                                                 className="flex flex-col items-center gap-1 p-2 rounded-lg"
                                                 style={{ backgroundColor: 'var(--brand-bg, #0F172A)' }}
                                             >

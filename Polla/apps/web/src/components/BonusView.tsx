@@ -271,20 +271,20 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
                     return (
                         <div key={q.id} style={STYLES.card} className="group transition-all hover:border-[var(--brand-primary,#00E676)]/30">
 
-                            {/* Overlay de Bloqueo */}
-                            {isLocked && (
-                                <div style={STYLES.lockedOverlay}>
-                                    <Lock size={24} style={{ marginBottom: '8px' }} />
-                                    <span style={{ fontFamily: "'Russo One', sans-serif", textTransform: 'uppercase' }}>Cerrada</span>
-                                    <span style={{ fontSize: '10px', marginTop: '4px' }}>Ya no se aceptan respuestas</span>
-                                </div>
-                            )}
-
                             {/* Header Tarjeta */}
                             <div style={STYLES.cardHeader}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: COLORS.dim, fontSize: '10px', fontWeight: 'bold' }}>
-                                    <Clock size={12} />
-                                    <span>{q.isActive ? 'Abierta' : 'Finalizada'}</span>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '6px', 
+                                    color: isLocked ? '#FACC15' : COLORS.dim, 
+                                    fontSize: '10px', 
+                                    fontWeight: 'bold' 
+                                }}>
+                                    {isLocked ? <Lock size={12} /> : <Clock size={12} />}
+                                    <span style={{ textTransform: 'uppercase' }}>
+                                        {q.isActive ? 'Abierta' : isLocked ? 'Cerrada' : 'Calificada'}
+                                    </span>
                                 </div>
                                 <div style={STYLES.pointsBadge}>
                                     <Star size={10} fill={COLORS.gold} />

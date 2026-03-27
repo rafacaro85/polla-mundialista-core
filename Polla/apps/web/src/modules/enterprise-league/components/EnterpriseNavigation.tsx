@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, Trophy, Star, MessageSquare, ClipboardPen, BarChartBig, Home } from 'lucide-react';
+import { Calendar, Trophy, Star, MessageSquare, ClipboardPen, BarChartBig, Home, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // --- ENTERPRISE NAVIGATION ---
@@ -30,7 +30,7 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
         { id: 'home', label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
         { id: 'game', label: 'Predicciones', icon: <ClipboardPen size={20} />, href: `${basePath}/predictions` },
         { id: 'ranking', label: 'Ranking', icon: <BarChartBig size={20} />, href: `${basePath}/ranking` },
-        { id: 'bonus', label: 'Bonus', icon: <Star size={20} />, href: `${basePath}/bonus` },
+        { id: 'bonus', label: 'Bonus', icon: <HelpCircle size={20} />, href: `${basePath}/bonus` },
     ];
 
     // Enterprise Feature: Wall (Plan Oro+ / Level 3+)

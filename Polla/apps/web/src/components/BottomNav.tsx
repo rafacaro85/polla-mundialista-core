@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 
 interface BottomNavProps {
     activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
@@ -17,7 +17,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
         ...(showLeaguesTab ? [{ id: 'leagues' as const, label: 'Pollas', icon: Trophy }] : []),
         { id: 'predictions' as const, label: 'Predicciones', icon: ClipboardPen },
         { id: 'ranking' as const, label: 'Ranking', icon: BarChartBig },
-        { id: 'bonus' as const, label: 'Bonus', icon: Star },
+        { id: 'bonus' as const, label: 'Bonus', icon: HelpCircle },
     ];
 
     return (

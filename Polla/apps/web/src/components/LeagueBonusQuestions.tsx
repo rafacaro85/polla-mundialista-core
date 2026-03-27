@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Star, Award, Edit3, Trash2, Trophy, Loader2, HelpCircle, CheckCircle } from 'lucide-react';
+import { Plus, Star, Award, Edit3, Trash2, Trophy, Loader2, HelpCircle, CheckCircle, Lock, Unlock } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { useTournament } from '@/hooks/useTournament';
@@ -109,6 +109,17 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
 
     const handleGradeClick = (q: BonusQuestion) => {
         setGradingQuestion(q);
+    };
+
+    const handleToggleLock = async (id: string, currentStatus: boolean) => {
+        try {
+            await api.patch(`/bonus/questions/${id}/toggle-lock`, { isActive: !currentStatus });
+            toast.success(currentStatus ? 'Pregunta cerrada (ya no aceptará respuestas)' : 'Pregunta abierta nuevamente');
+            loadQuestions();
+        } catch (error) {
+            console.error('Error toggling question lock:', error);
+            toast.error('Error al cambiar el estado de la pregunta');
+        }
     };
 
     const submitGrade = async (answer: string) => {
@@ -474,10 +485,19 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                             </div>
                             <div style={STYLES.actions}>
                                 {!q.correctAnswer && (
-                                    <button onClick={() => handleGradeClick(q)} style={STYLES.gradeBtn}>
-                                        <Trophy size={12} />
-                                        Calificar
-                                    </button>
+                                    <>
+                                        <button 
+                                            onClick={() => handleToggleLock(q.id, q.isActive)} 
+                                            style={{ ...STYLES.iconBtn, color: q.isActive ? '#FACC15' : '#00E676' }}
+                                            title={q.isActive ? "Cerrar pregunta" : "Abrir pregunta"}
+                                        >
+                                            {q.isActive ? <Lock size={14} /> : <Unlock size={14} />}
+                                        </button>
+                                        <button onClick={() => handleGradeClick(q)} style={STYLES.gradeBtn}>
+                                            <Trophy size={12} />
+                                            Calificar
+                                        </button>
+                                    </>
                                 )}
                                 <button onClick={() => handleDelete(q.id)} style={STYLES.iconBtn}>
                                     <Trash2 size={14} />

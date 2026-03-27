@@ -364,6 +364,23 @@ export class BonusService {
     return this.bonusQuestionRepository.save(question);
   }
 
+  // Admin: Activar/Desactivar pregunta
+  async toggleActive(
+    questionId: string,
+    isActive: boolean,
+  ): Promise<BonusQuestion> {
+    const question = await this.bonusQuestionRepository.findOne({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new NotFoundException('Pregunta no encontrada');
+    }
+
+    question.isActive = isActive;
+    return this.bonusQuestionRepository.save(question);
+  }
+
   async getLeagueAnswers(requesterId: string, leagueId: string) {
     // 1. Validar participación
     const participantRes = await this.leagueParticipantRepository.findOne({

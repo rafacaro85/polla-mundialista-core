@@ -11,6 +11,7 @@ import {
   Query,
   ForbiddenException,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { BonusService } from './bonus.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -130,6 +131,15 @@ export class BonusController {
     @Body() dto: CreateQuestionDto,
   ) {
     return this.bonusService.updateQuestion(questionId, dto);
+  }
+
+  // Admin: Alternar bloqueo de pregunta
+  @Patch('questions/:id/toggle-lock')
+  async toggleLockQuestion(
+    @Param('id') questionId: string,
+    @Body() body: { isActive: boolean },
+  ) {
+    return this.bonusService.toggleActive(questionId, body.isActive);
   }
 
   @Get('league-answers')

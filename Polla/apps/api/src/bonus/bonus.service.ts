@@ -106,7 +106,6 @@ export class BonusService {
 
     if (globalLeague) {
       conditions.push({
-        isActive: true,
         leagueId: globalLeague.id,
         tournamentId: tId,
       });
@@ -114,13 +113,12 @@ export class BonusService {
 
     // 2. Si se especifica una liga, sumamos las preguntas de esa liga
     if (leagueId && (!globalLeague || globalLeague.id !== leagueId)) {
-      conditions.push({ isActive: true, leagueId, tournamentId: tId });
+      conditions.push({ leagueId, tournamentId: tId });
     }
 
     // Si no hay condiciones (ej. no hay global league y no pasaron leagueId), buscamos por tournamentId general
     if (conditions.length === 0) {
       conditions.push({
-        isActive: true,
         tournamentId: tId,
         leagueId: IsNull(),
       });
@@ -129,7 +127,10 @@ export class BonusService {
     console.log('🔍 [BonusService] conditions:', JSON.stringify(conditions));
     const results = await this.bonusQuestionRepository.find({
       where: conditions,
-      order: { createdAt: 'DESC' },
+      order: { 
+        isActive: 'DESC',
+        createdAt: 'DESC' 
+      },
     });
     console.log(`🔍 [BonusService] found: ${results.length} questions`);
     return results;

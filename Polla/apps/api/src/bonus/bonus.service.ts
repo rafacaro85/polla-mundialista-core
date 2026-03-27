@@ -12,6 +12,9 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { GradeQuestionDto } from './dto/grade-question.dto';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 import { League } from '../database/entities/league.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
@@ -28,6 +31,7 @@ export class BonusService {
     private leagueRepository: Repository<League>,
     @InjectRepository(LeagueParticipant) // Inyectado
     private leagueParticipantRepository: Repository<LeagueParticipant>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   // Helper: Verificar permisos de admin sobre una liga
@@ -280,6 +284,19 @@ export class BonusService {
         await this.userBonusAnswerRepository.save(answer);
         updatedCount++;
       }
+    }
+
+    // INVALIDATE CACHE DEL RANKING DE LA LIGA O GLOBAL
+    try {
+      if (question.leagueId) {
+        await this.cacheManager.del(`ranking:league:${question.leagueId}`);
+        console.log(`[BonusService] Cleared cache for ranking:league:${question.leagueId}`);
+      } else if (question.tournamentId) {
+        await this.cacheManager.del(`ranking:global:${question.tournamentId}`);
+        console.log(`[BonusService] Cleared cache for ranking:global:${question.tournamentId}`);
+      }
+    } catch (e) {
+      console.warn('[BonusService] Failed to clear ranking cache:', e);
     }
 
     console.log(

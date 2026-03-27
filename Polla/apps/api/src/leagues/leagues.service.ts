@@ -980,6 +980,16 @@ export class LeaguesService {
 
     // Paralelizamos todas las consultas a la base de datos
     const isGlobal = league.type === LeagueType.GLOBAL;
+    
+    let globalLeagueIdForBonus = null;
+    if (!isGlobal) {
+      const globalLeagueForTournament = await this.leaguesRepository.findOne({
+        where: { type: LeagueType.GLOBAL, tournamentId: league.tournamentId },
+        select: ['id']
+      });
+      globalLeagueIdForBonus = globalLeagueForTournament?.id || null;
+    }
+
     const [goalsResult, allPredictions, bracketPointsRows, bonusPointsRows] = await Promise.all([
       // Goles Reales para Tiebreaker
       this.leaguesRepository.manager
@@ -1032,7 +1042,14 @@ export class LeaguesService {
         .select('uba.userId', 'userId')
         .addSelect('SUM(uba.pointsEarned)', 'points')
         .where('uba.userId IN (:...userIds)', { userIds })
-        .andWhere('bq.leagueId = :leagueId', { leagueId })
+        .andWhere(
+          isGlobal 
+            ? 'bq.leagueId = :leagueId' 
+            : globalLeagueIdForBonus 
+              ? '(bq.leagueId = :leagueId OR bq.leagueId = :globalLeagueIdForBonus OR bq.leagueId IS NULL)'
+              : '(bq.leagueId = :leagueId OR bq.leagueId IS NULL)',
+          { leagueId, globalLeagueIdForBonus }
+        )
         .groupBy('uba.userId')
         .getRawMany()
     ]);

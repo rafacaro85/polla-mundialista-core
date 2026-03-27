@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
 import { BonusController } from './bonus.controller';
 import { BonusService } from './bonus.service';
 import { BonusQuestion } from '../database/entities/bonus-question.entity';
@@ -11,6 +12,7 @@ import { LeagueParticipant } from '../database/entities/league-participant.entit
 
 @Module({
   imports: [
+    CacheModule.register(),
     TypeOrmModule.forFeature([
       BonusQuestion,
       UserBonusAnswer,

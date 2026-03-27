@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Calendar, Trophy, Star, MessageSquare, ClipboardPen, BarChartBig, Home, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useBonusNotification } from '@/hooks/useBonusNotification';
 
 // --- ENTERPRISE NAVIGATION ---
 interface NavItem {
@@ -24,6 +25,7 @@ interface EnterpriseNavigationProps {
 export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1 }: EnterpriseNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
+    const { unansweredCount } = useBonusNotification(leagueId);
 
     // Icons match the General Dashboard (Social)
     const items: NavItem[] = [
@@ -59,8 +61,15 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                     : "text-slate-400 hover:bg-brand-secondary hover:text-brand-text"
                             )}
                         >
-                            <div className={cn("min-w-[40px] flex items-center justify-center transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
-                                {item.icon}
+                            <div className="relative">
+                                <div className={cn("min-w-[40px] flex items-center justify-center transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
+                                    {item.icon}
+                                </div>
+                                {item.id === 'bonus' && unansweredCount > 0 && (
+                                    <div className="absolute -top-1 right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
+                                        {unansweredCount}
+                                    </div>
+                                )}
                             </div>
                             <span className="flex-1 font-bold">
                                 {item.label}
@@ -92,11 +101,18 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                 )}
 
                                 {/* ICON RENDER */}
-                                {React.cloneElement(item.icon as React.ReactElement<any>, {
-                                    size: 22,
-                                    strokeWidth: active ? 2.5 : 2,
-                                    className: active ? "text-brand-primary" : "text-slate-400"
-                                })}
+                                <div className="relative">
+                                    {React.cloneElement(item.icon as React.ReactElement<any>, {
+                                        size: 22,
+                                        strokeWidth: active ? 2.5 : 2,
+                                        className: active ? "text-brand-primary" : "text-slate-400"
+                                    })}
+                                    {item.id === 'bonus' && unansweredCount > 0 && (
+                                        <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
+                                            {unansweredCount}
+                                        </div>
+                                    )}
+                                </div>
 
                                 <span className={cn(
                                     "text-[9px] font-black tracking-widest uppercase mt-1",

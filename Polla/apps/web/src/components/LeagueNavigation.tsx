@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Trophy, Activity, Star, MessageSquare, Settings, Users, Palette, Gamepad2, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assuming shadcn util exists
+import { useBonusNotification } from '@/hooks/useBonusNotification';
 
 interface NavItem {
     label: string;
@@ -25,6 +26,7 @@ interface LeagueNavigationProps {
 export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: LeagueNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
+    const { unansweredCount } = useBonusNotification(leagueId);
 
     const items: NavItem[] = [
         { label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
@@ -61,9 +63,16 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                                     : "text-slate-400 hover:bg-brand-secondary hover:text-brand-text"
                             )}
                         >
-                            <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
-                                {item.icon}
-                            </span>
+                            <div className="relative">
+                                <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
+                                    {item.icon}
+                                </span>
+                                {item.label === 'Bonus' && unansweredCount > 0 && (
+                                    <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
+                                        {unansweredCount}
+                                    </div>
+                                )}
+                            </div>
                             {item.label}
                         </Link>
                     ))}
@@ -85,10 +94,17 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                             {isActive(item) && (
                                 <div className="absolute -top-2 h-1 w-8 bg-brand-primary rounded-b-full shadow-[0_0_8px_var(--brand-primary)]" />
                             )}
-                            {React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, {
-                                size: 22,
-                                strokeWidth: isActive(item) ? 2.5 : 2
-                            }) : item.icon}
+                            <div className="relative">
+                                {React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, {
+                                    size: 22,
+                                    strokeWidth: isActive(item) ? 2.5 : 2
+                                }) : item.icon}
+                                {item.label === 'Bonus' && unansweredCount > 0 && (
+                                    <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
+                                        {unansweredCount}
+                                    </div>
+                                )}
+                            </div>
                             <span className="text-[9px] font-black uppercase tracking-tight">
                                 {item.label}
                             </span>

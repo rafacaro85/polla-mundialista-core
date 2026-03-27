@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { useBonusNotification } from '@/hooks/useBonusNotification';
 
 interface BottomNavProps {
     activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
@@ -11,6 +12,9 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true }) => {
     const [collapsed, setCollapsed] = useState(false);
+    
+    // Obtenemos el contero general (sin liga específica)
+    const { unansweredCount } = useBonusNotification();
 
     const tabs = [
         { id: 'home' as const, label: 'Inicio', icon: Home },
@@ -51,7 +55,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                                     }}
                                 />
                             )}
-                            <Icon size={22} strokeWidth={activeTab === id ? 2.5 : 2} />
+                            <div className="relative">
+                                <Icon size={22} strokeWidth={activeTab === id ? 2.5 : 2} />
+                                {id === 'bonus' && unansweredCount > 0 && (
+                                    <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
+                                        {unansweredCount}
+                                    </div>
+                                )}
+                            </div>
                             <span className="text-[9px] font-black tracking-widest uppercase mt-1">{label}</span>
                         </button>
                     ))}
@@ -100,13 +111,20 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                                 backgroundColor: activeTab === id ? 'color-mix(in srgb, var(--brand-primary) 10%, transparent)' : 'transparent',
                             }}
                         >
-                            <Icon
-                                size={20}
-                                strokeWidth={activeTab === id ? 2.5 : 2}
-                                className={`shrink-0 transition-transform group-hover:scale-110 ${activeTab === id ? 'text-[var(--brand-primary,#00E676)]' : ''}`}
-                            />
+                            <div className="relative">
+                                <Icon
+                                    size={20}
+                                    strokeWidth={activeTab === id ? 2.5 : 2}
+                                    className={`shrink-0 transition-transform group-hover:scale-110 ${activeTab === id ? 'text-[var(--brand-primary,#00E676)]' : ''}`}
+                                />
+                                {id === 'bonus' && unansweredCount > 0 && (
+                                    <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
+                                        {unansweredCount}
+                                    </div>
+                                )}
+                            </div>
                             {!collapsed && (
-                                <span className="whitespace-nowrap overflow-hidden transition-all duration-200 opacity-100">
+                                <span className="whitespace-nowrap overflow-hidden transition-all duration-200 opacity-100 flex-1">
                                     {label}
                                 </span>
                             )}

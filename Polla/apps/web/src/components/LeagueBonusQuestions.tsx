@@ -484,7 +484,7 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                                 {q.points} PTS
                             </div>
                             <div style={STYLES.actions}>
-                                {!q.correctAnswer && (
+                                {!q.correctAnswer ? (
                                     <>
                                         <button 
                                             onClick={() => handleToggleLock(q.id, q.isActive)} 
@@ -498,6 +498,15 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                                             Calificar
                                         </button>
                                     </>
+                                ) : (
+                                    <button 
+                                        onClick={() => handleGradeClick(q)} 
+                                        style={{ ...STYLES.gradeBtn, backgroundColor: '#334155', color: '#CBD5E1', border: '1px solid #475569' }}
+                                        title="Recalificar esta pregunta"
+                                    >
+                                        <Edit3 size={12} />
+                                        Editar
+                                    </button>
                                 )}
                                 <button onClick={() => handleDelete(q.id)} style={STYLES.iconBtn}>
                                     <Trash2 size={14} />
@@ -528,31 +537,45 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                         {/* SELECCIONAR RESPUESTA CORRECTA */}
                         {gradingQuestion.type === 'MULTIPLE' && gradingQuestion.options && gradingQuestion.options.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <p style={{ fontSize: '12px', color: '#00E676', fontWeight: 'bold' }}>Selecciona la opción correcta:</p>
-                                {gradingQuestion.options.map((opt, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => {
-                                            if(confirm(`¿Confirmas que "${opt}" es la correcta? Esto cerrará la pregunta.`)) {
-                                                submitGrade(opt);
-                                            }
-                                        }}
-                                        style={{
-                                            padding: '12px', backgroundColor: '#0F172A', border: '1px solid #475569',
-                                            borderRadius: '8px', color: 'white', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer',
-                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                        }}
-                                    >
-                                        {opt}
-                                        <CheckCircle size={16} color="#94A3B8" />
-                                    </button>
-                                ))}
+                                <p style={{ fontSize: '12px', color: '#00E676', fontWeight: 'bold' }}>
+                                    {gradingQuestion.correctAnswer ? "Cambiar la opción correcta:" : "Selecciona la opción correcta:"}
+                                </p>
+                                {gradingQuestion.options.map((opt, idx) => {
+                                    const isCurrentCorrect = opt === gradingQuestion.correctAnswer;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                if(confirm(`¿Confirmas que "${opt}" es la correcta? Esto actualizará los puntajes de todos.`)) {
+                                                    submitGrade(opt);
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '12px', 
+                                                backgroundColor: isCurrentCorrect ? 'rgba(0, 230, 118, 0.15)' : '#0F172A', 
+                                                border: isCurrentCorrect ? '1px solid #00E676' : '1px solid #475569',
+                                                borderRadius: '8px', 
+                                                color: isCurrentCorrect ? '#00E676' : 'white', 
+                                                textAlign: 'left', 
+                                                fontWeight: 'bold', 
+                                                cursor: 'pointer',
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            {opt}
+                                            {isCurrentCorrect && <span style={{fontSize: '10px'}}>ACTUAL</span>}
+                                            <CheckCircle size={16} color={isCurrentCorrect ? "#00E676" : "#94A3B8"} />
+                                        </button>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div>
                                 <p style={{ fontSize: '12px', color: '#FACC15', fontWeight: 'bold', marginBottom: '8px', display: 'flex', gap: '6px', alignItems: 'center' }}>
                                     <HelpCircle size={14} /> 
-                                    Pregunta Abierta - Ten cuidado
+                                    {gradingQuestion.correctAnswer ? "Editar Calificación (Recalculará Puntos)" : "Pregunta Abierta - Ten cuidado"}
                                 </p>
                                 <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '12px' }}>
                                     Escribe la respuesta correcta. El sistema aceptará variaciones sencillas (ej: mayúsculas/minúsculas), pero intenta ser preciso.
@@ -560,11 +583,12 @@ export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
                                 <form onSubmit={(e) => {
                                     e.preventDefault();
                                     const val = (e.currentTarget.elements.namedItem('answer') as HTMLInputElement).value;
-                                    if(val.trim() && confirm(`¿Confirmas "${val}" como correcta?`)) submitGrade(val);
+                                    if(val.trim() && confirm(`¿Confirmas "${val}" como correcta? Se recalcularán los puntos de los usuarios.`)) submitGrade(val);
                                 }}>
                                     <input 
                                         name="answer"
                                         type="text" 
+                                        defaultValue={gradingQuestion.correctAnswer || ''}
                                         placeholder="Ej. Argentina" 
                                         autoFocus
                                         style={{ ...STYLES.input, border: '1px solid #00E676' }} 

@@ -21,12 +21,13 @@ interface LeagueNavigationProps {
     leagueId: string;
     isAdmin: boolean;
     isEnterpriseActive: boolean;
+    tournamentId?: string;
 }
 
-export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: LeagueNavigationProps) => {
+export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive, tournamentId }: LeagueNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
-    const { unansweredCount } = useBonusNotification(leagueId);
+    const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
 
     const items: NavItem[] = [
         { label: 'Inicio', icon: <Home size={20} />, href: basePath, exact: true },
@@ -67,7 +68,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                                 <span className={cn("transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
                                     {item.icon}
                                 </span>
-                                {item.label === 'Bonus' && unansweredCount > 0 && (
+                                {item.label === 'Bonus' && !isActive(item) && unansweredCount > 0 && (
                                     <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
                                         {unansweredCount}
                                     </div>
@@ -99,7 +100,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive }: Leag
                                     size: 22,
                                     strokeWidth: isActive(item) ? 2.5 : 2
                                 }) : item.icon}
-                                {item.label === 'Bonus' && unansweredCount > 0 && (
+                                {item.label === 'Bonus' && !isActive(item) && unansweredCount > 0 && (
                                     <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
                                         {unansweredCount}
                                     </div>

@@ -57,7 +57,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                             )}
                             <div className="relative">
                                 <Icon size={22} strokeWidth={activeTab === id ? 2.5 : 2} />
-                                {id === 'bonus' && unansweredCount > 0 && (
+                                {id === 'bonus' && activeTab !== 'bonus' && unansweredCount > 0 && (
                                     <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
                                         {unansweredCount}
                                     </div>
@@ -117,7 +117,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
                                     strokeWidth={activeTab === id ? 2.5 : 2}
                                     className={`shrink-0 transition-transform group-hover:scale-110 ${activeTab === id ? 'text-[var(--brand-primary,#00E676)]' : ''}`}
                                 />
-                                {id === 'bonus' && unansweredCount > 0 && (
+                                {id === 'bonus' && activeTab !== 'bonus' && unansweredCount > 0 && (
                                     <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
                                         {unansweredCount}
                                     </div>

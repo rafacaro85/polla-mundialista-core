@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import api from '@/lib/api';
 
 export const useBonusNotification = (leagueId?: string, tournamentId?: string) => {
     const [unansweredCount, setUnansweredCount] = useState(0);
+    const pathname = usePathname();
 
     useEffect(() => {
         let isMounted = true;
@@ -46,7 +48,8 @@ export const useBonusNotification = (leagueId?: string, tournamentId?: string) =
         return () => {
             isMounted = false;
         };
-    }, [leagueId, tournamentId]);
+    }, [leagueId, tournamentId, pathname]);
 
+    // Opcional: no mostrar badge si ya estamos en la pestaña de bonus (podemos manejarlo aquí o en el layout)
     return { unansweredCount };
 };

@@ -415,6 +415,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         leagueId={league.id}
                         isEnterpriseActive={league.isEnterpriseActive || false}
                         planLevel={planLevel}
+                        tournamentId={league.tournamentId}
                     />
                 )}
 
@@ -424,6 +425,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         leagueId={league.id}
                         isAdmin={league.isAdmin || false}
                         isEnterpriseActive={false}
+                        tournamentId={league.tournamentId}
                     />
                 )}
 

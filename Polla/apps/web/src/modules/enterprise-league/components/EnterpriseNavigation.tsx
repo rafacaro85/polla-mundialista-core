@@ -20,12 +20,13 @@ interface EnterpriseNavigationProps {
     leagueId: string;
     isEnterpriseActive: boolean;
     planLevel?: number;
+    tournamentId?: string;
 }
 
-export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1 }: EnterpriseNavigationProps) => {
+export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1, tournamentId }: EnterpriseNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
-    const { unansweredCount } = useBonusNotification(leagueId);
+    const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
 
     // Icons match the General Dashboard (Social)
     const items: NavItem[] = [
@@ -65,7 +66,7 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                 <div className={cn("min-w-[40px] flex items-center justify-center transition-transform group-hover:scale-110", isActive(item) && "text-brand-primary")}>
                                     {item.icon}
                                 </div>
-                                {item.id === 'bonus' && unansweredCount > 0 && (
+                                {item.id === 'bonus' && !isActive(item) && unansweredCount > 0 && (
                                     <div className="absolute -top-1 right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg">
                                         {unansweredCount}
                                     </div>
@@ -107,7 +108,7 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
                                         strokeWidth: active ? 2.5 : 2,
                                         className: active ? "text-brand-primary" : "text-slate-400"
                                     })}
-                                    {item.id === 'bonus' && unansweredCount > 0 && (
+                                    {item.id === 'bonus' && !active && unansweredCount > 0 && (
                                         <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-lg animate-bounce">
                                             {unansweredCount}
                                         </div>

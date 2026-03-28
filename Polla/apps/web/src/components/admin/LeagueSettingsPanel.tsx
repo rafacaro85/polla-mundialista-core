@@ -69,6 +69,7 @@ interface League {
     showAds?: boolean;
     adImages?: string[];
     enableDepartmentWar?: boolean;
+    tournamentId?: string;
 }
 
 export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs = false }: { leagueId: string, defaultTab?: string, hideTabs?: boolean }) {
@@ -404,7 +405,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
                             {/* --- BONUS --- */}
                             <TabsContent value="bonus" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <LeagueBonusQuestions leagueId={currentLeague.id} />
+                                <LeagueBonusQuestions leagueId={currentLeague.id} tournamentId={currentLeague.tournamentId} />
 
                                 <div className="border-t border-slate-700 pt-6">
                                     <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2">

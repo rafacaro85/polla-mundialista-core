@@ -66,6 +66,7 @@ interface League {
     brandColorSecondary?: string;
     type?: string;
     isEnterpriseActive?: boolean;
+    tournamentId?: string;
 }
 
 export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { league?: League; onUpdate?: () => void; trigger?: React.ReactNode; mode?: 'modal' | 'page' }) {
@@ -569,7 +570,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                     <TabsContent value="bonus" className="mt-0 space-y-8">
                                         {currentLeague?.isAdmin && (
                                             <div className="space-y-4">
-                                                <LeagueBonusQuestions leagueId={currentLeague.id} />
+                                                <LeagueBonusQuestions leagueId={currentLeague.id} tournamentId={currentLeague.tournamentId} />
                                             </div>
                                         )}
 

@@ -19,10 +19,12 @@ interface BonusQuestion {
 
 interface LeagueBonusQuestionsProps {
     leagueId: string;
+    tournamentId?: string;
 }
 
-export function LeagueBonusQuestions({ leagueId }: LeagueBonusQuestionsProps) {
-    const { tournamentId } = useTournament();
+export function LeagueBonusQuestions({ leagueId, tournamentId: propTournamentId }: LeagueBonusQuestionsProps) {
+    const { tournamentId: hookTournamentId } = useTournament();
+    const tournamentId = propTournamentId || hookTournamentId;
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);

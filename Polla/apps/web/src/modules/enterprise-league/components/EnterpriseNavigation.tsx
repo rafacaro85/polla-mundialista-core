@@ -23,10 +23,13 @@ interface EnterpriseNavigationProps {
     tournamentId?: string;
 }
 
-export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1, tournamentId }: EnterpriseNavigationProps) => {
+export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel = 1, tournamentId: propTournamentId }: EnterpriseNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
-    const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
+    
+    // We get tournamentId from props (provided by layout layout.tsx)
+    // and correctly pass it down to notification service
+    const { unansweredCount } = useBonusNotification(leagueId, propTournamentId);
 
     // Icons match the General Dashboard (Social)
     const items: NavItem[] = [

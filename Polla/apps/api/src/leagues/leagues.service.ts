@@ -369,6 +369,8 @@ export class LeaguesService {
       maxParticipants: league.maxParticipants,
       creatorId: league.creator.id,
       creatorName: league.creator.nickname || league.creator.fullName,
+      type: league.type,
+      tournamentId: league.tournamentId,
       participants,
       participantCount: participants.length,
       availableSlots: Math.max(0, league.maxParticipants - participants.length),

@@ -3,6 +3,7 @@ import { Star, Gift, Clock, CheckCircle, XCircle, Lock, Award, Save, Loader2 } f
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { useTournament } from '@/hooks/useTournament';
+import { useLeague } from '@/shared/hooks/useLeague';
 
 /* =============================================================================
    INTERFACES
@@ -32,7 +33,12 @@ interface BonusViewProps {
 }
 
 export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
-    const { tournamentId } = useTournament();
+    const { tournamentId: hookTournamentId } = useTournament();
+    const { league } = useLeague(leagueId);
+    
+    // Prefer league's tournament if available
+    const tournamentId = league?.tournamentId || hookTournamentId;
+    
     // ESTADO
     const [questions, setQuestions] = useState<BonusQuestion[]>([]);
     const [userAnswers, setUserAnswers] = useState<Record<string, UserAnswer>>({});
@@ -42,8 +48,10 @@ export const BonusView: React.FC<BonusViewProps> = ({ leagueId }) => {
 
     // CARGAR DATOS
     useEffect(() => {
+        // Wait until we know the league's tournament if we have a leagueId
+        if (leagueId && !league) return;
         loadData();
-    }, [leagueId, tournamentId]);
+    }, [leagueId, tournamentId, league]);
 
     const loadData = async () => {
         try {

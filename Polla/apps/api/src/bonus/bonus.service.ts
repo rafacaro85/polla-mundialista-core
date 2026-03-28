@@ -219,29 +219,41 @@ export class BonusService {
     return this.userBonusAnswerRepository.save(userAnswer);
   }
 
-  // Obtener respuestas del usuario filtradas por liga
+  // Obtener respuestas del usuario filtradas por liga (alineado con getActiveQuestions)
   async getUserAnswers(
     userId: string,
     leagueId?: string,
+    tournamentId?: string,
   ): Promise<UserBonusAnswer[]> {
+    const tId = tournamentId || 'WC2026';
     const query = this.userBonusAnswerRepository
       .createQueryBuilder('answer')
       .leftJoinAndSelect('answer.question', 'question')
       .where('answer.userId = :userId', { userId });
 
-    if (leagueId) {
-      query.andWhere('question.leagueId = :leagueId', { leagueId });
+    // Usar la misma lógica que getActiveQuestions: liga global + liga local + null
+    const leagueIds: string[] = [];
+
+    // 1. Liga global del torneo
+    const globalLeague = await this.leagueRepository.findOne({
+      where: { type: LeagueType.GLOBAL, tournamentId: tId },
+    });
+    if (globalLeague) {
+      leagueIds.push(globalLeague.id);
+    }
+
+    // 2. Liga local específica
+    if (leagueId && (!globalLeague || globalLeague.id !== leagueId)) {
+      leagueIds.push(leagueId);
+    }
+
+    if (leagueIds.length > 0) {
+      query.andWhere(
+        '(question.leagueId IN (:...leagueIds) OR question.leagueId IS NULL)',
+        { leagueIds },
+      );
     } else {
-      const globalLeague = await this.leagueRepository.findOne({
-        where: { type: LeagueType.GLOBAL },
-      });
-      if (globalLeague) {
-        query.andWhere('question.leagueId = :leagueId', {
-          leagueId: globalLeague.id,
-        });
-      } else {
-        query.andWhere('question.leagueId IS NULL');
-      }
+      query.andWhere('question.leagueId IS NULL');
     }
 
     return query.getMany();

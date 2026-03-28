@@ -86,8 +86,9 @@ export class BonusController {
   async getMyAnswers(
     @Request() req: any,
     @Query('leagueId') leagueId?: string,
+    @Query('tournamentId') tournamentId?: string,
   ) {
-    return this.bonusService.getUserAnswers(req.user.id, leagueId);
+    return this.bonusService.getUserAnswers(req.user.id, leagueId, tournamentId);
   }
 
   // Admin: Calificar pregunta

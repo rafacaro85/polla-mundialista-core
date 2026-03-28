@@ -1044,6 +1044,7 @@ export class LeaguesService {
         .select('uba.userId', 'userId')
         .addSelect('SUM(uba.pointsEarned)', 'points')
         .where('uba.userId IN (:...userIds)', { userIds })
+        .andWhere('bq.tournamentId = :tournamentId', { tournamentId: league.tournamentId })
         .andWhere(
           isGlobal 
             ? 'bq.leagueId = :leagueId' 

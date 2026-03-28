@@ -120,13 +120,11 @@ export class BonusService {
       conditions.push({ leagueId, tournamentId: tId });
     }
 
-    // Si no hay condiciones (ej. no hay global league y no pasaron leagueId), buscamos por tournamentId general
-    if (conditions.length === 0) {
-      conditions.push({
-        tournamentId: tId,
-        leagueId: IsNull(),
-      });
-    }
+    // 3. Siempre buscamos preguntas de la liga GLOBAL (id NULL) para este torneo
+    conditions.push({
+      tournamentId: tId,
+      leagueId: IsNull(),
+    });
 
     console.log('🔍 [BonusService] conditions:', JSON.stringify(conditions));
     const results = await this.bonusQuestionRepository.find({
@@ -249,11 +247,11 @@ export class BonusService {
 
     if (leagueIds.length > 0) {
       query.andWhere(
-        '(question.leagueId IN (:...leagueIds) OR question.leagueId IS NULL)',
-        { leagueIds },
+        '(question.tournamentId = :tId) AND (question.leagueId IN (:...leagueIds) OR question.leagueId IS NULL)',
+        { leagueIds, tId },
       );
     } else {
-      query.andWhere('question.leagueId IS NULL');
+      query.andWhere('(question.tournamentId = :tId) AND (question.leagueId IS NULL)', { tId });
     }
 
     return query.getMany();
@@ -371,6 +369,17 @@ export class BonusService {
 
     // Eliminar pregunta
     await this.bonusQuestionRepository.delete(questionId);
+
+    // INVALIDATE CACHE DEL RANKING DE LA LIGA O GLOBAL
+    try {
+      if (question.leagueId) {
+        await this.cacheManager.del(`ranking:league:${question.leagueId}`);
+      } else if (question.tournamentId) {
+        await this.cacheManager.del(`ranking:global:${question.tournamentId}`);
+      }
+    } catch (e) {
+      console.warn('[BonusService] Failed to clear ranking cache after deletion:', e);
+    }
   }
 
   // Admin: Actualizar pregunta
@@ -390,7 +399,20 @@ export class BonusService {
     question.points = dto.points;
     // No actualizamos la liga aquí para evitar cambios accidentales
 
-    return this.bonusQuestionRepository.save(question);
+    const updatedQuestion = await this.bonusQuestionRepository.save(question);
+
+    // Si cambian los puntos, el ranking puede cambiar, invalidamos la caché
+    try {
+      if (updatedQuestion.leagueId) {
+        await this.cacheManager.del(`ranking:league:${updatedQuestion.leagueId}`);
+      } else if (updatedQuestion.tournamentId) {
+        await this.cacheManager.del(`ranking:global:${updatedQuestion.tournamentId}`);
+      }
+    } catch (e) {
+      console.warn('[BonusService] Failed to clear ranking cache after update:', e);
+    }
+
+    return updatedQuestion;
   }
 
   // Admin: Activar/Desactivar pregunta

@@ -561,6 +561,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
+            leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId}
+            tournamentId={leagueTournamentId || tournamentId}
           />
         )}
 

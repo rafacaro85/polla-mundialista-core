@@ -8,13 +8,15 @@ interface BottomNavProps {
     activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
     onTabChange: (tab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus') => void;
     showLeaguesTab?: boolean;
+    leagueId?: string;
+    tournamentId?: string;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, leagueId, tournamentId }) => {
     const [collapsed, setCollapsed] = useState(false);
     
-    // Obtenemos el contero general (sin liga específica)
-    const { unansweredCount } = useBonusNotification();
+    // Obtenemos el conteo de la liga/torneo específico
+    const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
 
     const tabs = [
         { id: 'home' as const, label: 'Inicio', icon: Home },

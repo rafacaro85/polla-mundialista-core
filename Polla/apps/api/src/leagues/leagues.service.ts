@@ -545,7 +545,7 @@ export class LeaguesService {
       },
     }));
 
-    await this.cacheManager.set(cacheKey, finalResults, 10 * 60 * 1000); // 10 minutes
+    await this.cacheManager.set(cacheKey, finalResults, 30 * 1000); // 30 seconds
     return finalResults;
   }
   async getAllLeagues(tournamentId?: string, page: number = 1, limit: number = 20) {
@@ -1189,7 +1189,7 @@ export class LeaguesService {
       },
     }));
 
-    await this.cacheManager.set(cacheKey, result, 10 * 60 * 1000); // 10 minutes
+    await this.cacheManager.set(cacheKey, result, 30 * 1000); // 30 seconds
     return result;
   }
 

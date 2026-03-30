@@ -32,6 +32,7 @@ export const viewport = {
 };
 
 import { GlobalThemeProvider } from "@/components/GlobalThemeProvider";
+import { MetaPixel } from "@/components/MetaPixel";
 
 export default function RootLayout({
   children,
@@ -41,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={cn(inter.className, "bg-white text-slate-900 antialiased min-h-screen")} suppressHydrationWarning={true}>
+        <MetaPixel />
         <GlobalThemeProvider>
           <AuthProvider>
             <Suspense fallback={<div className="min-h-screen bg-[#0F172A]" />}>

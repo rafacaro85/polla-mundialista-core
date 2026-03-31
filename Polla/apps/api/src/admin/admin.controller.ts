@@ -1,4 +1,4 @@
-import { Controller, Post, Get, HttpCode, HttpStatus, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, Get, HttpCode, HttpStatus, UseGuards, Body, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -50,6 +50,21 @@ export class AdminController {
   @Roles('SUPER_ADMIN')
   async getPlatformStats() {
     return this.adminService.getPlatformStats();
+  }
+
+  @Post('config')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async setSystemConfig(@Body() body: { key: string; value: string }) {
+    return this.adminService.setSystemConfig(body.key, body.value);
+  }
+
+  @Get('config')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async getSystemConfig(@Query('key') key: string) {
+    return this.adminService.getSystemConfig(key);
   }
 
 }

@@ -60,8 +60,18 @@ export const superAdminService = {
         return response.data;
     },
 
+    getSystemConfig: async (key: string) => {
+        const response = await api.get('/admin/config', { params: { key } });
+        return response.data;
+    },
+
     updateSettings: async (settings: any) => {
         const response = await api.patch('/system-settings', settings);
+        return response.data;
+    },
+
+    updateSystemConfig: async (key: string, value: string) => {
+        const response = await api.post('/admin/config', { key, value });
         return response.data;
     },
 

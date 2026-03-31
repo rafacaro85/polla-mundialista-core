@@ -24,6 +24,7 @@ import { Transaction } from '../database/entities/transaction.entity';
 import { Match } from '../database/entities/match.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
+import { SystemConfig } from '../database/entities/system-config.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
@@ -992,7 +993,7 @@ export class LeaguesService {
       globalLeagueIdForBonus = globalLeagueForTournament?.id || null;
     }
 
-    const [goalsResult, allPredictions, bracketPointsRows, bonusPointsRows] = await Promise.all([
+    const [goalsResult, allPredictions, bracketPointsRows, bonusPointsRows, systemConfigOverride] = await Promise.all([
       // Goles Reales para Tiebreaker
       this.leaguesRepository.manager
         .createQueryBuilder(Match, 'm')
@@ -1054,10 +1055,21 @@ export class LeaguesService {
           { leagueId, globalLeagueIdForBonus }
         )
         .groupBy('uba.userId')
-        .getRawMany()
+        .getRawMany(),
+
+      // SystemConfig override
+      this.leaguesRepository.manager.findOne(SystemConfig, {
+        where: { key: `override_tie_breaker_goals_${league.tournamentId}` },
+      })
     ]);
 
-    const realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
+    let realGoals = Number(goalsResult?.total || goalsResult?.TOTAL || 0);
+    if (systemConfigOverride && systemConfigOverride.value) {
+      const overrideVal = parseInt(systemConfigOverride.value, 10);
+      if (!isNaN(overrideVal)) {
+         realGoals = overrideVal;
+      }
+    }
 
     // Map to keep track of points: { userId: { matchId: { points, isJoker } } }
     // We prioritize league-specific predictions over global fallback
@@ -1689,10 +1701,28 @@ export class LeaguesService {
   async updateTieBreaker(leagueId: string, userId: string, guess: number) {
     const participant = await this.leagueParticipantsRepository.findOne({
       where: { league: { id: leagueId }, user: { id: userId } },
+      relations: ['league'],
     });
 
     if (!participant) {
       throw new ForbiddenException('You are not a participant of this league.');
+    }
+
+    if (!participant.league?.tournamentId) {
+      throw new BadRequestException('La liga no tiene un torneo asignado.');
+    }
+
+    // Bloqueo 10 minutos antes del primer partido del torneo
+    const firstMatch = await this.leaguesRepository.manager.findOne(Match, {
+      where: { tournamentId: participant.league.tournamentId },
+      order: { date: 'ASC' },
+    });
+
+    if (firstMatch) {
+      const lockTime = new Date(firstMatch.date.getTime() - 10 * 60 * 1000);
+      if (new Date() >= lockTime) {
+        throw new ForbiddenException('El desempate ya está bloqueado. El torneo ha comenzado.');
+      }
     }
 
     participant.tieBreakerGuess = guess;

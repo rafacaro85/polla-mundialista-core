@@ -9,6 +9,7 @@ import { BonusQuestion } from '../database/entities/bonus-question.entity';
 import { User } from '../database/entities/user.entity';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { UserRole } from '../database/enums/user-role.enum';
+import { SystemConfig } from '../database/entities/system-config.entity';
 
 
 
@@ -631,6 +632,23 @@ export class AdminService {
     };
   }
 
+  async setSystemConfig(key: string, value: string) {
+    const repo = this.dataSource.getRepository(SystemConfig);
+    let config = await repo.findOne({ where: { key } });
+    if (!config) {
+      config = repo.create({ key, value });
+    } else {
+      config.value = value;
+    }
+    await repo.save(config);
+    return { success: true, key, value };
+  }
+
+  async getSystemConfig(key: string) {
+    const repo = this.dataSource.getRepository(SystemConfig);
+    const config = await repo.findOne({ where: { key } });
+    return { success: true, key, value: config?.value || null };
+  }
 
 }
 

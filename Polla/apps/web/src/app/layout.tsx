@@ -33,6 +33,7 @@ export const viewport = {
 
 import { GlobalThemeProvider } from "@/components/GlobalThemeProvider";
 import { MetaPixel } from "@/components/MetaPixel";
+import { ProfeChatWidget } from "@/components/ProfeChatWidget";
 
 export default function RootLayout({
   children,
@@ -51,6 +52,7 @@ export default function RootLayout({
             <Footer />
           </AuthProvider>
         </GlobalThemeProvider>
+        <ProfeChatWidget />
         <Toaster />
       </body>
     </html>

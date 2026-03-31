@@ -225,6 +225,7 @@ export default function SuperAdminDashboard() {
     });
 
     const [settingsForm, setSettingsForm] = useState<any>({});
+    const [tieBreakerOverride, setTieBreakerOverride] = useState<string>('');
     const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
 
     useEffect(() => {
@@ -248,15 +249,19 @@ export default function SuperAdminDashboard() {
             const promises: any[] = [superAdminService.getDashboardStats(tournamentId)];
             if (!isBackground) {
                 promises.push(superAdminService.getSettings());
+                promises.push(superAdminService.getSystemConfig(`override_tie_breaker_goals_${tournamentId}`));
             }
 
-            const [dashboardData, settingsData] = await Promise.all(promises);
+            const [dashboardData, settingsData, overrideData] = await Promise.all(promises);
             
             setStats(dashboardData as any);
             
             // Only update settings form if we fetched it (initial load)
             if (settingsData) {
                 setSettingsForm(settingsData);
+            }
+            if (overrideData && overrideData.value) {
+                setTieBreakerOverride(overrideData.value);
             }
         } catch (error) {
             console.error("Error loading dashboard data:", error);
@@ -272,6 +277,11 @@ export default function SuperAdminDashboard() {
             delete payload.id;
             
             await superAdminService.updateSettings(payload);
+            
+            if (tieBreakerOverride !== '') {
+               await superAdminService.updateSystemConfig(`override_tie_breaker_goals_${tournamentId}`, tieBreakerOverride);
+            }
+
             alert("Configuración guardada correctamente");
         } catch (error: any) {
             console.error("Error saving settings:", error);
@@ -709,6 +719,24 @@ export default function SuperAdminDashboard() {
                                         />
                                     </div>
                                 ))}
+
+                                <hr style={{ borderColor: '#334155', margin: '16px 0' }} />
+                                
+                                <div>
+                                    <label style={{ color: '#00E676', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Trophy size={16} /> Configuración de Desempate (Goles Totales del Torneo)
+                                    </label>
+                                    <p style={{ color: '#94A3B8', fontSize: '11px', marginBottom: '8px' }}>
+                                        Este valor determina los goles totales reales para definir a los ganadores en caso de empate. Si se deja en blanco, el sistema calculará la suma automáticamente de los partidos finalizados.
+                                    </p>
+                                    <input
+                                        type="number"
+                                        value={tieBreakerOverride || ''}
+                                        onChange={(e) => setTieBreakerOverride(e.target.value)}
+                                        style={{ width: '100%', padding: '12px', backgroundColor: '#0F172A', border: '1px solid #00E676', borderRadius: '8px', color: 'white', fontSize: '13px', outline: 'none' }}
+                                        placeholder={`Total de goles manual del torneo`}
+                                    />
+                                </div>
 
                                 <button
                                     onClick={handleSaveSettings}

@@ -27,6 +27,7 @@ import { AiPredictionModule } from './ai-prediction/ai-prediction.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { DemoModule } from './demo/demo.module';
+import { ChatAssistantModule } from './chat-assistant/chat-assistant.module';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -169,6 +170,7 @@ import { HealthController } from './health/health.controller';
     PaymentsModule,
     AdminModule,
     DemoModule,
+    ChatAssistantModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

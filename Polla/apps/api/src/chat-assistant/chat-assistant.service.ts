@@ -92,8 +92,8 @@ Responde SIEMPRE de forma ultra corta, directa y al grano (máximo 2 o 3 oracion
       ];
 
       const completion = await this.openai.chat.completions.create({
-        // 2. OPTIMIZACIÓN DE MODELO: 'llama3-8b-8192' es casi gratuito, ultrarrápido y gasta una fracción pequeñísima respecto a 70B
-        model: process.env.AI_MODEL || 'llama3-8b-8192', 
+        // 2. OPTIMIZACIÓN DE MODELO: 'llama-3.1-8b-instant' es casi gratuito, ultrarrápido y gasta una fracción pequeñísima respecto a 70B
+        model: process.env.AI_MODEL || 'llama-3.1-8b-instant', 
         messages,
         temperature: 0.5, // Más bajo = Respuestas más predecibles y cortas sin divagar
         // 3. OPTIMIZACIÓN DE OUTPUT: Limitamos a El Profe a máximo 300 tokens por respuesta (~250 palabras)

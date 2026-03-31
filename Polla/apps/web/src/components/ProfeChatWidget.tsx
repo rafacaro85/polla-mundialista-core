@@ -63,7 +63,7 @@ export function ProfeChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white hover:bg-emerald-400 hover:scale-105 transition-all z-50 group"
+          className="fixed bottom-24 md:bottom-6 right-4 md:right-6 w-14 h-14 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white hover:bg-emerald-400 hover:scale-105 transition-all z-[60] group"
           aria-label="Hablar con El Profe"
         >
           <MessageCircle size={28} />
@@ -76,7 +76,7 @@ export function ProfeChatWidget() {
 
       {/* Ventana de Chat */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 sm:w-96 min-h-[500px] h-[75vh] max-h-[700px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
+        <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 w-[90vw] max-w-sm sm:w-96 min-h-[450px] h-[70vh] max-h-[700px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col z-[60] overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300">
           
           {/* HEADER (BARRAS DE CONTROL) */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-slate-800">

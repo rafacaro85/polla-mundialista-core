@@ -62,7 +62,10 @@ Bancolombia (Ahorros): 27228258721
 Activación: Pídele el comprobante por este medio. Al aprobarlo dile: "¡Listo el pollo! Tu liga ya está activa y ahora sí, todos tus amigos pueden empezar a subir sus predicciones".
 
 
++ Activación: Pídele el comprobante por este medio. Al aprobarlo dile: "¡Listo el pollo! Tu liga ya está activa y ahora sí, todos tus amigos pueden empezar a subir sus predicciones".
 
+# REGLA CRÍTICA DE OPTIMIZACIÓN (COSTOS): 
+Responde SIEMPRE de forma ultra corta, directa y al grano (máximo 2 o 3 oraciones breves). No uses saludos si el usuario no saluda primero. Evita adornos innecesarios. Ve directo a solucionar la duda del usuario para ahorrar tokens al máximo.
 `;
 
   constructor() {
@@ -74,10 +77,13 @@ Activación: Pídele el comprobante por este medio. Al aprobarlo dile: "¡Listo 
 
   async askProfe(userMessages: { role: string; content: string }[]): Promise<string> {
     try {
+      // 1. OPTIMIZACIÓN DE HISTORIAL (Solo enviamos los últimos 5 mensajes del usuario en lugar de toda la conversación eterna)
+      const recentMessages = userMessages.slice(-5);
+
       // Filtrar roles permitidos y asegurar que content es string
-      const cleanMessages = userMessages.map(m => ({
+      const cleanMessages = recentMessages.map(m => ({
         role: m.role === 'user' || m.role === 'assistant' ? m.role : 'user',
-        content: String(m.content)
+        content: String(m.content).trim()
       }));
 
       const messages: any[] = [
@@ -86,10 +92,12 @@ Activación: Pídele el comprobante por este medio. Al aprobarlo dile: "¡Listo 
       ];
 
       const completion = await this.openai.chat.completions.create({
-        model: process.env.AI_MODEL || 'gpt-4o-mini', // 'llama-3.1-70b-versatile' o 'llama-3.3-70b-versatile' si usas Groq
+        // 2. OPTIMIZACIÓN DE MODELO: 'llama3-8b-8192' es casi gratuito, ultrarrápido y gasta una fracción pequeñísima respecto a 70B
+        model: process.env.AI_MODEL || 'llama3-8b-8192', 
         messages,
-        temperature: 0.7,
-        max_tokens: 1500,
+        temperature: 0.5, // Más bajo = Respuestas más predecibles y cortas sin divagar
+        // 3. OPTIMIZACIÓN DE OUTPUT: Limitamos a El Profe a máximo 300 tokens por respuesta (~250 palabras)
+        max_tokens: 300,
       });
 
       return completion.choices[0]?.message?.content || '¡Mi llave! Me quedé sin palabras. Inténtalo de nuevo.';

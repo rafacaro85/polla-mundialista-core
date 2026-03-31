@@ -70,7 +70,7 @@ Responde SIEMPRE de forma ultra corta, directa y al grano (máximo 2 o 3 oracion
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || 'falta_configurar_llave_en_railway',
       baseURL: 'https://api.groq.com/openai/v1',
     });
   }

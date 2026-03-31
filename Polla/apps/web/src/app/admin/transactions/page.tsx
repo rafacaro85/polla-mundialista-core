@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { Check, X, Search, Image as ImageIcon, Copy, ExternalLink, Calendar, ArrowLeft } from 'lucide-react';
 import { useTournament } from '@/hooks/useTournament';
+import { trackPurchase } from '@/lib/metaPixel';
 
 interface Transaction {
     id: string;
@@ -45,6 +46,14 @@ function AdminTransactionsContent() {
             setProcessingId(id);
             await api.patch(`/transactions/${id}/status`, { status });
             toast.success(`Transacción ${status === 'APPROVED' ? 'Aprobada' : 'Rechazada'}`);
+            
+            if (status === 'APPROVED') {
+                const tx = transactions?.find(t => t.id === id);
+                if (tx) {
+                    trackPurchase(tx.amount, tx.league?.name || 'Polla');
+                }
+            }
+            
             mutate(['/transactions/pending', tournamentId]);
         } catch (error) {
             console.error(error);

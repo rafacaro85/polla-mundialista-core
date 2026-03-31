@@ -14,6 +14,7 @@ import { DynamicPredictionsWrapper } from '@/components/DynamicPredictionsWrappe
 import { useFilteredMatches } from '@/hooks/useFilteredMatches';
 import { useTournament } from '@/hooks/useTournament';
 import { getTeamFlagUrl } from '@/shared/utils/flags';
+import { trackPrediction } from '@/lib/metaPixel';
 
 // Helper to ensure flag is a URL
 const ensureFlagUrl = (flag: string | null | undefined, teamName: string) => {
@@ -212,6 +213,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
         }
         const match = finalMatches.find(m => m.id === matchId);
         await savePrediction(matchId, parseInt(homeScore), parseInt(awayScore), isJoker, match?.phase);
+        trackPrediction(); // Disparar pixel de Meto
     };
 
     const handleAiPredictions = (newPredictions: { [matchId: string]: [number, number] }) => {
@@ -257,6 +259,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
         if (lockedCount > 0) toast.warning(`${lockedCount} predicciones descartadas por bloqueo.`);
         await saveBulkPredictions(validSuggestions);
         setAiSuggestions({});
+        trackPrediction(); // Disparar pixel de Meto
     };
 
     const currentPhase = useMemo(() => {

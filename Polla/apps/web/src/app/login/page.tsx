@@ -6,6 +6,7 @@ import { Mail, Lock, User, ArrowRight, Chrome, Eye, EyeOff, AlertCircle, CheckCi
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { signInWithGoogle } from '@/lib/auth.utils';
+import { trackRegistration } from '@/lib/metaPixel';
 
 /* =============================================================================
    COMPONENTE: PANTALLA DE ACCESO (LOGIN / REGISTER / FORGOT / VERIFY)
@@ -97,6 +98,8 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
           password: formData.password,
           phoneNumber: formData.phoneNumber
         });
+
+        trackRegistration(); // Disparar pixel de Meto
 
         toast.success('Cuenta creada. Revisa tu correo (o consola) para el código de verificación.');
         setView('verify');

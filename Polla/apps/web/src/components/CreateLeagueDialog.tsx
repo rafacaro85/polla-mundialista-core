@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { PaymentMethods } from './dashboard/PaymentMethods';
 import { useTournament } from '@/hooks/useTournament';
+import { trackLeagueCreated } from '@/lib/metaPixel';
 
 /* =============================================================================
    DATOS MOCK (PLANES)
@@ -184,6 +185,9 @@ export const CreateLeagueDialog: React.FC<CreateLeagueDialogProps> = ({
             setCreatedLeagueName(leagueName.trim());
             setCreatedLeagueId(response.data.id);
             setStep(4); // Move to final step (Success/Payment)
+            
+            trackLeagueCreated(selectedPlan); // Metapixel tracking
+
             toast.success('¡Polla creada exitosamente!');
             // DO NOT call onLeagueCreated() here. It triggers a re-render in parent that unmounts this dialog!
             // await onLeagueCreated(); 

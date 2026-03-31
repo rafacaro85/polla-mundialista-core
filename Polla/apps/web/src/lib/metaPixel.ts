@@ -27,3 +27,7 @@ export const trackPurchase = (amount: number, plan: string) => {
 export const trackPrediction = () => {
   trackEvent('CustomEvent', { event_name: 'Prediction' });
 };
+
+export const trackInitiateCheckout = () => {
+  trackEvent('InitiateCheckout');
+};

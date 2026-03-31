@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useTournament } from '@/hooks/useTournament';
 import { MercadoPagoButton } from '@/components/payments/MercadoPagoButton';
+import { trackInitiateCheckout } from '@/lib/metaPixel';
 
 interface PaymentMethodsProps {
     leagueId: string;
@@ -28,6 +29,10 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [loadingMP, setLoadingMP] = useState(false);
+
+    React.useEffect(() => {
+        trackInitiateCheckout();
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {

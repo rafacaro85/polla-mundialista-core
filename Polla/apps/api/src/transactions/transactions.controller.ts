@@ -202,6 +202,22 @@ export class TransactionsController {
     );
   }
 
+  @Public()
+  @Post('webhook/reject-n8n')
+  async rejectFromN8n(@Body() body: { transactionId: string; secret: string; notes?: string }) {
+    if (!process.env.N8N_WEBHOOK_SECRET || body.secret !== process.env.N8N_WEBHOOK_SECRET) {
+      throw new UnauthorizedException('Invalid or missing webhook secret');
+    }
+    if (!body.transactionId) {
+      throw new BadRequestException('transactionId is required');
+    }
+    return this.transactionsService.updateStatus(
+      body.transactionId,
+      TransactionStatus.REJECTED,
+      body.notes || 'Rejected via n8n webhook'
+    );
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get()

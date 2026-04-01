@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { MessageCircle, X, Send, Bot, Loader2 } from 'lucide-react';
+
+const ProfeAvatar3D = lazy(() => import('./ProfeAvatar3D'));
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -92,16 +94,20 @@ export function ProfeChatWidget() {
             </button>
           </div>
 
-          {/* ÁREA SUPERIOR: RESERVADA PARA EL AVATAR ANIMADO */}
-          {/* Instrucción: Aquí puedes inyectar luego un <video> o <img> animado */}
-          <div className="h-32 bg-slate-800/50 flex flex-col items-center justify-center border-b border-slate-700/50 relative overflow-hidden shrink-0">
-            <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-2 animate-pulse shadow-lg shadow-slate-900">
-              <span className="text-slate-500 text-[10px] uppercase font-bold text-center leading-tight">Espacio<br/>Avatar</span>
-            </div>
-            <span className="text-slate-400 text-xs font-medium">Avatar Animado de El Profe Aquí</span>
-            
-            {/* Efecto de fondo sutil */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60"></div>
+          {/* AVATAR 3D DE EL PROFE */}
+          <div className="h-40 bg-gradient-to-b from-slate-800/80 to-slate-900 border-b border-slate-700/50 relative overflow-hidden shrink-0">
+            <Suspense fallback={
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 size={24} className="animate-spin text-emerald-500" />
+                  <span className="text-slate-500 text-xs">Cargando avatar...</span>
+                </div>
+              </div>
+            }>
+              <ProfeAvatar3D isTalking={isLoading} />
+            </Suspense>
+            {/* Gradiente inferior para transición suave al chat */}
+            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none"></div>
           </div>
 
           {/* ÁREA CENTRAL: MENSAJES */}

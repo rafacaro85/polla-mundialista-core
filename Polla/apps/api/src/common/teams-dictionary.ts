@@ -78,6 +78,7 @@ export const TEAMS_DICTIONARY: Record<string, TeamEntry> = {
   IRN: { name: 'Irán', flag: 'ir' },
   KSA: { name: 'Arabia Saudí', flag: 'sa' },
   QAT: { name: 'Catar', flag: 'qa' },
+  IRQ: { name: 'Irak', flag: 'iq' },
   JOR: { name: 'Jordania', flag: 'jo' },
   UZB: { name: 'Uzbekistán', flag: 'uz' },
 

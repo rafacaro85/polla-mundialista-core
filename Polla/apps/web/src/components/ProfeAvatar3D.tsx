@@ -32,7 +32,7 @@ function AvatarModel({ isTalking = false }: AvatarModelProps) {
   });
 
   return (
-    <group ref={group} scale={1.2} position={[0, -1, 0]}>
+    <group ref={group} scale={0.9} position={[0, -1.6, 0]}>
       <primitive object={scene} />
     </group>
   );
@@ -48,7 +48,7 @@ interface ProfeAvatar3DProps {
 export default function ProfeAvatar3D({ isTalking = false }: ProfeAvatar3DProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0.5, 2.5], fov: 45 }}
+      camera={{ position: [0, 0.8, 3.2], fov: 40 }}
       style={{ width: '100%', height: '100%' }}
       gl={{ alpha: true, antialias: true }}
     >

@@ -95,7 +95,7 @@ export function ProfeChatWidget() {
           </div>
 
           {/* AVATAR 3D DE EL PROFE */}
-          <div className="h-40 bg-gradient-to-b from-slate-800/80 to-slate-900 border-b border-slate-700/50 relative overflow-hidden shrink-0">
+          <div className="h-52 bg-gradient-to-b from-slate-800/80 to-slate-900 border-b border-slate-700/50 relative overflow-hidden shrink-0">
             <Suspense fallback={
               <div className="w-full h-full flex items-center justify-center">
                 <div className="flex flex-col items-center gap-2">

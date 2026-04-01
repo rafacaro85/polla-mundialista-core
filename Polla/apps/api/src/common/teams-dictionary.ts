@@ -13,6 +13,7 @@ export const TEAMS_DICTIONARY: Record<string, TeamEntry> = {
   CRC: { name: 'Costa Rica', flag: 'cr' },
   HON: { name: 'Honduras', flag: 'hn' },
   HAI: { name: 'Haití', flag: 'ht' },
+  CUW: { name: 'Curazao', flag: 'cw' },
 
   // CONMEBOL
   BRA: { name: 'Brasil', flag: 'br' },
@@ -54,6 +55,7 @@ export const TEAMS_DICTIONARY: Record<string, TeamEntry> = {
   SVN: { name: 'Eslovenia', flag: 'si' },
   HUN: { name: 'Hungría', flag: 'hu' },
   CZE: { name: 'República Checa', flag: 'cz' },
+  BIH: { name: 'Bosnia & Herzegovina', flag: 'ba' },
 
   // CAF (Africa)
   MAR: { name: 'Marruecos', flag: 'ma' },
@@ -67,6 +69,7 @@ export const TEAMS_DICTIONARY: Record<string, TeamEntry> = {
   CIV: { name: 'Costa del Marfil', flag: 'ci' },
   CPV: { name: 'Cabo Verde', flag: 'cv' },
   RSA: { name: 'Sudáfrica', flag: 'za' },
+  COD: { name: 'República del Congo', flag: 'cd' },
 
   // AFC (Asia)
   JPN: { name: 'Japón', flag: 'jp' },

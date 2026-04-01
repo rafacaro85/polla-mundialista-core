@@ -10,94 +10,106 @@ import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
-import { TelegramService } from '../telegram/telegram.service';
-
-@Injectable()
-export class TransactionsService {
-  constructor(
-    @InjectRepository(Transaction)
-    private transactionsRepository: Repository<Transaction>,
-    @InjectRepository(League)
-    private leaguesRepository: Repository<League>,
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-    @InjectRepository(LeagueParticipant)
-    private leagueParticipantsRepository: Repository<LeagueParticipant>,
-    private dataSource: DataSource,
-    private telegramService: TelegramService,
-  ) {}
-
-  async createTransaction(
-    user: User,
-    amount: number,
-    packageId: string,
-    leagueId: string | null,
-    tournamentId: string = DEFAULT_TOURNAMENT_ID,
-    status: TransactionStatus = TransactionStatus.PENDING,
-  ): Promise<Transaction> {
-    let league: League | undefined = undefined;
-    if (leagueId) {
-      league = (await this.leaguesRepository.findOne({
-        where: { id: leagueId },
-      })) || undefined;
-      if (!league) {
-        throw new NotFoundException('Liga no encontrada');
+  import axios from 'axios';
+  import { TelegramService } from '../telegram/telegram.service';
+  
+  @Injectable()
+  export class TransactionsService {
+    constructor(
+      @InjectRepository(Transaction)
+      private transactionsRepository: Repository<Transaction>,
+      @InjectRepository(League)
+      private leaguesRepository: Repository<League>,
+      @InjectRepository(User)
+      private usersRepository: Repository<User>,
+      @InjectRepository(LeagueParticipant)
+      private leagueParticipantsRepository: Repository<LeagueParticipant>,
+      private dataSource: DataSource,
+      private telegramService: TelegramService,
+    ) {}
+  
+    async createTransaction(
+      user: User,
+      amount: number,
+      packageId: string,
+      leagueId: string | null,
+      tournamentId: string = DEFAULT_TOURNAMENT_ID,
+      status: TransactionStatus = TransactionStatus.PENDING,
+    ): Promise<Transaction> {
+      let league: League | undefined = undefined;
+      if (leagueId) {
+        league = (await this.leaguesRepository.findOne({
+          where: { id: leagueId },
+        })) || undefined;
+        if (!league) {
+          throw new NotFoundException('Liga no encontrada');
+        }
       }
-    }
-
-    const transaction = this.transactionsRepository.create({
-      user,
-      amount,
-      packageId, // This stores the package type (e.g., 'gold', 'platinum')
-      league,
-      status,
-      tournamentId: league?.tournamentId || tournamentId,
-      referenceCode: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    });
-
-    return this.transactionsRepository.save(transaction);
-  }
-
-  async uploadTransaction(
-    user: User,
-    imageUrl: string,
-    amount: number = 50000,
-    referenceCode?: string,
-    leagueId?: string,
-    tournamentId: string = DEFAULT_TOURNAMENT_ID,
-  ): Promise<Transaction> {
-    let league: League | undefined = undefined;
-    if (leagueId) {
-      league =
-        (await this.leaguesRepository.findOne({ where: { id: leagueId } })) ||
-        undefined;
-    }
-
-    const transaction = this.transactionsRepository.create({
-      user,
-      amount,
-      imageUrl,
-      tournamentId: league?.tournamentId || tournamentId,
-      league, // Attach league if found
-      packageId: league?.packageType,
-      status: TransactionStatus.PENDING,
-      referenceCode:
-        referenceCode ||
-        `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    });
-
-    // 📣 Notify admin via Telegram
-    this.telegramService
-      .notifyPayment(
+  
+      const transaction = this.transactionsRepository.create({
+        user,
         amount,
-        user.email,
-        league?.packageType,
-        user.phoneNumber,
-        user.fullName,
-      )
-      .catch((e) => console.error('Telegram Error:', e));
-
-    const saved = await this.transactionsRepository.save(transaction);
+        packageId, // This stores the package type (e.g., 'gold', 'platinum')
+        league,
+        status,
+        tournamentId: league?.tournamentId || tournamentId,
+        referenceCode: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      });
+  
+      return this.transactionsRepository.save(transaction);
+    }
+  
+    async uploadTransaction(
+      user: User,
+      imageUrl: string,
+      amount: number = 50000,
+      referenceCode?: string,
+      leagueId?: string,
+      tournamentId: string = DEFAULT_TOURNAMENT_ID,
+    ): Promise<Transaction> {
+      let league: League | undefined = undefined;
+      if (leagueId) {
+        league =
+          (await this.leaguesRepository.findOne({ where: { id: leagueId } })) ||
+          undefined;
+      }
+  
+      const transaction = this.transactionsRepository.create({
+        user,
+        amount,
+        imageUrl,
+        tournamentId: league?.tournamentId || tournamentId,
+        league, // Attach league if found
+        packageId: league?.packageType,
+        status: TransactionStatus.PENDING,
+        referenceCode:
+          referenceCode ||
+          `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      });
+  
+      const saved = await this.transactionsRepository.save(transaction);
+  
+      // 📣 Notify admin via n8n Webhook for Telegram Interactive Approval
+      try {
+        await axios.post('https://primary-production-28ab1.up.railway.app/webhook/pago-recibido', {
+          nombre_usuario: user.fullName || user.email,
+          monto: `$${amount.toLocaleString('es-CO')}`,
+          url_comprobante: imageUrl,
+          id_pago: saved.id,
+        });
+      } catch (error) {
+        console.error('❌ Error llamando al Webhook de n8n para pago:', error.message);
+        // Fallback a notificación de texto directo temporal si falla n8n
+        this.telegramService
+          .notifyPayment(
+            amount,
+            user.email,
+            league?.packageType,
+            user.phoneNumber,
+            user.fullName,
+          )
+          .catch((e) => console.error('Telegram Fallback Error:', e));
+      }
 
     // 🔄 Si el participante tenía estado REJECTED, resetear a PENDING
     if (league) {

@@ -32,7 +32,7 @@ function AvatarModel({ isTalking = false }: AvatarModelProps) {
   });
 
   return (
-    <group ref={group} scale={1.8} position={[0, -2.2, 0]}>
+    <group ref={group} scale={1.45} position={[0, -1.9, 0]}>
       <primitive object={scene} />
     </group>
   );

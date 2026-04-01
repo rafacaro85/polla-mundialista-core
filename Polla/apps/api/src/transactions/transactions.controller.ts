@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  UnauthorizedException,
   Query,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { CloudinaryService } from '../upload/cloudinary.service';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -182,6 +184,22 @@ export class TransactionsController {
   @Patch(':id/approve')
   async approveTransaction(@Param('id') id: string) {
     return this.transactionsService.approveTransaction(id);
+  }
+
+  @Public()
+  @Post('webhook/approve-n8n')
+  async approveFromN8n(@Body() body: { transactionId: string; secret: string }) {
+    if (!process.env.N8N_WEBHOOK_SECRET || body.secret !== process.env.N8N_WEBHOOK_SECRET) {
+      throw new UnauthorizedException('Invalid or missing webhook secret');
+    }
+    if (!body.transactionId) {
+      throw new BadRequestException('transactionId is required');
+    }
+    return this.transactionsService.updateStatus(
+      body.transactionId,
+      TransactionStatus.APPROVED,
+      'Approved via n8n webhook'
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

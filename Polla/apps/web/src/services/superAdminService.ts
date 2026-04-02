@@ -20,7 +20,7 @@ export const superAdminService = {
 
     // --- LEAGUES ---
     getAllLeagues: async (tournamentId?: string) => {
-        const response = await api.get('/leagues/all', { params: { tournamentId } });
+        const response = await api.get('/leagues/all', { params: { tournamentId, limit: 1000 } });
         return response.data?.data || response.data || [];
     },
 

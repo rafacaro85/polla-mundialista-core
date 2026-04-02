@@ -168,6 +168,10 @@
       "Polla/apps/api/package.json",
       "nx/core/package-json"
     ],
+    "metadata.targetGroups.NPM Scripts.36": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
     "metadata.description": [
       "Polla/apps/api/package.json",
       "nx/core/package-json"
@@ -1085,6 +1089,34 @@
       "nx/core/package-json"
     ],
     "targets.seed:reset-knockout.metadata.runCommand": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.executor": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.options": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.metadata": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.options.script": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.metadata.scriptContent": [
+      "Polla/apps/api/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.seed:ucl.metadata.runCommand": [
       "Polla/apps/api/package.json",
       "nx/core/package-json"
     ],

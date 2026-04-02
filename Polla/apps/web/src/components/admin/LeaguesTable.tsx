@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus, Building2, ArrowUpDown, Calendar, Crown, Tag } from 'lucide-react';
+import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus, Building2, ArrowUpDown, Calendar, Crown, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/api';
 import { EditLeagueDialog } from './EditLeagueDialog';
@@ -84,6 +84,8 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
     const [sortAsc, setSortAsc] = useState(false); // false = más reciente primero
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
 
     // Dialog States
     const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
@@ -202,25 +204,47 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             // Filtro de tab activo
             switch (activeFilter) {
                 case 'ACTIVE':
-                    return l.isPaid === true && !FREE_PLANS.includes(l.packageType || '');
+                    if (!(l.isPaid === true && !FREE_PLANS.includes(l.packageType || ''))) return false;
+                    break;
                 case 'INACTIVE':
-                    return !l.isPaid && !FREE_PLANS.includes(l.packageType || '');
+                    if (!(!l.isPaid && !FREE_PLANS.includes(l.packageType || ''))) return false;
+                    break;
                 case 'FREE':
-                    return FREE_PLANS.includes(l.packageType || '') || !l.packageType;
-                default:
-                    return true;
+                    if (!(FREE_PLANS.includes(l.packageType || '') || !l.packageType)) return false;
+                    break;
             }
+
+            // Filtro de rango de fechas
+            if (dateFrom || dateTo) {
+                const leagueDate = l.createdAt ? new Date(l.createdAt) : null;
+                if (!leagueDate) return false;
+                if (dateFrom) {
+                    const from = new Date(dateFrom);
+                    from.setHours(0, 0, 0, 0);
+                    if (leagueDate < from) return false;
+                }
+                if (dateTo) {
+                    const to = new Date(dateTo);
+                    to.setHours(23, 59, 59, 999);
+                    if (leagueDate > to) return false;
+                }
+            }
+
+            return true;
         });
 
         // Ordenar por fecha
         result.sort((a, b) => {
-            const dateA = new Date(a.createdAt || 0).getTime();
-            const dateB = new Date(b.createdAt || 0).getTime();
-            return sortAsc ? dateA - dateB : dateB - dateA;
+            const dA = new Date(a.createdAt || 0).getTime();
+            const dB = new Date(b.createdAt || 0).getTime();
+            return sortAsc ? dA - dB : dB - dA;
         });
 
         return result;
-    }, [leagues, searchTerm, activeFilter, sortAsc]);
+    }, [leagues, searchTerm, activeFilter, sortAsc, dateFrom, dateTo]);
+
+    const hasDateFilter = dateFrom || dateTo;
+    const clearDateFilter = () => { setDateFrom(''); setDateTo(''); };
 
     // Contadores por filtro
     const counts = useMemo(() => ({
@@ -332,9 +356,34 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                 </button>
             </div>
 
+            {/* FILTRO DE FECHAS */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', padding: '10px 14px', backgroundColor: '#152033', borderRadius: '12px', border: hasDateFilter ? '1px solid rgba(0,230,118,0.3)' : '1px solid #334155' }}>
+                <Calendar size={14} style={{ color: '#64748B', flexShrink: 0 }} />
+                <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', whiteSpace: 'nowrap' }}>Desde:</span>
+                <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    style={{ backgroundColor: '#1E293B', border: '1px solid #334155', color: 'white', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', outline: 'none', flex: 1, minWidth: '120px' }}
+                />
+                <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', whiteSpace: 'nowrap' }}>Hasta:</span>
+                <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    style={{ backgroundColor: '#1E293B', border: '1px solid #334155', color: 'white', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', outline: 'none', flex: 1, minWidth: '120px' }}
+                />
+                {hasDateFilter && (
+                    <button onClick={clearDateFilter} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', borderRadius: '8px', border: '1px solid #EF4444', backgroundColor: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: '10px', fontWeight: '800', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        <X size={10} /> Limpiar fechas
+                    </button>
+                )}
+            </div>
+
             {/* CONTADOR DE RESULTADOS */}
             <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
                 Mostrando {filteredLeagues.length} de {leagues.length} pollas
+                {hasDateFilter && <span style={{ color: '#00E676', marginLeft: '6px' }}>• Filtro de fechas activo</span>}
             </div>
 
             {/* LISTA DE LIGAS */}

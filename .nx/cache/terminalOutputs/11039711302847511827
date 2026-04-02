@@ -1,0 +1,96 @@
+npm warn config ignoring workspace config at C:\AppWeb\Polla\apps\web/.npmrc
+
+> web@0.1.0 build
+> next build --webpack
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [33m[1m⚠[22m[39m Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\AppWeb\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\AppWeb\Polla\package-lock.json
+
+   [1m[38;2;173;127;168m▲ Next.js 16.0.10[39m[22m (webpack)
+   - Environments: .env.local, .env
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [32m[1m✓[22m[39m Compiled successfully in 26.8s
+ [37m[1m [22m[39m Skipping validation of types
+ [37m[1m [22m[39m Collecting page data using 15 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [37m[1m [22m[39m Generating static pages using 15 workers (0/28) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [37m[1m [22m[39m Generating static pages using 15 workers (7/28) 
+ [37m[1m [22m[39m Generating static pages using 15 workers (14/28) 
+ [37m[1m [22m[39m Generating static pages using 15 workers (21/28) 
+ [32m[1m✓[22m[39m Generating static pages using 15 workers (28/28) in 2.4s
+ [37m[1m [22m[39m Finalizing page optimization ...
+ [37m[1m [22m[39m Collecting build traces ...
+
+[4mRoute (app)[24m
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/communication
+├ ○ /admin/leagues
+├ ○ /admin/transactions
+├ ○ /auth/success
+├ ○ /business/new
+├ ○ /dashboard
+├ ○ /demo
+├ ○ /empresa/crear
+├ ○ /empresa/mis-pollas
+├ ○ /gateway
+├ ○ /hub
+├ ○ /instructions
+├ ƒ /invite/[code]
+├ ƒ /league-admin/[id]
+├ ○ /leagues-admin
+├ ƒ /leagues/[id]
+├ ƒ /leagues/[id]/admin
+├ ƒ /leagues/[id]/admin/advertising
+├ ƒ /leagues/[id]/admin/analytics
+├ ƒ /leagues/[id]/admin/bonus
+├ ƒ /leagues/[id]/admin/prizes
+├ ƒ /leagues/[id]/admin/settings
+├ ƒ /leagues/[id]/admin/users
+├ ƒ /leagues/[id]/bonus
+├ ƒ /leagues/[id]/predictions
+├ ƒ /leagues/[id]/ranking
+├ ƒ /leagues/[id]/simulation
+├ ƒ /leagues/[id]/studio
+├ ƒ /leagues/[id]/wall
+├ ○ /login
+├ ○ /offline
+├ ○ /payment/success
+├ ○ /planes
+├ ○ /privacidad
+├ ○ /profile
+├ ○ /reset-password
+├ ○ /social/mis-pollas
+├ ○ /super-admin
+└ ○ /terminos
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

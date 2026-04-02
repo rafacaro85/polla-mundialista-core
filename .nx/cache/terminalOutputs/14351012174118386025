@@ -1,0 +1,55 @@
+
+> api@0.0.1 build
+> nest build
+
+[96msrc/leagues/leagues.service.ts[0m:[93m53[0m:[93m50[0m - [91merror[0m[90m TS1272: [0mA type referenced in a decorated signature must be imported with 'import type' or a namespace import when 'isolatedModules' and 'emitDecoratorMetadata' are enabled.
+
+[7m53[0m     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+[7m  [0m [91m                                                 ~~~~~[0m
+
+  [96msrc/leagues/leagues.service.ts[0m:[93m10[0m:[93m10[0m
+    [7m10[0m import { Cache } from 'cache-manager';
+    [7m  [0m [96m         ~~~~~[0m
+    'Cache' was imported here.
+[96msrc/leagues/leagues.service.ts[0m:[93m1464[0m:[93m41[0m - [91merror[0m[90m TS2339: [0mProperty 'length' does not exist on type '{}'.
+
+[7m1464[0m       const totalParticipants = ranking.length;
+[7m    [0m [91m                                        ~~~~~~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1465[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'filter' does not exist on type '{}'.
+
+[7m1465[0m       const activeParticipants = ranking.filter(
+[7m    [0m [91m                                         ~~~~~~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1466[0m:[93m10[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m1466[0m         (r) => r.totalPoints > 0,
+[7m    [0m [91m         ~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1470[0m:[93m32[0m - [91merror[0m[90m TS2339: [0mProperty 'reduce' does not exist on type '{}'.
+
+[7m1470[0m       const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
+[7m    [0m [91m                               ~~~~~~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1470[0m:[93m40[0m - [91merror[0m[90m TS7006: [0mParameter 'acc' implicitly has an 'any' type.
+
+[7m1470[0m       const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
+[7m    [0m [91m                                       ~~~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1470[0m:[93m45[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m1470[0m       const sumTotal = ranking.reduce((acc, r) => acc + r.totalPoints, 0);
+[7m    [0m [91m                                            ~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1479[0m:[93m15[0m - [91merror[0m[90m TS2339: [0mProperty 'forEach' does not exist on type '{}'.
+
+[7m1479[0m       ranking.forEach((r) => {
+[7m    [0m [91m              ~~~~~~~[0m
+[96msrc/leagues/leagues.service.ts[0m:[93m1479[0m:[93m24[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m1479[0m       ranking.forEach((r) => {
+[7m    [0m [91m                       ~[0m
+
+Found 9 error(s).
+
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\AppWeb\Polla\apps\api
+npm error workspace api@0.0.1
+npm error location C:\AppWeb\Polla\apps\api
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c nest build

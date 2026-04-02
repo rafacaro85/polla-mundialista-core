@@ -549,16 +549,16 @@ export class LeaguesService {
     await this.cacheManager.set(cacheKey, finalResults, 30 * 1000); // 30 seconds
     return finalResults;
   }
-  async getAllLeagues(tournamentId?: string, page: number = 1, limit: number = 20) {
+  async getAllLeagues(tournamentId?: string, page: number = 1, limit: number = 1000) {
     try {
       const pageNum = Math.max(1, parseInt(page as any, 10) || 1);
-      const limitNum = Math.min(100, Math.max(1, parseInt(limit as any, 10) || 20));
+      const limitNum = Math.max(1, parseInt(limit as any, 10) || 1000);
       const skip = (pageNum - 1) * limitNum;
 
       const [leagues, total] = await this.leaguesRepository.findAndCount({
         where: tournamentId ? { tournamentId } : {},
         relations: ['creator', 'participants'],
-        order: { name: 'ASC' },
+        order: { createdAt: 'DESC' },
         skip,
         take: limitNum,
       });
@@ -588,6 +588,7 @@ export class LeaguesService {
         isPaid: l.isPaid,
         adminName: l.adminName,
         adminPhone: l.adminPhone,
+        createdAt: l.createdAt,
       }));
 
       return {

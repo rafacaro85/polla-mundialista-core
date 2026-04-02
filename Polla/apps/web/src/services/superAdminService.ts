@@ -21,7 +21,8 @@ export const superAdminService = {
     // --- LEAGUES ---
     getAllLeagues: async (tournamentId?: string) => {
         const response = await api.get('/leagues/all', { params: { tournamentId } });
-        return response.data?.data || response.data || [];
+        const leagues = response.data?.data || response.data || [];
+        return leagues.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     },
 
     // --- TRANSACTIONS ---

@@ -6,7 +6,6 @@ import {
   JoinColumn,
   OneToMany,
   DeleteDateColumn,
-  CreateDateColumn,
 } from 'typeorm';
 import { Organization } from './organization.entity';
 import { User } from './user.entity'; // Import User entity
@@ -169,9 +168,6 @@ export class League {
 
   @OneToMany(() => LeagueBanner, (banner) => banner.league)
   banners: LeagueBanner[];
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;

@@ -559,7 +559,7 @@ export class LeaguesService {
       const [leagues, total] = await this.leaguesRepository.findAndCount({
         where: tournamentId ? { tournamentId } : {},
         relations: ['creator', 'participants'],
-        order: { name: 'ASC' },
+        order: { createdAt: 'DESC' },
         skip,
         take: limitNum,
       });
@@ -589,6 +589,7 @@ export class LeaguesService {
         isPaid: l.isPaid,
         adminName: l.adminName,
         adminPhone: l.adminPhone,
+        createdAt: l.createdAt,
       }));
 
       return {

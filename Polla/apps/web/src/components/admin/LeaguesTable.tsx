@@ -47,15 +47,17 @@ interface LeaguesTableProps {
 }
 
 // ── Helpers ──
-const FREE_PLANS = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'];
+const FREE_PLANS = ['starter', 'free', 'launch_promo', 'enterprise_launch'];
 
-// Una liga es gratuita si su plan está en FREE_PLANS o si no tiene plan asignado
+// Una liga es gratuita si su plan está en FREE_PLANS (comparación case-insensitive)
 function isFreeLeague(l: League): boolean {
-    return !l.packageType || FREE_PLANS.includes(l.packageType);
+    if (!l.packageType || l.packageType.trim() === '') return true; // sin plan = gratuita
+    return FREE_PLANS.includes(l.packageType.trim().toLowerCase());
 }
+
 const PLAN_LABELS: Record<string, string> = {
-    'starter': 'Familia', 'FREE': 'Familia', 'launch_promo': 'Promo',
-    'ENTERPRISE_LAUNCH': 'Corp. Gratis',
+    'starter': 'Familia', 'free': 'Familia', 'launch_promo': 'Promo',
+    'enterprise_launch': 'Corp. Gratis',
     'parche': 'Parche', 'amateur': 'Parche',
     'amigos': 'Amigos', 'semi-pro': 'Amigos',
     'lider': 'Líder', 'pro': 'Líder',
@@ -63,7 +65,7 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 function getStatusInfo(league: League): { label: string; color: string; bg: string; dot: string } {
-    if (FREE_PLANS.includes(league.packageType || '')) {
+    if (isFreeLeague(league)) {
         return { label: 'GRATUITA', color: '#94A3B8', bg: 'rgba(148,163,184,0.1)', dot: '⚫' };
     }
     if (league.isPaid) {
@@ -222,17 +224,24 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                     break;
             }
 
-            // Filtro de rango de fechas
+            // Filtro de rango de fechas (comparar en hora local, no UTC)
             if (dateFrom || dateTo) {
                 const leagueDate = l.createdAt ? new Date(l.createdAt) : null;
                 if (!leagueDate) return false;
+
+                // Parsear "YYYY-MM-DD" como hora LOCAL (evita el bug de zona horaria UTC)
+                const parseLocalDate = (str: string) => {
+                    const [y, m, d] = str.split('-').map(Number);
+                    return new Date(y, m - 1, d); // Constructor con y/m/d = hora local
+                };
+
                 if (dateFrom) {
-                    const from = new Date(dateFrom);
+                    const from = parseLocalDate(dateFrom);
                     from.setHours(0, 0, 0, 0);
                     if (leagueDate < from) return false;
                 }
                 if (dateTo) {
-                    const to = new Date(dateTo);
+                    const to = parseLocalDate(dateTo);
                     to.setHours(23, 59, 59, 999);
                     if (leagueDate > to) return false;
                 }
@@ -400,11 +409,12 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             ) : (
                 filteredLeagues.map(league => {
                     const status = getStatusInfo(league);
-                    const planLabel = PLAN_LABELS[league.packageType || ''] || league.packageType || 'Sin plan';
+                    const pkgKey = (league.packageType || '').trim().toLowerCase();
+                    const planLabel = PLAN_LABELS[pkgKey] || league.packageType || 'Sin plan';
                     const isCompany = league.type === 'COMPANY' || league.isEnterprise;
 
                     return (
-                        <div key={league.id} style={{ ...S.card, borderColor: league.isPaid ? '#334155' : (FREE_PLANS.includes(league.packageType || '') ? '#334155' : '#FB923C33') }}>
+                        <div key={league.id} style={{ ...S.card, borderColor: league.isPaid ? '#334155' : (isFreeLeague(league) ? '#334155' : '#FB923C33') }}>
 
                             <div style={S.rowHeader}>
                                 {/* Icono */}

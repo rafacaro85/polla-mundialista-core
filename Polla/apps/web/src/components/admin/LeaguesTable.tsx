@@ -48,6 +48,11 @@ interface LeaguesTableProps {
 
 // ── Helpers ──
 const FREE_PLANS = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'];
+
+// Una liga es gratuita si su plan está en FREE_PLANS o si no tiene plan asignado
+function isFreeLeague(l: League): boolean {
+    return !l.packageType || FREE_PLANS.includes(l.packageType);
+}
 const PLAN_LABELS: Record<string, string> = {
     'starter': 'Familia', 'FREE': 'Familia', 'launch_promo': 'Promo',
     'ENTERPRISE_LAUNCH': 'Corp. Gratis',
@@ -204,13 +209,16 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             // Filtro de tab activo
             switch (activeFilter) {
                 case 'ACTIVE':
-                    if (!(l.isPaid === true && !FREE_PLANS.includes(l.packageType || ''))) return false;
+                    // Solo pollas DE PAGO que ya pagaron (excluye gratuitas)
+                    if (isFreeLeague(l) || !l.isPaid) return false;
                     break;
                 case 'INACTIVE':
-                    if (!(!l.isPaid && !FREE_PLANS.includes(l.packageType || ''))) return false;
+                    // Solo pollas DE PAGO que NO han pagado (excluye gratuitas)
+                    if (isFreeLeague(l) || l.isPaid) return false;
                     break;
                 case 'FREE':
-                    if (!(FREE_PLANS.includes(l.packageType || '') || !l.packageType)) return false;
+                    // Solo pollas gratuitas
+                    if (!isFreeLeague(l)) return false;
                     break;
             }
 
@@ -249,9 +257,9 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
     // Contadores por filtro
     const counts = useMemo(() => ({
         ALL: leagues.length,
-        ACTIVE: leagues.filter(l => l.isPaid === true && !FREE_PLANS.includes(l.packageType || '')).length,
-        INACTIVE: leagues.filter(l => !l.isPaid && !FREE_PLANS.includes(l.packageType || '')).length,
-        FREE: leagues.filter(l => FREE_PLANS.includes(l.packageType || '') || !l.packageType).length,
+        ACTIVE: leagues.filter(l => !isFreeLeague(l) && l.isPaid).length,
+        INACTIVE: leagues.filter(l => !isFreeLeague(l) && !l.isPaid).length,
+        FREE: leagues.filter(l => isFreeLeague(l)).length,
     }), [leagues]);
 
     // ── ESTILOS ──

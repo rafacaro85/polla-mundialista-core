@@ -4,6 +4,7 @@ export class AddCreatedAtToLeagues1775170000000 implements MigrationInterface {
     name = 'AddCreatedAtToLeagues1775170000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // Add column if it doesn't exist
         const hasColumn = await queryRunner.query(`
             SELECT column_name FROM information_schema.columns 
             WHERE table_name = 'leagues' AND column_name = 'created_at'

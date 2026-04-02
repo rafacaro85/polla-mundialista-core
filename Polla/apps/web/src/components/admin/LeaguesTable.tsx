@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus, Building2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Search, Shield, Users, Eye, Settings, Trash2, Copy, RefreshCw, CreditCard, Loader2, Plus, Building2, ArrowUpDown, Calendar, Crown, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import api from '@/lib/api';
 import { EditLeagueDialog } from './EditLeagueDialog';
 import { TransferOwnerDialog } from './TransferOwnerDialog';
@@ -32,7 +30,14 @@ interface League {
     isEnterprise?: boolean;
     isEnterpriseActive?: boolean;
     isPaid?: boolean;
+    packageType?: string;
+    adminName?: string;
+    adminPhone?: string;
+    companyName?: string;
+    createdAt?: string;
 }
+
+type FilterTab = 'ALL' | 'ACTIVE' | 'INACTIVE' | 'FREE';
 
 interface LeaguesTableProps {
     onDataUpdated?: () => void;
@@ -41,11 +46,44 @@ interface LeaguesTableProps {
     tournamentId: string;
 }
 
+// ── Helpers ──
+const FREE_PLANS = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'];
+const PLAN_LABELS: Record<string, string> = {
+    'starter': 'Familia', 'FREE': 'Familia', 'launch_promo': 'Promo',
+    'ENTERPRISE_LAUNCH': 'Corp. Gratis',
+    'parche': 'Parche', 'amateur': 'Parche',
+    'amigos': 'Amigos', 'semi-pro': 'Amigos',
+    'lider': 'Líder', 'pro': 'Líder',
+    'influencer': 'Influencer', 'elite': 'Influencer',
+};
+
+function getStatusInfo(league: League): { label: string; color: string; bg: string; dot: string } {
+    if (FREE_PLANS.includes(league.packageType || '')) {
+        return { label: 'GRATUITA', color: '#94A3B8', bg: 'rgba(148,163,184,0.1)', dot: '⚫' };
+    }
+    if (league.isPaid) {
+        return { label: 'ACTIVA', color: '#00E676', bg: 'rgba(0,230,118,0.1)', dot: '🟢' };
+    }
+    return { label: 'PAGO PENDIENTE', color: '#FB923C', bg: 'rgba(251,146,60,0.1)', dot: '🔴' };
+}
+
+function formatDate(dateStr?: string): string {
+    if (!dateStr) return '—';
+    try {
+        return new Date(dateStr).toLocaleDateString('es-CO', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    } catch { return '—'; }
+}
+
 export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise, tournamentId }: LeaguesTableProps) {
     const router = useRouter();
     const [leagues, setLeagues] = useState<League[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
+    const [sortAsc, setSortAsc] = useState(false); // false = más reciente primero
 
     // Dialog States
     const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
@@ -71,29 +109,13 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
         }
     };
 
-    const handleEdit = (league: League) => {
-        setSelectedLeague(league);
-        setEditDialogOpen(true);
-    };
-
-    const handleView = (league: League) => {
-        setSelectedLeague(league);
-        setViewDialogOpen(true);
-    };
-
-    const handleTransfer = (league: League) => {
-        setSelectedLeague(league);
-        setTransferDialogOpen(true);
-    };
-
-    const handleManageLimit = (league: League) => {
-        setSelectedLeague(league);
-        setLimitDialogOpen(true);
-    };
+    const handleEdit = (league: League) => { setSelectedLeague(league); setEditDialogOpen(true); };
+    const handleView = (league: League) => { setSelectedLeague(league); setViewDialogOpen(true); };
+    const handleTransfer = (league: League) => { setSelectedLeague(league); setTransferDialogOpen(true); };
+    const handleManageLimit = (league: League) => { setSelectedLeague(league); setLimitDialogOpen(true); };
 
     const handleDelete = async (league: League) => {
         if (!confirm(`¿Estás seguro de eliminar la liga "${league.name}"? Esta acción no se puede deshacer.`)) return;
-
         try {
             await api.delete(`/leagues/${league.id}`);
             toast.success('Liga eliminada correctamente');
@@ -123,7 +145,6 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
         if (league.type !== 'COMPANY' && !league.isEnterprise) return;
         const newStatus = !league.isEnterpriseActive;
         if (!confirm(`¿${newStatus ? 'ACTIVAR' : 'DESACTIVAR'} modo Enterprise para ${league.name}?`)) return;
-
         try {
             await api.patch(`/leagues/${league.id}`, { isEnterpriseActive: newStatus });
             toast.success(`Modo Enterprise ${newStatus ? 'ACTIVADO' : 'DESACTIVADO'}`);
@@ -137,36 +158,21 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
     const handleTogglePaid = async (league: League) => {
         const newState = !league.isPaid;
         const action = newState ? 'ACTIVAR' : 'DESACTIVAR';
-
         if (!confirm(`¿Estás seguro de ${action} el pago para la liga "${league.name}"? ${newState ? 'Se generará un registro de venta automáticamente.' : 'El acceso quedará restringido.'}`)) return;
-
         try {
-            // 1. Update League Status
             await api.patch(`/leagues/${league.id}`, { isPaid: newState });
-
-            // 2. Si estamos ACTIVANDO, generar transacción automátic si no existe ya una pagada reciente (Opcional, por ahora generamos siempre para asegurar registro)
             if (newState) {
                 try {
-                    // Precios Hardcodeados para matchear PLANES (debería venir de config)
                     const PRICES: Record<string, number> = {
                         'starter': 0, 'FREE': 0, 'launch_promo': 0,
-                        'parche': 30000, 'amateur': 30000, // Legacy/New map
+                        'parche': 30000, 'amateur': 30000,
                         'amigos': 80000, 'semi-pro': 80000,
                         'lider': 180000, 'pro': 180000,
                         'influencer': 350000, 'elite': 350000
                     };
-
-                    // Detect package type, default to parche if unknown or missing
-                    const pkg = (league as any).packageType || 'parche';
+                    const pkg = league.packageType || 'parche';
                     const amount = PRICES[pkg] !== undefined ? PRICES[pkg] : 30000;
-
-                    // Create & Approve
-                    const txRes = await api.post('/transactions', {
-                        packageType: pkg,
-                        amount: amount,
-                        leagueId: league.id,
-                        tournamentId: tournamentId
-                    });
+                    const txRes = await api.post('/transactions', { packageType: pkg, amount, leagueId: league.id, tournamentId });
                     await api.patch(`/transactions/${txRes.data.id}/approve`);
                     toast.success('Venta registrada correctamente.');
                 } catch (txErr) {
@@ -174,10 +180,7 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                     toast.warning("Liga activada, pero falló el registro de venta.");
                 }
             }
-
             toast.success(`Liga marcada como ${newState ? 'PAGADA' : 'PENDIENTE'}`);
-
-            // Refrescar padre
             if (onDataUpdated) onDataUpdated();
             loadLeagues();
         } catch (error) {
@@ -186,161 +189,91 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
         }
     };
 
-    // Filtrado
-    const filteredLeagues = leagues.filter(l => {
-        const matchesSearch = l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            l.creator.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            l.code.toLowerCase().includes(searchTerm.toLowerCase());
+    // ── FILTRADO Y ORDENAMIENTO ──
+    const filteredLeagues = useMemo(() => {
+        let result = leagues.filter(l => {
+            const matchesSearch = l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                l.creator.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                l.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (l.adminName || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-        if (filter === 'FREE') {
-            // Consideramos GRATIS las del plan 'starter', 'FREE' o 'launch_promo'
-            return matchesSearch && (['starter', 'FREE', 'launch_promo'].includes((l as any).packageType) || !(l as any).packageType);
-        }
+            if (!matchesSearch) return false;
 
-        return matchesSearch;
-    });
+            // Filtro de tab activo
+            switch (activeFilter) {
+                case 'ACTIVE':
+                    return l.isPaid === true && !FREE_PLANS.includes(l.packageType || '');
+                case 'INACTIVE':
+                    return !l.isPaid && !FREE_PLANS.includes(l.packageType || '');
+                case 'FREE':
+                    return FREE_PLANS.includes(l.packageType || '') || !l.packageType;
+                default:
+                    return true;
+            }
+        });
 
-    // SISTEMA DE DISEÑO
-    const STYLES = {
-        container: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '16px',
-            paddingBottom: '100px',
-            fontFamily: 'sans-serif'
-        },
-        headerRow: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '8px'
-        },
-        searchBox: {
-            position: 'relative' as const,
-            flex: 1,
-            marginRight: '16px'
-        },
-        searchInput: {
-            width: '100%',
-            padding: '12px 16px 12px 44px',
-            backgroundColor: '#1E293B',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            color: 'white',
-            outline: 'none',
-            fontSize: '14px'
-        },
-        searchIcon: {
-            position: 'absolute' as const,
-            left: '14px', top: '14px', color: '#94A3B8'
-        },
-        createBtn: {
-            backgroundColor: '#00E676',
-            color: '#0F172A',
-            border: 'none',
-            borderRadius: '12px',
-            padding: '12px 20px',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 12px rgba(0, 230, 118, 0.2)'
-        },
+        // Ordenar por fecha
+        result.sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return sortAsc ? dateA - dateB : dateB - dateA;
+        });
 
-        // TARJETA DE LIGA
-        card: {
-            backgroundColor: '#1E293B', // Carbon
-            borderRadius: '16px',
-            border: '1px solid #334155',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '12px',
-            position: 'relative' as const,
-            overflow: 'hidden'
-        },
-        rowHeader: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-        },
-        // Avatar del Dueño / Icono Liga
-        iconBox: {
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#0F172A',
-            border: '1px solid #334155',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#00E676', // Verde para el icono
-            flexShrink: 0,
-            overflow: 'hidden'
-        },
-        infoColumn: {
-            flex: 1,
-            minWidth: 0
-        },
-        leagueName: {
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: '16px',
-            marginBottom: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontFamily: "'Russo One', sans-serif"
-        },
-        metaRow: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '11px',
-            color: '#94A3B8'
-        },
-        // Chip de Código
-        codeBadge: {
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            border: '1px dashed #475569',
-            borderRadius: '4px',
-            padding: '2px 6px',
-            fontFamily: 'monospace',
-            color: '#F8FAFC',
-            letterSpacing: '1px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer'
-        },
-        // Footer de Acciones
-        actionsFooter: {
-            display: 'flex',
-            gap: '8px',
-            marginTop: '4px',
-            paddingTop: '12px',
-            borderTop: '1px solid #334155',
-            flexWrap: 'wrap' as const
-        },
-        actionBtn: {
-            flex: 1,
-            padding: '10px',
-            borderRadius: '8px',
-            border: '1px solid',
-            fontSize: '10px',
-            fontWeight: '900',
-            textTransform: 'uppercase' as const,
-            cursor: 'pointer',
-            textAlign: 'center' as const,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.2s',
-            minWidth: '80px'
-        }
+        return result;
+    }, [leagues, searchTerm, activeFilter, sortAsc]);
+
+    // Contadores por filtro
+    const counts = useMemo(() => ({
+        ALL: leagues.length,
+        ACTIVE: leagues.filter(l => l.isPaid === true && !FREE_PLANS.includes(l.packageType || '')).length,
+        INACTIVE: leagues.filter(l => !l.isPaid && !FREE_PLANS.includes(l.packageType || '')).length,
+        FREE: leagues.filter(l => FREE_PLANS.includes(l.packageType || '') || !l.packageType).length,
+    }), [leagues]);
+
+    // ── ESTILOS ──
+    const S = {
+        container: { display: 'flex', flexDirection: 'column' as const, gap: '12px', paddingBottom: '100px', fontFamily: 'sans-serif' },
+        headerRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' as const },
+        searchBox: { position: 'relative' as const, flex: 1, minWidth: '200px' },
+        searchInput: { width: '100%', padding: '10px 14px 10px 40px', backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '12px', color: 'white', outline: 'none', fontSize: '13px' },
+        searchIcon: { position: 'absolute' as const, left: '12px', top: '11px', color: '#94A3B8' },
+        createBtn: { backgroundColor: '#00E676', color: '#0F172A', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold' as const, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(0, 230, 118, 0.2)', whiteSpace: 'nowrap' as const },
+
+        // Filter bar
+        filterBar: { display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' as const },
+        filterTab: (active: boolean) => ({
+            padding: '7px 14px', borderRadius: '20px', border: active ? '1px solid #00E676' : '1px solid #334155',
+            backgroundColor: active ? 'rgba(0,230,118,0.15)' : 'transparent', color: active ? '#00E676' : '#94A3B8',
+            fontSize: '11px', fontWeight: '800' as const, cursor: 'pointer', transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', gap: '5px', textTransform: 'uppercase' as const,
+        }),
+        sortBtn: { padding: '7px 14px', borderRadius: '20px', border: '1px solid #334155', backgroundColor: 'transparent', color: '#94A3B8', fontSize: '11px', fontWeight: '800' as const, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', marginLeft: 'auto' },
+        countBadge: (active: boolean) => ({
+            backgroundColor: active ? 'rgba(0,230,118,0.3)' : '#334155', color: active ? '#00E676' : '#64748B',
+            fontSize: '9px', fontWeight: '900' as const, padding: '1px 6px', borderRadius: '10px', minWidth: '18px', textAlign: 'center' as const,
+        }),
+
+        // Card
+        card: { backgroundColor: '#1E293B', borderRadius: '14px', border: '1px solid #334155', padding: '14px', display: 'flex', flexDirection: 'column' as const, gap: '10px', position: 'relative' as const, overflow: 'hidden', transition: 'border-color 0.2s' },
+        rowHeader: { display: 'flex', alignItems: 'center', gap: '10px' },
+        iconBox: { width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#0F172A', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00E676', flexShrink: 0, overflow: 'hidden' },
+        infoColumn: { flex: 1, minWidth: 0 },
+        leagueName: { color: 'white', fontWeight: 'bold' as const, fontSize: '14px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'Russo One', sans-serif" },
+
+        // Meta badges row
+        metaBadgesRow: { display: 'flex', flexWrap: 'wrap' as const, gap: '5px', marginTop: '4px' },
+        metaBadge: (bg: string, color: string) => ({
+            display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 8px', borderRadius: '6px',
+            backgroundColor: bg, color: color, fontSize: '9px', fontWeight: '800' as const, textTransform: 'uppercase' as const, letterSpacing: '0.3px',
+        }),
+
+        // Code row
+        codeRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', backgroundColor: '#0F172A', borderRadius: '8px' },
+        codeBadge: { backgroundColor: 'rgba(255,255,255,0.05)', border: '1px dashed #475569', borderRadius: '4px', padding: '2px 6px', fontFamily: 'monospace', color: '#F8FAFC', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px' },
+
+        // Actions
+        actionsFooter: { display: 'flex', gap: '6px', paddingTop: '10px', borderTop: '1px solid #334155', flexWrap: 'wrap' as const },
+        actionBtn: { flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid', fontSize: '9px', fontWeight: '900' as const, textTransform: 'uppercase' as const, cursor: 'pointer', textAlign: 'center' as const, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', transition: 'all 0.2s', minWidth: '70px' },
     };
 
     if (loading) {
@@ -351,230 +284,195 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
         );
     }
 
+    const FILTER_TABS: { key: FilterTab; label: string }[] = [
+        { key: 'ALL', label: 'Todas' },
+        { key: 'ACTIVE', label: 'Activas' },
+        { key: 'INACTIVE', label: 'Pendientes' },
+        { key: 'FREE', label: 'Gratuitas' },
+    ];
+
     return (
-        <div style={STYLES.container}>
+        <div style={S.container}>
 
-
-            {/* HEADER: BUSCADOR + BOTÓN CREAR */}
-            <div style={STYLES.headerRow}>
-                <div style={STYLES.searchBox}>
-                    <Search size={18} style={STYLES.searchIcon} />
+            {/* HEADER: BUSCADOR + BOTONES CREAR */}
+            <div style={S.headerRow}>
+                <div style={S.searchBox}>
+                    <Search size={16} style={S.searchIcon} />
                     <input
                         type="text"
-                        placeholder="Buscar polla, código o dueño..."
-                        style={STYLES.searchInput}
+                        placeholder="Buscar polla, código, dueño o admin..."
+                        style={S.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2">
+                <div style={{ display: 'flex', gap: '8px' }}>
                     {onCreateEnterprise && (
-                        <button
-                            onClick={onCreateEnterprise}
-                            style={{ ...STYLES.createBtn, backgroundColor: '#6366F1', color: 'white' }}
-                        >
-                            <Building2 size={18} /> Crear Corporativa
+                        <button onClick={onCreateEnterprise} style={{ ...S.createBtn, backgroundColor: '#6366F1', color: 'white' }}>
+                            <Building2 size={14} /> Corporativa
                         </button>
                     )}
-                    <button
-                        onClick={() => setCreateDialogOpen(true)}
-                        style={STYLES.createBtn}
-                    >
-                        <Plus size={18} /> Crear Polla
+                    <button onClick={() => setCreateDialogOpen(true)} style={S.createBtn}>
+                        <Plus size={14} /> Crear Polla
                     </button>
                 </div>
             </div>
 
+            {/* FILTROS + ORDENAMIENTO */}
+            <div style={S.filterBar}>
+                {FILTER_TABS.map(tab => (
+                    <button key={tab.key} onClick={() => setActiveFilter(tab.key)} style={S.filterTab(activeFilter === tab.key)}>
+                        {tab.label}
+                        <span style={S.countBadge(activeFilter === tab.key)}>{counts[tab.key]}</span>
+                    </button>
+                ))}
+                <button onClick={() => setSortAsc(!sortAsc)} style={S.sortBtn} title="Cambiar orden">
+                    <ArrowUpDown size={12} />
+                    {sortAsc ? 'Más antigua ↑' : 'Más reciente ↓'}
+                </button>
+            </div>
+
+            {/* CONTADOR DE RESULTADOS */}
+            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
+                Mostrando {filteredLeagues.length} de {leagues.length} pollas
+            </div>
+
             {/* LISTA DE LIGAS */}
             {filteredLeagues.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748B', padding: '40px' }}>No se encontraron pollas.</div>
+                <div style={{ textAlign: 'center', color: '#64748B', padding: '40px' }}>No se encontraron pollas con este filtro.</div>
             ) : (
-                filteredLeagues.map(league => (
-                    <div key={league.id} style={STYLES.card}>
+                filteredLeagues.map(league => {
+                    const status = getStatusInfo(league);
+                    const planLabel = PLAN_LABELS[league.packageType || ''] || league.packageType || 'Sin plan';
+                    const isCompany = league.type === 'COMPANY' || league.isEnterprise;
 
-                        <div style={STYLES.rowHeader}>
-                            {/* Icono Principal (Avatar del creador o inicial) */}
-                            <div style={STYLES.iconBox}>
-                                {league.creator.avatarUrl ? (
-                                    <img src={league.creator.avatarUrl} alt={league.creator.nickname} className="w-full h-full object-cover" />
-                                ) : (
-                                    <span style={{ fontFamily: "'Russo One', sans-serif", fontSize: '20px' }}>
-                                        {league.name.charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
+                    return (
+                        <div key={league.id} style={{ ...S.card, borderColor: league.isPaid ? '#334155' : (FREE_PLANS.includes(league.packageType || '') ? '#334155' : '#FB923C33') }}>
 
-                            {/* Info Principal */}
-                            <div style={STYLES.infoColumn}>
-                                <div style={STYLES.leagueName}>
-                                    {league.name}
-                                    {league.type === 'public' && <Shield size={14} fill="#FACC15" color="#FACC15" />}
+                            <div style={S.rowHeader}>
+                                {/* Icono */}
+                                <div style={S.iconBox}>
+                                    {league.creator.avatarUrl ? (
+                                        <img src={league.creator.avatarUrl} alt={league.creator.nickname} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <span style={{ fontFamily: "'Russo One', sans-serif", fontSize: '18px' }}>
+                                            {league.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    )}
                                 </div>
 
-                                <div style={STYLES.metaRow}>
-                                    <span>Dueño: <strong style={{ color: 'white' }}>{league.creator.nickname}</strong></span>
-                                    <span>•</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                        <Users size={12} />
-                                        {league.participantCount} / {league.maxParticipants}
+                                {/* Info Principal */}
+                                <div style={S.infoColumn}>
+                                    <div style={S.leagueName}>
+                                        {league.name}
+                                    </div>
+
+                                    {/* Meta Badges */}
+                                    <div style={S.metaBadgesRow}>
+                                        {/* Tipo */}
+                                        <span style={S.metaBadge(isCompany ? 'rgba(99,102,241,0.15)' : 'rgba(59,130,246,0.15)', isCompany ? '#818CF8' : '#60A5FA')}>
+                                            {isCompany ? '🏢 Empresa' : '👥 Social'}
+                                        </span>
+                                        {/* Plan */}
+                                        <span style={S.metaBadge('rgba(148,163,184,0.1)', '#CBD5E1')}>
+                                            <Tag size={8} /> {planLabel}
+                                        </span>
+                                        {/* Estado */}
+                                        <span style={S.metaBadge(status.bg, status.color)}>
+                                            {status.dot} {status.label}
+                                        </span>
+                                        {/* Participantes */}
+                                        <span style={S.metaBadge('rgba(0,230,118,0.08)', '#94A3B8')}>
+                                            <Users size={8} /> {league.participantCount}/{league.maxParticipants}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Código de la Liga (Destacado) */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', padding: '8px', backgroundColor: '#0F172A', borderRadius: '8px' }}>
-                            <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 'bold' }}>CÓDIGO DE ACCESO</span>
-                            <div style={STYLES.codeBadge} onClick={() => copyCode(league.code)}>
-                                {league.code} <Copy size={10} style={{ opacity: 0.5 }} />
-                            </div>
-                        </div>
-
-                        {/* PAYMENT STATUS TOGGLE (Para ligas NO Enterprise) */}
-                        {(!league.isEnterprise && league.type !== 'COMPANY') && (
-                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', backgroundColor: league.isPaid ? 'rgba(0, 230, 118, 0.1)' : 'rgba(234, 179, 8, 0.1)', border: `1px solid ${league.isPaid ? 'rgba(0, 230, 118, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`, borderRadius: '8px' }}>
-                                <div className="flex items-center gap-2">
-                                    {league.isPaid ? <Shield size={12} className="text-[#00E676]" /> : <Loader2 size={12} className="text-yellow-500 animate-spin-slow" />}
-                                    <span style={{ fontSize: '10px', color: league.isPaid ? '#00E676' : '#FACC15', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                        {league.isPaid ? 'PAGADO / ACTIVO' : 'PAGO PENDIENTE'}
-                                    </span>
+                            {/* Info detallada */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', backgroundColor: '#0F172A', borderRadius: '8px', gap: '8px', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '12px', fontSize: '10px', color: '#94A3B8', flexWrap: 'wrap' }}>
+                                    <span><Crown size={9} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />Admin: <strong style={{ color: '#CBD5E1' }}>{league.adminName || league.creator.nickname}</strong></span>
+                                    <span><Calendar size={9} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />{formatDate(league.createdAt)}</span>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    onClick={() => handleTogglePaid(league)}
-                                    style={{ backgroundColor: league.isPaid ? '#FACC15' : '#00E676', color: '#0F172A' }}
-                                    className="h-6 text-[9px] px-2 font-bold border-none hover:opacity-90 transition-opacity"
-                                >
-                                    {league.isPaid ? 'MARCAR PENDIENTE' : 'ACTIVAR PAGO'}
-                                </Button>
-                            </div>
-                        )}
-
-                        {/* ENTERPRISE TOGGLE (Solo para COMPANY) */}
-                        {(league.type === 'COMPANY' || league.isEnterprise) && (
-                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px border-blue-500/30', borderRadius: '8px' }}>
-                                <div className="flex items-center gap-2">
-                                    <Shield size={12} className="text-blue-400" />
-                                    <span style={{ fontSize: '10px', color: '#60A5FA', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                        {league.isEnterpriseActive ? 'Enterprise ACTIVADO' : 'Enterprise INACTIVO'}
-                                    </span>
+                                <div style={S.codeBadge} onClick={() => copyCode(league.code)}>
+                                    {league.code} <Copy size={9} style={{ opacity: 0.5 }} />
                                 </div>
-                                <Button
-                                    size="sm"
-                                    onClick={() => handleToggleEnterprise(league)}
-                                    style={{ backgroundColor: league.isEnterpriseActive ? '#EF4444' : '#10B981', color: 'white' }}
-                                    className="h-6 text-[9px] px-2 font-bold border-none hover:opacity-90 transition-opacity"
-                                >
-                                    {league.isEnterpriseActive ? 'DESACTIVAR' : 'ACTIVAR'}
-                                </Button>
                             </div>
-                        )}
 
-                        {/* Botones de Acción */}
-                        <div style={STYLES.actionsFooter}>
-                            <button
-                                onClick={() => handleEdit(league)}
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: '#00E676',
-                                    borderColor: '#00E676',
-                                    color: '#0F172A',
-                                    boxShadow: '0 0 10px rgba(0,230,118,0.2)'
-                                }}
-                            >
-                                <Settings size={14} /> Editar
-                            </button>
+                            {/* PAYMENT STATUS TOGGLE */}
+                            {(!league.isEnterprise && league.type !== 'COMPANY') && (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', backgroundColor: league.isPaid ? 'rgba(0, 230, 118, 0.08)' : 'rgba(234, 179, 8, 0.08)', border: `1px solid ${league.isPaid ? 'rgba(0, 230, 118, 0.2)' : 'rgba(234, 179, 8, 0.2)'}`, borderRadius: '8px' }}>
+                                    <div className="flex items-center gap-2">
+                                        {league.isPaid ? <Shield size={11} className="text-[#00E676]" /> : <Loader2 size={11} className="text-yellow-500 animate-spin-slow" />}
+                                        <span style={{ fontSize: '9px', color: league.isPaid ? '#00E676' : '#FACC15', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                            {league.isPaid ? 'PAGADO / ACTIVO' : 'PAGO PENDIENTE'}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleTogglePaid(league)}
+                                        style={{ backgroundColor: league.isPaid ? '#FACC15' : '#00E676', color: '#0F172A' }}
+                                        className="h-5 text-[8px] px-2 font-bold border-none hover:opacity-90 transition-opacity"
+                                    >
+                                        {league.isPaid ? 'MARCAR PENDIENTE' : 'ACTIVAR PAGO'}
+                                    </Button>
+                                </div>
+                            )}
 
-                            <button
-                                onClick={() => handleView(league)}
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: 'transparent',
-                                    borderColor: '#475569',
-                                    color: '#F8FAFC'
-                                }}
-                            >
-                                <Eye size={14} /> Ver
-                            </button>
+                            {/* ENTERPRISE TOGGLE */}
+                            {(league.type === 'COMPANY' || league.isEnterprise) && (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', backgroundColor: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px' }}>
+                                    <div className="flex items-center gap-2">
+                                        <Shield size={11} className="text-blue-400" />
+                                        <span style={{ fontSize: '9px', color: '#60A5FA', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                            {league.isEnterpriseActive ? 'Enterprise ACTIVADO' : 'Enterprise INACTIVO'}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleToggleEnterprise(league)}
+                                        style={{ backgroundColor: league.isEnterpriseActive ? '#EF4444' : '#10B981', color: 'white' }}
+                                        className="h-5 text-[8px] px-2 font-bold border-none hover:opacity-90 transition-opacity"
+                                    >
+                                        {league.isEnterpriseActive ? 'DESACTIVAR' : 'ACTIVAR'}
+                                    </Button>
+                                </div>
+                            )}
 
-                            {/* Botones Extra: Transferir y Límite */}
-                            <button
-                                onClick={() => handleTransfer(league)}
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: 'transparent',
-                                    borderColor: '#475569',
-                                    color: '#F8FAFC'
-                                }}
-                                title="Transferir Propiedad"
-                            >
-                                <RefreshCw size={14} />
-                            </button>
-
-                            <button
-                                onClick={() => handleManageLimit(league)}
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: 'transparent',
-                                    borderColor: '#FACC15',
-                                    color: '#FACC15'
-                                }}
-                                title="Gestionar Cupos"
-                            >
-                                <CreditCard size={14} />
-                            </button>
-
-                            <button
-                                onClick={() => handleDelete(league)}
-                                style={{
-                                    ...STYLES.actionBtn,
-                                    backgroundColor: 'rgba(255,23,68,0.1)',
-                                    borderColor: '#FF1744',
-                                    color: '#FF1744',
-                                    flex: 0.4
-                                }}
-                            >
-                                <Trash2 size={14} />
-                            </button>
+                            {/* Botones de Acción */}
+                            <div style={S.actionsFooter}>
+                                <button onClick={() => handleEdit(league)} style={{ ...S.actionBtn, backgroundColor: '#00E676', borderColor: '#00E676', color: '#0F172A', boxShadow: '0 0 8px rgba(0,230,118,0.15)' }}>
+                                    <Settings size={12} /> Editar
+                                </button>
+                                <button onClick={() => handleView(league)} style={{ ...S.actionBtn, backgroundColor: 'transparent', borderColor: '#475569', color: '#F8FAFC' }}>
+                                    <Eye size={12} /> Ver
+                                </button>
+                                <button onClick={() => handleTransfer(league)} style={{ ...S.actionBtn, backgroundColor: 'transparent', borderColor: '#475569', color: '#F8FAFC' }} title="Transferir">
+                                    <RefreshCw size={12} />
+                                </button>
+                                <button onClick={() => handleManageLimit(league)} style={{ ...S.actionBtn, backgroundColor: 'transparent', borderColor: '#FACC15', color: '#FACC15' }} title="Gestionar Cupos">
+                                    <CreditCard size={12} />
+                                </button>
+                                <button onClick={() => handleDelete(league)} style={{ ...S.actionBtn, backgroundColor: 'rgba(255,23,68,0.08)', borderColor: '#FF1744', color: '#FF1744', flex: 0.4 }}>
+                                    <Trash2 size={12} />
+                                </button>
+                            </div>
                         </div>
-
-                    </div>
-                ))
+                    );
+                })
             )}
 
             {selectedLeague && (
                 <>
-                    <EditLeagueDialog
-                        league={selectedLeague}
-                        open={editDialogOpen}
-                        onOpenChange={setEditDialogOpen}
-                        onSuccess={handleSuccess}
-                    />
-                    <ViewLeagueDialog
-                        league={selectedLeague}
-                        open={viewDialogOpen}
-                        onOpenChange={setViewDialogOpen}
-                    />
-                    <TransferOwnerDialog
-                        league={selectedLeague}
-                        open={transferDialogOpen}
-                        onOpenChange={setTransferDialogOpen}
-                        onSuccess={handleSuccess}
-                    />
-                    <ManageLeagueLimitDialog
-                        league={selectedLeague}
-                        open={limitDialogOpen}
-                        onOpenChange={setLimitDialogOpen}
-                        onSuccess={handleSuccess}
-                    />
+                    <EditLeagueDialog league={selectedLeague} open={editDialogOpen} onOpenChange={setEditDialogOpen} onSuccess={handleSuccess} />
+                    <ViewLeagueDialog league={selectedLeague} open={viewDialogOpen} onOpenChange={setViewDialogOpen} />
+                    <TransferOwnerDialog league={selectedLeague} open={transferDialogOpen} onOpenChange={setTransferDialogOpen} onSuccess={handleSuccess} />
+                    <ManageLeagueLimitDialog league={selectedLeague} open={limitDialogOpen} onOpenChange={setLimitDialogOpen} onSuccess={handleSuccess} />
                 </>
             )}
 
-            <CreateLeagueDialog
-                open={createDialogOpen}
-                onOpenChange={setCreateDialogOpen}
-                onSuccess={handleSuccess}
-            />
+            <CreateLeagueDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onSuccess={handleSuccess} />
         </div>
     );
 }

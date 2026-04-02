@@ -588,6 +588,7 @@ export class LeaguesService {
         isPaid: l.isPaid,
         adminName: l.adminName,
         adminPhone: l.adminPhone,
+        createdAt: l.createdAt,
       }));
 
       return {

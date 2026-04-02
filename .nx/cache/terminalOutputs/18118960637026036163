@@ -1,0 +1,23 @@
+
+> api@0.0.1 build
+> nest build
+
+[96msrc/leagues/leagues.service.ts[0m:[93m53[0m:[93m50[0m - [91merror[0m[90m TS1272: [0mA type referenced in a decorated signature must be imported with 'import type' or a namespace import when 'isolatedModules' and 'emitDecoratorMetadata' are enabled.
+
+[7m53[0m     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+[7m  [0m [91m                                                 ~~~~~[0m
+
+  [96msrc/leagues/leagues.service.ts[0m:[93m10[0m:[93m10[0m
+    [7m10[0m import { Cache } from 'cache-manager';
+    [7m  [0m [96m         ~~~~~[0m
+    'Cache' was imported here.
+
+Found 1 error(s).
+
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\AppWeb\Polla\apps\api
+npm error workspace api@0.0.1
+npm error location C:\AppWeb\Polla\apps\api
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c nest build

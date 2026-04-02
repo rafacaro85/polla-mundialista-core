@@ -552,7 +552,6 @@ export class LeaguesService {
   async getAllLeagues(tournamentId?: string, page: number = 1, limit: number = 1000) {
     try {
       const pageNum = Math.max(1, parseInt(page as any, 10) || 1);
-      // Para el super admin necesitamos todas las pollas sin límite rígido
       const limitNum = Math.max(1, parseInt(limit as any, 10) || 1000);
       const skip = (pageNum - 1) * limitNum;
 

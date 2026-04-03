@@ -575,56 +575,10 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
                                 {hideTabs && (
                                     <div className="border-t border-slate-700 pt-8 mt-8 space-y-6">
-                                        <div style={STYLES.card}>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-xs font-bold text-slate-400 uppercase">Estado del Plan</h3>
-                                                <span className="bg-[var(--brand-primary,#00E676)]/10 text-[var(--brand-primary,#00E676)] text-[10px] font-bold px-2 py-1 rounded border border-[var(--brand-primary,#00E676)]/20">
-                                                    {participants.length} / {currentLeague.maxParticipants} Cupos
-                                                </span>
-                                            </div>
-                                            <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-white/10 mb-4" />
-
-                                            <div className="bg-black/20 rounded-lg p-4 border border-dashed border-white/10 text-center">
-                                                <p className="text-xs text-slate-400 mb-1">CÓDIGO DE INVITACIÓN</p>
-                                                <p className="text-2xl font-mono text-[var(--brand-primary,#00E676)] font-bold tracking-widest my-2">{currentLeague.code}</p>
-                                                <div className="flex gap-2 justify-center mt-3">
-                                                    <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-white/10 hover:bg-white/5 text-white">
-                                                        {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />} Copiar
-                                                    </Button>
-                                                    <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
-                                                        onClick={() => {
-                                                            const appUrl = window.location.origin;
-                                                            const isUCL = tournamentId === 'UCL2526';
-                                                            const text = `¡Únete a mi polla ${isUCL ? 'Champions' : 'Mundialista'} "${currentLeague.name}"! 🏆\n` +
-                                                                `Link: ${appUrl}/invite/${currentLeague.code}\n` +
-                                                                `Código: *${currentLeague.code}*`;
-                                                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                                        }}
-
-                                                    >
-                                                        <Share2 className="w-3 h-3 mr-1" /> WhatsApp
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-gradient-to-br from-[var(--brand-primary,#00E676)]/10 to-transparent rounded-xl p-5 border border-[var(--brand-primary,#00E676)]/20">
-                                            <h3 className="text-[var(--brand-primary,#00E676)] font-bold uppercase text-sm mb-2 flex items-center gap-2">
-                                                <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
-                                            </h3>
-                                            <p className="text-xs text-slate-300 mb-4">
-                                                Solicita una ampliación de tu plan actual para invitar a más amigos.
-                                            </p>
-                                            <Button className="w-full text-[var(--brand-bg,#0F1729)] font-bold"
-                                                style={{ backgroundColor: 'var(--brand-primary, #00E676)' }}
-                                                onClick={() => {
-                                                    const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
-                                                    window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
-                                                }}
-                                            >
-                                                Solicitar Ampliación de Cupo
-                                            </Button>
-                                        </div>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2">
+                                            <Gem className="w-4 h-4" /> Cambio de Plan
+                                        </h3>
+                                        <PlanUpgradeSection league={currentLeague} participantCount={participants.length} onUpgradeComplete={loadLeagueData} />
                                     </div>
                                 )}
 

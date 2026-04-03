@@ -1979,10 +1979,12 @@ export class LeaguesService {
       .filter(([key, cfg]) => {
         // Only same type (Social/Social, Ent/Ent)
         if (cfg.type !== currentType) return false;
-        // Only higher capacity or higher price
-        return (
-          cfg.maxParticipants > league.maxParticipants || cfg.price > currentPrice
-        );
+        // Only plans with higher price (no downgrades)
+        if (cfg.price <= currentPrice) return false;
+        // Exclude legacy/alias keys
+        const legacyKeys = ['starter', 'FREE', 'amateur', 'semi-pro', 'pro', 'elite', 'legend'];
+        if (legacyKeys.includes(key)) return false;
+        return true;
       })
       .map(([key, cfg]) => ({
         planKey: key,

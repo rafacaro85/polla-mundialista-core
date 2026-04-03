@@ -118,7 +118,10 @@ export class UpdateLeagueDto {
   @IsOptional()
   tournamentId?: string;
 
+<<<<<<< HEAD
   // --- PLAN (SUPER_ADMIN only) ---
+=======
+>>>>>>> develop
   @IsString()
   @IsOptional()
   packageType?: string;

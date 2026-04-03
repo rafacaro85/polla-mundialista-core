@@ -562,33 +562,53 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             <CreateLeagueDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onSuccess={handleSuccess} />
 
             {/* Change Plan Modal (Super Admin) */}
-            {planModalLeague && (
+            {planModalLeague && (() => {
+                const currentPlanKey = (planModalLeague.packageType || '').trim().toLowerCase();
+                const currentPrice = SA_PLAN_CONFIG[currentPlanKey]?.price || 0;
+                const isEnterprise = planModalLeague.isEnterprise || planModalLeague.type === 'COMPANY';
+                const currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+
+                return (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)' }} onClick={() => setPlanModalLeague(null)}>
                     <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: '16px', maxWidth: '420px', width: '100%', maxHeight: '80vh', overflow: 'auto', padding: '20px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#FB923C' }}>⬆️ Cambiar Plan — {planModalLeague.name}</h3>
                             <button onClick={() => setPlanModalLeague(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
                         </div>
-                        <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '12px' }}>
-                            Plan actual: <strong style={{ color: '#FFF' }}>{PLAN_LABELS[(planModalLeague.packageType || '').toLowerCase()] || planModalLeague.packageType || 'Sin plan'}</strong>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px' }}>
+                            Plan actual: <strong style={{ color: '#FFF' }}>{PLAN_LABELS[currentPlanKey] || planModalLeague.packageType || 'Sin plan'}</strong>
                             {' — '}{planModalLeague.maxParticipants} cupos
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#64748B', marginBottom: '12px' }}>
+                            Tipo: <strong style={{ color: currentType === 'ENTERPRISE' ? '#818CF8' : '#38BDF8' }}>{currentType === 'ENTERPRISE' ? '🏢 Empresa' : '👥 Social'}</strong>
+                            {currentPrice > 0 && <> — Precio actual: <strong style={{ color: '#FBBF24' }}>$ {currentPrice.toLocaleString('es-CO')}</strong></>}
                         </div>
                         <select value={planModalNewPlan} onChange={e => setPlanModalNewPlan(e.target.value)}
                             style={{ width: '100%', background: '#1E293B', border: '1px solid #334155', borderRadius: '8px', color: 'white', padding: '10px', fontSize: '13px', marginBottom: '12px' }}>
                             <option value="">Seleccionar nuevo plan...</option>
                             {Object.entries(SA_PLAN_CONFIG)
-                                .filter(([, cfg]) => cfg.maxParticipants > (planModalLeague.maxParticipants || 0))
-                                .map(([key, cfg]) => (
-                                    <option key={key} value={key}>{cfg.label} — {cfg.maxParticipants} cupos — $ {cfg.price.toLocaleString('es-CO')}</option>
-                                ))
+                                .filter(([, cfg]) => cfg.type === currentType && cfg.price > currentPrice)
+                                .map(([key, cfg]) => {
+                                    const diff = cfg.price - currentPrice;
+                                    return (
+                                        <option key={key} value={key}>
+                                            {cfg.label} — {cfg.maxParticipants} cupos — Paga: $ {diff.toLocaleString('es-CO')}
+                                        </option>
+                                    );
+                                })
                             }
                         </select>
-                        {planModalNewPlan && SA_PLAN_CONFIG[planModalNewPlan] && (
-                            <div style={{ background: '#1E293B', borderRadius: '8px', padding: '12px', marginBottom: '12px', fontSize: '11px' }}>
-                                <div style={{ color: '#94A3B8' }}>Nuevos cupos: <strong style={{ color: '#00E676' }}>{SA_PLAN_CONFIG[planModalNewPlan].maxParticipants}</strong></div>
-                                <div style={{ color: '#94A3B8', marginTop: '4px' }}>Precio referencia: <strong style={{ color: '#FBBF24' }}>$ {SA_PLAN_CONFIG[planModalNewPlan].price.toLocaleString('es-CO')}</strong></div>
-                            </div>
-                        )}
+                        {planModalNewPlan && SA_PLAN_CONFIG[planModalNewPlan] && (() => {
+                            const newCfg = SA_PLAN_CONFIG[planModalNewPlan];
+                            const diff = newCfg.price - currentPrice;
+                            return (
+                                <div style={{ background: '#1E293B', borderRadius: '8px', padding: '12px', marginBottom: '12px', fontSize: '11px' }}>
+                                    <div style={{ color: '#94A3B8' }}>Nuevos cupos: <strong style={{ color: '#00E676' }}>{newCfg.maxParticipants}</strong></div>
+                                    <div style={{ color: '#94A3B8', marginTop: '4px' }}>Precio total del plan: <strong style={{ color: '#CBD5E1' }}>$ {newCfg.price.toLocaleString('es-CO')}</strong></div>
+                                    <div style={{ color: '#94A3B8', marginTop: '4px' }}>💰 Diferencia a pagar: <strong style={{ color: '#FBBF24' }}>$ {diff.toLocaleString('es-CO')}</strong></div>
+                                </div>
+                            );
+                        })()}
                         <button disabled={!planModalNewPlan} onClick={async () => {
                             if (!planModalNewPlan || !planModalLeague) return;
                             const cfg = SA_PLAN_CONFIG[planModalNewPlan];
@@ -598,7 +618,7 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                                     maxParticipants: cfg.maxParticipants,
                                     isPaid: true,
                                 });
-                                toast.success(`Plan actualizado: ${PLAN_LABELS[(planModalLeague.packageType || '').toLowerCase()] || 'N/A'} → ${cfg.label} (${cfg.maxParticipants} cupos)`);
+                                toast.success(`Plan actualizado: ${PLAN_LABELS[currentPlanKey] || 'N/A'} → ${cfg.label} (${cfg.maxParticipants} cupos)`);
                                 setPlanModalLeague(null);
                                 loadLeagues();
                                 if (onDataUpdated) onDataUpdated();
@@ -611,7 +631,8 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                         </button>
                     </div>
                 </div>
-            )}
+                );
+            })()}
         </div>
     );
 }

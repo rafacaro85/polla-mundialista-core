@@ -26,6 +26,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
 import { SystemConfig } from '../database/entities/system-config.entity';
 import { LeagueType } from '../database/enums/league-type.enum';
+import { PLAN_CONFIG } from '../transactions/transactions.service';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 import { LeagueStatus } from '../database/enums/league-status.enum';
 import { UserRole } from '../database/enums/user-role.enum';
@@ -1359,6 +1360,7 @@ export class LeaguesService {
       league.isPaid = updateLeagueDto.isPaid;
     }
 
+<<<<<<< HEAD
     // --- PLAN CHANGE (SUPER_ADMIN only) ---
     if (updateLeagueDto.packageType !== undefined) {
       if (userRole !== 'SUPER_ADMIN') {
@@ -1368,6 +1370,10 @@ export class LeaguesService {
       }
       league.packageType = updateLeagueDto.packageType;
       this.logger.log(`📦 [updateLeague] Plan cambiado a: ${updateLeagueDto.packageType}`);
+=======
+    if (userRole === 'SUPER_ADMIN' && updateLeagueDto.packageType) {
+      league.packageType = updateLeagueDto.packageType;
+>>>>>>> develop
     }
 
     const updatedLeague = await this.leaguesRepository.save(league);
@@ -2029,4 +2035,53 @@ export class LeaguesService {
     await this.leagueCommentsRepository.save(comment);
     return { likes: comment.likes.length, isLiked: index === -1 };
   }
+
+  // ── Plan Upgrades ──────────────────────────────────────────────
+  async getUpgradeOptions(leagueId: string) {
+    const league = await this.leaguesRepository.findOne({
+      where: { id: leagueId },
+    });
+    if (!league) throw new NotFoundException('Liga no encontrada');
+
+    const currentKey = (league.packageType || 'familia').trim().toLowerCase();
+    const currentPrice = PLAN_CONFIG[currentKey]?.price || 0;
+    const isEnterprise =
+      league.isEnterprise || league.type === LeagueType.COMPANY;
+    const currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+
+    const availablePlans = Object.entries(PLAN_CONFIG)
+      .filter(([key, cfg]) => {
+        // Only same type (Social/Social, Ent/Ent)
+        if (cfg.type !== currentType) return false;
+        // Only plans with higher price (no downgrades)
+        if (cfg.price <= currentPrice) return false;
+        // Exclude legacy/alias keys
+        const legacyKeys = ['starter', 'FREE', 'amateur', 'semi-pro', 'pro', 'elite', 'legend'];
+        if (legacyKeys.includes(key)) return false;
+        return true;
+      })
+      .map(([key, cfg]) => ({
+        planKey: key,
+        planLabel: key.charAt(0).toUpperCase() + key.slice(1),
+        maxParticipants: cfg.maxParticipants,
+        price: cfg.price,
+        // Calculation: newPrice - currentPrice (if current was paid)
+        priceToPay: league.isPaid
+          ? Math.max(0, cfg.price - currentPrice)
+          : cfg.price,
+        isCurrentPlanFree: !league.isPaid || currentPrice === 0,
+      }))
+      .sort((a, b) => a.price - b.price);
+
+    return {
+      currentPlan: {
+        key: currentKey,
+        label: currentKey.charAt(0).toUpperCase() + currentKey.slice(1),
+        maxParticipants: league.maxParticipants,
+        isPaid: league.isPaid,
+      },
+      availablePlans,
+    };
+  }
 }
+

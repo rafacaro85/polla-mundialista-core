@@ -98,6 +98,9 @@ export class TransactionsController {
       referenceCode?: string;
       leagueId?: string;
       tournamentId?: string;
+      isUpgrade?: string;
+      upgradePlan?: string;
+      currentPlan?: string;
     },
     @Query('tournamentId') queryTournamentId?: string,
   ) {
@@ -155,6 +158,9 @@ export class TransactionsController {
         referenceCode,
         leagueId,
         tid,
+        body.isUpgrade === 'true',
+        getFirst(body.upgradePlan),
+        getFirst(body.currentPlan),
       );
     } catch (error: any) {
       console.error('[Transactions] Error in uploadTransaction:', error);

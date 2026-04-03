@@ -93,13 +93,11 @@ function PlanUpgradeSection({ league, participantCount, onUpgradeComplete }: {
             formData.append('file', file);
             formData.append('amount', String(selectedPlan.priceToPay));
             formData.append('leagueId', league.id);
+            formData.append('isUpgrade', 'true');
+            formData.append('upgradePlan', selectedPlan.planKey);
+            formData.append('currentPlan', currentKey);
             const { data: txData } = await api.post('/transactions/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            // Mark as upgrade
-            await api.patch(`/transactions/${txData.id}/status`, {
-                status: 'PENDING',
-                adminNotes: `⬆️ UPGRADE: ${currentInfo.label} → ${selectedPlan.planLabel}`,
             });
             setStep('done');
             toast({ title: '✅ Solicitud enviada', description: 'Tu comprobante fue recibido. En menos de 2 horas tu plan será actualizado.' });

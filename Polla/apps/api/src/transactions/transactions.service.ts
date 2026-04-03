@@ -98,6 +98,9 @@ export function getPlanConfig(planKey: string | undefined | null) {
       referenceCode?: string,
       leagueId?: string,
       tournamentId: string = DEFAULT_TOURNAMENT_ID,
+      isUpgrade: boolean = false,
+      upgradePlan?: string,
+      currentPlan?: string,
     ): Promise<Transaction> {
       let league: League | undefined = undefined;
       if (leagueId) {
@@ -112,11 +115,14 @@ export function getPlanConfig(planKey: string | undefined | null) {
         imageUrl,
         tournamentId: league?.tournamentId || tournamentId,
         league, // Attach league if found
-        packageId: league?.packageType,
+        packageId: isUpgrade ? upgradePlan : league?.packageType,
         status: TransactionStatus.PENDING,
         referenceCode:
           referenceCode ||
           `TX-${leagueId ? 'LEAGUE' : 'USER'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        isUpgrade,
+        upgradePlan: upgradePlan || undefined,
+        currentPlan: currentPlan || league?.packageType || undefined,
       });
   
       const saved = await this.transactionsRepository.save(transaction);

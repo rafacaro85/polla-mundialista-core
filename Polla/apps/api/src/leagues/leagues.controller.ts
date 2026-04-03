@@ -104,6 +104,12 @@ export class LeaguesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id/upgrade-options')
+  async getUpgradeOptions(@Param('id') leagueId: string) {
+    return this.leaguesService.getUpgradeOptions(leagueId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getLeague(@Param('id') leagueId: string, @Req() req: Request) {
     const userPayload = (req as any).user as { id: string; userId?: string };

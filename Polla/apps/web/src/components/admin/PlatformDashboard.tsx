@@ -528,7 +528,12 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
               pendingTxs.slice(0, 20).map((t: any) => (
                 <div key={t.id} style={S.row}>
                   <div>
-                    <div style={S.rowLabel}>{t.user?.nickname || t.user?.fullName || '—'}</div>
+                    <div style={S.rowLabel}>
+                      {t.user?.nickname || t.user?.fullName || '—'}
+                      {(t.adminNotes || '').includes('UPGRADE') && (
+                        <span style={{ marginLeft: '6px', fontSize: '9px', fontWeight: '900', padding: '2px 6px', borderRadius: '6px', backgroundColor: 'rgba(251,146,60,0.15)', color: '#FB923C', border: '1px solid rgba(251,146,60,0.3)' }}>⬆️ UPGRADE</span>
+                      )}
+                    </div>
                     <div style={S.rowSub}>{t.league?.name || 'Voucher manual'} · {fmt(Number(t.amount))}</div>
                   </div>
                   {/* Para aprobar lo ideal es derivar al tab de transacciones nativo donde ven la foto */}
@@ -553,7 +558,12 @@ export default function PlatformDashboard({ tournamentId }: { tournamentId?: str
             {displayRevenue.slice(0, 50).map((t: any) => (
                 <div key={t.id} style={S.row}>
                   <div>
-                    <div style={S.rowLabel}>{t.user?.fullName || t.user?.email || '—'}</div>
+                    <div style={S.rowLabel}>
+                      {t.user?.fullName || t.user?.email || '—'}
+                      {(t.adminNotes || '').includes('UPGRADE') && (
+                        <span style={{ marginLeft: '6px', fontSize: '9px', fontWeight: '900', padding: '2px 6px', borderRadius: '6px', backgroundColor: 'rgba(251,146,60,0.15)', color: '#FB923C', border: '1px solid rgba(251,146,60,0.3)' }}>⬆️ UPGRADE</span>
+                      )}
+                    </div>
                     <div style={S.rowSub}>{t.league?.name || 'Planes Plataforma'} · {new Date(t.createdAt).toLocaleDateString('es-CO')}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

@@ -8,7 +8,8 @@ import {
     Settings, Trash2, Loader2, Copy, Share2,
     AlertTriangle, Save, Gem, Check,
     Edit, Gift, Trophy, Users, BarChart3,
-    Palette, Shield, Lock, Eye, X
+    Palette, Shield, Lock, Eye, X,
+    ArrowUpCircle, Upload
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -23,8 +24,260 @@ import LeagueAnalyticsPanel from '@/components/admin/LeagueAnalyticsPanel';
 import { UserPredictionsDialog } from '@/components/UserPredictionsDialog';
 import { useTournament } from '@/hooks/useTournament';
 
-interface Participant {
+// ── PLAN_CONFIG (frontend mirror) ──────────────────────────────────────────
+const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: string; label: string; color: string }> = {
+    'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL',      label: 'Familia',    color: '#94A3B8' },
+    'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL',      label: 'Parche',     color: '#38BDF8' },
+    'amigos':     { maxParticipants: 50,  price: 80000,   type: 'SOCIAL',      label: 'Amigos',     color: '#A78BFA' },
+    'lider':      { maxParticipants: 100, price: 180000,  type: 'SOCIAL',      label: 'Líder',      color: '#FBBF24' },
+    'influencer': { maxParticipants: 200, price: 350000,  type: 'SOCIAL',      label: 'Influencer', color: '#F472B6' },
+    'bronce':     { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE',  label: 'Bronce',     color: '#CD7F32' },
+    'plata':      { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE',  label: 'Plata',      color: '#C0C0C0' },
+    'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE',  label: 'Oro',        color: '#FFD700' },
+    'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE',  label: 'Platino',    color: '#E5E4E2' },
+    'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE',  label: 'Diamante',   color: '#B9F2FF' },
+};
+const FREE_PLAN_KEYS = ['familia', 'starter', 'free', 'launch_promo', 'enterprise_launch'];
+const fmtCOP = (n: number) => `$ ${n.toLocaleString('es-CO')}`;
 
+function getPlanInfo(key: string | undefined) {
+    if (!key) return PLAN_CONFIG['familia'];
+    const k = key.trim().toLowerCase();
+    return PLAN_CONFIG[k] || PLAN_CONFIG['familia'];
+}
+
+// ── PlanUpgradeSection ─────────────────────────────────────────────────────
+function PlanUpgradeSection({ league, participantCount, onUpgradeComplete }: {
+    league: any; participantCount: number; onUpgradeComplete: () => void;
+}) {
+    const { toast } = useToast();
+    const [showModal, setShowModal] = useState(false);
+    const [step, setStep] = useState<'select' | 'pay' | 'done'>('select');
+    const [upgradeOptions, setUpgradeOptions] = useState<any>(null);
+    const [selectedPlan, setSelectedPlan] = useState<any>(null);
+    const [uploading, setUploading] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
+    const [loadingOptions, setLoadingOptions] = useState(false);
+
+    const currentKey = (league.packageType || 'familia').trim().toLowerCase();
+    const currentInfo = getPlanInfo(currentKey);
+    const isFree = FREE_PLAN_KEYS.includes(currentKey);
+    const isMaxPlan = currentKey === 'influencer' || currentKey === 'diamante';
+
+    const openUpgradeModal = async () => {
+        setShowModal(true);
+        setStep('select');
+        setSelectedPlan(null);
+        setFile(null);
+        setLoadingOptions(true);
+        try {
+            const { data } = await api.get(`/leagues/${league.id}/upgrade-options`);
+            setUpgradeOptions(data);
+        } catch {
+            toast({ title: 'Error', description: 'No se pudieron cargar las opciones de plan', variant: 'destructive' });
+        } finally {
+            setLoadingOptions(false);
+        }
+    };
+
+    const handleSelectPlan = (plan: any) => {
+        setSelectedPlan(plan);
+        setStep('pay');
+    };
+
+    const handleUpload = async () => {
+        if (!file || !selectedPlan) return;
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('amount', String(selectedPlan.priceToPay));
+            formData.append('leagueId', league.id);
+            const { data: txData } = await api.post('/transactions/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            // Mark as upgrade
+            await api.patch(`/transactions/${txData.id}/status`, {
+                status: 'PENDING',
+                adminNotes: `⬆️ UPGRADE: ${currentInfo.label} → ${selectedPlan.planLabel}`,
+            });
+            setStep('done');
+            toast({ title: '✅ Solicitud enviada', description: 'Tu comprobante fue recibido. En menos de 2 horas tu plan será actualizado.' });
+        } catch (err: any) {
+            toast({ title: 'Error', description: err?.response?.data?.message || 'Error al enviar comprobante', variant: 'destructive' });
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <>
+            {/* Current Plan Card */}
+            <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase">Tu Plan Actual</h3>
+                    <span className="text-[10px] font-bold px-3 py-1 rounded-full border" style={{ color: currentInfo.color, borderColor: currentInfo.color + '44', backgroundColor: currentInfo.color + '11' }}>
+                        {currentInfo.label}
+                    </span>
+                </div>
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="flex-1">
+                        <div className="text-2xl font-bold text-white">{participantCount} <span className="text-sm text-slate-400">/ {league.maxParticipants}</span></div>
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Participantes</div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-lg font-bold" style={{ color: currentInfo.color }}>{isFree ? 'Gratis' : fmtCOP(currentInfo.price)}</div>
+                        <div className="text-[10px] text-slate-500">{isFree ? 'Plan gratuito' : 'Plan de pago'}</div>
+                    </div>
+                </div>
+                <Progress value={(participantCount / league.maxParticipants) * 100} className="h-2 bg-slate-700" />
+            </div>
+
+            {/* Upgrade Button */}
+            {!isMaxPlan && (
+                <button
+                    onClick={openUpgradeModal}
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold rounded-xl py-4 px-6 flex items-center justify-center gap-3 transition-all duration-300 shadow-lg hover:shadow-orange-500/20"
+                >
+                    <ArrowUpCircle className="w-5 h-5" />
+                    <span>⬆️ Mejorar Plan</span>
+                </button>
+            )}
+
+            {/* Upgrade Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowModal(false)}>
+                    <div className="bg-[#0F172A] border border-slate-700 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="p-5 border-b border-slate-700 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Gem className="w-5 h-5 text-amber-400" />
+                                {step === 'select' && 'Elige tu nuevo plan'}
+                                {step === 'pay' && `Pagar upgrade a ${selectedPlan?.planLabel}`}
+                                {step === 'done' && '✅ Solicitud enviada'}
+                            </h2>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+                        </div>
+
+                        <div className="p-5">
+                            {/* STEP 1: Select Plan */}
+                            {step === 'select' && (
+                                <>
+                                    {/* Current plan badge */}
+                                    <div className="bg-slate-800 rounded-xl p-3 mb-4 flex items-center gap-3">
+                                        <span className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: currentInfo.color + '22', color: currentInfo.color }}>ACTUAL</span>
+                                        <span className="text-sm font-bold text-white">{currentInfo.label}</span>
+                                        <span className="text-xs text-slate-400 ml-auto">{league.maxParticipants} cupos</span>
+                                    </div>
+
+                                    {loadingOptions ? (
+                                        <div className="flex justify-center py-8"><Loader2 className="animate-spin text-amber-400" /></div>
+                                    ) : upgradeOptions?.availablePlans?.length === 0 ? (
+                                        <p className="text-center text-slate-400 py-6">Ya tienes el plan máximo disponible.</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {upgradeOptions?.availablePlans?.map((plan: any) => {
+                                                const info = PLAN_CONFIG[plan.planKey];
+                                                return (
+                                                    <button key={plan.planKey} onClick={() => handleSelectPlan(plan)}
+                                                        className="w-full bg-[#1E293B] hover:bg-[#2a3a54] border border-slate-600 hover:border-amber-500/50 rounded-xl p-4 transition-all text-left"
+                                                    >
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="font-bold text-white flex items-center gap-2">
+                                                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: info?.color || '#FFF' }} />
+                                                                {plan.planLabel}
+                                                            </span>
+                                                            <span className="text-xs text-slate-400">{plan.maxParticipants} cupos</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs text-slate-500">Precio total: {fmtCOP(plan.price)}</span>
+                                                            <span className="text-sm font-bold text-amber-400">
+                                                                {plan.isCurrentPlanFree ? fmtCOP(plan.priceToPay) : `${fmtCOP(plan.priceToPay)}`}
+                                                            </span>
+                                                        </div>
+                                                        {!plan.isCurrentPlanFree && plan.priceToPay < plan.price && (
+                                                            <div className="text-[10px] text-emerald-400 mt-1">💡 Solo pagas la diferencia</div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* STEP 2: Payment */}
+                            {step === 'pay' && selectedPlan && (
+                                <div className="space-y-4">
+                                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+                                        <p className="text-xs text-amber-300 mb-1">Monto a pagar</p>
+                                        <p className="text-3xl font-bold text-amber-400">{fmtCOP(selectedPlan.priceToPay)} <span className="text-xs text-slate-400">COP</span></p>
+                                    </div>
+
+                                    <div className="bg-slate-800 rounded-xl p-4 space-y-3">
+                                        <p className="text-xs font-bold text-slate-300 uppercase">Datos de pago</p>
+                                        <div className="flex items-center gap-2 text-sm text-white">
+                                            <span>📱</span><span className="font-bold">Nequi/Daviplata:</span><span className="text-emerald-400">3105973421</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-white">
+                                            <span>🏦</span><span className="font-bold">Bancolombia Ahorros:</span><span className="text-emerald-400">27228258721</span>
+                                        </div>
+                                        <p className="text-xs text-slate-400">A nombre de: <span className="text-white font-bold">Rafael Caro</span></p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-400 uppercase">Subir comprobante</label>
+                                        <div className="border-2 border-dashed border-slate-600 hover:border-amber-500/50 rounded-xl p-4 text-center cursor-pointer transition-colors"
+                                            onClick={() => document.getElementById('upgrade-file')?.click()}
+                                        >
+                                            {file ? (
+                                                <p className="text-sm text-emerald-400 font-bold">📎 {file.name}</p>
+                                            ) : (
+                                                <>
+                                                    <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+                                                    <p className="text-xs text-slate-400">Toca para subir tu comprobante</p>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input id="upgrade-file" type="file" accept="image/*,.pdf" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <Button variant="outline" className="flex-1 border-slate-600 text-slate-300" onClick={() => { setStep('select'); setFile(null); }}>
+                                            ← Atrás
+                                        </Button>
+                                        <Button disabled={!file || uploading} onClick={handleUpload}
+                                            className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:opacity-50"
+                                        >
+                                            {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                            Enviar comprobante
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 3: Done */}
+                            {step === 'done' && (
+                                <div className="text-center py-6 space-y-4">
+                                    <div className="text-5xl">🎉</div>
+                                    <h3 className="text-xl font-bold text-white">¡Solicitud recibida!</h3>
+                                    <p className="text-sm text-slate-300">En menos de 2 horas tu plan será actualizado a <span className="font-bold text-amber-400">{selectedPlan?.planLabel}</span>.</p>
+                                    <p className="text-xs text-slate-400">Te notificaremos cuando esté listo.</p>
+                                    <Button onClick={() => { setShowModal(false); onUpgradeComplete(); }}
+                                        className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-8"
+                                    >
+                                        Entendido
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+interface Participant {
     user: {
         id: string;
         nickname: string;
@@ -494,61 +747,7 @@ export function LeagueSettingsPanel({ leagueId, defaultTab = "editar", hideTabs 
 
                             {/* --- PLAN --- */}
                             <TabsContent value="plan" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div style={STYLES.card}>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase">Estado del Plan</h3>
-                                        <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">
-                                            {participants.length} / {currentLeague.maxParticipants} Cupos
-                                        </span>
-                                    </div>
-                                    <Progress value={(participants.length / currentLeague.maxParticipants) * 100} className="h-2 bg-slate-700 mb-4" />
-                                    <div className="bg-slate-900 rounded-lg p-4 border border-dashed border-slate-700 text-center">
-                                        <p className="text-xs text-slate-400 mb-1">CÓDIGO DE INVITACIÓN</p>
-                                        <p className="text-2xl font-mono text-emerald-400 font-bold tracking-widest my-2">{currentLeague.code}</p>
-                                        <div className="flex gap-2 justify-center mt-3">
-                                            <Button size="sm" variant="outline" onClick={handleCopyCode} className="border-slate-600 hover:bg-slate-800 text-white">
-                                                {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />} Copiar
-                                            </Button>
-                                            <Button size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white border-none"
-                                                onClick={() => {
-                                                    const appUrl = window.location.origin;
-                                                    const isUCL = tournamentId === 'UCL2526';
-                                                    const text = `¡Únete a mi polla ${isUCL ? 'Champions' : 'Mundialista'} "${currentLeague.name}"! 🏆\n` +
-                                                        `Link: ${appUrl}/invite/${currentLeague.code}\n` +
-                                                        `Código: *${currentLeague.code}*`;
-                                                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                                }}
-
-                                            >
-                                                <Share2 className="w-3 h-3 mr-1" /> WhatsApp
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 rounded-xl p-5 border border-emerald-500/30">
-                                    <h3 className="text-emerald-400 font-bold uppercase text-sm mb-2 flex items-center gap-2">
-                                        <Gift className="w-4 h-4" /> ¿Necesitas más cupos?
-                                    </h3>
-                                    <p className="text-xs text-slate-300 mb-4">
-                                        Solicita una ampliación de tu plan actual para invitar a más amigos.
-                                    </p>
-                                    <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
-                                        onClick={() => {
-                                            const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
-                                            window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
-                                        }}
-                                    >
-                                        Solicitar Ampliación de Cupo
-                                    </Button>
-                                </div>
-                                {currentLeague.isPaid && (
-                                    <Button variant="outline" className="w-full border-slate-700 text-slate-400 hover:text-white"
-                                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/leagues/${currentLeague.id}/voucher`, '_blank')}
-                                    >
-                                        <Copy className="w-3 h-3 mr-2" /> Descargar Comprobante de Pago
-                                    </Button>
-                                )}
+                                <PlanUpgradeSection league={currentLeague} participantCount={participants.length} onUpgradeComplete={loadLeagueData} />
                             </TabsContent>
 
                             {/* --- ANALYTICS --- */}

@@ -58,10 +58,25 @@ function isFreeLeague(l: League): boolean {
 const PLAN_LABELS: Record<string, string> = {
     'starter': 'Familia', 'free': 'Familia', 'launch_promo': 'Promo',
     'enterprise_launch': 'Corp. Gratis',
+    'familia': 'Familia',
     'parche': 'Parche', 'amateur': 'Parche',
     'amigos': 'Amigos', 'semi-pro': 'Amigos',
     'lider': 'Líder', 'pro': 'Líder',
     'influencer': 'Influencer', 'elite': 'Influencer',
+    'bronce': 'Bronce', 'plata': 'Plata', 'oro': 'Oro', 'platino': 'Platino', 'diamante': 'Diamante',
+};
+
+const SA_PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: string; label: string }> = {
+    'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL',     label: 'Familia' },
+    'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL',     label: 'Parche' },
+    'amigos':     { maxParticipants: 50,  price: 80000,   type: 'SOCIAL',     label: 'Amigos' },
+    'lider':      { maxParticipants: 100, price: 180000,  type: 'SOCIAL',     label: 'Líder' },
+    'influencer': { maxParticipants: 200, price: 350000,  type: 'SOCIAL',     label: 'Influencer' },
+    'bronce':     { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE', label: 'Bronce' },
+    'plata':      { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE', label: 'Plata' },
+    'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE', label: 'Oro' },
+    'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE', label: 'Platino' },
+    'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE', label: 'Diamante' },
 };
 
 function getStatusInfo(league: League): { label: string; color: string; bg: string; dot: string } {
@@ -101,6 +116,8 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
     const [limitDialogOpen, setLimitDialogOpen] = useState(false);
     const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [planModalLeague, setPlanModalLeague] = useState<League | null>(null);
+    const [planModalNewPlan, setPlanModalNewPlan] = useState('');
 
     useEffect(() => {
         loadLeagues();
@@ -524,6 +541,9 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
                                 <button onClick={() => handleDelete(league)} style={{ ...S.actionBtn, backgroundColor: 'rgba(255,23,68,0.08)', borderColor: '#FF1744', color: '#FF1744', flex: 0.4 }}>
                                     <Trash2 size={12} />
                                 </button>
+                                <button onClick={() => { setPlanModalLeague(league); setPlanModalNewPlan(''); }} style={{ ...S.actionBtn, backgroundColor: 'rgba(251,146,60,0.1)', borderColor: '#FB923C', color: '#FB923C' }} title="Cambiar Plan">
+                                    ⬆️ Plan
+                                </button>
                             </div>
                         </div>
                     );
@@ -540,6 +560,58 @@ export function LeaguesTable({ onDataUpdated, filter = 'ALL', onCreateEnterprise
             )}
 
             <CreateLeagueDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onSuccess={handleSuccess} />
+
+            {/* Change Plan Modal (Super Admin) */}
+            {planModalLeague && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)' }} onClick={() => setPlanModalLeague(null)}>
+                    <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: '16px', maxWidth: '420px', width: '100%', maxHeight: '80vh', overflow: 'auto', padding: '20px' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#FB923C' }}>⬆️ Cambiar Plan — {planModalLeague.name}</h3>
+                            <button onClick={() => setPlanModalLeague(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '12px' }}>
+                            Plan actual: <strong style={{ color: '#FFF' }}>{PLAN_LABELS[(planModalLeague.packageType || '').toLowerCase()] || planModalLeague.packageType || 'Sin plan'}</strong>
+                            {' — '}{planModalLeague.maxParticipants} cupos
+                        </div>
+                        <select value={planModalNewPlan} onChange={e => setPlanModalNewPlan(e.target.value)}
+                            style={{ width: '100%', background: '#1E293B', border: '1px solid #334155', borderRadius: '8px', color: 'white', padding: '10px', fontSize: '13px', marginBottom: '12px' }}>
+                            <option value="">Seleccionar nuevo plan...</option>
+                            {Object.entries(SA_PLAN_CONFIG)
+                                .filter(([, cfg]) => cfg.maxParticipants > (planModalLeague.maxParticipants || 0))
+                                .map(([key, cfg]) => (
+                                    <option key={key} value={key}>{cfg.label} — {cfg.maxParticipants} cupos — $ {cfg.price.toLocaleString('es-CO')}</option>
+                                ))
+                            }
+                        </select>
+                        {planModalNewPlan && SA_PLAN_CONFIG[planModalNewPlan] && (
+                            <div style={{ background: '#1E293B', borderRadius: '8px', padding: '12px', marginBottom: '12px', fontSize: '11px' }}>
+                                <div style={{ color: '#94A3B8' }}>Nuevos cupos: <strong style={{ color: '#00E676' }}>{SA_PLAN_CONFIG[planModalNewPlan].maxParticipants}</strong></div>
+                                <div style={{ color: '#94A3B8', marginTop: '4px' }}>Precio referencia: <strong style={{ color: '#FBBF24' }}>$ {SA_PLAN_CONFIG[planModalNewPlan].price.toLocaleString('es-CO')}</strong></div>
+                            </div>
+                        )}
+                        <button disabled={!planModalNewPlan} onClick={async () => {
+                            if (!planModalNewPlan || !planModalLeague) return;
+                            const cfg = SA_PLAN_CONFIG[planModalNewPlan];
+                            try {
+                                await api.patch(`/leagues/${planModalLeague.id}`, {
+                                    packageType: planModalNewPlan,
+                                    maxParticipants: cfg.maxParticipants,
+                                    isPaid: true,
+                                });
+                                toast.success(`Plan actualizado: ${PLAN_LABELS[(planModalLeague.packageType || '').toLowerCase()] || 'N/A'} → ${cfg.label} (${cfg.maxParticipants} cupos)`);
+                                setPlanModalLeague(null);
+                                loadLeagues();
+                                if (onDataUpdated) onDataUpdated();
+                            } catch (err) {
+                                console.error(err);
+                                toast.error('Error al cambiar el plan');
+                            }
+                        }} style={{ width: '100%', padding: '10px', background: planModalNewPlan ? '#FB923C' : '#334155', color: planModalNewPlan ? '#0F172A' : '#64748B', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '12px', cursor: planModalNewPlan ? 'pointer' : 'not-allowed' }}>
+                            Aplicar Cambio de Plan
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

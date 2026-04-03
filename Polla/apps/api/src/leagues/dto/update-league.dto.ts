@@ -117,4 +117,8 @@ export class UpdateLeagueDto {
   @IsString()
   @IsOptional()
   tournamentId?: string;
+
+  @IsString()
+  @IsOptional()
+  packageType?: string;
 }

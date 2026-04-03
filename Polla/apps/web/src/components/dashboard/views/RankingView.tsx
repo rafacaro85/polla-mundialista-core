@@ -16,15 +16,21 @@ interface RankingViewProps {
 }
 
 const getPlanLevel = (type?: string) => {
-    if (!type) return 1;
-    const t = type.toUpperCase();
-    if (t.includes('DIAMOND') || t.includes('DIAMANTE')) return 5;
-    if (t.includes('PLATINUM') || t.includes('PLATINO')) return 4;
-    if (t.includes('BUSINESS_CORP')) return 4;
-    if (t.includes('GOLD') || t.includes('ORO')) return 3;
-    if (t.includes('SILVER') || t.includes('PLATA')) return 2;
-    if (t.includes('BUSINESS_GROWTH')) return 2;
-    return 1;
+    if (!type) return 0;
+    const t = type.trim().toLowerCase();
+    const levels: Record<string, number> = {
+        'familia': 0, 'starter': 0, 'free': 0,
+        'parche': 1, 'amateur': 1,
+        'amigos': 2, 'semi-pro': 2,
+        'lider': 3, 'pro': 3,
+        'influencer': 4, 'elite': 4,
+        'legend': 5,
+        'bronce': 2, 'plata': 3, 'oro': 4, 'platino': 5, 'diamante': 5,
+        'enterprise_launch': 2, 'enterprise_bronze': 2, 'enterprise_silver': 3,
+        'enterprise_gold': 4, 'enterprise_platinum': 5, 'enterprise_diamond': 5,
+        'business_growth': 2, 'business_corp': 4,
+    };
+    return levels[t] ?? 0;
 };
 
 export const RankingView: React.FC<RankingViewProps> = ({

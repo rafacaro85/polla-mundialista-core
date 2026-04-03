@@ -66,20 +66,27 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
         // 5: Enterprise (Todo)
 
         const planLevels: Record<string, number> = {
+            // Social
             'familia': 0, 'starter': 0, 'free': 0,
-            'launch_promo': 1, // Unlock Prize Image (Level 1)
+            'launch_promo': 1,
             'parche': 1,
             'amigos': 2,
             'lider': 3,
             'influencer': 4,
-            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5,
-            // Enterprise Specific Plans
-            'enterprise_launch': 2, // Unlock Logo (Level 2)
+            // Enterprise — nombres actuales
+            'bronce': 2,
+            'plata': 3,
+            'oro': 4,
+            'platino': 5,
+            'diamante': 5,
+            // Enterprise — nombres legacy
+            'enterprise_launch': 2,
             'enterprise_bronze': 2,
             'enterprise_silver': 3,
             'enterprise_gold': 4,
             'enterprise_platinum': 5,
-            'enterprise_diamond': 5
+            'enterprise_diamond': 5,
+            'pro': 5, 'elite': 5, 'legend': 5, 'enterprise': 5,
         };
 
         const currentLevel = planLevels[plan] ?? 0;
@@ -386,7 +393,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><MessageSquare size={14} /> Muro de Comentarios</label>
                 {(() => {
                     const plan = (packageType || 'familia').toLowerCase();
-                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'free': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'bronce': 2, 'plata': 3, 'oro': 4, 'platino': 5, 'diamante': 5, 'enterprise_launch': 2, 'enterprise_bronze': 2, 'enterprise_silver': 3, 'enterprise_gold': 4, 'enterprise_platinum': 5, 'enterprise_diamond': 5, 'pro': 5, 'elite': 5, 'legend': 5 };
                     const level = planLevels[plan] ?? 0;
                     
                     return level < 3 ? ( // Requiere Líder (Nivel 3)
@@ -404,7 +411,7 @@ export default function LeagueBrandingForm({ leagueId, initialData, onSuccess, s
                 <label className="text-[#94A3B8] text-[11px] font-bold mb-2 uppercase flex items-center gap-1.5"><Share2 size={14} /> Enlaces a Redes Sociales</label>
                 {(() => {
                     const plan = (packageType || 'familia').toLowerCase();
-                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'pro': 5 };
+                    const planLevels: Record<string, number> = { 'familia': 0, 'starter': 0, 'free': 0, 'parche': 1, 'amigos': 2, 'lider': 3, 'influencer': 4, 'bronce': 2, 'plata': 3, 'oro': 4, 'platino': 5, 'diamante': 5, 'enterprise_launch': 2, 'enterprise_bronze': 2, 'enterprise_silver': 3, 'enterprise_gold': 4, 'enterprise_platinum': 5, 'enterprise_diamond': 5, 'pro': 5, 'elite': 5, 'legend': 5 };
                     const level = planLevels[plan] ?? 0;
 
                     return level < 4 ? ( // Requiere Influencer (Nivel 4)

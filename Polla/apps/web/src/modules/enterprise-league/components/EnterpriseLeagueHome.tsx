@@ -141,20 +141,13 @@ const CarteleraSlider = ({ banners, showAds }: { banners: any[], showAds?: boole
     );
 };
 
-const PLACEHOLDER_PRIZES = [
-    { badge: '1ER PUESTO', name: 'Gran Botín', type: 'cash', amount: 1000000 },
-    { badge: '2DO PUESTO', name: 'Celular de Alta Gama', type: 'image', imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600' },
-    { badge: '3ER PUESTO', name: 'Kit de Bienvenida', type: 'image', imageUrl: 'https://images.unsplash.com/photo-1549443591-325b9d5a7304?q=80&w=600' }
-];
-
 /* =============================================================================
    BLOQUE D: PREMIOS (CARRUSEL)
    ============================================================================= */
 const PrizesCarousel = ({ prizes }: { prizes: any[] }) => {
-    const displayPrizes = useMemo(() => {
-        if (prizes && prizes.length > 0) return prizes;
-        return PLACEHOLDER_PRIZES;
-    }, [prizes]);
+    if (!prizes || prizes.length === 0) return null;
+
+    const displayPrizes = prizes;
 
     return (
         <div className="w-full max-w-7xl mx-auto">

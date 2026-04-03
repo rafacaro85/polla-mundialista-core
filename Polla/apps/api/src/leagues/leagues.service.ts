@@ -1360,88 +1360,14 @@ export class LeaguesService {
       league.isPaid = updateLeagueDto.isPaid;
     }
 
-<<<<<<< HEAD
-    // --- PLAN CHANGE (SUPER_ADMIN only) ---
-    if (updateLeagueDto.packageType !== undefined) {
-      if (userRole !== 'SUPER_ADMIN') {
-        throw new ForbiddenException(
-          'Solo el SUPER_ADMIN puede cambiar el plan de una liga.',
-        );
-      }
-      league.packageType = updateLeagueDto.packageType;
-      this.logger.log(`📦 [updateLeague] Plan cambiado a: ${updateLeagueDto.packageType}`);
-=======
     if (userRole === 'SUPER_ADMIN' && updateLeagueDto.packageType) {
       league.packageType = updateLeagueDto.packageType;
->>>>>>> develop
     }
 
     const updatedLeague = await this.leaguesRepository.save(league);
 
     this.logger.log(`    [updateLeague] Liga actualizada: ${updatedLeague.name}`);
     return updatedLeague;
-  }
-
-  // ── Upgrade Options ──────────────────────────────────────────────────────────
-  async getUpgradeOptions(leagueId: string) {
-    const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' }> = {
-      'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL' },
-      'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL' },
-      'amigos':     { maxParticipants: 50,  price: 80000,   type: 'SOCIAL' },
-      'lider':      { maxParticipants: 100, price: 180000,  type: 'SOCIAL' },
-      'influencer': { maxParticipants: 200, price: 350000,  type: 'SOCIAL' },
-      'bronce':     { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE' },
-      'plata':      { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE' },
-      'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE' },
-      'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE' },
-      'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE' },
-    };
-    const FREE_PLAN_KEYS = ['familia', 'starter', 'free', 'launch_promo', 'enterprise_launch'];
-
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
-    if (!league) {
-      throw new NotFoundException(`Liga ${leagueId} no encontrada`);
-    }
-
-    const currentPlanKey = (league.packageType || 'familia').trim().toLowerCase();
-    const currentConfig = PLAN_CONFIG[currentPlanKey] || PLAN_CONFIG['familia'];
-    const currentPrice = currentConfig.price;
-    const currentMax = currentConfig.maxParticipants;
-    const isEnterprise = league.isEnterprise || league.type === 'COMPANY';
-    const isFree = FREE_PLAN_KEYS.includes(currentPlanKey);
-    const planType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
-
-    // Filter plans: same type, higher capacity, no free
-    const availablePlans = Object.entries(PLAN_CONFIG)
-      .filter(([, cfg]) => {
-        if (cfg.type !== planType) return false;
-        if (cfg.maxParticipants <= currentMax) return false;
-        if (cfg.price === 0) return false;
-        return true;
-      })
-      .map(([key, cfg]) => ({
-        planKey: key,
-        planLabel: key.charAt(0).toUpperCase() + key.slice(1),
-        maxParticipants: cfg.maxParticipants,
-        price: cfg.price,
-        priceToPay: isFree ? cfg.price : Math.max(0, cfg.price - currentPrice),
-        isCurrentPlanFree: isFree,
-      }))
-      .sort((a, b) => a.maxParticipants - b.maxParticipants);
-
-    return {
-      leagueId: league.id,
-      leagueName: league.name,
-      currentPlan: {
-        planKey: currentPlanKey,
-        planLabel: currentPlanKey.charAt(0).toUpperCase() + currentPlanKey.slice(1),
-        maxParticipants: currentMax,
-        price: currentPrice,
-        isFree,
-      },
-      isEnterprise,
-      availablePlans,
-    };
   }
 
   async transferOwner(

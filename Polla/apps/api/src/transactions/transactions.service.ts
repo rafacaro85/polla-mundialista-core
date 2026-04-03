@@ -27,11 +27,7 @@ export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: numbe
   'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE' },
   'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE' },
   'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE' },
-<<<<<<< HEAD
-  // Legacy aliases (backward compatibility with old DB values)
-=======
   // Legacy
->>>>>>> develop
   'starter': { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },
   'FREE':    { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },
   'amateur': { maxParticipants: 15,  price: 30000,  type: 'SOCIAL' },
@@ -47,10 +43,7 @@ export function getPlanConfig(planKey: string | undefined | null) {
   if (!planKey) return PLAN_CONFIG['familia'];
   return PLAN_CONFIG[planKey.trim()] || PLAN_CONFIG[planKey.trim().toLowerCase()] || null;
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> develop
   
   @Injectable()
   export class TransactionsService {
@@ -232,10 +225,7 @@ export function getPlanConfig(planKey: string | undefined | null) {
       ) {
         const league = transaction.league;
 
-<<<<<<< HEAD
-        // ── Determine the target plan ──
-=======
->>>>>>> develop
+
         const targetPlanKey = transaction.isUpgrade
           ? transaction.upgradePlan
           : transaction.packageId;
@@ -245,27 +235,18 @@ export function getPlanConfig(planKey: string | undefined | null) {
           league.maxParticipants = planCfg.maxParticipants;
           league.packageType = targetPlanKey || 'familia';
         } else {
-<<<<<<< HEAD
-          // Fallback: keep current maxParticipants
-=======
->>>>>>> develop
+
           league.packageType = targetPlanKey || league.packageType || 'familia';
         }
 
         league.isPaid = true;
 
-<<<<<<< HEAD
-        // Log upgrade info
-=======
->>>>>>> develop
+
         if (transaction.isUpgrade) {
           console.log(`⬆️ [UPGRADE] Liga ${league.id}: ${transaction.currentPlan} → ${transaction.upgradePlan} (max: ${league.maxParticipants})`);
         }
 
-<<<<<<< HEAD
-        // Auto-activate Enterprise Mode if applicable
-=======
->>>>>>> develop
+
         if (league.type === LeagueType.COMPANY || league.isEnterprise) {
           league.isEnterpriseActive = true;
         }

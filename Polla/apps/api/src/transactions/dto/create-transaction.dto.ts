@@ -1,4 +1,4 @@
-import { IsUUID, IsNumber, IsOptional, IsString, IsEnum, Min, IsInt } from 'class-validator';
+import { IsUUID, IsNumber, IsOptional, IsString, IsEnum, Min, IsBoolean } from 'class-validator';
 
 export enum TransactionType {
   PAYMENT = 'PAYMENT',
@@ -24,4 +24,16 @@ export class CreateTransactionDto {
   @IsString()
   @IsOptional()
   referenceCode?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isUpgrade?: boolean;
+
+  @IsString()
+  @IsOptional()
+  upgradePlan?: string;
+
+  @IsString()
+  @IsOptional()
+  currentPlan?: string;
 }

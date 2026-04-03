@@ -42,6 +42,15 @@ export class Transaction {
   @Column({ name: 'package_id', nullable: true })
   packageId?: string;
 
+  @Column({ name: 'is_upgrade', default: false })
+  isUpgrade: boolean;
+
+  @Column({ name: 'upgrade_plan', nullable: true })
+  upgradePlan?: string;
+
+  @Column({ name: 'current_plan', nullable: true })
+  currentPlan?: string;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;

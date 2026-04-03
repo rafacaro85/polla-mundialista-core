@@ -10,8 +10,39 @@ import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
-  import axios from 'axios';
-  import { TelegramService } from '../telegram/telegram.service';
+import axios from 'axios';
+import { TelegramService } from '../telegram/telegram.service';
+
+// ── Plan Configuration (centralized) ──────────────────────────────────────────
+export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' }> = {
+  // Social
+  'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL' },
+  'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL' },
+  'amigos':     { maxParticipants: 50,  price: 80000,   type: 'SOCIAL' },
+  'lider':      { maxParticipants: 100, price: 180000,  type: 'SOCIAL' },
+  'influencer': { maxParticipants: 200, price: 350000,  type: 'SOCIAL' },
+  // Empresarial
+  'bronce':     { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE' },
+  'plata':      { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE' },
+  'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE' },
+  'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE' },
+  'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE' },
+  // Legacy aliases (backward compatibility with old DB values)
+  'starter': { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },
+  'FREE':    { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },
+  'amateur': { maxParticipants: 15,  price: 30000,  type: 'SOCIAL' },
+  'semi-pro':{ maxParticipants: 50,  price: 80000,  type: 'SOCIAL' },
+  'pro':     { maxParticipants: 100, price: 180000, type: 'SOCIAL' },
+  'elite':   { maxParticipants: 200, price: 350000, type: 'SOCIAL' },
+  'legend':  { maxParticipants: 300, price: 350000, type: 'SOCIAL' },
+};
+
+export const FREE_PLANS = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'];
+
+export function getPlanConfig(planKey: string | undefined | null) {
+  if (!planKey) return PLAN_CONFIG['familia'];
+  return PLAN_CONFIG[planKey.trim()] || PLAN_CONFIG[planKey.trim().toLowerCase()] || null;
+}
   
   @Injectable()
   export class TransactionsService {
@@ -186,30 +217,27 @@ import { LeagueParticipantStatus } from '../database/enums/league-participant-st
         transaction.league
       ) {
         const league = transaction.league;
-        let maxParticipants = league.maxParticipants;
 
-        if (transaction.packageId) {
-          switch (transaction.packageId) {
-            case 'semi-pro':
-              maxParticipants = 35;
-              break;
-            case 'pro':
-              maxParticipants = 60;
-              break;
-            case 'elite':
-              maxParticipants = 150;
-              break;
-            case 'legend':
-              maxParticipants = 300;
-              break;
-            default:
-              maxParticipants = league.maxParticipants;
-          }
+        // ── Determine the target plan ──
+        const targetPlanKey = transaction.isUpgrade
+          ? transaction.upgradePlan
+          : transaction.packageId;
+
+        const planCfg = getPlanConfig(targetPlanKey);
+        if (planCfg) {
+          league.maxParticipants = planCfg.maxParticipants;
+          league.packageType = targetPlanKey || 'familia';
+        } else {
+          // Fallback: keep current maxParticipants
+          league.packageType = targetPlanKey || league.packageType || 'familia';
         }
 
-        league.maxParticipants = maxParticipants;
-        league.packageType = transaction.packageId || 'starter';
         league.isPaid = true;
+
+        // Log upgrade info
+        if (transaction.isUpgrade) {
+          console.log(`⬆️ [UPGRADE] Liga ${league.id}: ${transaction.currentPlan} → ${transaction.upgradePlan} (max: ${league.maxParticipants})`);
+        }
 
         // Auto-activate Enterprise Mode if applicable
         if (league.type === LeagueType.COMPANY || league.isEnterprise) {

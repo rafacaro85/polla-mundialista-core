@@ -205,6 +205,7 @@ const getPlanLevel = (type?: string) => {
 
 export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) => {
     const planLevel = getPlanLevel(config.packageType);
+    console.log('[BrandingTab] packageType:', config.packageType, '| planLevel:', planLevel);
     const companyDisplayName = config.companyName || 'TU EMPRESA';
     const [openCategory, setOpenCategory] = useState<string | null>(null);
 

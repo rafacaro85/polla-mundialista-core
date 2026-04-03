@@ -119,6 +119,7 @@ export default function StudioPage() {
     // ADVERTISING HANDLERS
     // Plan Level Calculation
     const currentPlanLevel = getPlanLevel((config as any).packageType);
+    console.log('[Studio] packageType:', (config as any).packageType, '| planLevel:', currentPlanLevel);
 
     const handleAdImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         await uploadImage('ad_loading', e, (url) => {
@@ -381,6 +382,7 @@ export default function StudioPage() {
                                     return handleImageUpload(key, e, folder);
                                 }}
                                 uploadingState={uploadingState}
+                                planLevel={currentPlanLevel}
                             />
                         )}
 

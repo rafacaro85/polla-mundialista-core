@@ -83,7 +83,8 @@ export const SocialTab: React.FC<SocialTabProps> = ({ config, setConfig, planLev
         setConfig({ ...config, [key]: value });
     };
 
-    const isLocked = planLevel < 2;
+    console.log('[SocialTab] planLevel:', planLevel, '| isLocked:', planLevel < 3);
+    const isLocked = planLevel < 3; // Requiere Plata/Líder (nivel 3) o superior
 
     return (
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 animate-in slide-in-from-bottom-4 fade-in duration-500 relative">

@@ -16,7 +16,7 @@ import { Header } from '@/components/ui/Header';
 // Helper for Plan Levels
 const getPlanLevel = (type?: string) => {
     if (!type) return 0;
-    const t = type.trim().toLowerCase();
+    const t = type.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const levels: Record<string, number> = {
         'familia': 0, 'starter': 0, 'free': 0,
         'parche': 1, 'amateur': 1,

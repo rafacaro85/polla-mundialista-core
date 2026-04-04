@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
-import { Trophy, Users, Copy, Share2, Clock, Target, TrendingUp, AlertTriangle, CheckCircle2, Zap, PlayCircle } from 'lucide-react';
+import { Trophy, Users, Copy, Share2, Clock, Target, TrendingUp, AlertTriangle, CheckCircle2, Zap, PlayCircle, Instagram, Facebook, Youtube, Linkedin, Globe, MessageCircle, Music2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { MoneyCard } from '@/components/MoneyCard';
 import { UserStatusBlock } from '@/components/UserStatusBlock';
@@ -114,6 +114,54 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
                 <PlayCircle size={22} fill="currentColor" /> INGRESAR A JUGAR
               </button>
             </div>
+
+            {/* SOCIAL MEDIA LINKS */}
+            {currentLeague && (currentLeague.socialInstagram || currentLeague.socialFacebook || currentLeague.socialTiktok || currentLeague.socialYoutube || currentLeague.socialWhatsapp || currentLeague.socialLinkedin || currentLeague.socialWebsite) && (
+                <div className="mt-4 flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                    {currentLeague.socialInstagram && (
+                        <a href={currentLeague.socialInstagram} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Instagram size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialFacebook && (
+                        <a href={currentLeague.socialFacebook} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Facebook size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialTiktok && (
+                        <a href={currentLeague.socialTiktok} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Music2 size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialYoutube && (
+                        <a href={currentLeague.socialYoutube} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Youtube size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialWhatsapp && (
+                        <a href={currentLeague.socialWhatsapp} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialLinkedin && (
+                        <a href={currentLeague.socialLinkedin} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Linkedin size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                    {currentLeague.socialWebsite && (
+                        <a href={currentLeague.socialWebsite} target="_blank" rel="noopener noreferrer" 
+                           className="w-10 h-10 bg-[#0F172A]/80 hover:bg-[#1E293B] rounded-full flex items-center justify-center text-slate-300 hover:text-white border border-white/10 hover:border-white/30 transition-all shadow-md group backdrop-blur-sm">
+                            <Globe size={18} className="group-hover:scale-110 transition-transform" />
+                        </a>
+                    )}
+                </div>
+            )}
           </div>
         </div>
 

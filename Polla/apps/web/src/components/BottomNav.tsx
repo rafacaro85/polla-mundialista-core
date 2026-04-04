@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle, MessageSquare } from 'lucide-react';
 import { useBonusNotification } from '@/hooks/useBonusNotification';
 
 interface BottomNavProps {
-    activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
-    onTabChange: (tab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus') => void;
+    activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall';
+    onTabChange: (tab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall') => void;
     showLeaguesTab?: boolean;
     leagueId?: string;
     tournamentId?: string;
+    planLevel?: number;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, leagueId, tournamentId }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, leagueId, tournamentId, planLevel = 0 }) => {
     const [collapsed, setCollapsed] = useState(false);
     
     // Obtenemos el conteo de la liga/torneo específico
@@ -24,6 +25,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
         { id: 'predictions' as const, label: 'Predicciones', icon: ClipboardPen },
         { id: 'ranking' as const, label: 'Ranking', icon: BarChartBig },
         { id: 'bonus' as const, label: 'Bonus', icon: HelpCircle },
+        ...(planLevel >= 3 ? [{ id: 'wall' as const, label: 'Muro', icon: MessageSquare }] : []),
     ];
 
     return (

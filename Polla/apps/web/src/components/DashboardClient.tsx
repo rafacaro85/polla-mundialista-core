@@ -81,12 +81,12 @@ interface Prediction {
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
-  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus';
+  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall';
 }
 
 const getPlanLevel = (type?: string) => {
   if (!type) return 0;
-  const t = type.trim().toLowerCase();
+  const t = type.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const levels: Record<string, number> = {
     'familia': 0, 'starter': 0, 'free': 0,
     'parche': 1, 'amateur': 1,
@@ -110,9 +110,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
-  // New Navigation State (5 Tabs)
-  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus'>(
-    props.initialTab || 'home'
+  // New Navigation State (6 Tabs)
+  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall'>(
+    (props.initialTab as any) || 'home'
   );
 
   const [mounted, setMounted] = useState(false);
@@ -551,6 +551,17 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 </ErrorBoundary>
               </div>
           )}
+
+          {/* 6. MURO (Social Wall) */}
+          {activeTab === 'wall' && (
+              <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300 min-h-[500px]">
+                <ErrorBoundary>
+                    <SocialWallWidget
+                        leagueId={selectedLeagueId === 'global' ? '' : selectedLeagueId}
+                    />
+                </ErrorBoundary>
+              </div>
+          )}
           
         </main >
 
@@ -571,6 +582,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             showLeaguesTab={!selectedLeagueId || selectedLeagueId === 'global'}
             leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId}
             tournamentId={leagueTournamentId || tournamentId}
+            planLevel={currentLeague ? getPlanLevel(currentLeague.packageType) : 0}
           />
         )}
 

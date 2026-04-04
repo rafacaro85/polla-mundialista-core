@@ -35,10 +35,10 @@ export const EnterpriseHeader = ({ league, myDepartment = 'General', isEnterpris
             <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     {/* LOGO MARCA / LPV */}
-                    {isEnterpriseMode ? (
+                    {isEnterpriseMode || league.brandingLogoUrl ? (
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow-lg flex items-center justify-center border border-white/10 overflow-hidden shrink-0">
                             {league.brandingLogoUrl ? (
-                                <img src={league.brandingLogoUrl} alt={league.companyName} className="w-full h-full object-cover" />
+                                <img src={league.brandingLogoUrl} alt={league.companyName || league.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="p-2 w-full h-full flex items-center justify-center">
                                     <Shield className="w-full h-full text-[var(--brand-primary)]" />

@@ -149,7 +149,7 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
               <img
                 src={currentLeague.prizeImageUrl}
                 alt="Premio"
-                className="w-full h-40 object-cover"
+                className="w-full max-h-[350px] object-contain bg-black/20"
               />
             ) : (
               /* ── Placeholder ── */

@@ -190,6 +190,17 @@ export default function AdminDashboardPage() {
 
     const isEnterprise = league.isEnterprise || league.type === 'COMPANY';
 
+    const planLevels: Record<string, number> = {
+        'familia': 0, 'starter': 0, 'free': 0,
+        'parche': 1,
+        'amigos': 2, 'bronce': 2, 'enterprise_launch': 2, 'enterprise_bronze': 2, 'business_growth': 2,
+        'lider': 3, 'plata': 3, 'enterprise_silver': 3,
+        'influencer': 4, 'oro': 4, 'enterprise_gold': 4, 'business_corp': 4,
+        'platino': 5, 'diamante': 5, 'enterprise_platinum': 5, 'enterprise_diamond': 5
+    };
+    const t = (league?.packageType || 'familia').toLowerCase().trim();
+    const planLevel = planLevels[t] ?? 0;
+
     const allModules: (DashboardCardProps & { hidden?: boolean })[] = [
         {
             icon: <Settings size={24} />,
@@ -238,6 +249,7 @@ export default function AdminDashboardPage() {
             title: 'Publicidad',
             description: 'Gestiona los banners y anuncios de la landing',
             href: `/leagues/${params.id}/admin/advertising`,
+            disabled: planLevel < 5,
             hidden: !isEnterprise,
         },
     ];

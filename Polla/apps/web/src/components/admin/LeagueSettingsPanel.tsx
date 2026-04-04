@@ -36,6 +36,13 @@ const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type
     'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE',  label: 'Oro',        color: '#FFD700' },
     'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE',  label: 'Platino',    color: '#E5E4E2' },
     'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE',  label: 'Diamante',   color: '#B9F2FF' },
+    // Legacy mapping
+    'enterprise_launch':   { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE',  label: 'Bronce',     color: '#CD7F32' },
+    'enterprise_bronze':   { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE',  label: 'Bronce',     color: '#CD7F32' },
+    'enterprise_silver':   { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE',  label: 'Plata',      color: '#C0C0C0' },
+    'enterprise_gold':     { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE',  label: 'Oro',        color: '#FFD700' },
+    'enterprise_platinum': { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE',  label: 'Platino',    color: '#E5E4E2' },
+    'enterprise_diamond':  { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE',  label: 'Diamante',   color: '#B9F2FF' },
 };
 const FREE_PLAN_KEYS = ['familia', 'starter', 'free', 'launch_promo', 'enterprise_launch'];
 const fmtCOP = (n: number) => `$ ${n.toLocaleString('es-CO')}`;

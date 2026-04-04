@@ -27,18 +27,39 @@ export default function AdminAdvertisingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [banners, setBanners] = useState<any[]>([]);
+  const [accessDenied, setAccessDenied] = useState(false);
   const { uploadingState, handleImageUpload } = useImageUpload();
 
   useEffect(() => {
-    fetchBanners();
+    fetchData();
   }, [leagueId]);
 
-  const fetchBanners = async () => {
+  const fetchData = async () => {
     try {
+      // First check league plan
+      const { data: league } = await api.get(`/leagues/${leagueId}`);
+      
+      const planLevels: Record<string, number> = {
+          'familia': 0, 'starter': 0, 'free': 0,
+          'parche': 1,
+          'amigos': 2, 'bronce': 2, 'enterprise_launch': 2, 'enterprise_bronze': 2, 'business_growth': 2,
+          'lider': 3, 'plata': 3, 'enterprise_silver': 3,
+          'influencer': 4, 'oro': 4, 'enterprise_gold': 4, 'business_corp': 4,
+          'platino': 5, 'diamante': 5, 'enterprise_platinum': 5, 'enterprise_diamond': 5
+      };
+      const t = (league?.packageType || 'familia').toLowerCase().trim();
+      const planLevel = planLevels[t] ?? 0;
+      
+      if (planLevel < 5) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
       const { data } = await api.get(`/leagues/${leagueId}/extra/banners`);
       setBanners(data);
     } catch (error) {
-      console.error('Error fetching banners:', error);
+      console.error('Error fetching data:', error);
       toast.error('Error al cargar la publicidad');
     } finally {
       setLoading(false);
@@ -111,6 +132,19 @@ export default function AdminAdvertisingPage() {
     return (
       <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <Loader2 className="animate-spin text-indigo-500" size={32} />
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center p-4">
+        <Megaphone size={48} className="text-slate-600 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Función Restringida</h2>
+        <p className="text-slate-400 text-center mb-6 max-w-sm">Esta función requiere suscribirse al plan Platino o Diamante (Nivel 5).</p>
+        <button onClick={() => router.push(`/leagues/${leagueId}/admin`)} className="px-6 py-2 bg-indigo-600 rounded-lg text-white font-bold hover:bg-indigo-500 transition-colors uppercase tracking-widest text-xs">
+            Volver al Panel
+        </button>
       </div>
     );
   }

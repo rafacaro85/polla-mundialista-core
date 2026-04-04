@@ -22,9 +22,10 @@ interface LeagueNavigationProps {
     isAdmin: boolean;
     isEnterpriseActive: boolean;
     tournamentId?: string;
+    planLevel?: number;
 }
 
-export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive, tournamentId }: LeagueNavigationProps) => {
+export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive, tournamentId, planLevel = 0 }: LeagueNavigationProps) => {
     const pathname = usePathname();
     const basePath = `/leagues/${leagueId}`;
     const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
@@ -37,8 +38,8 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive, tourna
         { label: 'Bonus', icon: <HelpCircle size={20} />, href: `${basePath}/bonus` },
     ];
 
-    if (isEnterpriseActive) {
-        items.push({ label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall`, enterpriseOnly: true });
+    if (isEnterpriseActive || planLevel >= 3) {
+        items.push({ label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall` });
     }
 
     // Admin tabs removed - access via LeagueHeader dropdown menu (Panel de Control)

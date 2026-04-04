@@ -432,6 +432,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                         isAdmin={league.isAdmin || false}
                         isEnterpriseActive={false}
                         tournamentId={league.tournamentId}
+                        planLevel={planLevel}
                     />
                 )}
 

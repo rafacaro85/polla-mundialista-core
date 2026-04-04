@@ -35,6 +35,12 @@ export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: numbe
   'pro':     { maxParticipants: 100, price: 180000, type: 'SOCIAL' },
   'elite':   { maxParticipants: 200, price: 350000, type: 'SOCIAL' },
   'legend':  { maxParticipants: 300, price: 350000, type: 'SOCIAL' },
+  'enterprise_launch':   { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE' },
+  'enterprise_bronze':   { maxParticipants: 25,  price: 100000,  type: 'ENTERPRISE' },
+  'enterprise_silver':   { maxParticipants: 50,  price: 175000,  type: 'ENTERPRISE' },
+  'enterprise_gold':     { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE' },
+  'enterprise_platinum': { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE' },
+  'enterprise_diamond':  { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE' },
 };
 
 export const FREE_PLANS = ['familia', 'starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'];

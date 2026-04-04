@@ -1982,7 +1982,7 @@ export class LeaguesService {
         // Only plans with higher price (no downgrades)
         if (cfg.price <= currentPrice) return false;
         // Exclude legacy/alias keys
-        const legacyKeys = ['starter', 'FREE', 'amateur', 'semi-pro', 'pro', 'elite', 'legend'];
+        const legacyKeys = ['starter', 'FREE', 'amateur', 'semi-pro', 'pro', 'elite', 'legend', 'enterprise_launch', 'enterprise_bronze', 'enterprise_silver', 'enterprise_gold', 'enterprise_platinum', 'enterprise_diamond'];
         if (legacyKeys.includes(key)) return false;
         return true;
       })
@@ -1991,11 +1991,9 @@ export class LeaguesService {
         planLabel: key.charAt(0).toUpperCase() + key.slice(1),
         maxParticipants: cfg.maxParticipants,
         price: cfg.price,
-        // Calculation: newPrice - currentPrice (if current was paid)
-        priceToPay: league.isPaid
-          ? Math.max(0, cfg.price - currentPrice)
-          : cfg.price,
-        isCurrentPlanFree: !league.isPaid || currentPrice === 0,
+        // Calculation: newPrice - currentPrice
+        priceToPay: Math.max(0, cfg.price - currentPrice),
+        isCurrentPlanFree: currentPrice === 0,
       }))
       .sort((a, b) => a.price - b.price);
 

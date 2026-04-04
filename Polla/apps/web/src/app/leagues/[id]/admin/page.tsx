@@ -249,7 +249,6 @@ export default function AdminDashboardPage() {
             title: 'Publicidad',
             description: 'Gestiona los banners y anuncios de la landing',
             href: `/leagues/${params.id}/admin/advertising`,
-            disabled: planLevel < 5,
             hidden: !isEnterprise,
         },
     ];

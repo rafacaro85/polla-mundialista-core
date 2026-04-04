@@ -39,8 +39,8 @@ export const EnterpriseNavigation = ({ leagueId, isEnterpriseActive, planLevel =
         { id: 'bonus', label: 'Bonus', icon: <HelpCircle size={20} />, href: `${basePath}/bonus` },
     ];
 
-    // Enterprise Feature: Wall (Plan Oro+ / Level 3+)
-    if (isEnterpriseActive && planLevel >= 3) {
+    // Enterprise Feature: Wall (Plan Oro+ / Level 4+)
+    if (isEnterpriseActive && planLevel >= 4) {
         items.push({ id: 'wall', label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall` });
     }
 

@@ -38,7 +38,7 @@ export const LeagueNavigation = ({ leagueId, isAdmin, isEnterpriseActive, tourna
         { label: 'Bonus', icon: <HelpCircle size={20} />, href: `${basePath}/bonus` },
     ];
 
-    if (isEnterpriseActive || planLevel >= 3) {
+    if ((isEnterpriseActive && planLevel >= 4) || (!isEnterpriseActive && planLevel >= 3)) {
         items.push({ label: 'Muro', icon: <MessageSquare size={20} />, href: `${basePath}/wall` });
     }
 

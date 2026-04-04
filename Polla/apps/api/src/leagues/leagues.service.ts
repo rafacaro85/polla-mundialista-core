@@ -166,6 +166,7 @@ export class LeaguesService {
         creator,
         accessCodePrefix: code,
         isPaid: isActuallyPaid,
+        status: isActuallyPaid ? LeagueStatus.ACTIVE : LeagueStatus.PENDING,
         packageType,
         isEnterprise: !!isEnterprise,
         isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH',

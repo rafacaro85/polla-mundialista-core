@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 export class MatchSyncService {
   private readonly logger = new Logger(MatchSyncService.name);
   private isSyncing = false;
+  private nextRunTime: Date = new Date();
 
   constructor(
     @InjectRepository(Match)
@@ -21,11 +22,15 @@ export class MatchSyncService {
     private configService: ConfigService,
   ) {}
 
-  // 🕒 CRON: Run every 5 minutes
-  @Cron('*/5 * * * *')
+  // 🕒 CRON: Run every 1 minute but use intelligent skipping
+  @Cron('*/1 * * * *')
   async syncLiveMatches() {
     if (this.isSyncing) {
       this.logger.warn('⏭️ Sync already in progress, skipping this run.');
+      return;
+    }
+
+    if (new Date() < this.nextRunTime) {
       return;
     }
 
@@ -35,29 +40,39 @@ export class MatchSyncService {
     );
 
     try {
-      // 1. Find matches within a time window (-3 hours to +1 hour)
-      // This prevents syncing matches that are days/months away, saving API quota.
+      // 1. Intelligent Time Window check
       const now = new Date();
       const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
       const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+      
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
 
-      const activeMatches = await this.matchesRepository
+      const matchesToday = await this.matchesRepository
         .createQueryBuilder('match')
         .where('match.status != :finished', { finished: 'FINISHED' })
         .andWhere('match.externalId IS NOT NULL')
         .andWhere('match.date IS NOT NULL')
-        .andWhere('match.date >= :from', { from: threeHoursAgo })
-        .andWhere('match.date <= :to', { to: oneHourFromNow })
+        .andWhere('match.date >= :start', { start: startOfDay })
+        .andWhere('match.date <= :end', { end: endOfDay })
         .getMany();
 
-      const filteredMatches = activeMatches;
+      const filteredMatches = matchesToday.filter(m => m.date >= threeHoursAgo && m.date <= oneHourFromNow);
 
-      if (filteredMatches.length === 0) {
-        this.logger.log('💤 No active matches in the current time window.');
+      if (filteredMatches.length > 0) {
+        this.logger.log(`🎯 Found ${filteredMatches.length} active matches. Setting next run to 1 minute.`);
+        this.nextRunTime = new Date(now.getTime() + 1 * 60 * 1000); // 1 minuto
+      } else if (matchesToday.length > 0) {
+        this.nextRunTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutos
+        this.logger.log('💤 Partidos programados para hoy pero inactivos ahora. Próximo check en 5 minutos.');
+        return;
+      } else {
+        this.nextRunTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutos
+        this.logger.log('💤 No hay partidos programados hoy. Próximo check en 30 minutos.');
         return;
       }
-
-      this.logger.log(`🎯 Found ${filteredMatches.length} matches to update.`);
 
       // 2. Individual Loop with PAUSE (Prevents 429 & 403)
       for (const match of filteredMatches) {
@@ -68,39 +83,33 @@ export class MatchSyncService {
             `🔄 Syncing Match ID: ${match.externalId} (${match.homeTeam} vs ${match.awayTeam})...`,
           );
 
-          // USE DIRECT API KEY (Fallback to RAPIDAPI_KEY env var if needed)
-          const apiKey =
-            this.configService.get<string>('RAPIDAPI_KEY') ||
-            this.configService.get<string>('API_KEY');
+          // REQUEST FOOTBALL-DATA.ORG
+          const apiKey = this.configService.get<string>('FOOTBALL_DATA_API_KEY');
+          if (!apiKey) {
+             this.logger.error('❌ Missing FOOTBALL_DATA_API_KEY environment variable!');
+             return;
+          }
 
-          const options = {
-            method: 'GET',
-            url: 'https://v3.football.api-sports.io/fixtures', // DIRECT ENDPOINT
-            params: { id: match.externalId },
-            headers: {
-              'x-apisports-key': apiKey, // DIRECT HEADER
-            },
-          };
+          const response = await axios.get(
+            `https://api.football-data.org/v4/matches/${match.externalId}`,
+            { headers: { 'X-Auth-Token': apiKey } }
+          );
 
-          const response = await axios.request(options);
-
-          if (response.data.response && response.data.response.length > 0) {
-            await this.processFixtureData(response.data.response[0]);
+          if (response.data && response.data.id) {
+            await this.processFixtureData(response.data);
           } else {
-            if (response.data.errors) {
-              this.logger.warn(
-                `⚠️ API Warning for match ${match.externalId}: ${JSON.stringify(response.data.errors)}`,
-              );
-            }
+            this.logger.warn(
+              `⚠️ API Warning for match ${match.externalId}: invalid response format`,
+            );
           }
         } catch (innerError) {
           this.logger.error(
-            `❌ Error syncing match ${match.externalId}: ${innerError.message}`,
+            `❌ Error syncing match ${match.externalId} (fallback triggered): ${innerError.message}`,
           );
         }
 
-        // 🛑 THROTTLE: Wait 2 seconds between calls
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // 🛑 THROTTLE: Wait 6.1 seconds between calls to respect 10 calls/min rate limit limit of football-data
+        await new Promise((resolve) => setTimeout(resolve, 6100));
       }
     } catch (error) {
       this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);
@@ -112,11 +121,14 @@ export class MatchSyncService {
   // 🛠️ HELPER: Process Single Fixture
   async processFixtureData(fixture: any): Promise<boolean> {
     try {
-      const externalId = fixture.fixture.id;
-      const statusShort = fixture.fixture.status.short;
-      const homeScore = fixture.goals.home;
-      const awayScore = fixture.goals.away;
-      const elapsed = fixture.fixture.status.elapsed;
+      const matchData = fixture; // football-data single match structure
+      const externalId = matchData.id;
+      const statusShort = matchData.status; // e.g. FINISHED, IN_PLAY, PAUSED, HALFTIME
+      
+      // goals
+      const homeScore = matchData.score?.fullTime?.home ?? matchData.score?.regularTime?.home;
+      const awayScore = matchData.score?.fullTime?.away ?? matchData.score?.regularTime?.away;
+      const elapsed = matchData.minute || null;
 
       const match = await this.matchesRepository.findOne({
         where: { externalId: Number(externalId) },
@@ -132,18 +144,18 @@ export class MatchSyncService {
         match.status !== 'FINISHED';
 
       if (hasChanged) {
-        if (!match.homeTeam) match.homeTeam = fixture.teams.home.name;
-        if (!match.awayTeam) match.awayTeam = fixture.teams.away.name;
+        if (!match.homeTeam) match.homeTeam = matchData.homeTeam.name;
+        if (!match.awayTeam) match.awayTeam = matchData.awayTeam.name;
 
         match.homeScore = homeScore;
         match.awayScore = awayScore;
 
         if (elapsed !== null) match.minute = elapsed;
 
-        // STATUS LOGIC
-        const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
-        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE', 'INT'];
-        const CANCELLED_STATUSES = ['PST', 'CANC', 'ABD'];
+        // STATUS LOGIC (football-data.org formatting)
+        const FINISHED_STATUSES = ['FINISHED', 'AWARDED'];
+        const LIVE_STATUSES = ['IN_PLAY', 'PAUSED', 'HALFTIME'];
+        const CANCELLED_STATUSES = ['POSTPONED', 'CANCELLED', 'SUSPENDED'];
 
         if (FINISHED_STATUSES.includes(statusShort)) {
           if (match.status !== 'FINISHED') {

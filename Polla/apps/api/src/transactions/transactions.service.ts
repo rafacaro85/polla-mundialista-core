@@ -9,6 +9,7 @@ import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { LeagueType } from '../database/enums/league-type.enum';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
+import { LeagueStatus } from '../database/enums/league-status.enum';
 
 import axios from 'axios';
 import { TelegramService } from '../telegram/telegram.service';
@@ -246,7 +247,7 @@ export function getPlanConfig(planKey: string | undefined | null) {
         }
 
         league.isPaid = true;
-
+        league.status = LeagueStatus.ACTIVE;
 
         if (transaction.isUpgrade) {
           console.log(`⬆️ [UPGRADE] Liga ${league.id}: ${transaction.currentPlan} → ${transaction.upgradePlan} (max: ${league.maxParticipants})`);

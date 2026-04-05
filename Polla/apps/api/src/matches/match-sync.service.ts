@@ -36,7 +36,7 @@ export class MatchSyncService {
 
     this.isSyncing = true;
     this.logger.log(
-      '🔄 Running URGENT SYNC (Target: API-SPORTS Direct / Throttled Loop)',
+      '🔄 Running SYNC (Target: football-data.org)',
     );
 
     try {

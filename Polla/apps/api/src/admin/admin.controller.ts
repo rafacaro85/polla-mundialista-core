@@ -13,7 +13,6 @@ export class AdminController {
     private readonly dataSource: DataSource
   ) {}
 
-
   @Post('seed-ucl')
   @HttpCode(HttpStatus.OK)
   async seedUCL() {

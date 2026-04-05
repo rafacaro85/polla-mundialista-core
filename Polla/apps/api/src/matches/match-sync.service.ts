@@ -74,42 +74,66 @@ export class MatchSyncService {
         return;
       }
 
-      // 2. Individual Loop with PAUSE (Prevents 429 & 403)
-      for (const match of filteredMatches) {
-        if (!match.externalId) continue;
+      const activeTournaments = [...new Set(filteredMatches.map(m => m.tournamentId))];
 
-        try {
-          this.logger.log(
-            `🔄 Syncing Match ID: ${match.externalId} (${match.homeTeam} vs ${match.awayTeam})...`,
-          );
+      const TOURNAMENT_MAP: Record<string, { competition: string; season: number }> = {
+        'WC2026': { competition: 'WC', season: 2026 },
+        'UCL2526': { competition: 'CL', season: 2025 },
+        'COL2026': { competition: 'COL1', season: 2026 },
+      };
 
-          // REQUEST FOOTBALL-DATA.ORG
-          const apiKey = this.configService.get<string>('FOOTBALL_DATA_API_KEY');
-          if (!apiKey) {
-             this.logger.error('❌ Missing FOOTBALL_DATA_API_KEY environment variable!');
-             return;
-          }
+      const apiKey = this.configService.get<string>('FOOTBALL_DATA_API_KEY');
+      if (!apiKey) {
+         this.logger.error('❌ Missing FOOTBALL_DATA_API_KEY environment variable!');
+         return;
+      }
 
-          const response = await axios.get(
-            `https://api.football-data.org/v4/matches/${match.externalId}`,
-            { headers: { 'X-Auth-Token': apiKey } }
-          );
-
-          if (response.data && response.data.id) {
-            await this.processFixtureData(response.data);
-          } else {
-            this.logger.warn(
-              `⚠️ API Warning for match ${match.externalId}: invalid response format`,
-            );
-          }
-        } catch (innerError) {
-          this.logger.error(
-            `❌ Error syncing match ${match.externalId} (fallback triggered): ${innerError.message}`,
-          );
+      for (const tournamentId of activeTournaments) {
+        if (!tournamentId) continue;
+        
+        const tMap = TOURNAMENT_MAP[tournamentId];
+        if (!tMap) {
+          this.logger.warn(`⚠️ No mapping found in TOURNAMENT_MAP for ${tournamentId}`);
+          continue;
         }
 
-        // 🛑 THROTTLE: Wait 6.1 seconds between calls to respect 10 calls/min rate limit limit of football-data
-        await new Promise((resolve) => setTimeout(resolve, 6100));
+        const dateTodayStr = new Date().toISOString().split('T')[0];
+
+        // 1. Request All IN_PLAY & PAUSED
+        try {
+          this.logger.log(`🔄 BULK Syncing LIVE matches for ${tournamentId} (target: API bulk)...`);
+          const inPlayRes = await axios.get(
+            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=IN_PLAY,PAUSED`,
+            { headers: { 'X-Auth-Token': apiKey } }
+          );
+          
+          const inPlayMatches = inPlayRes.data?.matches || [];
+          for (const apiMatch of inPlayMatches) {
+             await this.processFixtureData(apiMatch);
+          }
+        } catch (innerError) {
+          this.logger.error(`❌ Error bulk syncing LIVE for ${tournamentId}: ${innerError.message}`);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 6100)); // Throttle
+
+        // 2. Request All FINISHED today
+        try {
+          this.logger.log(`🔄 BULK Syncing FINISHED matches today for ${tournamentId}...`);
+          const finRes = await axios.get(
+            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=FINISHED&dateFrom=${dateTodayStr}&dateTo=${dateTodayStr}`,
+            { headers: { 'X-Auth-Token': apiKey } }
+          );
+          
+          const finMatches = finRes.data?.matches || [];
+          for (const apiMatch of finMatches) {
+             await this.processFixtureData(apiMatch);
+          }
+        } catch (innerError) {
+          this.logger.error(`❌ Error bulk syncing FINISHED for ${tournamentId}: ${innerError.message}`);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 6100)); // Throttle
       }
     } catch (error) {
       this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);

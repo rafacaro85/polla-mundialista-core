@@ -212,21 +212,31 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
 
                                     {isExpanded && item.breakdown && (
                                         <div className="bg-slate-900/50 p-4 border-b border-slate-700">
+                                            {isLiveActive && item.provisionalPoints && item.provisionalPoints > 0 && (
+                                                <p className="text-[9px] text-slate-500 text-center uppercase tracking-widest mb-3">
+                                                    🔴 El desglose incluye puntos provisionales del partido en vivo
+                                                </p>
+                                            )}
                                             <div className="grid grid-cols-4 gap-2 text-center">
-                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <div className={`flex flex-col items-center gap-1 p-2 rounded-lg ${isLiveActive && item.breakdown.matches > 0 ? 'bg-green-900/30 border border-green-800/40' : 'bg-slate-800/50'}`}>
                                                     <span className="text-xl">⚽</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Partidos</span>
-                                                    <span className="text-white font-mono text-sm">{item.breakdown.matches}</span>
+                                                    <span className={`font-mono text-sm ${isLiveActive && item.breakdown.matches > 0 ? 'text-[#00E676]' : 'text-white'}`}>
+                                                        {item.breakdown.matches}
+                                                        {isLiveActive && item.provisionalPoints && item.provisionalPoints > 0 ? ' 🔴' : ''}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
                                                     <span className="text-xl">🔮</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
                                                     <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
                                                 </div>
-                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <div className={`flex flex-col items-center gap-1 p-2 rounded-lg ${isLiveActive && item.breakdown.wildcard > 0 ? 'bg-yellow-900/20 border border-yellow-800/30' : 'bg-slate-800/50'}`}>
                                                     <span className="text-xl">⭐</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
-                                                    <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
+                                                    <span className={`font-mono text-sm ${item.breakdown.wildcard > 0 ? 'text-yellow-400' : 'text-white'}`}>
+                                                        {item.breakdown.wildcard}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
                                                     <span className="text-xl">❓</span>

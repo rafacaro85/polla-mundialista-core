@@ -2090,7 +2090,22 @@ export class LeaguesService {
           if (userRank) {
             userRank.provisionalPoints = (userRank.provisionalPoints || 0) + extra;
             userRank.totalPoints += extra;
-            this.logger.log(`[LiveRanking] ✅ Actualizado UserRank #${userRank.rank} → totalPoints: ${userRank.totalPoints}`);
+
+            // Actualizar también el breakdown para que el desglose lo muestre correctamente
+            // Si es Joker: la mitad va a "partidos" (base) y la otra mitad a "comodín" (bonus del joker)
+            if (!userRank.breakdown) {
+              userRank.breakdown = { matches: 0, phases: 0, wildcard: 0, bonus: 0 };
+            }
+            if (pred.isJoker) {
+              const basePoints = extra / 2;
+              const jokerBonus = extra / 2;
+              userRank.breakdown.matches = (userRank.breakdown.matches || 0) + basePoints;
+              userRank.breakdown.wildcard = (userRank.breakdown.wildcard || 0) + jokerBonus;
+            } else {
+              userRank.breakdown.matches = (userRank.breakdown.matches || 0) + extra;
+            }
+
+            this.logger.log(`[LiveRanking] ✅ Actualizado UserRank #${userRank.rank} → totalPoints: ${userRank.totalPoints}, breakdown.matches: ${userRank.breakdown.matches}`);
           } else {
             this.logger.warn(`[LiveRanking] ⚠️ User ${pred.userId} NO encontrado en ranking base.`);
           }

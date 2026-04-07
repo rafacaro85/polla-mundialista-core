@@ -199,20 +199,26 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const hasWon = points > 0;
   const theJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker || isJoker);
 
-  // Determinación de colores y estado final
+  // Determinación de colores y estado final (sin iconos por petición)
   const getResultVisuals = () => {
-    // Si no está finalizado usamos colores neutros
-    if (!isFinished) return { icon: '', bg: '#1E293B', text: 'white', label: '' };
+    if (!isFinished) return { bg: '#1E293B', text: 'white', label: '' };
     
-    // Cálculo de si fue exacto (3 puntos o 6 con comodín)
-    const isExact = points >= 3 && (!theJoker || points >= 6); 
+    // El acierto exacto es matemáticamente indiscutible si ambos marcadores empatan
+    const isExact = 
+      match.scoreH !== null && match.scoreA !== null &&
+      match.prediction?.homeScore !== null && match.prediction?.awayScore !== null &&
+      Number(match.scoreH) === Number(match.prediction?.homeScore) && 
+      Number(match.scoreA) === Number(match.prediction?.awayScore);
     
     if (isExact) {
-        return { icon: '✅', bg: '#00E676', text: '#0F172A', label: 'ACIERTO EXACTO' };
+        // Acierto exacto: verde
+        return { bg: '#00E676', text: '#0F172A', label: 'ACIERTO EXACTO' };
     } else if (hasWon) {
-        return { icon: '⚽', bg: '#F59E0B', text: '#0F172A', label: 'ACIERTO PARCIAL' };
+        // Acierto parcial: también verde por petición del usuario
+        return { bg: '#00E676', text: '#0F172A', label: 'ACIERTO PARCIAL' };
     } else {
-        return { icon: '❌', bg: '#EF4444', text: 'white', label: 'FALLO' };
+        // Fallo: rojo
+        return { bg: '#EF4444', text: 'white', label: 'FALLO' };
     }
   };
 
@@ -344,6 +350,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       letterSpacing: '1px',
       marginTop: '4px',
       textTransform: 'uppercase' as const,
+      whiteSpace: 'nowrap' as const,
+      textAlign: 'center' as const
     },
     pausedIndicator: {
       fontSize: '11px',
@@ -352,6 +360,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       letterSpacing: '1px',
       marginTop: '4px',
       textTransform: 'uppercase' as const,
+      whiteSpace: 'nowrap' as const,
+      textAlign: 'center' as const
     },
     finishedIndicator: {
       fontSize: '11px',
@@ -359,7 +369,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       fontWeight: 'bold',
       letterSpacing: '1px',
       marginTop: '4px',
+      marginBottom: '6px',
       textTransform: 'uppercase' as const,
+      textAlign: 'center' as const
     },
     footerBar: {
       width: '100%',
@@ -391,8 +403,9 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       backgroundColor: '#0F172A',
       border: '1px solid var(--brand-accent, #334155)',
       borderRadius: '8px',
-      padding: '6px 12px',
-      width: '100%',
+      padding: '6px 8px',
+      width: '95px',
+      boxSizing: 'border-box' as const,
       display: 'flex',
       flexDirection: 'column' as const,
       alignItems: 'center',
@@ -403,7 +416,8 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       color: '#94A3B8',
       textTransform: 'uppercase' as const,
       fontWeight: 'bold',
-      marginBottom: '2px'
+      marginBottom: '2px',
+      whiteSpace: 'nowrap' as const,
     },
     jokerBtn: {
       marginTop: '8px',
@@ -520,18 +534,18 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
             {isFinished ? (
               <>
                 <div style={STYLES.finishedIndicator}>
-                  [FINALIZADO {resultVisuals.icon}]
+                  [FINALIZADO]
                 </div>
                 {/* Resultado Real */}
                 <div style={STYLES.splitBox}>
-                  <div style={STYLES.splitBoxTitle}>⚽ RESULTADO</div>
+                  <div style={STYLES.splitBoxTitle}>RESULTADO</div>
                   <div style={{ fontSize: '18px', color: '#F8FAFC', fontWeight: 'bold' }}>
                     {match.scoreH ?? 0} - {match.scoreA ?? 0}
                   </div>
                 </div>
                 {/* Predicción Usuario */}
                 <div style={STYLES.splitBox}>
-                  <div style={STYLES.splitBoxTitle}>🎯 TU PRONÓSTICO</div>
+                  <div style={STYLES.splitBoxTitle}>TU PRONÓSTICO</div>
                   <div style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 'bold' }}>
                     {(match.prediction?.homeScore ?? homeScore) || '-'} - {(match.prediction?.awayScore ?? awayScore) || '-'}
                   </div>
@@ -626,7 +640,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
         {isFinished && (
           <div style={STYLES.footerBar}>
             <div style={STYLES.scoreText}>
-              +{points} PTS {resultVisuals.icon}
+              +{points} PTS
             </div>
 
             <div style={STYLES.pointsText}>
@@ -634,7 +648,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
             </div>
             
             {breakdownText && (
-               <div style={{ fontSize: '10px', marginTop: '4px', opacity: 0.8, fontWeight: 'normal' }}>
+               <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.85, fontWeight: '500' }}>
                  {breakdownText}
                </div>
             )}

@@ -178,7 +178,8 @@ export class MatchSyncService {
 
         // STATUS LOGIC (football-data.org formatting)
         const FINISHED_STATUSES = ['FINISHED', 'AWARDED'];
-        const LIVE_STATUSES = ['IN_PLAY', 'PAUSED', 'HALFTIME'];
+        const LIVE_STATUSES = ['IN_PLAY'];
+        const PAUSED_STATUSES = ['PAUSED', 'HALFTIME'];
         const CANCELLED_STATUSES = ['POSTPONED', 'CANCELLED', 'SUSPENDED'];
 
         if (FINISHED_STATUSES.includes(statusShort)) {
@@ -194,6 +195,13 @@ export class MatchSyncService {
           } else {
             await this.matchesRepository.save(match);
           }
+        } else if (PAUSED_STATUSES.includes(statusShort)) {
+          if (match.status !== 'PAUSED') {
+            match.status = 'PAUSED';
+            match.minute = 'HT';
+            this.logger.log(`⏸️ Match ${match.id} is now PAUSED (HT)`);
+          }
+          await this.matchesRepository.save(match);
         } else if (LIVE_STATUSES.includes(statusShort)) {
           if (match.status !== 'LIVE') {
             match.status = 'LIVE';

@@ -77,16 +77,18 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
     hour12: false
   });
 
-  const isLive = match.status === 'LIVE';
+  const isLive = match.status === 'LIVE' || match.status === 'IN_PLAY';
+  const isPaused = match.status === 'PAUSED' || match.status === 'HT' || match.minute === 'HT';
   const isFinished = match.status === 'FINISHED' || match.status === 'COMPLETED';
+  const isMatchActive = isLive || isPaused; // Cualquiera de los dos está en juego
   
   // Check if match is within 5 minutes of starting (lockout period)
   const now = new Date();
   const minutesUntilKickoff = (matchDate.getTime() - now.getTime()) / (1000 * 60);
-  const isLockedForKickoff = minutesUntilKickoff <= 5 && minutesUntilKickoff > 0 && !isLive && !isFinished;
+  const isLockedForKickoff = minutesUntilKickoff <= 5 && minutesUntilKickoff > 0 && !isMatchActive && !isFinished;
   
-  // Inputs should be read-only if: finished, live, or within 5 minutes of kickoff
-  const isInputLocked = isFinished || isLive || isLockedForKickoff;
+  // Inputs should be read-only if: finished, live/paused, or within 5 minutes of kickoff
+  const isInputLocked = isFinished || isMatchActive || isLockedForKickoff;
 
   // 2. ESTADO LOCAL PARA INPUTS
   // PRIORIDAD: 1. Sugerencia de IA (match.userH) | 2. Predicción Guardada | 3. Vacío
@@ -195,12 +197,27 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
   const points = calculateOptimisticPoints();
   const hasWon = points > 0;
+  const theJoker = !!(match.prediction?.isJoker || (match.prediction as any)?.isJoker || match.isJoker || isJoker);
 
-  const inputBorderColor = isFinished
-    ? (hasWon ? '#00E676' : '#FF1744')
-    : '#475569';
+  // Determinación de colores y estado final
+  const getResultVisuals = () => {
+    // Si no está finalizado usamos colores neutros
+    if (!isFinished) return { icon: '', bg: '#1E293B', text: 'white', label: '' };
+    
+    // Cálculo de si fue exacto (3 puntos o 6 con comodín)
+    const isExact = points >= 3 && (!theJoker || points >= 6); 
+    
+    if (isExact) {
+        return { icon: '✅', bg: '#00E676', text: '#0F172A', label: 'ACIERTO EXACTO' };
+    } else if (hasWon) {
+        return { icon: '⚽', bg: '#F59E0B', text: '#0F172A', label: 'ACIERTO PARCIAL' };
+    } else {
+        return { icon: '❌', bg: '#EF4444', text: 'white', label: 'FALLO' };
+    }
+  };
 
-  const resultColor = hasWon ? '#00E676' : '#FF1744';
+  const resultVisuals = getResultVisuals();
+  const inputBorderColor = isFinished ? resultVisuals.bg : '#475569';
 
   // Calculo Desglose Simplificado (Frontend Visual)
   const getBreakdown = () => {
@@ -321,37 +338,72 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
       outline: 'none',
     },
     liveIndicator: {
-      fontSize: '9px',
+      fontSize: '11px',
       color: '#FF1744',
       fontWeight: 'bold',
       letterSpacing: '1px',
       marginTop: '4px',
+      textTransform: 'uppercase' as const,
+    },
+    pausedIndicator: {
+      fontSize: '11px',
+      color: '#F59E0B',
+      fontWeight: 'bold',
+      letterSpacing: '1px',
+      marginTop: '4px',
+      textTransform: 'uppercase' as const,
+    },
+    finishedIndicator: {
+      fontSize: '11px',
+      color: resultVisuals.bg,
+      fontWeight: 'bold',
+      letterSpacing: '1px',
+      marginTop: '4px',
+      textTransform: 'uppercase' as const,
     },
     footerBar: {
       width: '100%',
-      backgroundColor: resultColor,
-      color: 'var(--brand-bg, #0F172A)',
+      backgroundColor: resultVisuals.bg,
+      color: resultVisuals.text,
       display: 'flex',
       flexDirection: 'column' as const,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '6px 0',
+      padding: '12px 0',
       marginTop: 'auto',
-      minHeight: '40px'
+      minHeight: '60px'
     },
     scoreText: {
-      fontSize: '14px',
+      fontSize: '28px',
       fontWeight: '900',
       lineHeight: '1',
-      marginBottom: '2px',
+      marginBottom: '4px',
       letterSpacing: '1px'
     },
     pointsText: {
-      fontSize: '10px',
+      fontSize: '12px',
       fontWeight: '800',
       textTransform: 'uppercase' as const,
       letterSpacing: '0.5px',
       opacity: 0.9
+    },
+    splitBox: {
+      backgroundColor: '#0F172A',
+      border: '1px solid var(--brand-accent, #334155)',
+      borderRadius: '8px',
+      padding: '6px 12px',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      alignItems: 'center',
+      marginBottom: '4px'
+    },
+    splitBoxTitle: {
+      fontSize: '9px',
+      color: '#94A3B8',
+      textTransform: 'uppercase' as const,
+      fontWeight: 'bold',
+      marginBottom: '2px'
     },
     jokerBtn: {
       marginTop: '8px',
@@ -424,7 +476,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 return groupName.length > 4 ? groupName : `GRUPO ${groupName}`;
               })()}
             </div>
-            {!isLive && (
+            {!(isLive || isPaused || isFinished) && (
             <div style={{ 
               color: '#94A3B8', 
               fontWeight: 'normal',
@@ -465,13 +517,51 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
 
           {/* Marcador / Inputs */}
           <div style={STYLES.inputs}>
-            {isLive ? (
+            {isFinished ? (
               <>
-                <span style={{ fontSize: '32px', color: '#00E676', fontWeight: 'bold', letterSpacing: '-1px' }}>
-                  {match.scoreH || 0}-{match.scoreA || 0}
-                </span>
-                <div style={STYLES.liveIndicator}>
-                  🔴 {match.minute === 'HT' ? 'ENTRETIEMPO' : `EN VIVO ${match.minute ? `${match.minute}'` : ''}`}
+                <div style={STYLES.finishedIndicator}>
+                  [FINALIZADO {resultVisuals.icon}]
+                </div>
+                {/* Resultado Real */}
+                <div style={STYLES.splitBox}>
+                  <div style={STYLES.splitBoxTitle}>⚽ RESULTADO</div>
+                  <div style={{ fontSize: '18px', color: '#F8FAFC', fontWeight: 'bold' }}>
+                    {match.scoreH ?? 0} - {match.scoreA ?? 0}
+                  </div>
+                </div>
+                {/* Predicción Usuario */}
+                <div style={STYLES.splitBox}>
+                  <div style={STYLES.splitBoxTitle}>🎯 TU PRONÓSTICO</div>
+                  <div style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 'bold' }}>
+                    {(match.prediction?.homeScore ?? homeScore) || '-'} - {(match.prediction?.awayScore ?? awayScore) || '-'}
+                  </div>
+                </div>
+              </>
+            ) : isMatchActive ? (
+              <>
+                {isLive && (
+                  <div style={STYLES.liveIndicator}>
+                    [EN VIVO 🔴] {match.minute ? `min ${match.minute}'` : ''}
+                  </div>
+                )}
+                {isPaused && (
+                  <div style={STYLES.pausedIndicator}>
+                    [⏸️ ENTRE TIEMPO]
+                  </div>
+                )}
+                {/* Resultado Real Parcial */}
+                <div style={STYLES.splitBox}>
+                  <div style={STYLES.splitBoxTitle}>RESULTADO</div>
+                  <div style={{ fontSize: '18px', color: '#00E676', fontWeight: 'bold' }}>
+                    {match.scoreH ?? 0} - {match.scoreA ?? 0}
+                  </div>
+                </div>
+                {/* Predicción Usuario */}
+                <div style={STYLES.splitBox}>
+                  <div style={STYLES.splitBoxTitle}>TU PRONÓSTICO</div>
+                  <div style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 'bold' }}>
+                    {(match.prediction?.homeScore ?? homeScore) || '-'} - {(match.prediction?.awayScore ?? awayScore) || '-'}
+                  </div>
                 </div>
               </>
             ) : (
@@ -532,18 +622,22 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
           </div>
         </div>
 
-        {/* BARRA RESULTADO (Solo si terminó) - MUESTRA RESULTADO Y PUNTOS */}
+        {/* BARRA RESULTADO (Solo si terminó) - MUESTRA PUNTOS EN GRANDE */}
         {isFinished && (
           <div style={STYLES.footerBar}>
-            {/* Arriba: Marcador */}
             <div style={STYLES.scoreText}>
-              {match.scoreH} - {match.scoreA}
+              +{points} PTS {resultVisuals.icon}
             </div>
 
-            {/* Abajo: Puntos obtenidos */}
             <div style={STYLES.pointsText}>
-              {hasWon ? `+${points} PTS` : '0 PTS'} <span style={{ marginLeft: '4px', opacity: 0.7, fontWeight: 'normal', textTransform: 'none', fontSize: '9px' }}>{breakdownText}</span>
+              {resultVisuals.label}
             </div>
+            
+            {breakdownText && (
+               <div style={{ fontSize: '10px', marginTop: '4px', opacity: 0.8, fontWeight: 'normal' }}>
+                 {breakdownText}
+               </div>
+            )}
           </div>
         )}
 

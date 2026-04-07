@@ -936,6 +936,7 @@ export function MatchesList({ tournamentId }: { tournamentId: string }) {
                             >
                                 <option value="SCHEDULED">📅 Programado (SCHEDULED)</option>
                                 <option value="LIVE">🔴 En Vivo (LIVE)</option>
+                                <option value="PAUSED">⏸️ Entretiempo (PAUSED)</option>
                                 <option value="PENDING">🕒 Pendiente (PENDING)</option>
                                 <option value="FINISHED">✅ Finalizado (FINISHED)</option>
                             </select>

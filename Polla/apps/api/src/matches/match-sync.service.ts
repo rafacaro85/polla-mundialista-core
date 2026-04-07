@@ -106,7 +106,7 @@ export class MatchSyncService {
             try {
               return await axios.get(url, {
                 headers: { 'X-Auth-Token': apiKey },
-                timeout: 10000,
+                timeout: 30000,
                 httpsAgent: new https.Agent({ rejectUnauthorized: false })
               });
             } catch (error: any) {

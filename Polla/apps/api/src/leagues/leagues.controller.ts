@@ -133,6 +133,12 @@ export class LeaguesController {
     return this.leaguesService.getLeagueByCode(code);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/ranking/live')
+  async getLiveRanking(@Param('id') leagueId: string) {
+    return this.leaguesService.getLiveLeagueRanking(leagueId);
+  }
+
   @SkipThrottle()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(CacheInterceptor)

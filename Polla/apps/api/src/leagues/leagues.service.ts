@@ -37,6 +37,7 @@ import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { PdfService } from '../common/pdf/pdf.service';
 
 import { TelegramService } from '../telegram/telegram.service';
+import { ScoringService } from '../scoring/scoring.service';
 
 @Injectable()
 export class LeaguesService {
@@ -59,6 +60,9 @@ export class LeaguesService {
     private telegramService: TelegramService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectDataSource() private dataSource: DataSource,
+    @InjectRepository(Match)
+    private matchRepository: Repository<Match>,
+    private scoringService: ScoringService,
   ) {}
 
   private rankingInFlight = new Map<string, Promise<any>>();
@@ -2008,5 +2012,135 @@ export class LeaguesService {
       availablePlans,
     };
   }
-}
 
+  async getLiveLeagueRanking(leagueId: string) {
+    // 1. Obtener ranking base (puntos oficiales)
+    let tournamentId = '';
+    let baseRankingRaw: any[] = [];
+
+    if (leagueId === 'global') {
+      tournamentId = 'WC2026';
+      baseRankingRaw = await this.getGlobalRanking(tournamentId);
+    } else {
+      const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+      if (!league) throw new NotFoundException('League not found');
+      tournamentId = league.tournamentId;
+      // Llamamos _computeLeagueRanking directamente para evitar bloqueos por userId vacío
+      // y para trabajar con una copia fresca (sin caché compartida)
+      const tmpCacheKey = `ranking:live:tmp:${leagueId}`;
+      baseRankingRaw = await this._computeLeagueRanking(leagueId, '', tmpCacheKey);
+      // Limpiar caché temporal inmediatamente para no contaminar
+      await this.cacheManager.del(tmpCacheKey);
+    }
+
+    if (!baseRankingRaw || baseRankingRaw.length === 0) {
+      return { ranking: [], isLive: false, liveMatches: [] };
+    }
+
+    // ⚠️ CRÍTICO: Copia profunda para no mutar el caché compartido
+    const baseRanking: any[] = baseRankingRaw.map(r => ({ ...r }));
+
+    // 2. Buscar partidos LIVE de este torneo
+    const liveMatches = await this.matchRepository.find({
+      where: {
+        status: In(['LIVE', 'IN_PLAY', 'PAUSED', 'HALFTIME']),
+        tournamentId: tournamentId
+      }
+    });
+
+    this.logger.log(`[LiveRanking] Partidos en vivo encontrados para ${tournamentId}: ${liveMatches.length}`);
+
+    if (liveMatches.length === 0) {
+      return { ranking: baseRanking, isLive: false, liveMatches: [] };
+    }
+
+    // 3. Para cada partido en vivo, calcular puntos provisionales
+    for (const liveMatch of liveMatches) {
+      this.logger.log(`[LiveRanking] Procesando partido ${liveMatch.homeTeam} vs ${liveMatch.awayTeam} [${liveMatch.homeScore}-${liveMatch.awayScore}]`);
+
+      // Obtener predicciones deduplicadas: exactamente igual a _computeLeagueRanking.
+      // Por cada usuario, preferimos la predicción específica de liga sobre la global (league_id IS NULL).
+      // Usamos DISTINCT ON para garantizar una sola predicción por usuario.
+      const isGlobalLeague = leagueId === 'global';
+
+      const rawPredictions = await this.predictionRepository.manager.query(
+        `SELECT DISTINCT ON (p."userId")
+            p."userId", p."homeScore", p."awayScore", p.points, p."isJoker", p."league_id"
+         FROM predictions p
+         WHERE p."matchId" = $1
+           AND p."deleted_at" IS NULL
+           AND (
+             p."league_id" = $2
+             OR p."league_id" IS NULL
+           )
+         ORDER BY p."userId",
+           CASE WHEN p."league_id" = $2 THEN 0 ELSE 1 END ASC`,
+        [liveMatch.id, isGlobalLeague ? null : leagueId]
+      );
+
+      this.logger.log(`[LiveRanking] Predicciones (deduplicadas) para partido: ${rawPredictions.length}`);
+
+      for (const pred of rawPredictions) {
+        const fakePrediction = {
+          homeScore: Number(pred.homeScore),
+          awayScore: Number(pred.awayScore),
+          points: Number(pred.points || 0),
+          isJoker: Boolean(pred.isJoker),
+        } as any;
+
+        // Para ligas locales (!isGlobal): el Joker de la predicción global no aplica
+        // (idéntico al comportamiento de _computeLeagueRanking línea 1105)
+        if (!isGlobalLeague && (pred.league_id === null || pred.league_id === undefined)) {
+          fakePrediction.isJoker = false;
+        }
+
+        const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, fakePrediction);
+        const official = Number(pred.points || 0);
+        const extra = provisional - official;
+
+        this.logger.log(`[LiveRanking] User ${pred.userId}: provisional=${provisional}, oficial=${official}, extra=${extra}, isJoker=${fakePrediction.isJoker}`);
+
+        if (extra > 0) {
+          const userRank = baseRanking.find((r: any) => r.id === pred.userId);
+          if (userRank) {
+            userRank.provisionalPoints = (userRank.provisionalPoints || 0) + extra;
+            userRank.totalPoints += extra;
+
+            if (!userRank.breakdown) {
+              userRank.breakdown = { matches: 0, phases: 0, wildcard: 0, bonus: 0 };
+            }
+            if (fakePrediction.isJoker) {
+              const basePoints = extra / 2;
+              const jokerBonus = extra / 2;
+              userRank.breakdown.matches = (userRank.breakdown.matches || 0) + basePoints;
+              userRank.breakdown.wildcard = (userRank.breakdown.wildcard || 0) + jokerBonus;
+            } else {
+              userRank.breakdown.matches = (userRank.breakdown.matches || 0) + extra;
+            }
+
+            this.logger.log(`[LiveRanking] ✅ User #${userRank.rank} → total: ${userRank.totalPoints}, matches: ${userRank.breakdown.matches}, wildcard: ${userRank.breakdown.wildcard}`);
+          } else {
+            this.logger.warn(`[LiveRanking] ⚠️ User ${pred.userId} NO en ranking base.`);
+          }
+        }
+      }
+    }
+
+    // 4. Re-ordenar ranking con puntos provisionales
+    baseRanking.sort((a: any, b: any) => b.totalPoints - a.totalPoints);
+    baseRanking.forEach((r: any, i: number) => r.rank = i + 1);
+
+    return {
+      ranking: baseRanking,
+      isLive: true,
+      liveMatches: liveMatches.map(m => ({
+        id: m.id,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        minute: m.minute
+      }))
+    };
+  }
+}

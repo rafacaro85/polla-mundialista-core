@@ -31,7 +31,9 @@ export function UserStatusBlock({ currentLeagueId, matches, onNavigate, classNam
   const [rankingPos, setRankingPos] = useState<number | null>(null);
   const [rankingTotal, setRankingTotal] = useState<number | null>(null);
   const [userPoints, setUserPoints] = useState<number | null>(null);
+  const [provisionalPoints, setProvisionalPoints] = useState<number>(0);
   const [loadingRanking, setLoadingRanking] = useState(true);
+  const [isLiveActive, setIsLiveActive] = useState(false);
 
 
   // Fetch ranking to get user position
@@ -58,7 +60,33 @@ export function UserStatusBlock({ currentLeagueId, matches, onNavigate, classNam
       }
     };
 
-    fetchRanking();
+    const fetchLiveRanking = async () => {
+      try {
+        const { data } = await api.get(`/leagues/${currentLeagueId}/ranking/live`);
+        if (data) {
+          setIsLiveActive(Boolean(data.isLive));
+          const list: any[] = Array.isArray(data.ranking) ? data.ranking : [];
+          const myEntry = list.find((p: any) => p.userId === user.id || p.user?.id === user.id || p.id === user.id);
+          if (myEntry) {
+            setRankingPos(myEntry.rank);
+            setUserPoints(myEntry.totalPoints);
+            setProvisionalPoints(myEntry.provisionalPoints || 0);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching live ranking for status block:', err);
+      }
+    };
+
+    fetchRanking().then(() => {
+        fetchLiveRanking();
+    });
+
+    const interval = setInterval(() => {
+        fetchLiveRanking();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [currentLeagueId, user?.id]);
 
   // Find next unpredicted scheduled/pending match
@@ -126,6 +154,11 @@ export function UserStatusBlock({ currentLeagueId, matches, onNavigate, classNam
               <p className="text-2xl font-russo text-[var(--brand-primary,#00E676)]">
                 {userPoints ?? 0} <span className="text-slate-600 text-sm font-medium">pts</span>
               </p>
+              {provisionalPoints > 0 && (
+                <div className="text-[#00E676] text-[10px] font-bold animate-pulse -mt-1 flex items-center gap-1">
+                  +{provisionalPoints} Provisionales 🔴
+                </div>
+              )}
             </>
           )}
         </div>

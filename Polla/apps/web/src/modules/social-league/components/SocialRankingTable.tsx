@@ -8,6 +8,7 @@ interface RankingUser {
     rank: number;
     name: string;
     points: number;
+    provisionalPoints?: number;
     avatar: string;
     isUser: boolean;
     trend: 'up' | 'down' | 'same';
@@ -44,24 +45,24 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
     };
 
     useEffect(() => {
+        const mapData = (dataArray: any[]) => dataArray.map((item: any, index: number) => ({
+            rank: index + 1,
+            name: item.nickname || item.user?.nickname || item.fullName || 'Anónimo',
+            points: item.totalPoints || 0,
+            provisionalPoints: item.provisionalPoints || 0,
+            avatar: (item.nickname || item.user?.nickname || item.fullName || '?').substring(0, 2).toUpperCase(),
+            isUser: (item.id === user?.id) || (item.user?.id === user?.id),
+            trend: 'same' as const,
+            tieBreakerGuess: item.tieBreakerGuess,
+            breakdown: item.breakdown
+        }));
+
         const fetchRanking = async () => {
             setLoading(true);
             try {
-                // Determine endpoint based on leagueId (if 'global' passed by mistake, handle it, but this is Social)
                 const endpoint = leagueId === 'global' ? '/leagues/global/ranking' : `/leagues/${leagueId}/ranking`;
                 const { data } = await api.get(endpoint);
-
-                const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
-                    rank: index + 1,
-                    name: item.nickname || item.user?.nickname || 'Anónimo',
-                    points: item.totalPoints || 0,
-                    avatar: (item.nickname || item.user?.nickname || '?').substring(0, 2).toUpperCase(),
-                    isUser: (item.id === user?.id) || (item.user?.id === user?.id),
-                    trend: 'same',
-                    tieBreakerGuess: item.tieBreakerGuess,
-                    breakdown: item.breakdown
-                })) : [];
-
+                const mappedRanking = Array.isArray(data) ? mapData(data) : [];
                 setRanking(mappedRanking);
             } catch (error) {
                 console.error('[Social] Error fetching ranking:', error);
@@ -71,12 +72,39 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
             }
         };
 
+        const fetchLiveRanking = async () => {
+            try {
+                const endpoint = leagueId === 'global' ? '/leagues/global/ranking/live' : `/leagues/${leagueId}/ranking/live`;
+                const { data } = await api.get(endpoint);
+                if (data) {
+                    setIsLiveActive(Boolean(data.isLive));
+                    if (data.ranking && Array.isArray(data.ranking)) {
+                        setRanking(mapData(data.ranking));
+                    }
+                }
+            } catch (error) {
+                console.error('[Social] Error fetching LIVE ranking:', error);
+            }
+        };
+
         if (user && leagueId) {
-            fetchRanking();
+            // Carga inicial
+            fetchRanking().then(() => {
+                // Inmediato lanza el test del en-vivo
+                fetchLiveRanking();
+            });
+
+            // Polling cada 60s sin recargar (LoadingSpinner)
+            const interval = setInterval(() => {
+                fetchLiveRanking();
+            }, 60000);
+
+            return () => clearInterval(interval);
         }
     }, [leagueId, user]);
 
     const [visibleCount, setVisibleCount] = useState(10);
+    const [isLiveActive, setIsLiveActive] = useState(false);
     
     // ... useEffect ...
 
@@ -88,9 +116,21 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
 
     return (
         <div className="w-full pb-24 md:pb-8 px-0 pt-4">
-            <h2 className="font-russo text-xl text-white uppercase text-center mb-4">
-                Ranking de Amigos
-            </h2>
+            <div className="flex flex-col items-center justify-center mb-4">
+                <h2 className="font-russo text-xl text-white uppercase text-center flex items-center gap-2">
+                    Ranking de Amigos
+                    {isLiveActive && (
+                        <span className="animate-pulse bg-red-500/20 text-red-500 border border-red-500 px-2 flex items-center rounded-sm text-[10px] whitespace-nowrap">
+                            🔴 EN VIVO
+                        </span>
+                    )}
+                </h2>
+                {isLiveActive && (
+                    <p className="text-[10px] text-slate-400 text-center mt-1 w-[80%] max-w-sm">
+                        🔴 Puntos provisionales basados en marcador actual. Se oficializan al terminar el partido.
+                    </p>
+                )}
+            </div>
 
             {/* Tie Breaker Button */}
             <div className="flex justify-center mb-4">
@@ -153,8 +193,15 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
                                         </div>
 
                                         <div className="text-right flex items-center gap-2">
-                                            <div className={`font-russo text-base ${item.isUser ? 'text-[#00E676]' : 'text-white'}`}>
-                                                {item.points}
+                                            <div className="flex flex-col items-end">
+                                                <div className={`font-russo text-base ${item.isUser ? 'text-[#00E676]' : 'text-white'}`}>
+                                                    {item.points}
+                                                </div>
+                                                {item.provisionalPoints && item.provisionalPoints > 0 ? (
+                                                    <div className="text-[#00E676] text-[10px] font-bold animate-pulse -mt-1">
+                                                        +{item.provisionalPoints} 🔴
+                                                    </div>
+                                                ) : null}
                                             </div>
                                             <ChevronDown 
                                                 size={16} 
@@ -165,21 +212,31 @@ export const SocialRankingTable = ({ leagueId }: SocialRankingTableProps) => {
 
                                     {isExpanded && item.breakdown && (
                                         <div className="bg-slate-900/50 p-4 border-b border-slate-700">
+                                            {isLiveActive && item.provisionalPoints && item.provisionalPoints > 0 && (
+                                                <p className="text-[9px] text-slate-500 text-center uppercase tracking-widest mb-3">
+                                                    🔴 El desglose incluye puntos provisionales del partido en vivo
+                                                </p>
+                                            )}
                                             <div className="grid grid-cols-4 gap-2 text-center">
-                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <div className={`flex flex-col items-center gap-1 p-2 rounded-lg ${isLiveActive && item.breakdown.matches > 0 ? 'bg-green-900/30 border border-green-800/40' : 'bg-slate-800/50'}`}>
                                                     <span className="text-xl">⚽</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Partidos</span>
-                                                    <span className="text-white font-mono text-sm">{item.breakdown.matches}</span>
+                                                    <span className={`font-mono text-sm ${isLiveActive && item.breakdown.matches > 0 ? 'text-[#00E676]' : 'text-white'}`}>
+                                                        {item.breakdown.matches}
+                                                        {isLiveActive && item.provisionalPoints && item.provisionalPoints > 0 ? ' 🔴' : ''}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
                                                     <span className="text-xl">🔮</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Fases</span>
                                                     <span className="text-white font-mono text-sm">{item.breakdown.phases}</span>
                                                 </div>
-                                                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
+                                                <div className={`flex flex-col items-center gap-1 p-2 rounded-lg ${isLiveActive && item.breakdown.wildcard > 0 ? 'bg-yellow-900/20 border border-yellow-800/30' : 'bg-slate-800/50'}`}>
                                                     <span className="text-xl">⭐</span>
                                                     <span className="text-xs text-slate-400 font-bold uppercase">Comodín</span>
-                                                    <span className="text-white font-mono text-sm">{item.breakdown.wildcard}</span>
+                                                    <span className={`font-mono text-sm ${item.breakdown.wildcard > 0 ? 'text-yellow-400' : 'text-white'}`}>
+                                                        {item.breakdown.wildcard}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/50">
                                                     <span className="text-xl">❓</span>

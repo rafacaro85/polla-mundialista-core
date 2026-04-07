@@ -2058,20 +2058,29 @@ export class LeaguesService {
     for (const liveMatch of liveMatches) {
       this.logger.log(`[LiveRanking] Procesando partido ${liveMatch.homeTeam} vs ${liveMatch.awayTeam} [${liveMatch.homeScore}-${liveMatch.awayScore}]`);
 
-      // Buscamos predicciones de este partido. La columna userId está directamente en la tabla.
-      // No usamos relación 'user' ya que Prediction no la declara como columna directa.
+      // Obtener predicciones deduplicadas: exactamente igual a _computeLeagueRanking.
+      // Por cada usuario, preferimos la predicción específica de liga sobre la global (league_id IS NULL).
+      // Usamos DISTINCT ON para garantizar una sola predicción por usuario.
+      const isGlobalLeague = leagueId === 'global';
+
       const rawPredictions = await this.predictionRepository.manager.query(
-        `SELECT p.id, p."userId", p."homeScore", p."awayScore", p.points, p."isJoker", p."league_id"
+        `SELECT DISTINCT ON (p."userId")
+            p."userId", p."homeScore", p."awayScore", p.points, p."isJoker", p."league_id"
          FROM predictions p
          WHERE p."matchId" = $1
-           AND p."deleted_at" IS NULL`,
-        [liveMatch.id]
+           AND p."deleted_at" IS NULL
+           AND (
+             p."league_id" = $2
+             OR p."league_id" IS NULL
+           )
+         ORDER BY p."userId",
+           CASE WHEN p."league_id" = $2 THEN 0 ELSE 1 END ASC`,
+        [liveMatch.id, isGlobalLeague ? null : leagueId]
       );
 
-      this.logger.log(`[LiveRanking] Predicciones encontradas para partido: ${rawPredictions.length}`);
+      this.logger.log(`[LiveRanking] Predicciones (deduplicadas) para partido: ${rawPredictions.length}`);
 
       for (const pred of rawPredictions) {
-        // Recrear objeto compatible con calculateProvisionalPoints
         const fakePrediction = {
           homeScore: Number(pred.homeScore),
           awayScore: Number(pred.awayScore),
@@ -2079,11 +2088,17 @@ export class LeaguesService {
           isJoker: Boolean(pred.isJoker),
         } as any;
 
+        // Para ligas locales (!isGlobal): el Joker de la predicción global no aplica
+        // (idéntico al comportamiento de _computeLeagueRanking línea 1105)
+        if (!isGlobalLeague && (pred.league_id === null || pred.league_id === undefined)) {
+          fakePrediction.isJoker = false;
+        }
+
         const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, fakePrediction);
         const official = Number(pred.points || 0);
         const extra = provisional - official;
 
-        this.logger.log(`[LiveRanking] User ${pred.userId}: provisional=${provisional}, oficial=${official}, extra=${extra}`);
+        this.logger.log(`[LiveRanking] User ${pred.userId}: provisional=${provisional}, oficial=${official}, extra=${extra}, isJoker=${fakePrediction.isJoker}`);
 
         if (extra > 0) {
           const userRank = baseRanking.find((r: any) => r.id === pred.userId);
@@ -2091,12 +2106,10 @@ export class LeaguesService {
             userRank.provisionalPoints = (userRank.provisionalPoints || 0) + extra;
             userRank.totalPoints += extra;
 
-            // Actualizar también el breakdown para que el desglose lo muestre correctamente
-            // Si es Joker: la mitad va a "partidos" (base) y la otra mitad a "comodín" (bonus del joker)
             if (!userRank.breakdown) {
               userRank.breakdown = { matches: 0, phases: 0, wildcard: 0, bonus: 0 };
             }
-            if (pred.isJoker) {
+            if (fakePrediction.isJoker) {
               const basePoints = extra / 2;
               const jokerBonus = extra / 2;
               userRank.breakdown.matches = (userRank.breakdown.matches || 0) + basePoints;
@@ -2105,9 +2118,9 @@ export class LeaguesService {
               userRank.breakdown.matches = (userRank.breakdown.matches || 0) + extra;
             }
 
-            this.logger.log(`[LiveRanking] ✅ Actualizado UserRank #${userRank.rank} → totalPoints: ${userRank.totalPoints}, breakdown.matches: ${userRank.breakdown.matches}`);
+            this.logger.log(`[LiveRanking] ✅ User #${userRank.rank} → total: ${userRank.totalPoints}, matches: ${userRank.breakdown.matches}, wildcard: ${userRank.breakdown.wildcard}`);
           } else {
-            this.logger.warn(`[LiveRanking] ⚠️ User ${pred.userId} NO encontrado en ranking base.`);
+            this.logger.warn(`[LiveRanking] ⚠️ User ${pred.userId} NO en ranking base.`);
           }
         }
       }

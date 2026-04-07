@@ -93,6 +93,13 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
 
     useEffect(() => {
         fetchMatches();
+
+        // 🔄 Polling automático cada 30 segundos
+        const timer = setInterval(() => {
+            fetchMatches();
+        }, 30000);
+
+        return () => clearInterval(timer);
     }, [leagueId]);
 
     const fetchJokerStatus = async () => {

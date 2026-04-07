@@ -107,6 +107,13 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
 
         fetchMatches();
         fetchBonus();
+
+        // 🔄 Polling automático cada 30 segundos
+        const timer = setInterval(() => {
+            fetchMatches();
+        }, 30000);
+
+        return () => clearInterval(timer);
     }, [tournamentId, leagueId]);
 
     const handleExpandMatch = async (matchId: string) => {

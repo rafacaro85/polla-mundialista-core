@@ -8,6 +8,7 @@ interface RankingUser {
     rank: number;
     name: string;
     points: number;
+    provisionalPoints?: number;
     avatar: string;
     isUser: boolean;
     breakdown?: {
@@ -24,6 +25,7 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
     const { user } = useAppStore();
     const [ranking, setRanking] = useState<RankingUser[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isLiveActive, setIsLiveActive] = useState(false);
     const [visibleCount, setVisibleCount] = useState(10);
     const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
@@ -39,28 +41,27 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
         return { color: '#64748B', icon: <span className="text-sm">{rank}</span> };
     };
 
+    const mapData = (dataArray: any[]) => dataArray.map((item: any, index: number) => ({
+        rank: index + 1,
+        name: item.nickname || item.fullName || 'Anónimo',
+        points: Number(item.totalPoints || 0),
+        provisionalPoints: Number(item.provisionalPoints || 0),
+        avatar: (item.nickname || item.fullName || '?').substring(0, 2).toUpperCase(),
+        isUser: (item.id === user?.id),
+        breakdown: item.breakdown
+    }));
+
     useEffect(() => {
         const fetchGlobalRanking = async () => {
             if (!tournamentId) return;
             
             setLoading(true);
             try {
-                console.log(`🌍 Fetching Global Ranking for ${tournamentId}...`);
                 const { data } = await api.get('/leagues/global/ranking', {
                     params: { tournamentId }
                 });
                 
-                console.log('✅ Global Ranking received:', data?.length);
-
-                const mappedRanking: RankingUser[] = Array.isArray(data) ? data.map((item: any, index: number) => ({
-                    rank: index + 1,
-                    name: item.nickname || item.fullName || 'Anónimo',
-                    points: Number(item.totalPoints || 0),
-                    avatar: (item.nickname || item.fullName || '?').substring(0, 2).toUpperCase(),
-                    isUser: (item.id === user?.id),
-                    breakdown: item.breakdown
-                })) : [];
-
+                const mappedRanking = Array.isArray(data) ? mapData(data) : [];
                 setRanking(mappedRanking);
             } catch (error) {
                 console.error('❌ Error fetching global ranking:', error);
@@ -70,19 +71,52 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
             }
         };
 
-        fetchGlobalRanking();
-        
-        // Reset visible count only when tournament changes
+        const fetchLiveRanking = async () => {
+            if (!tournamentId) return;
+            try {
+                const { data } = await api.get(`/leagues/global/ranking/live`);
+                if (data) {
+                    setIsLiveActive(Boolean(data.isLive));
+                    if (data.ranking && Array.isArray(data.ranking)) {
+                        setRanking(mapData(data.ranking));
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error fetching live ranking:', error);
+            }
+        };
+
+        fetchGlobalRanking().then(() => {
+            fetchLiveRanking();
+        });
+
+        const interval = setInterval(() => {
+            fetchLiveRanking();
+        }, 60000);
+
         setVisibleCount(10);
+        return () => clearInterval(interval);
     }, [user, tournamentId]);
 
     const visibleRanking = ranking.slice(0, visibleCount);
 
     return (
         <div className="w-full max-w-md mx-auto pb-24 px-4 pt-4">
-            <h2 className="font-russo text-xl text-white uppercase text-center mb-6 flex items-center justify-center gap-2">
-                <Crown className="text-yellow-500" /> Ranking Global
-            </h2>
+            <div className="flex flex-col items-center justify-center mb-6">
+                <h2 className="font-russo text-xl text-white uppercase text-center flex items-center justify-center gap-2">
+                    <Crown className="text-yellow-500" /> Ranking Global
+                    {isLiveActive && (
+                        <span className="animate-pulse bg-red-500/20 text-red-500 border border-red-500 px-2 flex items-center rounded-sm text-[10px] whitespace-nowrap">
+                            🔴 EN VIVO
+                        </span>
+                    )}
+                </h2>
+                {isLiveActive && (
+                    <p className="text-[10px] text-slate-400 text-center mt-1 w-[80%] max-w-sm">
+                        🔴 Puntos provisionales basados en marcador actual. Se oficializan al terminar el partido.
+                    </p>
+                )}
+            </div>
 
             <div className="bg-[#1E293B] rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
                 <div className="flex justify-between p-3 bg-slate-900 border-b border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -129,8 +163,15 @@ export const GlobalRankingTable = ({ tournamentId: propTournamentId }: { tournam
                                         </div>
 
                                         <div className="text-right flex items-center gap-2">
-                                            <div className={`font-russo text-base ${item.isUser ? 'text-[#00E676]' : 'text-white'}`}>
-                                                {item.points}
+                                            <div className="flex flex-col items-end">
+                                                <div className={`font-russo text-base ${item.isUser ? 'text-[#00E676]' : 'text-white'}`}>
+                                                    {item.points}
+                                                </div>
+                                                {item.provisionalPoints && item.provisionalPoints > 0 ? (
+                                                    <div className="text-[#00E676] text-[10px] font-bold animate-pulse -mt-1">
+                                                        +{item.provisionalPoints} 🔴
+                                                    </div>
+                                                ) : null}
                                             </div>
                                             <ChevronDown 
                                                 size={16} 

@@ -16,8 +16,10 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
 import { LeaguePrize } from '../database/entities/league-prize.entity';
 import { LeagueBanner } from '../database/entities/league-banner.entity';
+import { Match } from '../database/entities/match.entity';
 import { LeagueExtraService } from './league-extra.service';
 import { LeagueExtraController } from './league-extra.controller';
+import { ScoringModule } from '../scoring/scoring.module';
 
 @Module({
   imports: [
@@ -30,10 +32,12 @@ import { LeagueExtraController } from './league-extra.controller';
       LeagueComment,
       LeaguePrize,
       LeagueBanner,
+      Match,
     ]),
     TransactionsModule,
     PdfModule,
     TelegramModule,
+    ScoringModule,
   ],
   providers: [
     LeaguesService,

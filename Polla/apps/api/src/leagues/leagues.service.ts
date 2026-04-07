@@ -37,6 +37,7 @@ import { TransactionStatus } from '../database/enums/transaction-status.enum';
 import { PdfService } from '../common/pdf/pdf.service';
 
 import { TelegramService } from '../telegram/telegram.service';
+import { ScoringService } from '../scoring/scoring.service';
 
 @Injectable()
 export class LeaguesService {
@@ -59,6 +60,9 @@ export class LeaguesService {
     private telegramService: TelegramService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectDataSource() private dataSource: DataSource,
+    @InjectRepository(Match)
+    private matchRepository: Repository<Match>,
+    private scoringService: ScoringService,
   ) {}
 
   private rankingInFlight = new Map<string, Promise<any>>();
@@ -2008,5 +2012,79 @@ export class LeaguesService {
       availablePlans,
     };
   }
-}
 
+  async getLiveLeagueRanking(leagueId: string) {
+    // 1. Obtener ranking base (puntos oficiales) locales
+    let isGlobal = false;
+    let tournamentId = '';
+    let baseRanking = [];
+
+    if (leagueId === 'global') {
+      tournamentId = 'WC2026'; // Default actual
+      baseRanking = await this.getGlobalRanking(tournamentId);
+      isGlobal = true;
+    } else {
+      const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+      if (!league) throw new NotFoundException('League not found');
+      tournamentId = league.tournamentId;
+      baseRanking = await this.getLeagueRanking(leagueId, '');
+    }
+
+    if (!baseRanking || baseRanking.length === 0) {
+      return { ranking: [], isLive: false, liveMatches: [] };
+    }
+
+    // 2. Buscar partidos LIVE de este torneo
+    const liveMatches = await this.matchRepository.find({
+      where: { 
+        status: In(['LIVE', 'IN_PLAY', 'PAUSED', 'HALFTIME']),
+        tournamentId: tournamentId
+      }
+    });
+
+    // Si no hay partidos en vivo retornar ranking normal
+    if (liveMatches.length === 0) {
+      return { ranking: baseRanking, isLive: false, liveMatches: [] };
+    }
+
+    // 3. Para cada partido en vivo, calcular puntos provisionales de cada usuario
+    for (const liveMatch of liveMatches) {
+      const predictions = await this.predictionRepository.find({
+        where: { match: { id: liveMatch.id } },
+        relations: ['user'] // rel para asegurar id
+      });
+
+      for (const prediction of predictions) {
+        const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, prediction);
+        const official = prediction.points || 0;
+        let extra = provisional - official;
+
+        if (extra > 0) {
+          const uId = prediction.user?.id || (prediction as any).userId;
+          const userRank = baseRanking.find((r: any) => r.id === uId);
+          if (userRank) {
+            userRank.provisionalPoints = (userRank.provisionalPoints || 0) + extra;
+            userRank.totalPoints += extra;
+          }
+        }
+      }
+    }
+
+    // 4. Re-ordenar ranking con puntos provisionales y recalcular posición (rank)
+    baseRanking.sort((a: any, b: any) => b.totalPoints - a.totalPoints);
+    baseRanking.forEach((r: any, i: number) => r.rank = i + 1);
+
+    return { 
+      ranking: baseRanking, 
+      isLive: true,
+      liveMatches: liveMatches.map(m => ({
+        id: m.id,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        minute: m.minute
+      }))
+    };
+  }
+}

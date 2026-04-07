@@ -65,6 +65,48 @@ export class ScoringService {
     return points;
   }
 
+  /**
+   * Calcula los puntos provisionales en tiempo real para un partido en progreso (LIVE/PAUSED).
+   * NO almacena los puntos y no requiere estado FINISHED.
+   */
+  calculateProvisionalPoints(match: Match, prediction: Prediction): number {
+    if (match.homeScore === null || match.awayScore === null) {
+      return 0; // Datos del marcador aun no disponibles
+    }
+
+    let points = 0;
+    const actualHomeScore = match.homeScore;
+    const actualAwayScore = match.awayScore;
+    const predictedHomeScore = prediction.homeScore;
+    const predictedAwayScore = prediction.awayScore;
+
+    // 1. Puntos por Goles Individuales (1 punto por cada equipo acertado)
+    if (actualHomeScore === predictedHomeScore) points += 1;
+    if (actualAwayScore === predictedAwayScore) points += 1;
+
+    // 2. Puntos por Resultado (Ganador o Empate) (2 puntos)
+    const actualSign = Math.sign(actualHomeScore - actualAwayScore);
+    const predictedSign = Math.sign(predictedHomeScore - predictedAwayScore);
+    if (actualSign === predictedSign) {
+      points += 2;
+    }
+
+    // 3. Puntos por Marcador Exacto (3 puntos adicionales)
+    if (
+      actualHomeScore === predictedHomeScore &&
+      actualAwayScore === predictedAwayScore
+    ) {
+      points += 3;
+    }
+
+    // 4. Comodín (Joker) - Doble Puntuación
+    if (prediction.isJoker) {
+      points *= 2;
+    }
+
+    return points;
+  }
+
   async calculatePointsForMatch(matchId: string): Promise<void> {
     const match = await this.matchesRepository.findOne({
       where: { id: matchId },

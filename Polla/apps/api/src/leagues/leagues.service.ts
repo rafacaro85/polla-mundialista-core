@@ -2146,11 +2146,11 @@ export class LeaguesService {
          WHERE p."matchId" = $1
            AND p."deleted_at" IS NULL
            AND (
-             p."league_id" = $2
+             p."league_id" IS NOT DISTINCT FROM $2
              OR p."league_id" IS NULL
            )
          ORDER BY p."userId",
-           CASE WHEN p."league_id" = $2 THEN 0 ELSE 1 END ASC`,
+           CASE WHEN p."league_id" IS NOT DISTINCT FROM $2 THEN 0 ELSE 1 END ASC`,
         [liveMatch.id, isGlobalLeague ? null : leagueId]
       );
 

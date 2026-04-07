@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { LogOut, Settings, User, ChevronDown } from 'lucide-react';
+import { LogOut, Settings, User, ChevronDown, Bot } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useBrand } from '@/components/providers/BrandThemeProvider';
 import api from '@/lib/api';
@@ -226,6 +226,23 @@ export function LeagueHeader() {
                                             {leagueData?.isEnterprise ? 'Panel de Control' : 'Administrar Polla'}
                                         </button>
                                     )}
+
+                                    <div
+                                        className="my-2 border-t"
+                                        style={{ borderColor: `${brand.brandColorText}20` }}
+                                    />
+
+                                    <button
+                                        onClick={() => {
+                                            setShowMenu(false);
+                                            window.dispatchEvent(new CustomEvent('open-profe-chat'));
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors hover:bg-white/10"
+                                        style={{ color: 'var(--brand-primary, #00E676)' }}
+                                    >
+                                        <Bot size={16} />
+                                        <span className="font-bold">Pregúntale al Profe</span>
+                                    </button>
 
                                     <div
                                         className="my-2 border-t"

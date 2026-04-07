@@ -12,6 +12,7 @@ export default function SimulationPage() {
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>('groups');
+    const [tournamentId, setTournamentId] = useState<string>('');
 
     useEffect(() => {
         const loadData = async () => {
@@ -30,6 +31,7 @@ export default function SimulationPage() {
                 // (Logic removed: enterprise leagues should see knockout teams now)
 
                 setMatches(matchesData);
+                setTournamentId(leagueData.tournamentId);
             } catch (error) {
                 console.error('Error loading simulation data:', error);
             } finally {
@@ -83,7 +85,7 @@ export default function SimulationPage() {
             {/* Content */}
             <div className="pb-24 md:pb-0">
                 {activeTab === 'groups' && <GroupStageView matches={matches} />}
-                {activeTab === 'bracket' && <BracketView matches={matches} leagueId={params.id as string} />}
+                {activeTab === 'bracket' && <BracketView matches={matches} leagueId={params.id as string} tournamentId={tournamentId} />}
             </div>
         </div>
     );

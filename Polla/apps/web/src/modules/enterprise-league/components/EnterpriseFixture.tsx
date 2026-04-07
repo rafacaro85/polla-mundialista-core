@@ -468,6 +468,7 @@ export const EnterpriseFixture = () => {
                                 awayTeamPlaceholder: m.awayTeamPlaceholder,
                             }))}
                             leagueId={leagueId}
+                            tournamentId={leagueMetadata?.tournamentId}
                         />
                     </TabsContent>
                     <TabsContent value="rivals" className="w-full mt-0">

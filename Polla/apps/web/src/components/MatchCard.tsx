@@ -203,12 +203,21 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
   const getResultVisuals = () => {
     if (!isFinished) return { bg: '#1E293B', text: 'white', label: '' };
     
-    const isExact = points >= 3 && (!theJoker || points >= 6); 
+    // El acierto exacto es matemáticamente indiscutible si ambos marcadores empatan
+    const isExact = 
+      match.scoreH !== null && match.scoreA !== null &&
+      match.prediction?.homeScore !== null && match.prediction?.awayScore !== null &&
+      Number(match.scoreH) === Number(match.prediction?.homeScore) && 
+      Number(match.scoreA) === Number(match.prediction?.awayScore);
+    
     if (isExact) {
+        // Acierto exacto: verde
         return { bg: '#00E676', text: '#0F172A', label: 'ACIERTO EXACTO' };
     } else if (hasWon) {
-        return { bg: '#F59E0B', text: '#0F172A', label: 'ACIERTO PARCIAL' };
+        // Acierto parcial: también verde por petición del usuario
+        return { bg: '#00E676', text: '#0F172A', label: 'ACIERTO PARCIAL' };
     } else {
+        // Fallo: rojo
         return { bg: '#EF4444', text: 'white', label: 'FALLO' };
     }
   };

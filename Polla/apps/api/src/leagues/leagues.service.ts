@@ -2013,6 +2013,82 @@ export class LeaguesService {
     };
   }
 
+  async getLiveLeagueRankingDebug(leagueId: string) {
+    const result: any = { leagueId, steps: [] };
+
+    // Step 1: Find the league
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    result.steps.push({ step: '1_league', found: !!league, tournamentId: league?.tournamentId });
+    if (!league) return result;
+
+    const tournamentId = league.tournamentId;
+
+    // Step 2: Find live matches
+    const liveMatches = await this.matchRepository.find({
+      where: { status: In(['LIVE', 'IN_PLAY', 'PAUSED', 'HALFTIME']), tournamentId }
+    });
+    result.steps.push({
+      step: '2_live_matches',
+      count: liveMatches.length,
+      matches: liveMatches.map(m => ({
+        id: m.id, homeTeam: m.homeTeam, awayTeam: m.awayTeam,
+        homeScore: m.homeScore, awayScore: m.awayScore,
+        status: m.status, tournamentId: m.tournamentId
+      }))
+    });
+
+    // Step 3: Base ranking (just user ids)
+    const tmpKey = `ranking:debug:tmp:${leagueId}`;
+    const baseRanking = await this._computeLeagueRanking(leagueId, '', tmpKey);
+    await this.cacheManager.del(tmpKey);
+    result.steps.push({
+      step: '3_base_ranking',
+      count: baseRanking.length,
+      users: baseRanking.map((r: any) => ({ id: r.id, nickname: r.nickname, totalPoints: r.totalPoints }))
+    });
+
+    // Step 4: Predictions for each live match
+    for (const liveMatch of liveMatches) {
+      const rawPredictions = await this.predictionRepository.manager.query(
+        `SELECT p."userId", p."homeScore", p."awayScore", p.points, p."isJoker", p."league_id"
+         FROM predictions p
+         WHERE p."matchId" = $1 AND p."deleted_at" IS NULL
+           AND (p."league_id" = $2 OR p."league_id" IS NULL)`,
+        [liveMatch.id, leagueId]
+      );
+
+      const calcs = rawPredictions.map((pred: any) => {
+        const fakePred = {
+          homeScore: Number(pred.homeScore),
+          awayScore: Number(pred.awayScore),
+          points: Number(pred.points || 0),
+          isJoker: Boolean(pred.isJoker),
+        } as any;
+        if (pred.league_id === null) fakePred.isJoker = false;
+        const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, fakePred);
+        const official = Number(pred.points || 0);
+        const inRanking = baseRanking.find((r: any) => r.id === pred.userId);
+        return {
+          userId: pred.userId,
+          predHome: pred.homeScore, predAway: pred.awayScore,
+          isJoker: fakePred.isJoker, leagueId: pred.league_id,
+          officialPoints: official, provisionalPoints: provisional,
+          extra: provisional - official,
+          foundInRanking: !!inRanking,
+        };
+      });
+
+      result.steps.push({
+        step: `4_predictions_match_${liveMatch.homeTeam}_vs_${liveMatch.awayTeam}`,
+        matchScore: `${liveMatch.homeScore}-${liveMatch.awayScore}`,
+        predictionsCount: rawPredictions.length,
+        calculations: calcs
+      });
+    }
+
+    return result;
+  }
+
   async getLiveLeagueRanking(leagueId: string) {
     // 1. Obtener ranking base (puntos oficiales)
     let tournamentId = '';

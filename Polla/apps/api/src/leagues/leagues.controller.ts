@@ -134,6 +134,12 @@ export class LeaguesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id/ranking/live/debug')
+  async getLiveRankingDebug(@Param('id') leagueId: string) {
+    return this.leaguesService.getLiveLeagueRankingDebug(leagueId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id/ranking/live')
   async getLiveRanking(@Param('id') leagueId: string) {
     return this.leaguesService.getLiveLeagueRanking(leagueId);

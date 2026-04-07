@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, ChevronRight, Shield, HelpCircle, ChevronDown, Settings } from 'lucide-react';
+import { User, LogOut, ChevronRight, Shield, HelpCircle, ChevronDown, Settings, Bot } from 'lucide-react';
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -319,6 +319,15 @@ export function UserNav() {
             label="Cómo Jugar"
             onClick={() => router.push('/instructions')}
             hasArrow
+          />
+
+          <div style={STYLES.divider} />
+
+          <MenuItem
+            icon={Bot}
+            label="Pregúntale al Profe"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-profe-chat'))}
+            isSpecial
           />
 
           <div style={STYLES.divider} />

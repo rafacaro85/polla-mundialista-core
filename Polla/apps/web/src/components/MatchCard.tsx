@@ -547,7 +547,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 <div style={STYLES.splitBox}>
                   <div style={STYLES.splitBoxTitle}>TU PRONÓSTICO</div>
                   <div style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 'bold' }}>
-                    {(match.prediction?.homeScore ?? homeScore) || '-'} - {(match.prediction?.awayScore ?? awayScore) || '-'}
+                    {match.prediction?.homeScore ?? (homeScore === '' ? '-' : homeScore)} - {match.prediction?.awayScore ?? (awayScore === '' ? '-' : awayScore)}
                   </div>
                 </div>
               </>
@@ -560,7 +560,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 )}
                 {isPaused && (
                   <div style={STYLES.pausedIndicator}>
-                    [⏸️ ENTRE TIEMPO]
+                    [ENTRE TIEMPO]
                   </div>
                 )}
                 {/* Resultado Real Parcial */}
@@ -574,7 +574,7 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                 <div style={STYLES.splitBox}>
                   <div style={STYLES.splitBoxTitle}>TU PRONÓSTICO</div>
                   <div style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 'bold' }}>
-                    {(match.prediction?.homeScore ?? homeScore) || '-'} - {(match.prediction?.awayScore ?? awayScore) || '-'}
+                    {match.prediction?.homeScore ?? (homeScore === '' ? '-' : homeScore)} - {match.prediction?.awayScore ?? (awayScore === '' ? '-' : awayScore)}
                   </div>
                 </div>
               </>

@@ -75,9 +75,13 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
             try {
                 const { data } = await api.get(`/matches?tournamentId=${tournamentId}`);
                 if (Array.isArray(data)) {
-                    // Filtrar partidos bloqueados o en curso/finalizados
+                    const now = new Date().getTime();
+                    // Filtrar partidos bloqueados manualmente, en curso/finalizados, o cuya fecha ya haya pasado
                     const lockedMatches = data.filter(
-                        (m: any) => m.isManuallyLocked || ['FINISHED', 'LIVE', 'COMPLETED'].includes(m.status)
+                        (m: any) => 
+                            m.isManuallyLocked || 
+                            ['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status) ||
+                            new Date(m.date).getTime() <= now
                     );
                     setMatches(lockedMatches);
                 }

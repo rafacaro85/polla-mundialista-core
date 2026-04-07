@@ -6,6 +6,7 @@ import { Match } from '../database/entities/match.entity';
 import { ScoringService } from '../scoring/scoring.service';
 import { TournamentService } from '../tournament/tournament.service';
 import axios from 'axios';
+import * as https from 'https';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -99,19 +100,40 @@ export class MatchSyncService {
 
         const dateTodayStr = new Date().toISOString().split('T')[0];
 
+        const fetchWithRetry = async (url: string) => {
+          let retries = 3;
+          while (retries > 0) {
+            try {
+              return await axios.get(url, {
+                headers: { 'X-Auth-Token': apiKey },
+                timeout: 10000,
+                httpsAgent: new https.Agent({ rejectUnauthorized: false })
+              });
+            } catch (error: any) {
+              if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+                retries--;
+                if (retries === 0) throw error;
+                await new Promise(r => setTimeout(r, 3000));
+              } else {
+                throw error;
+              }
+            }
+          }
+          throw new Error('Max retries reached');
+        };
+
         // 1. Request All IN_PLAY & PAUSED
         try {
           this.logger.log(`🔄 BULK Syncing LIVE matches for ${tournamentId} (target: API bulk)...`);
-          const inPlayRes = await axios.get(
-            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=IN_PLAY,PAUSED`,
-            { headers: { 'X-Auth-Token': apiKey } }
+          const inPlayRes = await fetchWithRetry(
+            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=IN_PLAY,PAUSED`
           );
           
           const inPlayMatches = inPlayRes.data?.matches || [];
           for (const apiMatch of inPlayMatches) {
              await this.processFixtureData(apiMatch);
           }
-        } catch (innerError) {
+        } catch (innerError: any) {
           this.logger.error(`❌ Error bulk syncing LIVE for ${tournamentId}: ${innerError.message}`);
         }
 
@@ -120,9 +142,8 @@ export class MatchSyncService {
         // 2. Request All FINISHED today
         try {
           this.logger.log(`🔄 BULK Syncing FINISHED matches today for ${tournamentId}...`);
-          const finRes = await axios.get(
-            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=FINISHED&dateFrom=${dateTodayStr}&dateTo=${dateTodayStr}`,
-            { headers: { 'X-Auth-Token': apiKey } }
+          const finRes = await fetchWithRetry(
+            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=FINISHED&dateFrom=${dateTodayStr}&dateTo=${dateTodayStr}`
           );
           
           const finMatches = finRes.data?.matches || [];

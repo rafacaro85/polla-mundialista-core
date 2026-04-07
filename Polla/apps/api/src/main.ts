@@ -49,10 +49,13 @@ async function bootstrap() {
           : []),
       ].filter(Boolean);
 
+      // Regex para permitir cualquier Vercel preview branch
+      const isVercelPreview = /^https:\/\/polla-mundialista-core-.*-rafaels-projects-10edc374\.vercel\.app$/.test(origin || '');
+
       // Permite requests sin origin (mobile apps, Postman, server-to-server)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(origin) || isVercelPreview) {
         return callback(null, true);
       }
 

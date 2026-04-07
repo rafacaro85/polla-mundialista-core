@@ -2014,68 +2014,96 @@ export class LeaguesService {
   }
 
   async getLiveLeagueRanking(leagueId: string) {
-    // 1. Obtener ranking base (puntos oficiales) locales
-    let isGlobal = false;
+    // 1. Obtener ranking base (puntos oficiales)
     let tournamentId = '';
-    let baseRanking = [];
+    let baseRankingRaw: any[] = [];
 
     if (leagueId === 'global') {
-      tournamentId = 'WC2026'; // Default actual
-      baseRanking = await this.getGlobalRanking(tournamentId);
-      isGlobal = true;
+      tournamentId = 'WC2026';
+      baseRankingRaw = await this.getGlobalRanking(tournamentId);
     } else {
       const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
       if (!league) throw new NotFoundException('League not found');
       tournamentId = league.tournamentId;
-      baseRanking = await this.getLeagueRanking(leagueId, '');
+      // Llamamos _computeLeagueRanking directamente para evitar bloqueos por userId vacío
+      // y para trabajar con una copia fresca (sin caché compartida)
+      const tmpCacheKey = `ranking:live:tmp:${leagueId}`;
+      baseRankingRaw = await this._computeLeagueRanking(leagueId, '', tmpCacheKey);
+      // Limpiar caché temporal inmediatamente para no contaminar
+      await this.cacheManager.del(tmpCacheKey);
     }
 
-    if (!baseRanking || baseRanking.length === 0) {
+    if (!baseRankingRaw || baseRankingRaw.length === 0) {
       return { ranking: [], isLive: false, liveMatches: [] };
     }
 
+    // ⚠️ CRÍTICO: Copia profunda para no mutar el caché compartido
+    const baseRanking: any[] = baseRankingRaw.map(r => ({ ...r }));
+
     // 2. Buscar partidos LIVE de este torneo
     const liveMatches = await this.matchRepository.find({
-      where: { 
+      where: {
         status: In(['LIVE', 'IN_PLAY', 'PAUSED', 'HALFTIME']),
         tournamentId: tournamentId
       }
     });
 
-    // Si no hay partidos en vivo retornar ranking normal
+    this.logger.log(`[LiveRanking] Partidos en vivo encontrados para ${tournamentId}: ${liveMatches.length}`);
+
     if (liveMatches.length === 0) {
       return { ranking: baseRanking, isLive: false, liveMatches: [] };
     }
 
-    // 3. Para cada partido en vivo, calcular puntos provisionales de cada usuario
+    // 3. Para cada partido en vivo, calcular puntos provisionales
     for (const liveMatch of liveMatches) {
-      const predictions = await this.predictionRepository.find({
-        where: { match: { id: liveMatch.id } },
-        relations: ['user'] // rel para asegurar id
-      });
+      this.logger.log(`[LiveRanking] Procesando partido ${liveMatch.homeTeam} vs ${liveMatch.awayTeam} [${liveMatch.homeScore}-${liveMatch.awayScore}]`);
 
-      for (const prediction of predictions) {
-        const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, prediction);
-        const official = prediction.points || 0;
-        let extra = provisional - official;
+      // Buscamos predicciones de este partido. La columna userId está directamente en la tabla.
+      // No usamos relación 'user' ya que Prediction no la declara como columna directa.
+      const rawPredictions = await this.predictionRepository.manager.query(
+        `SELECT p.id, p."userId", p."homeScore", p."awayScore", p.points, p."isJoker", p."league_id"
+         FROM predictions p
+         WHERE p."matchId" = $1
+           AND p."deleted_at" IS NULL`,
+        [liveMatch.id]
+      );
+
+      this.logger.log(`[LiveRanking] Predicciones encontradas para partido: ${rawPredictions.length}`);
+
+      for (const pred of rawPredictions) {
+        // Recrear objeto compatible con calculateProvisionalPoints
+        const fakePrediction = {
+          homeScore: Number(pred.homeScore),
+          awayScore: Number(pred.awayScore),
+          points: Number(pred.points || 0),
+          isJoker: Boolean(pred.isJoker),
+        } as any;
+
+        const provisional = this.scoringService.calculateProvisionalPoints(liveMatch, fakePrediction);
+        const official = Number(pred.points || 0);
+        const extra = provisional - official;
+
+        this.logger.log(`[LiveRanking] User ${pred.userId}: provisional=${provisional}, oficial=${official}, extra=${extra}`);
 
         if (extra > 0) {
-          const uId = prediction.user?.id || (prediction as any).userId;
-          const userRank = baseRanking.find((r: any) => r.id === uId);
+          const userRank = baseRanking.find((r: any) => r.id === pred.userId);
           if (userRank) {
             userRank.provisionalPoints = (userRank.provisionalPoints || 0) + extra;
             userRank.totalPoints += extra;
+            this.logger.log(`[LiveRanking] ✅ Actualizado UserRank #${userRank.rank} → totalPoints: ${userRank.totalPoints}`);
+          } else {
+            this.logger.warn(`[LiveRanking] ⚠️ User ${pred.userId} NO encontrado en ranking base.`);
           }
         }
       }
     }
 
-    // 4. Re-ordenar ranking con puntos provisionales y recalcular posición (rank)
+    // 4. Re-ordenar ranking con puntos provisionales
     baseRanking.sort((a: any, b: any) => b.totalPoints - a.totalPoints);
     baseRanking.forEach((r: any, i: number) => r.rank = i + 1);
 
-    return { 
-      ranking: baseRanking, 
+    return {
+      ranking: baseRanking,
       isLive: true,
       liveMatches: liveMatches.map(m => ({
         id: m.id,

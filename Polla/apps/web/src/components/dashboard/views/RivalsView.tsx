@@ -76,12 +76,13 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
                 const { data } = await api.get(`/matches?tournamentId=${tournamentId}`);
                 if (Array.isArray(data)) {
                     const now = new Date().getTime();
-                    // Filtrar partidos bloqueados manualmente, en curso/finalizados, o cuya fecha ya haya pasado
+                    const TEN_MIN = 10 * 60 * 1000;
+                    // REGLA ANTI-COPIA: Solo mostrar partidos que YA iniciaron (10 min antes) o finalizados
+                    // isManuallyLocked NO es suficiente — debe cumplir la regla de tiempo también
                     const lockedMatches = data.filter(
                         (m: any) => 
-                            m.isManuallyLocked || 
                             ['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status) ||
-                            new Date(m.date).getTime() <= now
+                            (new Date(m.date).getTime() - now) <= TEN_MIN
                     );
                     setMatches(lockedMatches);
                 }
@@ -116,9 +117,25 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
         return () => clearInterval(timer);
     }, [tournamentId, leagueId]);
 
+    // Helper: ¿Se pueden ver las predicciones de este partido?
+    const isPredictionsVisible = (match: Match): boolean => {
+        const TEN_MIN = 10 * 60 * 1000;
+        const now = new Date().getTime();
+        const matchTime = new Date(match.date).getTime();
+        const isStartingSoon = (matchTime - now) <= TEN_MIN;
+        const isActiveOrDone = ['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED', 'HALFTIME'].includes(match.status);
+        return isStartingSoon || isActiveOrDone;
+    };
+
     const handleExpandMatch = async (matchId: string) => {
         if (expandedMatchId === matchId) {
             setExpandedMatchId(null);
+            return;
+        }
+
+        // SEGURIDAD: No expandir partidos futuros
+        const match = matches.find(m => m.id === matchId);
+        if (match && !isPredictionsVisible(match)) {
             return;
         }
 
@@ -128,7 +145,6 @@ export const RivalsView: React.FC<RivalsViewProps> = ({ leagueId, tournamentId }
 
         setLoadingSummary(prev => ({ ...prev, [matchId]: true }));
         try {
-            // Fetch top 5 + current user
             const { data } = await api.get(`/predictions/league/${leagueId}/match/${matchId}?limit=5&sortBy=points`);
             const res = data as PredictionResponse;
             

@@ -225,6 +225,8 @@ export class MatchesService {
     if (data.isTimerActive !== undefined)
       match.isTimerActive = data.isTimerActive;
     if (data.minute !== undefined) match.minute = data.minute;
+    if (data.externalId !== undefined) match.externalId = data.externalId;
+    if (data.date !== undefined) match.date = data.date;
 
     const savedMatch = await this.matchesRepository.save(match);
 

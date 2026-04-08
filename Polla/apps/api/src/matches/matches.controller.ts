@@ -276,7 +276,7 @@ export class MatchesController {
     if (body.status !== undefined) match.status = body.status;
     if (body.homeScore !== undefined) match.homeScore = body.homeScore;
     if (body.awayScore !== undefined) match.awayScore = body.awayScore;
-    if (body.externalId !== undefined) match.externalId = body.externalId;
+    if (body.externalId !== undefined) match.externalId = body.externalId as any;
     if (body.date !== undefined) match.date = new Date(body.date);
     
     return this.matchesService.updateMatch(id, match);

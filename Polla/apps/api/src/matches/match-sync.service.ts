@@ -337,4 +337,119 @@ export class MatchSyncService {
       default: return apiStatus;
     }
   }
+
+  /**
+   * Auto-assign externalIds by matching team names from football-data.org API
+   * Call this endpoint when matches exist in DB but lack externalId
+   */
+  async autoAssignExternalIds(tournamentId: string = 'UCL2526'): Promise<any> {
+    const TOURNAMENT_MAP: Record<string, { competition: string; season: number }> = {
+      'WC2026': { competition: 'WC', season: 2026 },
+      'UCL2526': { competition: 'CL', season: 2025 },
+    };
+
+    const tMap = TOURNAMENT_MAP[tournamentId];
+    if (!tMap) {
+      return { error: `No mapping for tournament ${tournamentId}` };
+    }
+
+    const apiKey = this.configService.get<string>('FOOTBALL_DATA_API_KEY');
+    if (!apiKey) {
+      return { error: 'Missing FOOTBALL_DATA_API_KEY' };
+    }
+
+    try {
+      // 1. Get all matches from football-data.org for this competition
+      const res = await axios.get(
+        `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?season=${tMap.season}`,
+        {
+          headers: { 'X-Auth-Token': apiKey },
+          timeout: 30000,
+          httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+        },
+      );
+
+      const apiMatches = res.data?.matches || [];
+      this.logger.log(`🔗 [AutoAssign] Got ${apiMatches.length} matches from football-data.org for ${tournamentId}`);
+
+      // 2. Get all local matches without externalId for this tournament
+      const localMatches = await this.matchesRepository.find({
+        where: { tournamentId },
+      });
+
+      const unlinked = localMatches.filter(m => !m.externalId);
+      this.logger.log(`🔗 [AutoAssign] Local matches: ${localMatches.length} total, ${unlinked.length} without externalId`);
+
+      // 3. Normalize team names for fuzzy matching
+      const normalize = (name: string): string => {
+        if (!name) return '';
+        return name
+          .toLowerCase()
+          .replace(/fc |cf |sc |ac |afc |rc /gi, '')
+          .replace(/\./g, '')
+          .trim();
+      };
+
+      let assigned = 0;
+      const results: any[] = [];
+
+      for (const local of unlinked) {
+        const localHome = normalize(local.homeTeam);
+        const localAway = normalize(local.awayTeam);
+
+        if (!localHome || !localAway) continue;
+
+        // Find matching API match by team names
+        const apiMatch = apiMatches.find((am: any) => {
+          const apiHome = normalize(am.homeTeam?.name || am.homeTeam?.shortName || '');
+          const apiAway = normalize(am.awayTeam?.name || am.awayTeam?.shortName || '');
+          const apiHomeTla = (am.homeTeam?.tla || '').toLowerCase();
+          const apiAwayTla = (am.awayTeam?.tla || '').toLowerCase();
+
+          return (
+            (apiHome.includes(localHome) || localHome.includes(apiHome) || apiHomeTla === localHome) &&
+            (apiAway.includes(localAway) || localAway.includes(apiAway) || apiAwayTla === localAway)
+          );
+        });
+
+        if (apiMatch) {
+          local.externalId = apiMatch.id;
+          // Also sync the date from football-data if not set properly
+          if (apiMatch.utcDate) {
+            local.date = new Date(apiMatch.utcDate);
+          }
+          await this.matchesRepository.save(local);
+          assigned++;
+          results.push({
+            localId: local.id,
+            teams: `${local.homeTeam} vs ${local.awayTeam}`,
+            externalId: apiMatch.id,
+            apiDate: apiMatch.utcDate,
+            apiStatus: apiMatch.status,
+          });
+          this.logger.log(`✅ [AutoAssign] ${local.homeTeam} vs ${local.awayTeam} → externalId=${apiMatch.id} (date: ${apiMatch.utcDate})`);
+        } else {
+          results.push({
+            localId: local.id,
+            teams: `${local.homeTeam} vs ${local.awayTeam}`,
+            externalId: null,
+            error: 'No API match found',
+          });
+          this.logger.warn(`⚠️ [AutoAssign] No match found for: ${local.homeTeam} vs ${local.awayTeam}`);
+        }
+      }
+
+      return {
+        tournament: tournamentId,
+        apiMatchesTotal: apiMatches.length,
+        localMatchesTotal: localMatches.length,
+        unlinkedBefore: unlinked.length,
+        assigned,
+        details: results,
+      };
+    } catch (error: any) {
+      this.logger.error(`❌ [AutoAssign] Error: ${error.message}`);
+      return { error: error.message };
+    }
+  }
 }

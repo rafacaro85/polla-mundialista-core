@@ -235,6 +235,14 @@ export class MatchesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @Post('auto-assign-ids')
+  async autoAssignExternalIds(@Body() body: { tournamentId?: string }) {
+    const tid = body?.tournamentId || 'UCL2526';
+    return this.matchSyncService.autoAssignExternalIds(tid);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post('fix-empty-teams')
   async fixEmptyTeams() {
     return this.matchesService.fixEmptyTeamFields();

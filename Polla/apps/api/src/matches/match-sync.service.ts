@@ -445,8 +445,8 @@ export class MatchSyncService {
 
         if (!localHome || !localAway) continue;
 
-        // Find matching API match by team names
-        const apiMatch = apiMatches.find((am: any) => {
+        // Find ALL matching API matches by team names, then pick the one closest in date
+        const candidateApiMatches = apiMatches.filter((am: any) => {
           const apiHome = normalize(am.homeTeam?.name || am.homeTeam?.shortName || '');
           const apiAway = normalize(am.awayTeam?.name || am.awayTeam?.shortName || '');
           const apiHomeTla = (am.homeTeam?.tla || '').toLowerCase();
@@ -457,6 +457,19 @@ export class MatchSyncService {
             (apiAway.includes(localAway) || localAway.includes(apiAway) || apiAwayTla === localAway)
           );
         });
+
+        // Pick the candidate with the closest date to the local match
+        let apiMatch = candidateApiMatches[0] || null;
+        if (candidateApiMatches.length > 1 && local.date) {
+          const localTime = new Date(local.date).getTime();
+          candidateApiMatches.sort((a: any, b: any) => {
+            const diffA = Math.abs(new Date(a.utcDate).getTime() - localTime);
+            const diffB = Math.abs(new Date(b.utcDate).getTime() - localTime);
+            return diffA - diffB;
+          });
+          apiMatch = candidateApiMatches[0];
+          this.logger.log(`🔗 [AutoAssign] ${candidateApiMatches.length} candidates for ${local.homeTeam} vs ${local.awayTeam}. Picked closest date: ${apiMatch.utcDate}`);
+        }
 
         if (apiMatch) {
           local.externalId = apiMatch.id;

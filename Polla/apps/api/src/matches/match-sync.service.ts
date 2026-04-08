@@ -70,23 +70,56 @@ export class MatchSyncService {
           this.logger.log(`   ↳ ${m.homeTeam} vs ${m.awayTeam} | date=${m.date?.toISOString?.()} | status=${m.status} | extId=${m.externalId} | tournament=${m.tournamentId}`);
         }
       } else {
-        // Si no hay partidos hoy, buscar los próximos para informar
-        const nextMatches = await this.matchesRepository
+        // AUTO-REPARACIÓN: Buscar si hay partidos HOY pero sin externalId
+        const matchesWithoutExtId = await this.matchesRepository
           .createQueryBuilder('match')
-          .where('match.externalId IS NOT NULL')
-          .andWhere('match.date IS NOT NULL')
-          .andWhere('match.date > :now', { now })
-          .andWhere('match.status != :finished', { finished: 'FINISHED' })
-          .orderBy('match.date', 'ASC')
-          .take(3)
+          .where('match.date IS NOT NULL')
+          .andWhere('match.date >= :start', { start: startOfDay })
+          .andWhere('match.date <= :end', { end: endOfDay })
+          .andWhere('(match.externalId IS NULL OR match.externalId = 0)')
           .getMany();
-        if (nextMatches.length > 0) {
-          this.logger.log(`📅 [DIAG] Próximos partidos en BD:`);
-          for (const m of nextMatches) {
-            this.logger.log(`   ↳ ${m.homeTeam} vs ${m.awayTeam} | date=${m.date?.toISOString?.()} | status=${m.status} | extId=${m.externalId}`);
+
+        if (matchesWithoutExtId.length > 0) {
+          this.logger.warn(`🔧 [AUTO-FIX] Encontrados ${matchesWithoutExtId.length} partidos HOY sin externalId. Ejecutando auto-asignación...`);
+          const tournaments = [...new Set(matchesWithoutExtId.map(m => m.tournamentId))];
+          for (const tid of tournaments) {
+            try {
+              const result = await this.autoAssignExternalIds(tid);
+              this.logger.log(`🔧 [AUTO-FIX] Resultado para ${tid}: ${result.assigned || 0} IDs asignados`);
+            } catch (e: any) {
+              this.logger.error(`🔧 [AUTO-FIX] Error asignando IDs para ${tid}: ${e.message}`);
+            }
           }
+          // Re-ejecutar la consulta original tras la auto-reparación
+          const retryMatches = await this.matchesRepository
+            .createQueryBuilder('match')
+            .where('match.externalId IS NOT NULL')
+            .andWhere('match.date IS NOT NULL')
+            .andWhere('match.date >= :start', { start: startOfDay })
+            .andWhere('match.date <= :end', { end: endOfDay })
+            .getMany();
+          // Reemplazar el array original
+          allMatchesToday.push(...retryMatches);
+          this.logger.log(`🔧 [AUTO-FIX] Tras reparación: ${allMatchesToday.length} partidos con externalId`);
         } else {
-          this.logger.warn(`📅 [DIAG] ⚠️ NO hay NINGÚN partido futuro con externalId en la BD!`);
+          // Si no hay partidos hoy, buscar los próximos para informar
+          const nextMatches = await this.matchesRepository
+            .createQueryBuilder('match')
+            .where('match.externalId IS NOT NULL')
+            .andWhere('match.date IS NOT NULL')
+            .andWhere('match.date > :now', { now })
+            .andWhere('match.status != :finished', { finished: 'FINISHED' })
+            .orderBy('match.date', 'ASC')
+            .take(3)
+            .getMany();
+          if (nextMatches.length > 0) {
+            this.logger.log(`📅 [DIAG] Próximos partidos en BD:`);
+            for (const m of nextMatches) {
+              this.logger.log(`   ↳ ${m.homeTeam} vs ${m.awayTeam} | date=${m.date?.toISOString?.()} | status=${m.status} | extId=${m.externalId}`);
+            }
+          } else {
+            this.logger.warn(`📅 [DIAG] ⚠️ NO hay NINGÚN partido futuro con externalId en la BD!`);
+          }
         }
       }
 

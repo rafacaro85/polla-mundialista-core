@@ -166,41 +166,87 @@ export class MatchSyncService {
   // 🛠️ HELPER: Process Single Fixture
   async processFixtureData(fixture: any): Promise<boolean> {
     try {
-      const matchData = fixture; // football-data single match structure
+      const matchData = fixture;
       const externalId = matchData.id;
-      const statusShort = matchData.status; // e.g. FINISHED, IN_PLAY, PAUSED, HALFTIME
-      
-      // goals
-      const homeScore = matchData.score?.fullTime?.home ?? matchData.score?.regularTime?.home;
-      const awayScore = matchData.score?.fullTime?.away ?? matchData.score?.regularTime?.away;
-      const elapsed = matchData.minute || null;
+      const statusShort = matchData.status; // FINISHED, IN_PLAY, PAUSED, TIMED, SCHEDULED
+
+      // ============================================================
+      // FIX #1: Extracción robusta de goles
+      // football-data.org v4 usa fullTime como "running total" durante
+      // el partido. halfTime se llena al entretiempo.
+      // Si ambos son null, intentamos contar desde el array goals[].
+      // ============================================================
+      let homeScore: number | null = matchData.score?.fullTime?.home ?? null;
+      let awayScore: number | null = matchData.score?.fullTime?.away ?? null;
+
+      // Fallback 1: Si fullTime es null, intentar halfTime
+      if (homeScore === null || awayScore === null) {
+        homeScore = matchData.score?.halfTime?.home ?? null;
+        awayScore = matchData.score?.halfTime?.away ?? null;
+      }
+
+      // Fallback 2: Si aún es null pero hay goles en el array goals[], contarlos
+      if ((homeScore === null || awayScore === null) && matchData.goals?.length > 0) {
+        const lastGoal = matchData.goals[matchData.goals.length - 1];
+        homeScore = lastGoal?.score?.home ?? 0;
+        awayScore = lastGoal?.score?.away ?? 0;
+      }
+
+      // Si el partido está IN_PLAY o PAUSED y no hay goles, inicializar en 0-0
+      if (['IN_PLAY', 'PAUSED'].includes(statusShort) && homeScore === null) {
+        homeScore = 0;
+        awayScore = 0;
+      }
+
+      // ============================================================
+      // FIX #2: Extracción del minuto
+      // football-data.org v4 SÍ incluye "minute" como campo directo.
+      // ============================================================
+      const elapsed = matchData.minute ? String(matchData.minute) : null;
 
       const match = await this.matchesRepository.findOne({
         where: { externalId: Number(externalId) },
       });
 
-      if (!match) return false;
+      if (!match) {
+        this.logger.warn(`⚠️ No local match found for externalId=${externalId}`);
+        return false;
+      }
 
       if (match.isManuallyLocked) return false;
 
+      // ============================================================
+      // FIX #3: hasChanged mejorado — detectar cualquier cambio real
+      // ============================================================
+      const targetStatus = this.mapApiStatusToLocal(statusShort);
       const hasChanged =
         match.homeScore !== homeScore ||
         match.awayScore !== awayScore ||
-        match.status !== 'FINISHED';
+        match.status !== targetStatus ||
+        (elapsed !== null && match.minute !== elapsed);
+
+      // LOG DE DIAGNÓSTICO (solo cuando hay cambios o partido activo)
+      if (['IN_PLAY', 'PAUSED', 'FINISHED'].includes(statusShort)) {
+        this.logger.log(
+          `📊 [SYNC] externalId=${externalId} | API: ${homeScore}-${awayScore} (${statusShort}, min:${elapsed}) | ` +
+          `DB: ${match.homeScore}-${match.awayScore} (${match.status}, min:${match.minute}) | ` +
+          `changed=${hasChanged}`
+        );
+      }
 
       if (hasChanged) {
-        if (!match.homeTeam) match.homeTeam = matchData.homeTeam.name;
-        if (!match.awayTeam) match.awayTeam = matchData.awayTeam.name;
+        if (!match.homeTeam) match.homeTeam = matchData.homeTeam?.name || matchData.homeTeam?.shortName;
+        if (!match.awayTeam) match.awayTeam = matchData.awayTeam?.name || matchData.awayTeam?.shortName;
 
         match.homeScore = homeScore;
         match.awayScore = awayScore;
 
         if (elapsed !== null) match.minute = elapsed;
 
-        // STATUS LOGIC (football-data.org formatting)
+        // STATUS LOGIC (football-data.org status mapping)
         const FINISHED_STATUSES = ['FINISHED', 'AWARDED'];
         const LIVE_STATUSES = ['IN_PLAY'];
-        const PAUSED_STATUSES = ['PAUSED', 'HALFTIME'];
+        const PAUSED_STATUSES = ['PAUSED'];
         const CANCELLED_STATUSES = ['POSTPONED', 'CANCELLED', 'SUSPENDED'];
 
         if (FINISHED_STATUSES.includes(statusShort)) {
@@ -209,7 +255,7 @@ export class MatchSyncService {
             await this.matchesRepository.save(match);
 
             this.logger.log(
-              `🏁 Match ${match.id} FINISHED. Calculating points...`,
+              `🏁 Match ${match.id} FINISHED (${homeScore}-${awayScore}). Calculating points...`,
             );
             await this.scoringService.calculatePointsForMatch(match.id);
             await this.tournamentService.promoteToNextRound(match);
@@ -217,23 +263,17 @@ export class MatchSyncService {
             await this.matchesRepository.save(match);
           }
         } else if (PAUSED_STATUSES.includes(statusShort)) {
-          if (match.status !== 'PAUSED') {
-            match.status = 'PAUSED';
-            match.minute = 'HT';
-            this.logger.log(`⏸️ Match ${match.id} is now PAUSED (HT)`);
-          }
+          match.status = 'PAUSED';
+          match.minute = 'HT';
+          this.logger.log(`⏸️ Match ${match.id} → PAUSED (HT) [${homeScore}-${awayScore}]`);
           await this.matchesRepository.save(match);
         } else if (LIVE_STATUSES.includes(statusShort)) {
-          if (match.status !== 'LIVE') {
-            match.status = 'LIVE';
-            this.logger.log(`🔴 Match ${match.id} is now LIVE.`);
-          }
+          match.status = 'LIVE';
+          this.logger.log(`🔴 Match ${match.id} → LIVE min:${elapsed} [${homeScore}-${awayScore}]`);
           await this.matchesRepository.save(match);
         } else if (CANCELLED_STATUSES.includes(statusShort)) {
-          if (match.status !== statusShort) {
-            match.status = statusShort; // Guarda PST, CANC o ABD
-            this.logger.warn('Match postponed or cancelled', { matchId: match.id, status: statusShort });
-          }
+          match.status = statusShort;
+          this.logger.warn('Match postponed/cancelled', { matchId: match.id, status: statusShort });
           await this.matchesRepository.save(match);
         } else {
           await this.matchesRepository.save(match);
@@ -242,8 +282,22 @@ export class MatchSyncService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error processing fixture data: ${error.message}`);
+      this.logger.error(`Error processing fixture data: ${error.message}`, error.stack);
       return false;
+    }
+  }
+
+  // Helper: Map football-data.org status to our internal status
+  private mapApiStatusToLocal(apiStatus: string): string {
+    switch (apiStatus) {
+      case 'IN_PLAY': return 'LIVE';
+      case 'PAUSED': return 'PAUSED';
+      case 'FINISHED':
+      case 'AWARDED': return 'FINISHED';
+      case 'POSTPONED': return 'POSTPONED';
+      case 'CANCELLED': return 'CANCELLED';
+      case 'SUSPENDED': return 'SUSPENDED';
+      default: return apiStatus;
     }
   }
 }

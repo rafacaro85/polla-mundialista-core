@@ -5,6 +5,8 @@ import {
   Shield, 
   LogOut,
   Settings,
+  HelpCircle,
+  Bot,
   User as UserIcon,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -132,6 +134,22 @@ export const EnterpriseHeader = ({ league, myDepartment = 'General', isEnterpris
                                                     <Shield size={14} /> Super Admin
                                                 </button>
                                             )}
+
+                                            <div className="my-2 border-t border-white/5" />
+
+                                            <button
+                                                onClick={() => { setShowMenu(false); router.push('/como-jugar'); }}
+                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-slate-400 hover:text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
+                                            >
+                                                <HelpCircle size={14} /> Cómo Jugar
+                                            </button>
+
+                                            <button
+                                                onClick={() => { setShowMenu(false); window.dispatchEvent(new CustomEvent('open-profe-chat')); }}
+                                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 text-[var(--brand-primary)] hover:bg-white/5 rounded-xl transition-all"
+                                            >
+                                                <Bot size={14} /> Pregúntale al Profe
+                                            </button>
 
                                             <div className="my-2 border-t border-white/5" />
 

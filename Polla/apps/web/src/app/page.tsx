@@ -6,7 +6,7 @@ import {
   Trophy, Users, Zap, Building2, CheckCircle, ArrowRight,
   Menu, X, Star, PlayCircle, ShieldCheck, Cpu, Smartphone,
   BarChart3, HelpCircle, ChevronDown, MessageCircle, Link as LinkIcon,
-  Globe, Gift, Target, MousePointerClick, Shield, Crown, Gem, Settings
+  Globe, Gift, Target, MousePointerClick, Shield, Crown, Gem, Settings, Bot
 } from 'lucide-react';
 import { signInWithGoogle } from '@/lib/auth.utils';
 
@@ -28,7 +28,7 @@ import { signInWithGoogle } from '@/lib/auth.utils';
 const LogoLight = () => (
   <div className="flex items-center gap-3 select-none">
     <img 
-      src="/images/lpv/lpv-logo-gold.png" 
+      src="/images/lpv/lpv-full-logo.png" 
       alt="La Polla Virtual" 
       className="h-12 w-auto object-contain"
     />
@@ -335,6 +335,11 @@ export default function LandingPage() {
             <a href="#comunidad" className="hover:text-[#00E676] transition-colors text-[#00E676]">Ligas Privadas</a>
             <Link href="/planes" className="hover:text-[#00E676] transition-colors">Planes</Link>
             <a href="#corporativo" className="hover:text-[#00E676] transition-colors">Empresas</a>
+            
+            <button onClick={() => window.dispatchEvent(new CustomEvent('open-profe-chat'))} className="flex items-center gap-1.5 hover:text-[#00E676] transition-colors text-[#00E676]">
+               <Bot size={16} /> Pregúntale al Profe
+            </button>
+
             <div className="w-px h-6 bg-[#94A3B8]/30 mx-2"></div>
             <button onClick={onLoginClick} className="bg-[#0F172A] text-white px-5 py-2 rounded-lg font-[900] uppercase text-xs hover:bg-[#1E293B] shadow-md transition-all">
               Ingresar / Crear Cuenta
@@ -350,6 +355,12 @@ export default function LandingPage() {
             <a href="#comunidad" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Ligas Privadas</a>
             <Link href="/planes" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Planes</Link>
             <a href="#corporativo" onClick={() => setIsMenuOpen(false)} className="text-[#0F172A] font-bold py-2">Empresas</a>
+            <button
+               onClick={() => { setIsMenuOpen(false); window.dispatchEvent(new CustomEvent('open-profe-chat')); }}
+               className="text-[#00E676] font-bold py-2 text-left flex items-center gap-2"
+            >
+              <Bot size={18} /> Pregúntale al Profe
+            </button>
             <button
               onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
               className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-black uppercase"

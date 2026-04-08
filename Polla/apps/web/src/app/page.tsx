@@ -30,7 +30,7 @@ const LogoLight = () => (
     <img 
       src="/images/logo polla virtual/LPV_LOGO4.png" 
       alt="La Polla Virtual" 
-      className="h-12 w-auto object-contain"
+      className="h-20 w-auto object-contain"
     />
   </div>
 );

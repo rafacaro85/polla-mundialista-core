@@ -47,10 +47,21 @@ export class MatchSyncService {
       const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
       
       // FIX: Usar UTC explícito para evitar problemas de timezone en Railway
-      const startOfDay = new Date();
+      const startOfDay = new Date(now);
       startOfDay.setUTCHours(0, 0, 0, 0);
-      const endOfDay = new Date();
+      const endOfDay = new Date(now);
       endOfDay.setUTCHours(23, 59, 59, 999);
+
+      // --- DIAGNÓSTICO PROFUNDO ---
+      const debugMatches = await this.matchesRepository.find({
+        order: { date: 'ASC' },
+        take: 20
+      });
+      this.logger.log(`🔍 [DEEP-DIAG] Total matches in DB: ${debugMatches.length}`);
+      debugMatches.forEach(m => {
+        this.logger.log(`   ID: ${m.id} | ${m.homeTeam} vs ${m.awayTeam} | Date: ${m.date?.toISOString?.()} | ExtId: ${m.externalId}`);
+      });
+      // ----------------------------
 
       // DIAGNÓSTICO: Log para depuración
       this.logger.log(`📅 [DIAG] Server now: ${now.toISOString()} | Range: ${startOfDay.toISOString()} → ${endOfDay.toISOString()}`);

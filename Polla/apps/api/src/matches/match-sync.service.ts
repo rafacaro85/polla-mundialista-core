@@ -294,7 +294,9 @@ export class MatchSyncService {
         return false;
       }
 
-      if (match.isManuallyLocked) return false;
+      // NOTA: isManuallyLocked bloquea PREDICCIONES de usuarios, pero NO debe
+      // bloquear la sincronización de goles/status desde la API externa.
+      // Si el admin quiere pausar manualmente los scores, debe usar otro flag.
 
       // ============================================================
       // FIX #3: hasChanged mejorado — detectar cualquier cambio real

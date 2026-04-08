@@ -605,8 +605,16 @@ export class PredictionsService {
       throw new NotFoundException('Partido no encontrado');
     }
 
-    const hasStarted = new Date(match.date).getTime() <= new Date().getTime();
-    if (!match.isManuallyLocked && !['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED'].includes(match.status) && !hasStarted) {
+    // Regla anti-copia: Solo revelar predicciones de rivales si:
+    // 1. El partido está bloqueado manualmente por admin, O
+    // 2. El estado es LIVE/FINISHED/etc (la API lo actualizó), O
+    // 3. Faltan 10 minutos o menos para el kickoff (bloqueo automático por tiempo)
+    const TEN_MINUTES_MS = 10 * 60 * 1000;
+    const matchStartTime = new Date(match.date).getTime();
+    const now = new Date().getTime();
+    const isWithin10MinOrStarted = (matchStartTime - now) <= TEN_MINUTES_MS;
+
+    if (!match.isManuallyLocked && !['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED'].includes(match.status) && !isWithin10MinOrStarted) {
       throw new ForbiddenException('Las predicciones de este partido aún no están disponibles');
     }
 

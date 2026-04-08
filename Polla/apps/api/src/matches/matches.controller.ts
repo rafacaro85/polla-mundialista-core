@@ -248,6 +248,40 @@ export class MatchesController {
     return this.matchesService.fixEmptyTeamFields();
   }
 
+  // TEMPORAL: Reparar partido con equipos/flags intercambiados
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Post(':id/fix-match')
+  async fixMatch(
+    @Param('id') id: string,
+    @Body() body: {
+      homeTeam?: string;
+      awayTeam?: string;
+      homeFlag?: string;
+      awayFlag?: string;
+      status?: string;
+      homeScore?: number | null;
+      awayScore?: number | null;
+      externalId?: number | null;
+      date?: string;
+    },
+  ) {
+    const match = await this.matchesService.findMatchById(id);
+    if (!match) throw new Error('Match not found');
+    
+    if (body.homeTeam !== undefined) match.homeTeam = body.homeTeam;
+    if (body.awayTeam !== undefined) match.awayTeam = body.awayTeam;
+    if (body.homeFlag !== undefined) match.homeFlag = body.homeFlag;
+    if (body.awayFlag !== undefined) match.awayFlag = body.awayFlag;
+    if (body.status !== undefined) match.status = body.status;
+    if (body.homeScore !== undefined) match.homeScore = body.homeScore;
+    if (body.awayScore !== undefined) match.awayScore = body.awayScore;
+    if (body.externalId !== undefined) match.externalId = body.externalId;
+    if (body.date !== undefined) match.date = new Date(body.date);
+    
+    return this.matchesService.updateMatch(id, match);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch('teams/rename')

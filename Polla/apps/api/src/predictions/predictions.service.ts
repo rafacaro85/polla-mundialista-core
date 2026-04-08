@@ -605,7 +605,8 @@ export class PredictionsService {
       throw new NotFoundException('Partido no encontrado');
     }
 
-    if (!match.isManuallyLocked && !['FINISHED', 'LIVE', 'COMPLETED'].includes(match.status)) {
+    const hasStarted = new Date(match.date).getTime() <= new Date().getTime();
+    if (!match.isManuallyLocked && !['FINISHED', 'LIVE', 'COMPLETED', 'IN_PLAY', 'PAUSED'].includes(match.status) && !hasStarted) {
       throw new ForbiddenException('Las predicciones de este partido aún no están disponibles');
     }
 

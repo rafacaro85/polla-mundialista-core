@@ -46,32 +46,69 @@ export class MatchSyncService {
       const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
       const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
       
+      // FIX: Usar UTC explícito para evitar problemas de timezone en Railway
       const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+      startOfDay.setUTCHours(0, 0, 0, 0);
       const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
+      endOfDay.setUTCHours(23, 59, 59, 999);
 
-      const matchesToday = await this.matchesRepository
+      // DIAGNÓSTICO: Log para depuración
+      this.logger.log(`📅 [DIAG] Server now: ${now.toISOString()} | Range: ${startOfDay.toISOString()} → ${endOfDay.toISOString()}`);
+
+      // Consulta AMPLIA primero: todos los partidos del día sin filtrar status
+      const allMatchesToday = await this.matchesRepository
         .createQueryBuilder('match')
-        .where('match.status != :finished', { finished: 'FINISHED' })
-        .andWhere('match.externalId IS NOT NULL')
+        .where('match.externalId IS NOT NULL')
         .andWhere('match.date IS NOT NULL')
         .andWhere('match.date >= :start', { start: startOfDay })
         .andWhere('match.date <= :end', { end: endOfDay })
         .getMany();
 
-      const filteredMatches = matchesToday.filter(m => m.date >= threeHoursAgo && m.date <= oneHourFromNow);
+      this.logger.log(`📅 [DIAG] Total partidos hoy (cualquier status): ${allMatchesToday.length}`);
+      if (allMatchesToday.length > 0) {
+        for (const m of allMatchesToday) {
+          this.logger.log(`   ↳ ${m.homeTeam} vs ${m.awayTeam} | date=${m.date?.toISOString?.()} | status=${m.status} | extId=${m.externalId} | tournament=${m.tournamentId}`);
+        }
+      } else {
+        // Si no hay partidos hoy, buscar los próximos para informar
+        const nextMatches = await this.matchesRepository
+          .createQueryBuilder('match')
+          .where('match.externalId IS NOT NULL')
+          .andWhere('match.date IS NOT NULL')
+          .andWhere('match.date > :now', { now })
+          .andWhere('match.status != :finished', { finished: 'FINISHED' })
+          .orderBy('match.date', 'ASC')
+          .take(3)
+          .getMany();
+        if (nextMatches.length > 0) {
+          this.logger.log(`📅 [DIAG] Próximos partidos en BD:`);
+          for (const m of nextMatches) {
+            this.logger.log(`   ↳ ${m.homeTeam} vs ${m.awayTeam} | date=${m.date?.toISOString?.()} | status=${m.status} | extId=${m.externalId}`);
+          }
+        } else {
+          this.logger.warn(`📅 [DIAG] ⚠️ NO hay NINGÚN partido futuro con externalId en la BD!`);
+        }
+      }
+
+      // Filtrar solo los NO finalizados
+      const matchesToday = allMatchesToday.filter(m => m.status !== 'FINISHED');
+      this.logger.log(`📅 [DIAG] Partidos hoy NO finalizados: ${matchesToday.length}`);
+
+      const filteredMatches = matchesToday.filter(m => {
+        const matchDate = new Date(m.date);
+        return matchDate >= threeHoursAgo && matchDate <= oneHourFromNow;
+      });
 
       if (filteredMatches.length > 0) {
-        this.logger.log(`🎯 Found ${filteredMatches.length} active matches. Setting next run to 1 minute.`);
-        this.nextRunTime = new Date(now.getTime() + 1 * 60 * 1000); // 1 minuto
+        this.logger.log(`🎯 Found ${filteredMatches.length} active matches in time window. Syncing every 1 minute.`);
+        this.nextRunTime = new Date(now.getTime() + 1 * 60 * 1000);
       } else if (matchesToday.length > 0) {
-        this.nextRunTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutos
-        this.logger.log('💤 Partidos programados para hoy pero inactivos ahora. Próximo check en 5 minutos.');
+        this.nextRunTime = new Date(now.getTime() + 5 * 60 * 1000);
+        this.logger.log(`💤 ${matchesToday.length} partidos hoy pero fuera de ventana activa. Próximo check en 5 min.`);
         return;
       } else {
-        this.nextRunTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutos
-        this.logger.log('💤 No hay partidos programados hoy. Próximo check en 30 minutos.');
+        this.nextRunTime = new Date(now.getTime() + 30 * 60 * 1000);
+        this.logger.log('💤 No hay partidos programados hoy (o todos FINISHED). Próximo check en 30 minutos.');
         return;
       }
 

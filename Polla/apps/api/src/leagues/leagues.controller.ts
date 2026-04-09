@@ -521,4 +521,56 @@ export class LeaguesController {
       userPayload.role,
     );
   }
+
+  // --- MATCH MODE FEATURES ---
+
+  @Public()
+  @Get('match-code/:code')
+  async getByMatchCode(@Param('code') code: string) {
+    const leagueData = await this.leaguesService.getByMatchCode(code);
+    if (!leagueData) throw new NotFoundException('Match code not found');
+    return leagueData;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Patch(':id/match-mode/toggle')
+  async toggleMatchMode(
+    @Param('id') leagueId: string,
+    @Body() body: { isMatchMode: boolean },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.toggleMatchMode(leagueId, body.isMatchMode, userPayload.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Patch(':id/match-mode/activate-match')
+  async activateActiveMatch(
+    @Param('id') leagueId: string,
+    @Body() body: { matchId: string },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.activateActiveMatch(leagueId, body.matchId, userPayload.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Post(':id/match-mode/reset-ranking')
+  async resetMatchModeRanking(
+    @Param('id') leagueId: string,
+    @Body() body: { confirm: boolean },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.resetMatchModeRanking(leagueId, userPayload.id, body.confirm);
+  }
+
+  @Public()
+  @Get(':id/match-mode/tv')
+  async getMatchTvRanking(@Param('id') leagueId: string) {
+    return this.leaguesService.getMatchTvRanking(leagueId);
+  }
 }

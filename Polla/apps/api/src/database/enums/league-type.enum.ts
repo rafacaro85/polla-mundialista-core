@@ -3,4 +3,5 @@ export enum LeagueType {
   VIP = 'VIP',
   LIBRE = 'LIBRE',
   COMPANY = 'COMPANY',
+  MATCH = 'MATCH',
 }

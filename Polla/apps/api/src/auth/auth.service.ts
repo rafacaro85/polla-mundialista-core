@@ -9,16 +9,14 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import {
-  RegisterDto,
-  ForgotPasswordDto,
-  VerifyEmailDto,
-  ResetPasswordDto,
-  ResendVerificationCodeDto,
-} from './dto/auth.dto';
+import { RegisterDto, ForgotPasswordDto, VerifyEmailDto, ResetPasswordDto, ResendVerificationCodeDto, MatchLoginDto } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import { TelegramService } from '../telegram/telegram.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { League } from '../database/entities/league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +27,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly telegramService: TelegramService,
+    @InjectRepository(League)
+    private readonly leagueRepository: Repository<League>,
+    @InjectRepository(LeagueParticipant)
+    private readonly leagueParticipantRepository: Repository<LeagueParticipant>,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<User | null> {
@@ -79,6 +81,61 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         avatarUrl: user.avatarUrl,
+      },
+    };
+  }
+
+  async matchLogin(dto: MatchLoginDto) {
+    const league = await this.leagueRepository.findOne({
+      where: { matchCode: dto.matchCode },
+    });
+
+    if (!league || !league.isMatchMode) {
+      throw new NotFoundException('Código de partido inválido o inactivo');
+    }
+
+    let user = await this.usersService.findByPhoneNumber(dto.phone);
+
+    if (!user) {
+      // Create match guest
+      user = await this.usersService.createMatchGuest(
+        dto.name,
+        dto.phone,
+        dto.tableNumber,
+      );
+    } else {
+      // Update table number if it changed
+      if (user.tableNumber !== dto.tableNumber || user.fullName !== dto.name) {
+        await this.usersService.update(user, {
+          tableNumber: dto.tableNumber,
+          fullName: dto.name, // optionally update name
+        });
+      }
+    }
+
+    // Ensure the user is a participant of the league
+    let participant = await this.leagueParticipantRepository.findOne({
+      where: { user: { id: user.id }, league: { id: league.id } },
+    });
+
+    if (!participant) {
+      participant = this.leagueParticipantRepository.create({
+        user,
+        league,
+        isAdmin: false,
+        isBlocked: false,
+      });
+      await this.leagueParticipantRepository.save(participant);
+    }
+
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        role: user.role,
+        leagueId: league.id,
       },
     };
   }

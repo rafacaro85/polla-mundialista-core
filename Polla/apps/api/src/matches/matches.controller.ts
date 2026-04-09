@@ -58,6 +58,14 @@ export class MatchesController {
     return this.matchesService.findLive(isAdmin, tournamentId);
   }
 
+  @SkipThrottle()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(15000)
+  @Get(':id')
+  async getMatch(@Param('id') id: string): Promise<Match> {
+    return this.matchesService.findById(id);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post()

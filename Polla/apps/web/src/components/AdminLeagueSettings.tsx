@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Settings, Trash2, Loader2, Copy, Share2, Users,
     AlertTriangle, RefreshCw, Save, Gem, Check, Shield, Lock,
-    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette, Crown, UserPlus
+    Edit, Trophy, Eye, BarChart3, Gift, Menu, X, Palette, Crown, UserPlus, MonitorPlay
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -29,7 +29,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from 
 import { cn } from "@/lib/utils";
 import { EnterpriseLock } from '@/components/admin/EnterpriseLock';
 import { useTournament } from '@/hooks/useTournament';
-
+import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
 
 interface Participant {
     user: {
@@ -297,6 +297,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                     <NavItem value="branding" icon={Edit} label="EDITAR" />
                     <NavItem value="plan" icon={Gem} label="PLAN" />
                     <NavItem value="analytics" icon={BarChart3} label="DATA" />
+                    <NavItem value="match" icon={MonitorPlay} label="MODO MATCH" />
                     <NavItem value="requests" icon={UserPlus} label={`SOLICITUDES ${pendingRequests.length > 0 ? `(${pendingRequests.length})` : ''}`} />
                 </>
             )}
@@ -387,6 +388,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                     <MobileNavItem value="branding" icon={Palette} label="Marca" />
                                     <MobileNavItem value="plan" icon={Gem} label="Plan" />
                                     <MobileNavItem value="analytics" icon={BarChart3} label="Data" />
+                                    <MobileNavItem value="match" icon={MonitorPlay} label="Match" />
                                     <MobileNavItem value="requests" icon={UserPlus} label={`Solicitudes (${pendingRequests.length})`} />
                                 </>
                             )}
@@ -408,8 +410,9 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             activeTab === 'branding' ? 'Personalización' :
                                                 activeTab === 'plan' ? 'Mi Plan' :
                                                     activeTab === 'analytics' ? 'Analítica' :
-                                                        activeTab === 'bonus' ? 'Desafíos Bonus' :
-                                                            'Participantes'
+                                                        activeTab === 'match' ? 'Polla Match' :
+                                                            activeTab === 'bonus' ? 'Desafíos Bonus' :
+                                                                'Participantes'
                                         }</h1>
                                         {/* Mobile Close is in Header */}
                                         <Button variant="outline" className="hidden md:flex gap-2 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800" onClick={() => setOpen(false)}>
@@ -664,6 +667,11 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                         ) : (
                                             <LeagueAnalyticsPanel leagueId={currentLeague.id} />
                                         )}
+                                    </TabsContent>
+
+                                    {/* --- PESTAÑA MATCH MODE --- */}
+                                    <TabsContent value="match" className="mt-0 space-y-4">
+                                        <MatchAdminPanel league={currentLeague} onUpdate={loadLeagueData} />
                                     </TabsContent>
 
                                     {/* --- PESTAÑA SOLICITUDES --- */}

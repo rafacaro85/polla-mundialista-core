@@ -51,3 +51,18 @@ export class ResendVerificationCodeDto {
   @IsEmail()
   email: string;
 }
+
+export class MatchLoginDto {
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  tableNumber: string;
+
+  @IsString()
+  matchCode: string;
+}

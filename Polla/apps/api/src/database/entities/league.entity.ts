@@ -96,6 +96,16 @@ export class League {
   @Column({ name: 'company_name', nullable: true })
   companyName: string;
 
+  // --- MATCH MODE FEATURES ---
+  @Column({ name: 'match_code', nullable: true })
+  matchCode?: string;
+
+  @Column({ name: 'active_match_id', nullable: true })
+  activeMatchId?: string;
+
+  @Column({ name: 'is_match_mode', default: false })
+  isMatchMode: boolean;
+
   @Column({ name: 'enable_department_war', default: false })
   enableDepartmentWar: boolean;
 

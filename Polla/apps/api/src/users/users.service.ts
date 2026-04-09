@@ -242,6 +242,10 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
+  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { phoneNumber } });
+  }
+
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
@@ -268,6 +272,23 @@ export class UsersService {
       avatarUrl,
       phoneNumber,
       role: UserRole.PLAYER,
+    });
+    return this.usersRepository.save(newUser);
+  }
+
+  async createMatchGuest(
+    name: string,
+    phone: string,
+    tableNumber: string,
+  ): Promise<User> {
+    const dummyEmail = `guest_${phone}_${Date.now()}@pollamatch.local`;
+    const newUser = this.usersRepository.create({
+      email: dummyEmail,
+      fullName: name,
+      phoneNumber: phone,
+      tableNumber,
+      role: UserRole.MATCH_GUEST,
+      isVerified: true, // Guests are implicitly verified
     });
     return this.usersRepository.save(newUser);
   }

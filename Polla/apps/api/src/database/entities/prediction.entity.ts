@@ -5,6 +5,7 @@ import {
   ManyToOne,
   Index,
   DeleteDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity'; // Corrected path
 import { Match } from './match.entity';
@@ -40,6 +41,9 @@ export class Prediction {
 
   @Column({ default: false })
   isJoker: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  createdAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;

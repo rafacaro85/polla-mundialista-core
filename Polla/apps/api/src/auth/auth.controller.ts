@@ -17,6 +17,7 @@ import {
   VerifyEmailDto,
   ResetPasswordDto,
   ResendVerificationCodeDto,
+  MatchLoginDto,
 } from './dto/auth.dto';
 import { User } from '../database/entities/user.entity';
 import { MailService } from '../mail/mail.service';
@@ -87,6 +88,19 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
     // El token NUNCA se retorna en el body
+    return { user };
+  }
+
+  @Post('match-login')
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async matchLogin(
+    @Body() loginDto: MatchLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { access_token, user } = await this.authService.matchLogin(loginDto);
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
     return { user };
   }
 

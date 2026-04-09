@@ -9,9 +9,13 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TelegramModule } from '../telegram/telegram.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { League } from '../database/entities/league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([League, LeagueParticipant]),
     UsersModule,
     PassportModule,
     ConfigModule,

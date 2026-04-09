@@ -3,4 +3,5 @@ export enum UserRole {
   ADMIN = 'ADMIN',
   LEAGUE_MANAGER = 'LEAGUE_MANAGER',
   PLAYER = 'PLAYER',
+  MATCH_GUEST = 'MATCH_GUEST',
 }

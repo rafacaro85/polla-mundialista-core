@@ -45,6 +45,9 @@ export class User {
   @Column({ name: 'phone_number', nullable: true })
   phoneNumber?: string;
 
+  @Column({ name: 'table_number', nullable: true })
+  tableNumber?: string;
+
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 

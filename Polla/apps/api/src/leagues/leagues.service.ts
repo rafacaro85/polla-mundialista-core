@@ -2219,4 +2219,134 @@ export class LeaguesService {
       }))
     };
   }
+
+  // --- MATCH MODE FEATURES ---
+
+  async getByMatchCode(code: string): Promise<any> {
+    const league = await this.leaguesRepository.findOne({ where: { matchCode: code } });
+    if (!league || !league.isMatchMode) return null;
+    return {
+      id: league.id,
+      name: league.name,
+      brandingLogoUrl: league.brandingLogoUrl,
+      activeMatchId: league.activeMatchId,
+      matchCode: league.matchCode,
+      isMatchMode: league.isMatchMode,
+    };
+  }
+
+  async toggleMatchMode(leagueId: string, isMatchMode: boolean, adminId: string): Promise<League> {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
+    if (!league) throw new NotFoundException('League not found');
+
+    // Authentication: Check if admin/creator
+    if (league.creator.id !== adminId) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: adminId } }
+      });
+      if (!participant || !participant.isAdmin) {
+        throw new ForbiddenException('Only league admins can toggle match mode');
+      }
+    }
+
+    league.isMatchMode = isMatchMode;
+    if (isMatchMode && !league.matchCode) {
+      // Generate a unique 6 alphanumeric character code
+      league.matchCode = 'MATCH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+    
+    return this.leaguesRepository.save(league);
+  }
+
+  async activateActiveMatch(leagueId: string, matchId: string, adminId: string): Promise<League> {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    if (!league) throw new NotFoundException('League not found');
+    
+    league.activeMatchId = matchId;
+    return this.leaguesRepository.save(league);
+  }
+
+  async resetMatchModeRanking(leagueId: string, adminId: string, confirm: boolean): Promise<{ message: string }> {
+    if (!confirm) throw new BadRequestException('Confirmation required to reset rankings');
+    
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    if (!league || !league.isMatchMode) {
+      throw new BadRequestException('League is not in match mode');
+    }
+
+    // Reset prediction points for this league
+    await this.predictionRepository.update(
+      { leagueId: leagueId },
+      { points: 0 }
+    );
+
+    // Reset total points for participants
+    await this.leagueParticipantsRepository.update(
+      { league: { id: leagueId } },
+      { totalPoints: 0, predictionPoints: 0, jokerPoints: 0 }
+    );
+
+    await this.cacheManager.del(`ranking:league:${leagueId}`);
+    return { message: 'Ranking successfully reset to zero.' };
+  }
+
+  async getMatchTvRanking(leagueId: string): Promise<any> {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    if (!league || !league.isMatchMode) {
+      throw new BadRequestException('League is not in match mode');
+    }
+
+    // Get all predictions for the active match in the league
+    const predictions = await this.predictionRepository.find({
+      where: { leagueId, match: { id: league.activeMatchId } },
+      relations: ['user', 'match'],
+      order: { points: 'DESC', createdAt: 'ASC' }
+    });
+
+    const ranking = [];
+    let currentRank = 1;
+
+    for (let i = 0; i < predictions.length; i++) {
+      const pred = predictions[i];
+      let sharedPrize = false;
+
+      // Check tie with previous or next (Wait, we tie-break by time, so exact ties only happen if they predicted at the exact same millisecond OR we are checking if they predicted the exact same score and we want to share the prize. The prompt says "Si empate exacto en puntos Y tiempo → campo sharedPrize: true en ambos")
+      // To strictly follow: points AND time are identical
+      const prev = predictions[i - 1];
+      const next = predictions[i + 1];
+
+      if (
+        (prev && prev.points === pred.points && prev.createdAt?.getTime() === pred.createdAt?.getTime()) ||
+        (next && next.points === pred.points && next.createdAt?.getTime() === pred.createdAt?.getTime())
+      ) {
+        sharedPrize = true;
+      }
+      
+      // Update rank: if it's the exact same points+time, same rank, otherwise increment rank
+      if (i > 0) {
+        if (!(prev && prev.points === pred.points && prev.createdAt?.getTime() === pred.createdAt?.getTime())) {
+          currentRank = i + 1;
+        }
+      }
+
+      ranking.push({
+        rank: currentRank,
+        name: pred.user?.fullName || 'Guest',
+        tableNumber: pred.user?.tableNumber || '',
+        points: pred.points || 0,
+        isJoker: pred.isJoker,
+        prediction: { home: pred.homeScore, away: pred.awayScore },
+        matchScore: { home: pred.match?.homeScore, away: pred.match?.awayScore },
+        sharedPrize,
+        createdAt: pred.createdAt
+      });
+    }
+
+    return {
+      leagueName: league.name,
+      brandingLogoUrl: league.brandingLogoUrl,
+      activeMatchId: league.activeMatchId,
+      ranking: ranking.slice(0, 20) // Top 20
+    };
+  }
 }

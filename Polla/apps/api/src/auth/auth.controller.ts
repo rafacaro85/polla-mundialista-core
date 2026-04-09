@@ -24,6 +24,7 @@ import { MailService } from '../mail/mail.service';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from '../common/decorators/public.decorator';
 
 // Opciones de cookie compartidas para consistencia
 const COOKIE_OPTIONS = (isProduction: boolean) => ({

@@ -5,14 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import api from '@/lib/api';
-import useAuthStore from '@/store/authStore';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function MatchPlayPage() {
   const params = useParams();
   const matchCode = params.matchCode as string;
   const router = useRouter();
 
-  const { user, isAuthenticated, isHydrated } = useAuthStore();
+  const user = useAppStore((s) => s.user);
   const [league, setLeague] = useState<any>(null);
   const [activeMatch, setActiveMatch] = useState<any>(null);
   const [ranking, setRanking] = useState<any[]>([]);
@@ -23,15 +23,14 @@ export default function MatchPlayPage() {
   const [savedPrediction, setSavedPrediction] = useState<any>(null);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (!isAuthenticated) {
+    if (!user) {
       router.push(`/match/${matchCode}`);
       return;
     }
     fetchData();
     const interval = setInterval(fetchRanking, 10000); // Polling ranking every 10s
     return () => clearInterval(interval);
-  }, [isAuthenticated, isHydrated]);
+  }, [user]);
 
   const fetchData = async () => {
     try {
@@ -110,7 +109,7 @@ export default function MatchPlayPage() {
     }
   };
 
-  if (isLoading || !isHydrated) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -134,7 +133,7 @@ export default function MatchPlayPage() {
             <span className="text-white font-bold text-sm truncate max-w-[150px]">{league?.name || 'Polla Match'}</span>
           </div>
           <div className="text-right">
-            <div className="text-emerald-400 font-bold text-sm">👤 {user?.fullName}</div>
+            <div className="text-emerald-400 font-bold text-sm">👤 {user?.name || user?.fullName}</div>
           </div>
         </div>
       </div>
@@ -238,7 +237,7 @@ export default function MatchPlayPage() {
                   <div className="space-y-3">
                     {ranking.map((row, i) => (
                       <div key={i} className={`flex items-center justify-between p-3 rounded-2xl ${
-                        row.name === user?.fullName ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-slate-950'
+                        row.name === (user?.name || user?.fullName) ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-slate-950'
                       }`}>
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black ${

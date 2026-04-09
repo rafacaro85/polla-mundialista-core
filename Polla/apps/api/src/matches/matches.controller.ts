@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   Request,
   Header,
+  NotFoundException,
 } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -63,7 +64,9 @@ export class MatchesController {
   @CacheTTL(15000)
   @Get(':id')
   async getMatch(@Param('id') id: string): Promise<Match> {
-    return this.matchesService.findById(id);
+    const match = await this.matchesService.findMatchById(id);
+    if (!match) throw new NotFoundException(`Match ${id} not found`);
+    return match;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

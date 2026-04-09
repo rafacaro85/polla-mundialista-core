@@ -37,6 +37,7 @@ import { LeagueParticipantsService } from '../league-participants/league-partici
 import { GenerateAccessCodesDto } from './dto/generate-access-codes.dto';
 import { JoinLeagueDto } from './dto/join-league.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { UserRole } from '../database/enums/user-role.enum';
 
 @ApiTags('Leagues')
 @UseGuards(JwtAuthGuard)

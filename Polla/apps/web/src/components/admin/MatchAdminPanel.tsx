@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Loader2, Tv, RefreshCcw, Search, UserCheck } from 'lucide-react';
+import { Loader2, Tv, RefreshCcw } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTournament } from '@/hooks/useTournament';
 
@@ -88,11 +86,17 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
         </div>
         <div className="flex items-center gap-2">
           {loading && <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />}
-          <Switch 
-            checked={!!league.isMatchMode}
-            onCheckedChange={handleToggleMatchMode}
+          <button
+            onClick={() => handleToggleMatchMode(!league.isMatchMode)}
             disabled={loading}
-          />
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+              league.isMatchMode ? 'bg-emerald-500' : 'bg-slate-600'
+            } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+              league.isMatchMode ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
         </div>
       </div>
 

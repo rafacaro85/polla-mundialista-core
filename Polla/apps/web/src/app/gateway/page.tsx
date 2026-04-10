@@ -50,7 +50,7 @@ export default function GatewayApp() {
         
         {/* EXPERIENCIA SOCIAL */}
         <div 
-          onClick={() => window.location.href = '/dashboard'}
+          onClick={() => window.location.href = '/social/mis-pollas'}
           className={STYLES.card}
         >
           <div className={STYLES.cardGlow} />

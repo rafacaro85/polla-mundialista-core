@@ -61,8 +61,9 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       if (typeof window !== 'undefined' && window.location.hostname.includes('match.')) {
         return '/empresa/mis-pollas';
       }
-
-      return '/empresa/mis-pollas';
+      
+      // Sitio principal: Devolver al selector (Gateway)
+      return '/gateway';
     };
 
     try {

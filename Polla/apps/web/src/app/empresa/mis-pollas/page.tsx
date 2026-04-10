@@ -25,6 +25,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -91,7 +92,8 @@ function PlanTag({ packageType }: { packageType?: string }) {
 /* ------------------------------------------------------------------ */
 /* Enterprise League Card                                               */
 /* ------------------------------------------------------------------ */
-function EnterpriseLeagueCard({ league }: { league: any }) {
+function EnterpriseLeagueCard({ league, onUpdate }: { league: any, onUpdate: () => void }) {
+    const [showMatchPanel, setShowMatchPanel] = React.useState(false);
     const displayName = league.name;
     const companyName = league.companyName && league.companyName !== league.name
         ? league.companyName
@@ -292,13 +294,41 @@ function EnterpriseLeagueCard({ league }: { league: any }) {
                         >
                             <LogIn size={15} /> Ingresar
                         </Link>
-                        {/* Removed WhatsApp Group Share for regular users entirely as per requirements */}
                     </div>
                 )}
             </div>
+
+            {/* BOTÓN ESPECIAL PARA MODO BAR / MATCH */}
+            {league.isAdmin && league.isEnterpriseActive && (
+              <div className="mt-2">
+                <button 
+                  onClick={() => setShowMatchPanel(!showMatchPanel)}
+                  className={`w-full py-3 rounded-xl border-2 font-black uppercase tracking-tighter text-[10px] flex items-center justify-center gap-2 transition-all ${
+                    showMatchPanel 
+                    ? "bg-slate-800 border-emerald-500 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
+                    : "bg-[#0F172A] border-slate-700 text-slate-400 hover:border-emerald-500/50 hover:text-emerald-500"
+                  }`}
+                >
+                  <Tv size={14} /> {league.isMatchMode ? "ADMINISTRAR PANEL DEL BAR (QR / TV)" : "ACTIVAR MODO BAR (POLA MATCH)"}
+                </button>
+                
+                {showMatchPanel && (
+                  <div className="mt-4 p-4 bg-black/20 rounded-2xl border border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <MatchAdminPanel league={league} onUpdate={onUpdate} />
+                  </div>
+                )}
+              </div>
+            )}
         </div>
     );
 }
+
+const Tv = ({ size, className }: { size: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="7" width="20" height="13" rx="2" ry="2"></rect>
+    <polyline points="17 2 12 7 7 2"></polyline>
+  </svg>
+);
 
 /* ------------------------------------------------------------------ */
 /* Empty State                                                          */
@@ -396,7 +426,11 @@ function MisEmpresasContent() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {enterpriseLeagues.map((league) => (
-                            <EnterpriseLeagueCard key={league.id} league={league} />
+                            <EnterpriseLeagueCard 
+                              key={league.id} 
+                              league={league} 
+                              onUpdate={() => window.location.reload()} 
+                            />
                         ))}
                     </div>
                 )}

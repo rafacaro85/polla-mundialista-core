@@ -16,7 +16,60 @@ import { PaymentMethods } from './dashboard/PaymentMethods';
 /* =============================================================================
    DATOS BUSINESS (PLANES)
    ============================================================================= */
-const BUSINESS_PLANS = [
+const STANDARD_PLANS = [
+    {
+        id: 'bronce',
+        name: 'Bronce',
+        price: '$100.000',
+        capacity: '25 Jugadores',
+        icon: <Zap size={20} />,
+        color: '#CD7F32',
+        features: ['Branding Básico', 'Logo de Empresa', 'Imagen de Premios'],
+        packageType: 'bronce'
+    },
+    {
+        id: 'plata',
+        name: 'Plata',
+        price: '$175.000',
+        capacity: '50 Jugadores',
+        icon: <Medal size={20} />,
+        color: '#94A3B8',
+        features: [
+            'Personalización Colores Marca',
+            'Logo de la Empresa',
+            'Imágenes de los premios',
+            'Redes Sociales Corporativas'
+        ],
+        packageType: 'plata'
+    },
+    {
+        id: 'influencer',
+        name: 'Influencer',
+        price: '$600.000',
+        capacity: '300 Jugadores',
+        icon: <Star size={20} />,
+        color: '#FACC15',
+        features: [
+            'Hasta 300 Participantes',
+            'Personalización Premium',
+            'Vitrina de Premios',
+            'Soporte Prioritario'
+        ],
+        packageType: 'influencer'
+    },
+    {
+        id: 'diamante',
+        name: 'Diamante',
+        price: '$1.000.000',
+        capacity: '500 Jugadores',
+        icon: <Gem size={20} />,
+        color: '#E2E8F0',
+        features: ['Banners Publicitarios Propios', 'Gestión de Áreas', 'Muro Social'],
+        packageType: 'diamante'
+    }
+];
+
+const MATCH_PLANS = [
     {
         id: 'basico',
         name: 'Básico',
@@ -81,6 +134,14 @@ const BUSINESS_PLANS = [
     }
 ];
 
+// Selector dinámico por dominio
+const getBusinessPlans = () => {
+    if (typeof window !== 'undefined' && window.location.hostname.includes('match.')) {
+        return MATCH_PLANS;
+    }
+    return STANDARD_PLANS;
+};
+
 interface CreateBusinessLeagueDialogProps {
     children?: React.ReactNode;
     onLeagueCreated?: () => void;
@@ -109,12 +170,15 @@ export const CreateBusinessLeagueDialog = ({
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('basico');
+    const [selectedPlanId, setSelectedPlanId] = useState('bronce');
 
-    // Business Plans Logic (Champions specific promo)
+    // Detect hostname once
+    const isMatchSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('match.');
+
+    // Business Plans Logic
     const availableBusinessPlans = React.useMemo(() => {
-        const basePlans = [...BUSINESS_PLANS];
-        if (selectedTournamentId === 'UCL2526') {
+        const basePlans = [...getBusinessPlans()];
+        if (selectedTournamentId === 'UCL2526' && !isMatchSubdomain) {
             basePlans.unshift({
                 id: 'launch_business',
                 name: 'Inauguración',
@@ -127,16 +191,19 @@ export const CreateBusinessLeagueDialog = ({
             });
         }
         return basePlans;
-    }, [selectedTournamentId]);
+    }, [selectedTournamentId, isMatchSubdomain]);
 
     // Initial plan check when tournament changes
     React.useEffect(() => {
-        if (selectedTournamentId === 'UCL2526') {
+        const plans = getBusinessPlans();
+        const defaultId = plans[0]?.id || 'bronce';
+
+        if (selectedTournamentId === 'UCL2526' && !isMatchSubdomain) {
             setSelectedPlanId('launch_business');
         } else {
-            setSelectedPlanId('basico');
+            setSelectedPlanId(defaultId);
         }
-    }, [selectedTournamentId]);
+    }, [selectedTournamentId, isMatchSubdomain]);
 
     const [isPaymentSubmitted, setIsPaymentSubmitted] = useState(false);
 
@@ -200,6 +267,7 @@ export const CreateBusinessLeagueDialog = ({
                 maxParticipants: parseInt(selectedPlan.capacity) || 25,
                 tournamentId: selectedTournamentId,
                 companyName: companyName || leagueName,
+                isMatchMode: isMatchSubdomain, // CRÍTICO: Activa las funciones de Bar si viene de match.
             };
 
             const { data } = await api.post('/leagues', payload);

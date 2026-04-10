@@ -77,9 +77,9 @@ export const GlobalHome: React.FC<GlobalHomeProps> = ({ userName, onNavigateToLe
                         <Briefcase size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-sm">Polla Empresarial</h3>
+                        <h3 className="font-bold text-white text-sm">Polla Match</h3>
                         <p className="text-[10px] text-slate-400 leading-tight mt-1">
-                            Personalización total para tu empresa o marca
+                            Un partido. Un QR. Toda la emoción. ⚽🔥
                         </p>
                     </div>
                     <Button

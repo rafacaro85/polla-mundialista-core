@@ -58,7 +58,11 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
       const inviteCode = cookieValue('pendingInviteCode') || localStorage.getItem('pendingInviteCode');
       if (inviteCode) return `/invite/${inviteCode}`;
 
-      return '/gateway';
+      if (typeof window !== 'undefined' && window.location.hostname.includes('match.')) {
+        return '/empresa/mis-pollas';
+      }
+
+      return '/empresa/mis-pollas';
     };
 
     try {

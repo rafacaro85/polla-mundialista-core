@@ -409,7 +409,7 @@ function MisEmpresasContent() {
                         href="/empresa/crear"
                         className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border border-dashed border-[#334155] text-slate-500 text-sm font-bold uppercase tracking-widest hover:border-[#00E676]/40 hover:text-[#00E676] transition-all"
                     >
-                        <Plus size={16} /> Crear Nueva Polla Empresarial
+                        <Plus size={16} /> Crear Nueva Polla Match
                     </Link>
                 </div>
             )}

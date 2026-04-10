@@ -18,74 +18,66 @@ import { PaymentMethods } from './dashboard/PaymentMethods';
    ============================================================================= */
 const BUSINESS_PLANS = [
     {
-        id: 'bronze',
-        name: 'Bronce',
-        price: '$100.000',
-        capacity: '25 Jugadores',
+        id: 'basico',
+        name: 'Básico',
+        price: '$15.000',
+        capacity: '20 Jugadores',
         icon: <Zap size={20} />,
         color: '#CD7F32',
         features: [
-            'Studio Personalizado',
-            'Colores de Marca + Logo',
-            'Ranking Automático'
+            'Predicciones ilimitadas',
+            'Ranking en vivo',
+            'Vista TV proyectable',
+            'QR generado automáticamente'
         ],
-        packageType: 'ENTERPRISE_BRONZE'
+        packageType: 'basico',
+        description: 'Por partido'
     },
     {
-        id: 'silver',
-        name: 'Plata',
-        price: '$175.000',
+        id: 'pro_match',
+        name: 'Pro',
+        price: '$25.000',
         capacity: '50 Jugadores',
         icon: <Medal size={20} />,
         color: '#94A3B8',
         features: [
-            'Todo lo del plan Bronce',
-            'Redes Sociales Corp.',
-            'Botón de Desempate'
+            'Todo lo del Básico',
+            'Logo del bar/empresa',
+            'Colores de marca',
+            'Estadísticas por mesa'
         ],
-        packageType: 'ENTERPRISE_SILVER'
+        packageType: 'pro_match',
+        description: 'Por partido'
     },
     {
-        id: 'gold',
-        name: 'Oro',
-        price: '$450.000',
-        capacity: '150 Jugadores',
+        id: 'premium_match',
+        name: 'Premium',
+        price: '$35.000',
+        capacity: '100 Jugadores',
         icon: <Trophy size={20} />,
         color: '#FACC15',
         features: [
-            'Identidad Visual Completa',
-            'Muro Social Interno',
-            'Predicciones por IA'
+            'Todo lo del Pro',
+            'Banners publicitarios',
+            'Soporte prioritario WhatsApp'
         ],
-        packageType: 'ENTERPRISE_GOLD'
+        packageType: 'premium_match',
+        description: 'Por partido'
     },
     {
-        id: 'platinum',
-        name: 'Platino',
-        price: '$750.000',
+        id: 'evento_match',
+        name: 'Evento',
+        price: '$60.000',
         capacity: '300 Jugadores',
         icon: <Star size={20} />,
         color: '#E2E8F0',
         features: [
-            'Guerra de Áreas (RRHH)',
-            'Chat en Tiempo Real',
-            'Soporte Prioritario'
+            'Todo lo del Premium',
+            'Hasta 300 participantes',
+            'Para eventos masivos y empresas'
         ],
-        packageType: 'ENTERPRISE_PLATINUM'
-    },
-    {
-        id: 'diamond',
-        name: 'Diamante',
-        price: '$1.000.000',
-        capacity: '500 Jugadores',
-        icon: <Gem size={20} />,
-        color: '#22d3ee',
-        features: [
-            'Banners Publicitarios',
-            'Analíticas Avanzadas',
-            'Personalización Total'
-        ],
-        packageType: 'ENTERPRISE_DIAMOND'
+        packageType: 'evento_match',
+        description: 'Por partido'
     }
 ];
 
@@ -117,7 +109,7 @@ export const CreateBusinessLeagueDialog = ({
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('bronze');
+    const [selectedPlanId, setSelectedPlanId] = useState('basico');
 
     // Business Plans Logic (Champions specific promo)
     const availableBusinessPlans = React.useMemo(() => {
@@ -142,7 +134,7 @@ export const CreateBusinessLeagueDialog = ({
         if (selectedTournamentId === 'UCL2526') {
             setSelectedPlanId('launch_business');
         } else {
-            setSelectedPlanId('bronze');
+            setSelectedPlanId('basico');
         }
     }, [selectedTournamentId]);
 
@@ -441,7 +433,7 @@ export const CreateBusinessLeagueDialog = ({
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-white font-black text-lg leading-none">{plan.price}</div>
-                                                {plan.price !== 'GRATIS' && <div className="text-[#94A3B8] text-[8px] font-bold uppercase mt-1">Pago Único</div>}
+                                                {plan.price !== 'GRATIS' && <div className="text-[#94A3B8] text-[8px] font-bold uppercase mt-1">{plan.description || 'Pago Único'}</div>}
                                             </div>
                                         </div>
 

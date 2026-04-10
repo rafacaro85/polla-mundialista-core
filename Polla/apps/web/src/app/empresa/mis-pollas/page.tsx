@@ -298,7 +298,8 @@ function EnterpriseLeagueCard({ league, onUpdate }: { league: any, onUpdate: () 
                 )}
             </div>
 
-            {/* BOTÓN ESPECIAL PARA MODO BAR / MATCH */}
+            {/* BOTÓN ESPECIAL PARA MODO BAR / MATCH (OCULTO TEMPORALMENTE A PETICIÓN DEL USUARIO) */}
+            {/* 
             {league.isAdmin && league.isEnterpriseActive && (
               <div className="mt-2">
                 <button 
@@ -319,6 +320,7 @@ function EnterpriseLeagueCard({ league, onUpdate }: { league: any, onUpdate: () 
                 )}
               </div>
             )}
+            */}
         </div>
     );
 }

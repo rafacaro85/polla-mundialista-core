@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   Res,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -52,7 +53,7 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: { user: User }, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req: { user: User; query: any }, @Res() res: Response) {
     try {
       const { access_token } = await this.authService.googleLogin(req.user);
       const isProduction = process.env.NODE_ENV === 'production';
@@ -61,9 +62,24 @@ export class AuthController {
       res.clearCookie('connect.sid');
       res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-      console.log('🔄 Redirigiendo a frontend (sin token en URL):', `${frontendUrl}/auth/success`);
-      return res.redirect(`${frontendUrl}/auth/success`);
+      // --- LÓGICA DE REDIRECCIÓN DINÁMICA (SECURE) ---
+      const originParam = req.query.state;
+      const defaultFrontend = process.env.FRONTEND_URL || 'http://localhost:3001';
+      
+      const WHITELIST = [
+        'https://lapollavirtual.com',
+        'https://www.lapollavirtual.com',
+        'https://match.lapollavirtual.com',
+        'http://localhost:3000',
+        'http://localhost:3001',
+      ];
+
+      // Validar que el origen esté en la whitelist para prevenir Open Redirect
+      const isValidOrigin = originParam && WHITELIST.some(domain => originParam.startsWith(domain));
+      const finalRedirectUrl = isValidOrigin ? originParam : defaultFrontend;
+
+      console.log('🔄 Redirigiendo a frontend:', `${finalRedirectUrl}/auth/success`);
+      return res.redirect(`${finalRedirectUrl}/auth/success`);
     } catch (error) {
       console.error('❌ [AuthController Google Redirect] Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';

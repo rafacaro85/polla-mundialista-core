@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta Comercial - La Polla Virtual</title>
+    <!-- Fuentes modernas para un look premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variables y setup base */
+        :root {
+            --bg-dark: #0A0F16;
+            --bg-card: #151D2A;
+            --brand-green: #00E59B;
+            --brand-green-glow: rgba(0, 229, 155, 0.2);
+            --brand-gold: #FFD700;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .container {
+            max-width: 900px; /* Ancho ideal para un PDF A4 o carta */
+            margin: 0 auto;
+            background-color: var(--bg-dark);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Cabecera / Propuesta */
+        .header-section {
+            padding: 60px 50px 40px;
+            background: linear-gradient(135deg, #1A2639 0%, var(--bg-dark) 100%);
+            border-bottom: 2px solid rgba(0, 229, 155, 0.3);
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .logo span { color: var(--brand-green); }
+
+        .title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .title span { color: var(--brand-green); }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        /* Tarjeta de Plan */
+        .plan-card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin: -20px 50px 40px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .plan-details h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            color: var(--brand-gold);
+            margin-bottom: 8px;
+        }
+
+        .plan-details p { color: var(--text-muted); font-size: 15px; }
+        
+        .plan-price {
+            text-align: right;
+        }
+
+        .price-big {
+            font-family: 'Outfit', sans-serif;
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--brand-green);
+        }
+
+        .target-users {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--brand-gold);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* Dinámica del Juego */
+        .content-section {
+            padding: 0 50px 50px;
+        }
+
+        .section-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-heading::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 28px;
+            background-color: var(--brand-green);
+            border-radius: 4px;
+        }
+
+        .intro-text {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        /* Grid de mecánicas */
+        .mechanics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .mechanic-box {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mechanic-box h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .points-list {
+            list-style: none;
+        }
+
+        .points-list li {
+            background: rgba(255, 255, 255, 0.03);
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .points-list li strong {
+            color: var(--brand-green);
+        }
+
+        /* Escenario Perfecto Callout */
+        .perfect-scenario {
+            background: linear-gradient(135deg, rgba(0, 229, 155, 0.1) 0%, rgba(0,0,0,0) 100%);
+            border-left: 4px solid var(--brand-green);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+
+        .perfect-scenario h5 {
+            color: var(--brand-green);
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .perfect-scenario p {
+            font-size: 14px;
+            color: #E2E8F0;
+        }
+
+        .perfect-scenario .math {
+            display: inline-block;
+            background-color: rgba(0,0,0,0.5);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 15px;
+            color: var(--brand-gold);
+        }
+
+        /* Poderes */
+        .powers-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .power-card {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .power-card h5 {
+            color: var(--brand-gold);
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .power-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Fases */
+        .phases-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 15px;
+        }
+
+        .phases-table td {
+            background: var(--bg-card);
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+
+        .phases-table td:first-child { border-radius: 8px 0 0 8px; color: #E2E8F0; }
+        .phases-table td:last-child { border-radius: 0 8px 8px 0; text-align: right; color: var(--brand-green); font-weight: bold; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            background-color: #080C11;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .footer p {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fff;
+            max-width: 600px;
+            margin: 0 auto 10px;
+        }
+
+        .footer span {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Optimizaciones para Impresión en PDF */
+        @media print {
+            body {
+                background-color: #fff; /* Forzar blanco si el cliente lo requiere, pero el color-adjust mantiene el oscuro */
+                margin: 0;
+            }
+            .container {
+                box-shadow: none;
+                width: 100%;
+                max-width: 100%;
+            }
+            .plan-card {
+                break-inside: avoid;
+            }
+            .mechanics-grid {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <header class="header-section">
+            <div class="logo">
+                <img src="apps/web/public/images/logo polla virtual/LPV_LOGO2.png" alt="La Polla Virtual" style="height: 48px; object-fit: contain;">
+                La Polla <span>Virtual</span>
+            </div>
+            <h1 class="title">Propuesta <span>Comercial</span></h1>
+            <p class="subtitle">La revolución digital de los pronósticos deportivos. Sin Excel, sin enredos. IA integrada, ranking en tiempo real y la mejor experiencia para tu comunidad.</p>
+        </header>
+
+        <!-- Pricing Card -->
+        <div class="plan-card">
+            <div class="plan-details">
+                <h3>Plan Influencer (Extendido)</h3>
+                <p>Plataforma para interactuar con tu comunidad de forma masiva y 100% personalizada con tu identidad.</p>
+                
+                <ul style="color: #fff; font-size: 14px; margin-top: 10px; margin-left: 20px;">
+                    <li><strong style="color: var(--brand-green);">Tu propio Logo:</strong> Posicionamiento de tu marca en toda la interfaz.</li>
+                    <li><strong style="color: var(--brand-green);">Sección de Premios:</strong> Sube las fotos de los premios reales a repartir.</li>
+                    <li><strong style="color: var(--brand-green);">Gestión Automatizada:</strong> Ranking automático, IA integrada, Cero Excel.</li>
+                </ul>
+                
+                <div class="target-users">🏆 Capacidad Total: 300 Participantes</div>
+            </div>
+            <div class="plan-price">
+                <div class="price-big">$600.000 <span style="font-size: 18px; color: var(--text-muted);">COP</span></div>
+                <div style="font-size: 13px; color: var(--brand-green); margin-top: 5px;">Pago Único / Torneo Completo</div>
+            </div>
+        </div>
+
+        <!-- Mechanics -->
+        <main class="content-section">
+            <h2 class="section-heading">Mecánica del Juego</h2>
+            <p class="intro-text">El juego es simple y emocionante: Predice los resultados de los partidos y los equipos que avanzan de fase. El objetivo es acumular la mayor cantidad de puntos de manera inteligente para liderar el ranking global frente a tus amigos y colegas.</p>
+
+            <div class="mechanics-grid">
+                <!-- Columna Izquierda: Resultados -->
+                <div class="mechanic-box">
+                    <h4>1. Predicciones por Resultado</h4>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">En la pestaña "Partidos", las llaves se habilitan progresivamente a medida que avanza el torneo. Cada acierto te otorga puntos:</p>
+                    
+                    <ul class="points-list">
+                        <li>Resultado exacto (Ganador + Goles) <strong>+3 Ptos</strong></li>
+                        <li>Acertar al ganador o el empate <strong>+2 Ptos</strong></li>
+                        <li>Acertar los goles de un equipo <strong>+1 Pto</strong></li>
+                    </ul>
+
+                    <div class="perfect-scenario">
+                        <h5>El Escenario Perfecto 🎯</h5>
+                        <p>Si proyectas un [ 2 - 1 ] y el partido queda [ 2 - 1 ], te llevas el puntaje máximo por ese encuentro.</p>
+                        <div class="math">3 (exacto) + 2 (ganador) + 1 + 1 (goles) = 7 Ptos</div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Fases y Lógica -->
+                <div class="mechanic-box">
+                    <h4>2. Predicciones por Fases</h4>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">En la sección "Llaves", tu objetivo es ser un estratega y adivinar quién avanzará a la siguiente ronda.</p>
+                    
+                    <table class="phases-table">
+                        <tr><td>Dieciseisavos de final</td><td>+2 Ptos</td></tr>
+                        <tr><td>Octavos de final</td><td>+2 Ptos</td></tr>
+                        <tr><td>Cuartos de final</td><td>+2 Ptos</td></tr>
+                        <tr><td>Semifinal</td><td>+2 Ptos</td></tr>
+                        <tr><td>Tercero y cuarto</td><td>+2 Ptos</td></tr>
+                        <tr><td>Gran Final</td><td>+2 Ptos</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h2 class="section-heading" style="font-size: 24px;">Puntos Adicionales (Boosters)</h2>
+            <div class="powers-container">
+                <div class="power-card">
+                    <h5>⭐ El Comodín Estrella</h5>
+                    <p>En tu tarjeta de predicción encontrarás una estrella. Úsala estratégicamente para <strong>Multiplicar x2</strong> todos los puntos obtenidos en ese encuentro. 
+                       <br><br>
+                       <span style="font-size:12.5px; opacity:0.9; background:rgba(255,215,0,0.1); padding:4px 8px; border-radius:4px;">
+                        <strong>Límite estratégico:</strong> Solo tienes 3 comodines en Fase de Grupos, y 1 comodín disponible por cada fase siguiente (Octavos, Cuartos, Semi, etc.) hasta la final.
+                       </span>
+                    </p>
+                </div>
+                <div class="power-card">
+                    <h5>🎯 Preguntas Bonus</h5>
+                    <p>El administrador de la polla puede formular preguntas especiales (Ej: "¿Quién será el máximo goleador?"). <strong style="color:var(--text-main)">Él mismo define cuántos puntos vale cada pregunta</strong> al crearla. ¡Responde con astucia, porque esos puntos van directo a sumarse a tu ranking global!</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Todos los puntos se calculan matemáticamente en vivo.</p>
+            <span>Al final del evento, el sistema corona de forma automática y transparente a quien acumule mayor puntuación.</span>
+        </footer>
+
+    </div>
+
+</body>
+</html>

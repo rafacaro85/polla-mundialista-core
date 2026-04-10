@@ -41,6 +41,7 @@ async function bootstrap() {
       const allowedOrigins = [
         'https://www.lapollavirtual.com',
         'https://lapollavirtual.com',
+        'https://match.lapollavirtual.com',
         process.env.FRONTEND_URL,
         'https://polla-mundialista-core-git-develop-rafaels-projects-10edc374.vercel.app',
         'https://champions.lapollavirtual.com',

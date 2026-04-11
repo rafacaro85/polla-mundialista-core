@@ -110,43 +110,50 @@ export class DebugController {
       console.log('--- [DB-REPAIR] Ejecutando reparación completa de esquema ---');
 
       // ====== 1. ENUM VALUES FALTANTES ======
-      // IMPORTANTE: ALTER TYPE ADD VALUE NO funciona dentro de transacciones en PostgreSQL
-      // Por eso usamos this.dataSource.query() directamente (fuera de transacción)
+      // IMPORTANTE: ALTER TYPE ADD VALUE NO funciona dentro de transacciones
+      // Usar this.dataSource.query() directamente (sin transacción)
       
-      // Crear enum league_participant_status_enum si no existe
-      try {
-        await this.dataSource.query(`
-          DO $$ BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'league_participant_status_enum') THEN
-              CREATE TYPE league_participant_status_enum AS ENUM ('PENDING_PAYMENT', 'PENDING', 'ACTIVE', 'REJECTED');
-            END IF;
-          END $$;
-        `);
-        results.push('✅ ENUM TYPE: league_participant_status_enum creado/verificado');
-      } catch (e) { results.push(`⚠️ CREATE ENUM league_participant: ${e.message}`); }
+      // Detectar el nombre real del enum de participant status
+      // TypeORM puede generar "league_participant_status_enum" o "league_participants_status_enum"
+      const participantEnumName = await this.dataSource.query(`
+        SELECT typname FROM pg_type 
+        WHERE typname IN ('league_participant_status_enum', 'league_participants_status_enum')
+        LIMIT 1
+      `);
+      const pEnumName = participantEnumName?.[0]?.typname || 'league_participants_status_enum';
+      results.push(`ℹ️ Participant enum detectado: ${pEnumName}`);
 
-      // Agregar valores faltantes (por si el enum ya existía pero sin algunos valores)
-      try { await this.dataSource.query(`ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT'`); } catch (e) { /* ya existe o recién creado */ }
-      try { await this.dataSource.query(`ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'PENDING'`); } catch (e) { /* ya existe */ }
-      try { await this.dataSource.query(`ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'ACTIVE'`); } catch (e) { /* ya existe */ }
-      try { await this.dataSource.query(`ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'REJECTED'`); } catch (e) { /* ya existe */ }
-      results.push('✅ ENUM VALUES: league_participant_status_enum completo');
+      // Agregar valores faltantes al enum que realmente existe
+      const participantValues = ['PENDING_PAYMENT', 'PENDING', 'ACTIVE', 'REJECTED'];
+      for (const val of participantValues) {
+        try {
+          await this.dataSource.query(`ALTER TYPE ${pEnumName} ADD VALUE IF NOT EXISTS '${val}'`);
+        } catch (e) { /* ya existe */ }
+      }
+      results.push('✅ ENUM VALUES: participant status completo');
 
-      // Crear enum transaction_status_enum si no existe
-      try {
-        await this.dataSource.query(`
-          DO $$ BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transaction_status_enum') THEN
-              CREATE TYPE transaction_status_enum AS ENUM ('PENDING_PAYMENT', 'PENDING', 'PAID', 'APPROVED', 'REJECTED');
-            END IF;
-          END $$;
-        `);
-        results.push('✅ ENUM TYPE: transaction_status_enum creado/verificado');
-      } catch (e) { results.push(`⚠️ CREATE ENUM transaction: ${e.message}`); }
-
-      try { await this.dataSource.query(`ALTER TYPE transaction_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT'`); } catch (e) { /* */ }
-      try { await this.dataSource.query(`ALTER TYPE transaction_status_enum ADD VALUE IF NOT EXISTS 'APPROVED'`); } catch (e) { /* */ }
-      results.push('✅ ENUM VALUES: transaction_status_enum completo');
+      // Detectar el nombre real del enum de transaction status
+      const transactionEnumName = await this.dataSource.query(`
+        SELECT typname FROM pg_type 
+        WHERE typname IN ('transaction_status_enum', 'transactions_status_enum')
+        LIMIT 1
+      `);
+      const tEnumName = transactionEnumName?.[0]?.typname;
+      
+      if (tEnumName) {
+        results.push(`ℹ️ Transaction enum detectado: ${tEnumName}`);
+        const txValues = ['PENDING_PAYMENT', 'PENDING', 'PAID', 'APPROVED', 'REJECTED'];
+        for (const val of txValues) {
+          try { await this.dataSource.query(`ALTER TYPE ${tEnumName} ADD VALUE IF NOT EXISTS '${val}'`); } catch (e) { /* */ }
+        }
+        results.push('✅ ENUM VALUES: transaction status completo');
+      } else {
+        // Crear si no existe
+        try {
+          await this.dataSource.query(`CREATE TYPE transaction_status_enum AS ENUM ('PENDING_PAYMENT', 'PENDING', 'PAID', 'APPROVED', 'REJECTED')`);
+          results.push('✅ ENUM TYPE: transaction_status_enum creado');
+        } catch (e) { results.push(`⚠️ CREATE transaction enum: ${e.message}`); }
+      }
 
       // PENDING y REJECTED en leagues_status_enum
       try {
@@ -157,16 +164,6 @@ export class DebugController {
         await this.dataSource.query(`ALTER TYPE "public"."leagues_status_enum" ADD VALUE IF NOT EXISTS 'REJECTED'`);
         results.push('✅ ENUM: REJECTED en leagues_status_enum');
       } catch (e) { results.push(`⚠️ ENUM REJECTED: ${e.message}`); }
-
-      // Ahora alterar la columna status de league_participants para usar el enum
-      try {
-        await this.dataSource.query(`
-          ALTER TABLE league_participants 
-          ALTER COLUMN status TYPE league_participant_status_enum 
-          USING status::league_participant_status_enum
-        `);
-        results.push('✅ COLUMN: league_participants.status convertida a enum');
-      } catch (e) { results.push(`⚠️ ALTER league_participants.status: ${e.message}`); }
 
       // ====== 2. COLUMNAS FALTANTES EN LEAGUES ======
       const leagueColumns = [

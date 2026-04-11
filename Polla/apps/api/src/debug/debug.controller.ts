@@ -110,44 +110,35 @@ export class DebugController {
       console.log('--- [DB-REPAIR] Ejecutando reparación completa de esquema ---');
 
       // ====== 1. ENUM VALUES FALTANTES ======
+      // IMPORTANTE: ALTER TYPE ADD VALUE NO funciona dentro de transacciones en PostgreSQL
+      // Por eso usamos this.dataSource.query() directamente (fuera de transacción)
+      
       // PENDING_PAYMENT en league_participants
       try {
-        await queryRunner.query(`
-          DO $$ BEGIN
-            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'league_participant_status_enum') THEN
-              ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-            END IF;
-          END $$;
-        `);
+        await this.dataSource.query(`ALTER TYPE league_participant_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT'`);
         results.push('✅ ENUM: PENDING_PAYMENT en league_participant_status_enum');
       } catch (e) { results.push(`⚠️ ENUM league_participant: ${e.message}`); }
 
       // PENDING_PAYMENT en transactions
       try {
-        await queryRunner.query(`
-          DO $$ BEGIN
-            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transaction_status_enum') THEN
-              ALTER TYPE transaction_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-            END IF;
-          END $$;
-        `);
+        await this.dataSource.query(`ALTER TYPE transaction_status_enum ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT'`);
         results.push('✅ ENUM: PENDING_PAYMENT en transaction_status_enum');
       } catch (e) { results.push(`⚠️ ENUM transaction: ${e.message}`); }
 
       // PENDING en leagues_status_enum
       try {
-        await queryRunner.query(`ALTER TYPE "public"."leagues_status_enum" ADD VALUE IF NOT EXISTS 'PENDING';`);
+        await this.dataSource.query(`ALTER TYPE "public"."leagues_status_enum" ADD VALUE IF NOT EXISTS 'PENDING'`);
         results.push('✅ ENUM: PENDING en leagues_status_enum');
       } catch (e) {
         try {
-          await queryRunner.query(`ALTER TYPE "leagues_status_enum" ADD VALUE IF NOT EXISTS 'PENDING';`);
+          await this.dataSource.query(`ALTER TYPE "leagues_status_enum" ADD VALUE IF NOT EXISTS 'PENDING'`);
           results.push('✅ ENUM: PENDING en leagues_status_enum (fallback)');
         } catch (e2) { results.push(`⚠️ ENUM PENDING league: ${e2.message}`); }
       }
 
       // REJECTED en leagues_status_enum
       try {
-        await queryRunner.query(`ALTER TYPE "public"."leagues_status_enum" ADD VALUE IF NOT EXISTS 'REJECTED';`);
+        await this.dataSource.query(`ALTER TYPE "public"."leagues_status_enum" ADD VALUE IF NOT EXISTS 'REJECTED'`);
         results.push('✅ ENUM: REJECTED en leagues_status_enum');
       } catch (e) { results.push(`⚠️ ENUM REJECTED: ${e.message}`); }
 

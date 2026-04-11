@@ -24,6 +24,17 @@ export class DebugController {
     private dataSource: DataSource,
   ) {}
 
+  @Get('make-admin')
+  async makeAdmin() {
+    try {
+      const email = 'racv85@gmail.com';
+      await this.dataSource.query(`UPDATE users SET role = 'SUPER_ADMIN' WHERE email = $1`, [email]);
+      return { success: true, message: `El usuario ${email} ahora es SUPER_ADMIN en esta base de datos. Recarga la página y el botón aparecerá.` };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
   @Get('ping')
   getPing() {
     return {

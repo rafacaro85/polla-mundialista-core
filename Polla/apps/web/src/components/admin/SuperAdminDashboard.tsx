@@ -11,13 +11,14 @@ import {
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
     Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon,
-    ListOrdered, CreditCard
+    ListOrdered, CreditCard, Tv, Store
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
 import { UsersTable } from '@/components/admin/UsersTable';
 import { LeaguesTable } from '@/components/admin/LeaguesTable';
 import { MatchesList } from '@/components/admin/MatchesList';
+import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
 import { CreateEnterpriseLeagueForm } from '@/components/admin/CreateEnterpriseLeagueForm';
 import { GroupStandingsOverride } from '@/components/admin/GroupStandingsOverride';
 import { CommunicationPanel } from '@/components/admin/CommunicationPanel';
@@ -350,6 +351,7 @@ export default function SuperAdminDashboard() {
             <div style={STYLES.tabsContainer} className="no-scrollbar">
                 {[
                     { id: 'dashboard', label: 'Resumen', icon: <LayoutDashboard size={14} /> },
+                    { id: 'match-admin', label: '🎯 Polla Match', icon: <Store size={14} /> },
                     { id: 'users', label: 'Usuarios', icon: <Eye size={14} /> },
                     { id: 'leagues', label: 'Pollas', icon: <Trophy size={14} /> },
                     { id: 'matches', label: 'Partidos', icon: <Shield size={14} /> },
@@ -395,6 +397,9 @@ export default function SuperAdminDashboard() {
 
             {/* A. PESTAÑA DASHBOARD — PlatformDashboard */}
             {activeTab === 'dashboard' && <PlatformDashboard tournamentId={tournamentId} />}
+
+            {/* NUEVA: PESTAÑA POLLA MATCH — Gestión de Bares */}
+            {activeTab === 'match-admin' && <MatchAdminTab leagues={stats.leagues} onRefresh={loadDashboardData} />}
 
             {/* H. PESTAÑA EMPRESAS (NUEVO) */}
 
@@ -792,6 +797,53 @@ export default function SuperAdminDashboard() {
                     />
                 </div>
             )}
+            </div>
+        </div>
+    );
+}
+
+function MatchAdminTab({ leagues, onRefresh }: { leagues: any[], onRefresh: () => void }) {
+    // Filtrar solo las pollas que son de tipo bar/empresa que podrían usar match mode
+    // (Por ahora permitimos a todas las que son enterprise o pagadas)
+    const matchLeagues = leagues.filter(l => l.packageType?.includes('ENTERPRISE') || l.type === 'COMPANY' || l.isPaid);
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-[#1E293B] border border-slate-700 p-6 rounded-xl shadow-lg">
+                <h2 className="text-xl font-russo uppercase text-white mb-2 flex items-center gap-2">
+                    <Store className="text-emerald-500" /> Panel Global Polla Match
+                </h2>
+                <p className="text-slate-400 text-sm">Gestiona todos los bares y eventos corporativos que utilizan el modo "1 Partido a la vez".</p>
+            </div>
+
+            <div className="grid gap-6">
+                {matchLeagues.map(league => (
+                    <div key={league.id} className={`bg-[#1E293B] border ${league.isMatchMode ? 'border-emerald-500/50' : 'border-slate-700'} rounded-xl p-6 overflow-hidden relative`}>
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-white uppercase flex items-center gap-2">
+                                    {league.companyName || league.name}
+                                    {league.isMatchMode && <span className="bg-emerald-500 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">LIVE</span>}
+                                </h3>
+                                <p className="text-sm text-slate-400">{league.name} • Admin: {league.adminName || 'N/A'}</p>
+                            </div>
+                            <div className="text-right">
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded border ${league.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/50' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/50'} uppercase`}>
+                                    {league.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Import MatchAdminPanel which manages the match mode details for this league */}
+                        <MatchAdminPanel league={league} onUpdate={onRefresh} />
+                    </div>
+                ))}
+                
+                {matchLeagues.length === 0 && (
+                    <div className="text-center p-12 bg-[#1E293B] border border-slate-700 rounded-xl text-slate-400 italic">
+                        No hay ligas corporativas/bares configuradas todavía.
+                    </div>
+                )}
             </div>
         </div>
     );

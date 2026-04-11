@@ -58,7 +58,7 @@ export class DebugController {
 
       for (const apiMatch of matches) {
         const externalId = apiMatch.id.toString();
-        const check = await this.dataSource.query('SELECT id FROM matches WHERE external_id = $1 AND "tournamentId" = $2', [externalId, 'WC2026']);
+        const check = await this.dataSource.query('SELECT id FROM matches WHERE "externalId" = $1 AND "tournamentId" = $2', [externalId, 'WC2026']);
         if (check.length > 0) {
           skippedCount++; continue;
         }
@@ -78,7 +78,7 @@ export class DebugController {
 
         await this.dataSource.query(`
           INSERT INTO matches (
-            id, home_team, away_team, date, status, phase, "group", "tournamentId", external_id, home_score, away_score
+            id, "homeTeam", "awayTeam", date, status, phase, "group", "tournamentId", "externalId", "homeScore", "awayScore"
           ) VALUES (
             gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, null, null
           )`,

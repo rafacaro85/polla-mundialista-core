@@ -62,8 +62,11 @@ function SuccessLogic() {
             console.log(`🔀 [AUTH] Redirección personalizada: ${redirectPath}`);
             window.location.href = redirectPath;
           } else {
-            console.log('🏠 [AUTH] Sin flag - Redirigiendo al Gateway...');
-            window.location.href = '/gateway';
+            // Detectar si estamos en match. para ir directo a empresas
+            const isMatch = typeof window !== 'undefined' && window.location.hostname.includes('match.');
+            const defaultDest = isMatch ? '/empresa/mis-pollas' : '/gateway';
+            console.log(`🏠 [AUTH] Sin flag - Redirigiendo a ${defaultDest}...`);
+            window.location.href = defaultDest;
           }
         }
       })

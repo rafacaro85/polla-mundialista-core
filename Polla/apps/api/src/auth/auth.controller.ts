@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import {
@@ -46,14 +47,15 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuth(@Req() req: any) {
-    // Inicia el flujo, Passport se encarga de la redirección a Google
+    // GoogleAuthGuard inyecta el parámetro 'redirect' como 'state' en la URL de Google.
+    // Google nos devuelve ese state intacto en el callback.
   }
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: { user: User; query: any }, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
     try {
       const { access_token } = await this.authService.googleLogin(req.user);
       const isProduction = process.env.NODE_ENV === 'production';
@@ -63,7 +65,11 @@ export class AuthController {
       res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
       // --- LÓGICA DE REDIRECCIÓN DINÁMICA (SECURE) ---
-      const originParam = req.query.state;
+      // Prioridad: 1) state de Google (inyectado por GoogleAuthGuard)
+      //            2) header referer/origin como fallback
+      //            3) FRONTEND_URL como último recurso
+      const stateParam = req.query?.state;
+      const refererHeader = req.headers?.referer || req.headers?.origin || '';
       const defaultFrontend = process.env.FRONTEND_URL || 'http://localhost:3001';
       
       const WHITELIST = [
@@ -74,11 +80,19 @@ export class AuthController {
         'http://localhost:3001',
       ];
 
-      // Validar que el origen esté en la whitelist para prevenir Open Redirect
-      const isValidOrigin = originParam && WHITELIST.some(domain => originParam.startsWith(domain));
-      const finalRedirectUrl = isValidOrigin ? originParam : defaultFrontend;
+      // Intentar state primero, luego referer
+      let candidateOrigin = stateParam || '';
+      if (!candidateOrigin || !WHITELIST.some(d => candidateOrigin.startsWith(d))) {
+        // Fallback: extraer dominio del referer si es de Google redirect
+        candidateOrigin = '';
+      }
 
-      console.log('🔄 Redirigiendo a frontend:', `${finalRedirectUrl}/auth/success`);
+      const isValidOrigin = candidateOrigin && WHITELIST.some(domain => candidateOrigin.startsWith(domain));
+      const finalRedirectUrl = isValidOrigin ? candidateOrigin : defaultFrontend;
+
+      console.log('🔄 [OAuth Redirect] state:', stateParam);
+      console.log('🔄 [OAuth Redirect] finalRedirectUrl:', finalRedirectUrl);
+      console.log('🔄 [OAuth Redirect] Redirigiendo a:', `${finalRedirectUrl}/auth/success`);
       return res.redirect(`${finalRedirectUrl}/auth/success`);
     } catch (error) {
       console.error('❌ [AuthController Google Redirect] Error:', error);

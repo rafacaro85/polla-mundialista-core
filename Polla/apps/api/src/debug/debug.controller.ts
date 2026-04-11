@@ -24,6 +24,74 @@ export class DebugController {
     private dataSource: DataSource,
   ) {}
 
+  @Get('seed-wc')
+  async seedWC() {
+    try {
+      const axios = require('axios');
+      const apiKey = process.env.FOOTBALL_DATA_API_KEY || '15635df62c8142119be1efd778db2fb8';
+      
+      const response = await axios.get('https://api.football-data.org/v4/competitions/WC/matches', {
+        headers: { 'X-Auth-Token': apiKey }
+      });
+      const matches = response.data.matches;
+      
+      const TEAM_NAMES = {
+        'Argentina': 'Argentina', 'Australia': 'Australia', 'Austria': 'Austria', 'Belgium': 'Bélgica',
+        'Bolivia': 'Bolivia', 'Brazil': 'Brasil', 'Cameroon': 'Camerún', 'Canada': 'Canadá',
+        'Chile': 'Chile', 'Colombia': 'Colombia', 'Costa Rica': 'Costa Rica', 'Croatia': 'Croacia',
+        'Denmark': 'Dinamarca', 'Ecuador': 'Ecuador', 'Egypt': 'Egipto', 'England': 'Inglaterra',
+        'France': 'Francia', 'Germany': 'Alemania', 'Ghana': 'Ghana', 'Iran': 'Irán',
+        'Japan': 'Japón', 'Mexico': 'México', 'Morocco': 'Marruecos', 'Netherlands': 'Países Bajos',
+        'Panama': 'Panamá', 'Paraguay': 'Paraguay', 'Peru': 'Perú', 'Poland': 'Polonia',
+        'Portugal': 'Portugal', 'Qatar': 'Catar', 'Saudi Arabia': 'Arabia Saudí', 'Senegal': 'Senegal',
+        'Serbia': 'Serbia', 'South Africa': 'Sudáfrica', 'South Korea': 'República de Corea', 'Spain': 'España',
+        'Switzerland': 'Suiza', 'Tunisia': 'Túnez', 'United States': 'Estados Unidos', 'Uruguay': 'Uruguay',
+        'Wales': 'Gales', 'TBD': 'TBD',
+      };
+
+      const phaseMap = {
+        'GROUP_STAGE': 'GROUP', 'ROUND_OF_16': 'ROUND_32', 'ROUND_OF_32': 'ROUND_32',
+        'QUARTER_FINALS': 'QUARTER', 'SEMI_FINALS': 'SEMI', 'THIRD_PLACE': '3RD_PLACE', 'FINAL': 'FINAL'
+      };
+
+      let insertedCount = 0, skippedCount = 0;
+
+      for (const apiMatch of matches) {
+        const externalId = apiMatch.id.toString();
+        const check = await this.dataSource.query('SELECT id FROM matches WHERE external_id = $1 AND "tournamentId" = $2', [externalId, 'WC2026']);
+        if (check.length > 0) {
+          skippedCount++; continue;
+        }
+
+        const cleanHome = (apiMatch.homeTeam?.name || 'TBD').replace('national football team', '').replace('National Team', '').trim();
+        const cleanAway = (apiMatch.awayTeam?.name || 'TBD').replace('national football team', '').replace('National Team', '').trim();
+        const homeTeam = TEAM_NAMES[cleanHome] || cleanHome;
+        const awayTeam = TEAM_NAMES[cleanAway] || cleanAway;
+
+        let phase = phaseMap[apiMatch.stage] || 'GROUP';
+        let groupName = null;
+        if (apiMatch.group && typeof apiMatch.group === 'string') {
+          const parts = apiMatch.group.split(' ');
+          if (parts.length > 1) groupName = parts[1];
+        }
+        if (apiMatch.stage === 'GROUP_STAGE' && groupName) phase = 'GROUP_' + groupName;
+
+        await this.dataSource.query(`
+          INSERT INTO matches (
+            id, home_team, away_team, date, status, phase, "group", "tournamentId", external_id, home_score, away_score
+          ) VALUES (
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, null, null
+          )`,
+          [homeTeam, awayTeam, apiMatch.utcDate, 'PENDING', phase, groupName, 'WC2026', externalId]
+        );
+        insertedCount++;
+      }
+      return { success: true, apiMatches: matches.length, inserted: insertedCount, skipped: skippedCount };
+    } catch (e) {
+      return { success: false, error: e.message, details: e.response?.data };
+    }
+  }
+
   @Get('make-admin')
   async makeAdmin() {
     try {

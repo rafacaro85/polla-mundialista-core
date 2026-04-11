@@ -8,19 +8,30 @@ function SuccessLogic() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // La cookie auth_token ya fue seteada por el backend antes del redirect.
-    // Solo necesitamos obtener el perfil del usuario (la cookie se envía automáticamente).
     const tournament = searchParams.get('tournament');
-    
     if (tournament) {
       localStorage.setItem('selectedTournament', tournament);
-      console.log('Torneo seleccionado guardado:', tournament);
     }
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    console.log('🔍 [AUTH] Obteniendo perfil de usuario desde cookie...');
 
-    // fetch con credentials para enviar la cookie httpOnly automáticamente
+    // --- PASO 1: Obtener el token ---
+    // Prioridad: token en URL (Google OAuth cross-domain) > cookie existente
+    const tokenFromUrl = searchParams.get('token');
+    
+    if (tokenFromUrl) {
+      console.log('🔑 [AUTH] Token recibido en URL (Google OAuth). Seteando cookie en dominio local...');
+      // Setear la cookie en el dominio del FRONTEND (match.lapollavirtual.com)
+      // Esto resuelve el problema de cookies cross-domain con Chrome 120+
+      document.cookie = `auth_token=${tokenFromUrl}; path=/; secure; samesite=none; max-age=86400`;
+      
+      // Limpiar el token de la URL para no dejarlo expuesto en el historial
+      window.history.replaceState({}, '', '/auth/success');
+    }
+
+    console.log('🔍 [AUTH] Obteniendo perfil de usuario...');
+
+    // --- PASO 2: Llamar /auth/profile con la cookie ---
     fetch(`${API_URL}/auth/profile`, { credentials: 'include' })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -49,8 +60,6 @@ function SuccessLogic() {
         const BUSINESS_ONBOARDING_KEY = 'onboarding_business';
         const isBusinessOnboarding = getCookie(BUSINESS_ONBOARDING_KEY) || localStorage.getItem(BUSINESS_ONBOARDING_KEY);
 
-        console.log('🔍 [AUTH] Flag onboarding_business:', isBusinessOnboarding);
-
         if (isBusinessOnboarding) {
           console.log('🚀 [AUTH] FLAG DETECTADO - Redirigiendo a /empresa/crear');
           localStorage.removeItem(BUSINESS_ONBOARDING_KEY);
@@ -59,20 +68,17 @@ function SuccessLogic() {
         } else {
           const redirectPath = searchParams.get('redirect');
           if (redirectPath) {
-            console.log(`🔀 [AUTH] Redirección personalizada: ${redirectPath}`);
             window.location.href = redirectPath;
           } else {
-            // Detectar si estamos en match. para ir directo a empresas
             const isMatch = typeof window !== 'undefined' && window.location.hostname.includes('match.');
             const defaultDest = isMatch ? '/empresa/mis-pollas' : '/gateway';
-            console.log(`🏠 [AUTH] Sin flag - Redirigiendo a ${defaultDest}...`);
+            console.log(`🏠 [AUTH] Redirigiendo a ${defaultDest}...`);
             window.location.href = defaultDest;
           }
         }
       })
       .catch(error => {
-        console.error('Error obteniendo datos del usuario:', error);
-        // Si falla (cookie inválida o inexistente), ir al login
+        console.error('❌ [AUTH] Error obteniendo perfil:', error);
         router.push('/login');
       });
   }, [router, searchParams]);

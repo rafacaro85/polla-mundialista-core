@@ -62,14 +62,13 @@ export class AuthController {
 
       // Limpiar cookie de sesión de OAuth y setear token como httpOnly
       res.clearCookie('connect.sid');
+      // Cookie del backend (funciona para same-domain, fallback)
       res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
       // --- LÓGICA DE REDIRECCIÓN DINÁMICA (SECURE) ---
       // Prioridad: 1) state de Google (inyectado por GoogleAuthGuard)
-      //            2) header referer/origin como fallback
-      //            3) FRONTEND_URL como último recurso
+      //            2) FRONTEND_URL como último recurso
       const stateParam = req.query?.state;
-      const refererHeader = req.headers?.referer || req.headers?.origin || '';
       const defaultFrontend = process.env.FRONTEND_URL || 'http://localhost:3001';
       
       const WHITELIST = [
@@ -80,20 +79,19 @@ export class AuthController {
         'http://localhost:3001',
       ];
 
-      // Intentar state primero, luego referer
       let candidateOrigin = stateParam || '';
       if (!candidateOrigin || !WHITELIST.some(d => candidateOrigin.startsWith(d))) {
-        // Fallback: extraer dominio del referer si es de Google redirect
         candidateOrigin = '';
       }
 
       const isValidOrigin = candidateOrigin && WHITELIST.some(domain => candidateOrigin.startsWith(domain));
       const finalRedirectUrl = isValidOrigin ? candidateOrigin : defaultFrontend;
 
+      // Pasar JWT en URL para resolver cookies cross-domain (Chrome 120+)
+      // El frontend leerá este token y creará la cookie en su propio dominio
       console.log('🔄 [OAuth Redirect] state:', stateParam);
       console.log('🔄 [OAuth Redirect] finalRedirectUrl:', finalRedirectUrl);
-      console.log('🔄 [OAuth Redirect] Redirigiendo a:', `${finalRedirectUrl}/auth/success`);
-      return res.redirect(`${finalRedirectUrl}/auth/success`);
+      return res.redirect(`${finalRedirectUrl}/auth/success?token=${access_token}`);
     } catch (error) {
       console.error('❌ [AuthController Google Redirect] Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';

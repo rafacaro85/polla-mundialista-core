@@ -33,8 +33,8 @@ export class League {
   organization?: Organization;
 
   @Column({
-    type: 'enum',
-    enum: LeagueType,
+    type: 'varchar',
+    length: 50,
   })
   type: LeagueType;
 
@@ -49,8 +49,8 @@ export class League {
   maxParticipants: number;
 
   @Column({
-    type: 'enum',
-    enum: LeagueStatus,
+    type: 'varchar',
+    length: 50,
     default: LeagueStatus.ACTIVE,
   })
   status: LeagueStatus;

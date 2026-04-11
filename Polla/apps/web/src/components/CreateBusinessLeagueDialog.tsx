@@ -18,77 +18,66 @@ import { PaymentMethods } from './dashboard/PaymentMethods';
    ============================================================================= */
 const BUSINESS_PLANS = [
     {
-        id: 'bronce',
-        name: 'Bronce',
-        price: '$100.000',
-        capacity: '25 Jugadores',
+        id: 'basico',
+        name: 'Básico',
+        price: '$15.000',
+        capacity: '20 Jugadores',
         icon: <Zap size={20} />,
         color: '#CD7F32',
         features: [
-            'Branding Básico',
-            'Logo de Empresa',
-            'Imagen de Premios'
+            'Predicciones ilimitadas',
+            'Ranking en vivo',
+            'Vista TV proyectable',
+            'QR generado automáticamente'
         ],
-        packageType: 'bronce',
-        description: 'Pago Único'
+        packageType: 'basico',
+        description: 'Por partido'
     },
     {
-        id: 'plata',
-        name: 'Plata',
-        price: '$175.000',
+        id: 'pro_match',
+        name: 'Pro',
+        price: '$25.000',
         capacity: '50 Jugadores',
         icon: <Medal size={20} />,
         color: '#94A3B8',
         features: [
-            'Personalización Colores Marca',
-            'Logo de la Empresa',
-            'Imágenes de los premios',
-            'Redes Sociales Corporativas'
+            'Todo lo del Básico',
+            'Logo del bar/empresa',
+            'Colores de marca',
+            'Estadísticas por mesa'
         ],
-        packageType: 'plata',
-        description: 'Pago Único'
+        packageType: 'pro_match',
+        description: 'Por partido'
     },
     {
-        id: 'oro',
-        name: 'Oro',
-        price: '$450.000',
-        capacity: '150 Jugadores',
+        id: 'premium_match',
+        name: 'Premium',
+        price: '$35.000',
+        capacity: '100 Jugadores',
         icon: <Trophy size={20} />,
         color: '#FACC15',
         features: [
-            'Todo lo del plan Plata',
-            'Muro Social Interno'
+            'Todo lo del Pro',
+            'Banners publicitarios',
+            'Soporte prioritario WhatsApp'
         ],
-        packageType: 'oro',
-        description: 'Pago Único'
+        packageType: 'premium_match',
+        description: 'Por partido'
     },
     {
-        id: 'platino',
-        name: 'Platino',
-        price: '$750.000',
+        id: 'evento_match',
+        name: 'Evento',
+        price: '$60.000',
         capacity: '300 Jugadores',
         icon: <Star size={20} />,
         color: '#E2E8F0',
         features: [
-            'Todo lo del plan Oro',
-            'Guerra de Áreas (RRHH)'
+            'Todo lo del Premium',
+            'Hasta 300 participantes',
+            'Para eventos masivos y empresas'
         ],
-        packageType: 'platino',
-        description: 'Pago Único'
-    },
-    {
-        id: 'diamante',
-        name: 'Diamante',
-        price: '$1.000.000',
-        capacity: '500 Jugadores',
-        icon: <Gem size={20} />,
-        color: '#00E676',
-        features: [
-            'Todo lo del plan Platino',
-            'Banners Publicidad (Home)'
-        ],
-        packageType: 'diamante',
-        description: 'Pago Único'
+        packageType: 'evento_match',
+        description: 'Por partido'
     }
 ];
 
@@ -120,7 +109,7 @@ export const CreateBusinessLeagueDialog = ({
     const [adminName, setAdminName] = useState('');
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('bronce');
+    const [selectedPlanId, setSelectedPlanId] = useState('basico');
 
     // Business Plans Logic (Champions specific promo)
     const availableBusinessPlans = React.useMemo(() => {
@@ -145,7 +134,7 @@ export const CreateBusinessLeagueDialog = ({
         if (selectedTournamentId === 'UCL2526') {
             setSelectedPlanId('launch_business');
         } else {
-            setSelectedPlanId('bronce');
+            setSelectedPlanId('basico');
         }
     }, [selectedTournamentId]);
 

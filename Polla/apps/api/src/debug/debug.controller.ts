@@ -154,6 +154,11 @@ export class DebugController {
       await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT '#FFFFFF'");
       await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'");
 
+      // Match Mode columns
+      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS match_code VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS active_match_id VARCHAR(255)");
+      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS is_match_mode BOOLEAN DEFAULT false");
+
       // ALSO: Alter existing tables if they were created with the wrong schema
       await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'image'");
       await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS badge VARCHAR(255)");

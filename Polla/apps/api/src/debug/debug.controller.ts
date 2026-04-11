@@ -35,7 +35,7 @@ export class DebugController {
       });
       const matches = response.data.matches;
       
-      const TEAM_NAMES = {
+      const TEAM_NAMES: Record<string, string> = {
         'Argentina': 'Argentina', 'Australia': 'Australia', 'Austria': 'Austria', 'Belgium': 'Bélgica',
         'Bolivia': 'Bolivia', 'Brazil': 'Brasil', 'Cameroon': 'Camerún', 'Canada': 'Canadá',
         'Chile': 'Chile', 'Colombia': 'Colombia', 'Costa Rica': 'Costa Rica', 'Croatia': 'Croacia',
@@ -49,7 +49,7 @@ export class DebugController {
         'Wales': 'Gales', 'TBD': 'TBD',
       };
 
-      const phaseMap = {
+      const phaseMap: Record<string, string> = {
         'GROUP_STAGE': 'GROUP', 'ROUND_OF_16': 'ROUND_32', 'ROUND_OF_32': 'ROUND_32',
         'QUARTER_FINALS': 'QUARTER', 'SEMI_FINALS': 'SEMI', 'THIRD_PLACE': '3RD_PLACE', 'FINAL': 'FINAL'
       };

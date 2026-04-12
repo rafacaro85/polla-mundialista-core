@@ -11,8 +11,12 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    // 1. Token: la cookie auth_token se envía automáticamente (withCredentials: true)
-    // No se inyecta Authorization header manual
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token && config.headers) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
 
     // 2. Tournament Context Injection (Dynamic Header)
     if (typeof window !== 'undefined') {

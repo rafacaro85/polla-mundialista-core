@@ -73,7 +73,9 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
           password: formData.password
         });
 
-        // La cookie auth_token ya fue seteada por el backend (httpOnly)
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+        }
         if (data.user) {
           localStorage.setItem('user', JSON.stringify(data.user));
         }
@@ -115,7 +117,10 @@ export const LoginScreen = ({ onGoogleLogin }: { onGoogleLogin: () => void }) =>
           code: formData.verificationCode
         });
 
-        // Auto-login after verification — la cookie auth_token ya está seteada
+        // Auto-login after verification 
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+        }
         if (data.user) {
           localStorage.setItem('user', JSON.stringify(data.user));
         }

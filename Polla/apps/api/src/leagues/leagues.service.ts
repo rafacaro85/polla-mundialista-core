@@ -2303,17 +2303,28 @@ export class LeaguesService {
       }
     }
 
-    // Reset prediction points for this league
-    await this.predictionRepository.update(
-      { leagueId: leagueId },
-      { points: 0 }
-    );
-
-    // Reset total points for participants
+    // 1. Resetear TODOS los puntajes (para usuarios normales que se quedan)
     await this.leagueParticipantsRepository.update(
       { league: { id: leagueId } },
       { totalPoints: 0, predictionPoints: 0, jokerPoints: 0 }
     );
+
+    // 2. Borrar las predicciones existentes
+    await this.predictionRepository.delete({ leagueId: leagueId });
+
+    // 3. Buscar y expulsar a los invitados de bar (MATCH_GUEST)
+    const participants = await this.leagueParticipantsRepository.find({
+      where: { league: { id: leagueId } },
+      relations: ['user']
+    });
+
+    const guestIds = participants
+      .filter(p => p.user && p.user.role === 'MATCH_GUEST')
+      .map(p => p.id);
+
+    if (guestIds.length > 0) {
+      await this.leagueParticipantsRepository.delete(guestIds);
+    }
 
     await this.cacheManager.del(`ranking:league:${leagueId}`);
     return { message: 'Ranking successfully reset to zero.' };

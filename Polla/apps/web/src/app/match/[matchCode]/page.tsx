@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function MatchLoginPage() {
   const router = useRouter();
@@ -30,6 +31,12 @@ export default function MatchLoginPage() {
       if (res.data.access_token) {
         localStorage.setItem('auth_token', res.data.access_token);
       }
+      
+      // IMPORTANT: Update Zustand store immediately
+      if (res.data.user) {
+        useAppStore.getState().setUser(res.data.user);
+      }
+
       toast.success('¡Bienvenido a la Polla Match!');
       // Force reload to update auth context correctly
       // Delay it just a bit to ensure storage sets correctly across renders/hooks

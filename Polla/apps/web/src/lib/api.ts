@@ -88,6 +88,7 @@ api.interceptors.response.use(
         '/login',
         '/planes',
         '/invite',
+        '/match',
       ];
 
       const isPublicRoute = PUBLIC_ROUTES.some(route => 

@@ -14,7 +14,7 @@ export const AssetsTab: React.FC<AssetsTabProps> = ({ config, handleImageUpload,
 
     return (
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
-            <div className={`relative ${planLevel < 1 ? 'opacity-50' : ''}`}>
+            <div className={`relative ${planLevel < 1 ? 'opacity-50 pointer-events-none' : ''}`}>
                 <SectionTitle title="Logotipo" subtitle="Logo (PNG transparente)." />
                 {planLevel < 1 && (
                     <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
@@ -31,7 +31,7 @@ export const AssetsTab: React.FC<AssetsTabProps> = ({ config, handleImageUpload,
                     placeholderIcon={Building2}
                 />
             </div>
-            <div className={`md:col-span-2 relative ${planLevel < 3 ? 'opacity-50' : ''}`}>
+            <div className={`md:col-span-2 relative ${planLevel < 3 ? 'opacity-50 pointer-events-none' : ''}`}>
                 <SectionTitle title="Fondo del Hero (Banners)" subtitle="Imagen de fondo para la cabecera (Full HD recomendado)." />
                 {planLevel < 3 && (
                     <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">

@@ -229,7 +229,7 @@ export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) =
             <GoogleFontsLoader />
 
             {/* ─── SECCIÓN: COLORES ─── */}
-            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40' : ''}`}>
+            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40 pointer-events-none' : ''}`}>
                 {planLevel < 2 && (
                     <div className="absolute inset-0 z-10 bg-black/40 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
                         <div className="flex items-center gap-2 px-3 py-1 bg-black/80 rounded-full border border-yellow-500/30 text-yellow-500 shadow-xl">
@@ -291,7 +291,7 @@ export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) =
             </section>
 
             {/* ─── SECCIÓN: TIPOGRAFÍA (ACORDEÓN) ─── */}
-            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40' : ''}`}>
+            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40 pointer-events-none' : ''}`}>
                 {planLevel < 2 && (
                     <div className="absolute inset-0 z-10 bg-black/40 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
                         <div className="flex items-center gap-2 px-3 py-1 bg-black/80 rounded-full border border-yellow-500/30 text-yellow-500 shadow-xl">

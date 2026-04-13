@@ -15,7 +15,7 @@ import axios from 'axios';
 import { TelegramService } from '../telegram/telegram.service';
 
 // ── Plan Configuration (centralized) ──────────────────────────────────────────
-export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' }> = {
+export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' | 'MATCH' }> = {
   // Social
   'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL' },
   'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL' },

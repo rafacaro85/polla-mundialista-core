@@ -1987,12 +1987,21 @@ export class LeaguesService {
     const currentPrice = PLAN_CONFIG[currentKey]?.price || 0;
     const isEnterprise =
       league.isEnterprise || league.type === LeagueType.COMPANY;
-    const currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+    let currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+    
+    if (league.isMatchMode) {
+      currentType = 'MATCH';
+    }
 
     const availablePlans = Object.entries(PLAN_CONFIG)
       .filter(([key, cfg]) => {
+        // MATCH plans only go to Match mode leagues, and viceversa
+        if (league.isMatchMode && cfg.type !== 'MATCH') return false;
+        if (!league.isMatchMode && cfg.type === 'MATCH') return false;
+        
         // Only same type (Social/Social, Ent/Ent)
-        if (cfg.type !== currentType) return false;
+        if (!league.isMatchMode && cfg.type !== currentType) return false;
+        
         // Only plans with higher price (no downgrades)
         if (cfg.price <= currentPrice) return false;
         // Exclude legacy/alias keys

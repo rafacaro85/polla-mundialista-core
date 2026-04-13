@@ -55,6 +55,7 @@ const getPlanLevel = (type?: string) => {
         'enterprise_launch': 2, 'enterprise_bronze': 2, 'enterprise_silver': 3,
         'enterprise_gold': 4, 'enterprise_platinum': 5, 'enterprise_diamond': 5,
         'business_growth': 2, 'business_corp': 4,
+        'match_basico': 1, 'match_pro': 2, 'match_premium': 3, 'match_evento': 4,
     };
     return levels[t] ?? 0;
 };

@@ -199,6 +199,7 @@ const getPlanLevel = (type?: string) => {
         'enterprise_launch': 2, 'enterprise_bronze': 2, 'enterprise_silver': 3,
         'enterprise_gold': 4, 'enterprise_platinum': 5, 'enterprise_diamond': 5,
         'business_growth': 2, 'business_corp': 4,
+        'match_basico': 1, 'match_pro': 2, 'match_premium': 3, 'match_evento': 4,
     };
     return levels[t] ?? 0;
 };
@@ -228,7 +229,14 @@ export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) =
             <GoogleFontsLoader />
 
             {/* ─── SECCIÓN: COLORES ─── */}
-            <section>
+            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40' : ''}`}>
+                {planLevel < 2 && (
+                    <div className="absolute inset-0 z-10 bg-black/40 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-black/80 rounded-full border border-yellow-500/30 text-yellow-500 shadow-xl">
+                            <Lock size={12} /> <span className="text-[10px] font-bold uppercase tracking-wider">Requiere Plan Pro o Sup.</span>
+                        </div>
+                    </div>
+                )}
                 <div className="mb-6">
                     <h2 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
                         🎨 Colores de tu Marca
@@ -248,7 +256,7 @@ export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) =
             </section>
 
             {/* ─── SECCIÓN: PALETAS ─── */}
-            <section>
+            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40 pointer-events-none' : ''}`}>
                 <div className="mb-5">
                     <h2 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
                         ✨ Paletas Prediseñadas
@@ -283,7 +291,14 @@ export const BrandingTab: React.FC<BrandingTabProps> = ({ config, setConfig }) =
             </section>
 
             {/* ─── SECCIÓN: TIPOGRAFÍA (ACORDEÓN) ─── */}
-            <section>
+            <section className={`relative transition-all ${planLevel < 2 ? 'opacity-40' : ''}`}>
+                {planLevel < 2 && (
+                    <div className="absolute inset-0 z-10 bg-black/40 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-black/80 rounded-full border border-yellow-500/30 text-yellow-500 shadow-xl">
+                            <Lock size={12} /> <span className="text-[10px] font-bold uppercase tracking-wider">Requiere Plan Pro o Sup.</span>
+                        </div>
+                    </div>
+                )}
                 <div className="mb-5">
                     <h2 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
                         ✍️ Tipografía Corporativa

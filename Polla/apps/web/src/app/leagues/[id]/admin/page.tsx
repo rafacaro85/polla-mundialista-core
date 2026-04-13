@@ -304,7 +304,7 @@ export default function AdminDashboardPage() {
                                 Si tienes dudas sobre cómo gestionar tu polla, contáctanos.
                             </p>
                             <a
-                                href="https://wa.me/573105973421"
+                                href="https://wa.me/573045414087"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-sm font-bold text-brand-primary hover:underline inline-flex items-center gap-1"

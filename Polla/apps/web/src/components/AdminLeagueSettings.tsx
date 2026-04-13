@@ -537,7 +537,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                             <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
                                                 onClick={() => {
                                                     const text = `Hola, quiero aumentar el cupo de mi liga "${currentLeague.name}" (Código: ${currentLeague.code}).`;
-                                                    window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                                    window.open(`https://wa.me/573045414087?text=${encodeURIComponent(text)}`, '_blank');
                                                 }}
                                             >
                                                 Solicitar Ampliación de Cupo
@@ -559,7 +559,7 @@ export function LeagueSettings({ league, onUpdate, trigger, mode = 'modal' }: { 
                                                 <Button size="sm" className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs"
                                                     onClick={() => {
                                                         const text = `Hola, quiero pasar mi liga "${currentLeague.name}" a PRO (Enterprise).`;
-                                                        window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                                                        window.open(`https://wa.me/573045414087?text=${encodeURIComponent(text)}`, '_blank');
                                                     }}
                                                 >
                                                     Pásate a PRO

@@ -392,7 +392,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     </div>
 
                     <a 
-                        href="https://wa.me/573105973421" 
+                        href="https://wa.me/573045414087" 
                         target="_blank" 
                         className="text-[#00E676] text-[10px] font-black uppercase tracking-widest hover:underline font-russo mt-4"
                     >

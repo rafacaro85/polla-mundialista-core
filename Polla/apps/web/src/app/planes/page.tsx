@@ -380,7 +380,7 @@ export default function PlansPage() {
 
             <div className="max-w-3xl mx-auto mt-20 text-center px-6">
                 <p className="text-slate-400 text-sm mb-4">¿Tienes dudas sobre qué plan elegir?</p>
-                <Link href="https://wa.me/573000000000" className="text-emerald-600 font-bold hover:underline">
+                <Link href="https://wa.me/573045414087" className="text-emerald-600 font-bold hover:underline">
                     Chatea con un asesor en WhatsApp
                 </Link>
             </div>

@@ -284,7 +284,7 @@ export default function StudioPage() {
     const [showActivation, setShowActivation] = useState(false);
     const handleWhatsAppContact = () => {
         const message = encodeURIComponent(`Hola! Quiero activar mi Polla Empresarial "${config.companyName}".`);
-        window.open(`https://wa.me/573102345678?text=${message}`, '_blank');
+        window.open(`https://wa.me/573045414087?text=${message}`, '_blank');
     };
 
     if (loading) return <div className="h-screen flex items-center justify-center bg-[#0B1120]" style={{ backgroundColor: 'var(--brand-bg, #0B1120)' }}><Loader2 className="animate-spin text-[var(--brand-primary,#00E676)]" /></div>;

@@ -44,7 +44,7 @@ const PlanLock = ({ featureName, planNeeded }: { featureName: string, planNeeded
         <button
             onClick={() => {
                 const text = `Hola, quiero subir de plan para desbloquear la función "${featureName}".`;
-                window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+                window.open(`https://wa.me/573045414087?text=${encodeURIComponent(text)}`, '_blank');
             }}
             className="text-[10px] font-bold text-emerald-500 uppercase hover:underline"
         >

@@ -14,7 +14,8 @@ import {
     ChevronRight,
     Trophy,
     Megaphone,
-    LayoutGrid
+    LayoutGrid,
+    Calendar
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -251,6 +252,19 @@ export default function AdminDashboardPage() {
             href: `/leagues/${params.id}/admin/advertising`,
             hidden: !isEnterprise,
         },
+        {
+            icon: <Calendar size={24} />,
+            title: '🎯 Modo Match',
+            description: 'Activa un partido en vivo tipo bar',
+            href: `/leagues/${params.id}/admin/match`,
+            hidden: !(
+                league?.type === 'MATCH' || 
+                league?.packageType?.toUpperCase() === 'MATCH' || 
+                league?.isMatchMode || 
+                (typeof window !== 'undefined' && window.location.hostname.includes('match.'))
+            ),
+            variant: 'primary' as const,
+        },
     ];
 
     const modules = allModules.filter(m => !m.hidden);
@@ -290,7 +304,7 @@ export default function AdminDashboardPage() {
                                 Si tienes dudas sobre cómo gestionar tu polla, contáctanos.
                             </p>
                             <a
-                                href="https://wa.me/573105973421"
+                                href="https://wa.me/573045414087"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-sm font-bold text-brand-primary hover:underline inline-flex items-center gap-1"

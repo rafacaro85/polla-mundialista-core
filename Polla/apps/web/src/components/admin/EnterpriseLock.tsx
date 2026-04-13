@@ -9,7 +9,7 @@ interface EnterpriseLockProps {
 export function EnterpriseLock({ featureName }: EnterpriseLockProps) {
     const handleContactSupport = () => {
         const text = `Hola, quiero activar las funciones Enterprise (${featureName}) para mi liga.`;
-        window.open(`https://wa.me/573105973421?text=${encodeURIComponent(text)}`, '_blank');
+        window.open(`https://wa.me/573045414087?text=${encodeURIComponent(text)}`, '_blank');
     };
 
     return (

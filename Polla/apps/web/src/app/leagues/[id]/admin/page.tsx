@@ -14,7 +14,8 @@ import {
     ChevronRight,
     Trophy,
     Megaphone,
-    LayoutGrid
+    LayoutGrid,
+    Calendar
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
@@ -250,6 +251,14 @@ export default function AdminDashboardPage() {
             description: 'Gestiona los banners y anuncios de la landing',
             href: `/leagues/${params.id}/admin/advertising`,
             hidden: !isEnterprise,
+        },
+        {
+            icon: <Calendar size={24} />,
+            title: '🎯 Modo Match',
+            description: 'Activa un partido en vivo tipo bar',
+            href: `/leagues/${params.id}/admin/match`,
+            hidden: !(league?.type === 'MATCH' || league?.isMatchMode),
+            variant: 'primary' as const,
         },
     ];
 

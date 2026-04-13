@@ -141,9 +141,9 @@ export default function MatchPlayPage() {
       <div className="max-w-md mx-auto p-4 space-y-6">
         {!activeMatch ? (
           <div className="text-center p-8 bg-slate-900 rounded-2xl border border-slate-800 mt-8">
-            <span className="text-4xl mb-4 block">🏟️</span>
-            <h2 className="text-xl font-bold text-white mb-2">No hay partido activo</h2>
-            <p className="text-slate-400">El administrador aún no ha activado ningún partido para esta mesa.</p>
+            <span className="text-4xl mb-4 block">⏳</span>
+            <h2 className="text-xl font-bold text-white mb-2">Aún no hay partido</h2>
+            <p className="text-slate-400">El administrador aún no ha activado ningún partido.<br/>¡Vuelve pronto!</p>
           </div>
         ) : (
           <>

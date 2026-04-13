@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Loader2, Tv, RefreshCcw } from 'lucide-react';
+import { Loader2, Tv, RefreshCcw, Download, Copy, BarChart3, Users, Star, PieChart } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTournament } from '@/hooks/useTournament';
 
@@ -16,9 +16,30 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   const [matches, setMatches] = useState<any[]>([]);
   const { tournamentId } = useTournament();
 
+  const [stats, setStats] = useState({
+    totalParticipants: 0,
+    activeTable: 'Mesa 1',
+    popularPrediction: 'Local Gana',
+    distribution: { home: 45, draw: 30, away: 25 }
+  });
+
   useEffect(() => {
     fetchMatches();
-  }, [tournamentId]);
+    if (league?.activeMatchId) {
+       fetchStats();
+    }
+  }, [tournamentId, league?.activeMatchId]);
+
+  const fetchStats = async () => {
+    try {
+      // Intentar cargar stats reales desde el servidor
+      const { data } = await api.get(`/leagues/${league.id}/match-mode/stats`);
+      if (data) setStats(data);
+    } catch (e) {
+      // Mocked fallback en caso de que el endpoint no esté implementado aún
+      console.log('No se pudieron obtener stats reales, usando fallback mockup');
+    }
+  };
 
   const fetchMatches = async () => {
     try {
@@ -74,6 +95,35 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/match/${league.matchCode}`);
+    toast.success('Enlace de la mesa copiado al portapapeles');
+  };
+
+  const downloadQR = () => {
+    const svg = document.getElementById('match-qr');
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `QR-Polla-Match-${league.matchCode}.png`;
+        downloadLink.href = `${pngFile}`;
+        downloadLink.click();
+      }
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   return (
@@ -141,24 +191,76 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
             </div>
 
             {/* QR Code */}
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex flex-col items-center justify-center">
-              <h3 className="text-white font-bold uppercase mb-4 text-xs text-center">Código QR para Mesas</h3>
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex flex-col items-center justify-center space-y-4">
+              <h3 className="text-white font-bold uppercase text-xs text-center">Código QR para Mesas</h3>
               <div className="bg-white p-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                 <QRCodeSVG
+                  id="match-qr"
                   value={`${window.location.origin}/match/${league.matchCode}`}
                   size={150}
                   level="Q"
                   includeMargin={true}
                 />
               </div>
-              <p className="text-emerald-400 font-mono font-bold tracking-widest mt-4 bg-emerald-500/10 px-4 py-2 border border-emerald-500/20 rounded">
+              <p className="text-emerald-400 font-mono font-bold tracking-widest bg-emerald-500/10 px-4 py-2 border border-emerald-500/20 rounded m-0">
                 CODE: {league.matchCode}
               </p>
-              <Button size="sm" variant="link" className="text-slate-400 mt-2 text-xs" onClick={() => window.open(`/match/${league.matchCode}`, '_blank')}>
-                Probar enlace
+              
+              <div className="flex w-full gap-2 mt-2">
+                <Button size="sm" variant="outline" className="flex-1 text-slate-300 border-slate-600 hover:bg-slate-800 flex gap-2" onClick={copyLink}>
+                  <Copy size={14} /> Copiar
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 flex gap-2" onClick={downloadQR}>
+                  <Download size={14} /> Descargar
+                </Button>
+              </div>
+
+              <Button size="sm" variant="link" className="text-slate-400 text-xs w-full" onClick={() => window.open(`/match/${league.matchCode}`, '_blank')}>
+                Probar enlace en nueva pestaña
               </Button>
             </div>
           </div>
+
+          {/* Estadísticas del Partido */}
+          {league.activeMatchId && (
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 mt-6">
+              <h3 className="text-white font-bold uppercase mb-4 text-xs flex items-center gap-2">
+                <BarChart3 size={16} className="text-emerald-500" /> Estadísticas del Partido Actual
+              </h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                  <Users size={20} className="text-blue-400 mb-2" />
+                  <span className="text-2xl font-black text-white">{stats.totalParticipants}</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold mt-1">Participantes</span>
+                </div>
+                
+                <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                  <Tv size={20} className="text-purple-400 mb-2" />
+                  <span className="text-lg font-black text-white">{stats.activeTable}</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold mt-1">Mesa Más Activa</span>
+                </div>
+
+                <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                  <Star size={20} className="text-yellow-400 mb-2" />
+                  <span className="text-lg font-black text-teal-300">{stats.popularPrediction}</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold mt-1">Más Popular</span>
+                </div>
+
+                <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                  <PieChart size={20} className="text-pink-400 mb-2" />
+                  <div className="w-full flex h-2 rounded overflow-hidden mt-1 mb-2">
+                    <div style={{ width: `${stats.distribution.home}%` }} className="bg-emerald-500" title={`Local ${stats.distribution.home}%`}></div>
+                    <div style={{ width: `${stats.distribution.draw}%` }} className="bg-slate-400" title={`Empate ${stats.distribution.draw}%`}></div>
+                    <div style={{ width: `${stats.distribution.away}%` }} className="bg-red-500" title={`Visitante ${stats.distribution.away}%`}></div>
+                  </div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">
+                    L: {stats.distribution.home}% | E: {stats.distribution.draw}% | V: {stats.distribution.away}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

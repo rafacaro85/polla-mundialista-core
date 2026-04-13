@@ -2235,12 +2235,12 @@ export class LeaguesService {
     };
   }
 
-  async toggleMatchMode(leagueId: string, isMatchMode: boolean, adminId: string): Promise<League> {
+  async toggleMatchMode(leagueId: string, isMatchMode: boolean, adminId: string, userRole?: string): Promise<League> {
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league) throw new NotFoundException('League not found');
 
     // Authentication: Check if admin/creator
-    if (league.creator.id !== adminId) {
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
       const participant = await this.leagueParticipantsRepository.findOne({
         where: { league: { id: leagueId }, user: { id: adminId } }
       });
@@ -2258,20 +2258,40 @@ export class LeaguesService {
     return this.leaguesRepository.save(league);
   }
 
-  async activateActiveMatch(leagueId: string, matchId: string, adminId: string): Promise<League> {
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+  async activateActiveMatch(leagueId: string, matchId: string, adminId: string, userRole: string): Promise<League> {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league) throw new NotFoundException('League not found');
     
+    // Auth Check
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: adminId } }
+      });
+      if (!participant || !participant.isAdmin) {
+        throw new ForbiddenException('Only league admins can perform this action');
+      }
+    }
+
     league.activeMatchId = matchId;
     return this.leaguesRepository.save(league);
   }
 
-  async resetMatchModeRanking(leagueId: string, adminId: string, confirm: boolean): Promise<{ message: string }> {
+  async resetMatchModeRanking(leagueId: string, adminId: string, confirm: boolean, userRole: string): Promise<{ message: string }> {
     if (!confirm) throw new BadRequestException('Confirmation required to reset rankings');
     
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league || !league.isMatchMode) {
       throw new BadRequestException('League is not in match mode');
+    }
+
+    // Auth Check
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: adminId } }
+      });
+      if (!participant || !participant.isAdmin) {
+        throw new ForbiddenException('Only league admins can perform this action');
+      }
     }
 
     // Reset prediction points for this league

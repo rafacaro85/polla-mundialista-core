@@ -21,8 +21,15 @@ export default function MatchPlayPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savedPrediction, setSavedPrediction] = useState<any>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return; // Wait for Zustand to hydrate from localStorage
+    
     if (!user) {
       router.push(`/match/${matchCode}`);
       return;

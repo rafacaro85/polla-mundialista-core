@@ -130,7 +130,7 @@ export class AuthController {
     const { access_token, user } = await this.authService.matchLogin(loginDto);
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
-    return { user };
+    return { user, access_token };
   }
 
   @Post('forgot-password')

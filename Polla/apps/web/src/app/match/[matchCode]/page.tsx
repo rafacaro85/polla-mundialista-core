@@ -26,10 +26,16 @@ export default function MatchLoginPage() {
     try {
       setIsLoading(true);
       const res = await api.post('/auth/match-login', { name, phone, tableNumber, matchCode });
-      // The backend returns a cookie, so we can just redirect 
+      // If using localStorage for cross-domain auth
+      if (res.data.access_token) {
+        localStorage.setItem('auth_token', res.data.access_token);
+      }
       toast.success('¡Bienvenido a la Polla Match!');
       // Force reload to update auth context correctly
-      window.location.href = `/match/${matchCode}/play`;
+      // Delay it just a bit to ensure storage sets correctly across renders/hooks
+      setTimeout(() => {
+        window.location.href = `/match/${matchCode}/play`;
+      }, 100);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al ingresar. Intenta nuevamente.');
     } finally {

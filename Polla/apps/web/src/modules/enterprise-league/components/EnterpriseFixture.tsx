@@ -189,11 +189,16 @@ export const EnterpriseFixture = () => {
         }
     }, [finalMatches.length, finalMatches[0]?.id]); // Use primitive triggers instead of array reference
 
-    // Filter matches by selected date
-    const matchesByDate = useMemo(() =>
-        finalMatches.filter(m => m.displayDate === selectedDate),
-        [finalMatches, selectedDate]
-    );
+    // Filter matches by selected date or match mode
+    const matchesByDate = useMemo(() => {
+        if (leagueMetadata?.isMatchMode) {
+            if (leagueMetadata.activeMatchId) {
+                return finalMatches.filter(m => m.id === leagueMetadata.activeMatchId);
+            }
+            return []; // No active match selected yet by admin
+        }
+        return finalMatches.filter(m => m.displayDate === selectedDate);
+    }, [finalMatches, selectedDate, leagueMetadata]);
 
     const currentPhase = useMemo(() => {
         if (finalMatches.length === 0) return 'GROUP';
@@ -407,32 +412,42 @@ export const EnterpriseFixture = () => {
                     </div>
 
                     <TabsContent value="matches" className="w-full mt-0">
-                        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                            <div className="flex-1 overflow-x-auto min-w-[200px]">
-                                <DateFilter
-                                    dates={dates}
-                                    selectedDate={selectedDate}
-                                    onSelect={setSelectedDate}
-                                />
-                            </div>
-                            {currentPhaseJokerStatus && (
-                                <div className="flex items-center gap-1.5 bg-[#1E293B]/80 rounded border border-white/10 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
-                                    <span className="text-base sm:text-lg leading-none">🃏</span>
-                                    <span className="font-medium text-slate-300 tracking-tight">
-                                        Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
-                                    </span>
+                        {leagueMetadata?.isMatchMode ? (
+                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4 text-center">
+                                 <h3 className="text-emerald-400 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                     MODO POLLA MATCH ACTIVO
+                                 </h3>
+                                 <p className="text-white text-xs mt-1">El administrador habilitó apuestas en vivo. Solo el partido activo aparece en pantalla.</p>
+                             </div>
+                        ) : (
+                            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                                <div className="flex-1 overflow-x-auto min-w-[200px]">
+                                    <DateFilter
+                                        dates={dates}
+                                        selectedDate={selectedDate}
+                                        onSelect={setSelectedDate}
+                                    />
                                 </div>
-                            )}
-                            <Button
-                                onClick={handleRefresh}
-                                variant="outline"
-                                size="icon"
-                                className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[#00E676]"
-                                title="Actualizar Marcadores"
-                            >
-                                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            </Button>
-                        </div>
+                                {currentPhaseJokerStatus && (
+                                    <div className="flex items-center gap-1.5 bg-[#1E293B]/80 rounded border border-white/10 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
+                                        <span className="text-base sm:text-lg leading-none">🃏</span>
+                                        <span className="font-medium text-slate-300 tracking-tight">
+                                            Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
+                                        </span>
+                                    </div>
+                                )}
+                                <Button
+                                    onClick={handleRefresh}
+                                    variant="outline"
+                                    size="icon"
+                                    className="shrink-0 bg-[#1E293B] border-white/10 hover:bg-[#334155] text-slate-400 hover:text-[#00E676]"
+                                    title="Actualizar Marcadores"
+                                >
+                                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                </Button>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
                             {matchesByDate.length > 0 ? (

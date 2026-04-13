@@ -37,7 +37,7 @@ export default function MatchPlayPage() {
     fetchData();
     const interval = setInterval(fetchRanking, 10000); // Polling ranking every 10s
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, isHydrated, matchCode, router]);
 
   const fetchData = async () => {
     try {

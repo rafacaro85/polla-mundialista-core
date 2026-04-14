@@ -357,16 +357,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
                 </div>
             </div>
 
-            {leagueMetadata?.isMatchMode ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4 text-center">
-                    <h3 className="text-emerald-400 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                        MODO POLLA MATCH ACTIVO
-                    </h3>
-                    <p className="text-white text-xs mt-1">El administrador habilitó apuestas en vivo. Solo el partido activo aparece en pantalla.</p>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                     <div className="flex-1 overflow-x-auto min-w-[200px]">
                         <DateFilter
                             dates={dates}
@@ -383,7 +374,6 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
                         </div>
                     )}
                 </div>
-            )}
 
             <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
                 <Button

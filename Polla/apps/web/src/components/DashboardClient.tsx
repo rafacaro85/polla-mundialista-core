@@ -44,6 +44,7 @@ import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
 import { SmartLeagueHome } from './dashboard/home/SmartLeagueHome';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
 
 interface Match {
   id: string;
@@ -81,7 +82,7 @@ interface Prediction {
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
-  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall';
+  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin';
 }
 
 const getPlanLevel = (type?: string) => {
@@ -110,8 +111,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
-  // New Navigation State (6 Tabs)
-  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall'>(
+  // New Navigation State (6 Tabs + matchAdmin)
+  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin'>(
     (props.initialTab as any) || 'home'
   );
 
@@ -562,6 +563,18 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 </ErrorBoundary>
               </div>
           )}
+
+          {/* 7. MATCH ADMIN (only for Match Mode leagues) */}
+          {activeTab === 'matchAdmin' && currentLeague && (
+              <div className="mt-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <ErrorBoundary>
+                  <MatchAdminPanel
+                    league={currentLeague}
+                    onUpdate={() => window.location.reload()}
+                  />
+                </ErrorBoundary>
+              </div>
+          )}
           
         </main >
 
@@ -583,6 +596,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId}
             tournamentId={leagueTournamentId || tournamentId}
             planLevel={currentLeague ? getPlanLevel(currentLeague.packageType) : 0}
+            isMatchMode={!!currentLeague?.isMatchMode}
           />
         )}
 

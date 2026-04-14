@@ -17,7 +17,6 @@ export default function MatchPlayPage() {
   const [activeMatch, setActiveMatch] = useState<any>(null);
   const [ranking, setRanking] = useState<any[]>([]);
   const [prediction, setPrediction] = useState<{ home: number | ''; away: number | '' }>({ home: '', away: '' });
-  const [isJoker, setIsJoker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savedPrediction, setSavedPrediction] = useState<any>(null);
@@ -35,7 +34,7 @@ export default function MatchPlayPage() {
       return;
     }
     fetchData();
-    const interval = setInterval(fetchRanking, 10000); // Polling ranking every 10s
+    const interval = setInterval(fetchRanking, 30000); // Polling ranking every 30s
     return () => clearInterval(interval);
   }, [user, isHydrated, matchCode, router]);
 
@@ -57,7 +56,6 @@ export default function MatchPlayPage() {
           if (myPred) {
             setSavedPrediction(myPred);
             setPrediction({ home: myPred.homeScore, away: myPred.awayScore });
-            setIsJoker(myPred.isJoker);
           }
         } catch (e) {}
 
@@ -96,7 +94,7 @@ export default function MatchPlayPage() {
         await api.put(`/predictions/${savedPrediction.id}`, {
           homeScore: Number(prediction.home),
           awayScore: Number(prediction.away),
-          isJoker
+          isJoker: false
         });
       } else {
         await api.post(`/predictions`, {
@@ -104,7 +102,7 @@ export default function MatchPlayPage() {
           leagueId: league.id,
           homeScore: Number(prediction.home),
           awayScore: Number(prediction.away),
-          isJoker
+          isJoker: false
         });
       }
       toast.success('¡Predicción guardada! 🎯');
@@ -135,7 +133,7 @@ export default function MatchPlayPage() {
             {league?.brandingLogoUrl ? (
               <Image src={league.brandingLogoUrl} alt="Logo" width={32} height={32} className="rounded-full" />
             ) : (
-              <Image src="/assets/logo.png" alt="Logo" width={32} height={32} />
+              <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold text-xs">⚽</div>
             )}
             <span className="text-white font-bold text-sm truncate max-w-[150px]">{league?.name || 'Polla Match'}</span>
           </div>
@@ -154,7 +152,7 @@ export default function MatchPlayPage() {
           </div>
         ) : (
           <>
-            {/* Prediction Card */}
+            {/* ═══ SECCIÓN 1: PREDICCIÓN ═══ */}
             <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-green-400"></div>
               
@@ -170,6 +168,18 @@ export default function MatchPlayPage() {
                 </div>
               </div>
 
+              {/* Live Score (shown when match is live or finished) */}
+              {(activeMatch.status === 'IN_PLAY' || activeMatch.status === 'FINISHED') && activeMatch.homeScore != null && (
+                <div className="text-center mb-4">
+                  <div className="bg-slate-950 inline-flex items-center gap-3 px-6 py-2 rounded-xl border border-slate-700">
+                    <span className="text-white font-black text-2xl">{activeMatch.homeScore}</span>
+                    <span className="text-slate-600 text-sm">-</span>
+                    <span className="text-white font-black text-2xl">{activeMatch.awayScore}</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">Resultado en vivo</p>
+                </div>
+              )}
+
               <div className="flex items-center justify-between mb-8">
                 {/* Home */}
                 <div className="flex flex-col items-center flex-1">
@@ -179,6 +189,8 @@ export default function MatchPlayPage() {
                   <span className="text-white font-bold text-sm text-center">{activeMatch.homeTeam}</span>
                   <input
                     type="number"
+                    min="0"
+                    max="20"
                     value={prediction.home}
                     onChange={(e) => setPrediction({...prediction, home: e.target.value === '' ? '' : Number(e.target.value)})}
                     disabled={isLocked || isSaving}
@@ -196,6 +208,8 @@ export default function MatchPlayPage() {
                   <span className="text-white font-bold text-sm text-center">{activeMatch.awayTeam}</span>
                   <input
                     type="number"
+                    min="0"
+                    max="20"
                     value={prediction.away}
                     onChange={(e) => setPrediction({...prediction, away: e.target.value === '' ? '' : Number(e.target.value)})}
                     disabled={isLocked || isSaving}
@@ -204,24 +218,13 @@ export default function MatchPlayPage() {
                 </div>
               </div>
 
-              {!isLocked && (
-                 <button
-                  onClick={() => setIsJoker(!isJoker)}
-                  className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 mb-4 transition-all ${
-                    isJoker ? 'bg-amber-500/20 text-amber-500 border-2 border-amber-500' : 'bg-slate-950 text-slate-400 border-2 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  ⭐ {isJoker ? 'Comodín Activado (Puntos x2)' : 'Usar Comodín (Puntos x2)'}
-                </button>
-              )}
-
               {!isLocked ? (
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-green-400 text-slate-950 font-black py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] disabled:opacity-70"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-green-400 text-slate-950 font-black py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] disabled:opacity-70 text-lg"
                 >
-                  {isSaving ? 'GUARDANDO...' : savedPrediction ? 'ACTUALIZAR 🎯' : 'GUARDAR 🎯'}
+                  {isSaving ? 'GUARDANDO...' : savedPrediction ? '✅ ACTUALIZAR PREDICCIÓN' : '🎯 GUARDAR PREDICCIÓN'}
                 </button>
               ) : (
                 <div className="bg-slate-800 text-slate-300 text-center py-3 rounded-xl font-bold border border-slate-700">
@@ -230,11 +233,11 @@ export default function MatchPlayPage() {
               )}
             </div>
 
-            {/* Realtime Ranking */}
+            {/* ═══ SECCIÓN 2: RANKING EN VIVO ═══ */}
             <div>
-              <h3 className="text-slate-400 font-bold mb-4 ml-2 flex items-center gap-2">
+              <h3 className="text-slate-400 font-bold mb-4 ml-2 flex items-center gap-2 uppercase text-sm tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                RANKING EN VIVO
+                Ranking en Vivo
               </h3>
               
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
@@ -247,7 +250,7 @@ export default function MatchPlayPage() {
                         row.name === (user?.name || user?.fullName) ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-slate-950'
                       }`}>
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black ${
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${
                             row.rank === 1 ? 'bg-amber-500 text-white' : 
                             row.rank === 2 ? 'bg-slate-400 text-white' :
                             row.rank === 3 ? 'bg-amber-700 text-white' :
@@ -256,10 +259,7 @@ export default function MatchPlayPage() {
                             {row.rank}
                           </div>
                           <div>
-                            <div className="text-white font-bold text-sm flex items-center gap-2">
-                              {row.name}
-                              {row.isJoker && <span className="text-amber-500 text-xs">⭐</span>}
-                            </div>
+                            <div className="text-white font-bold text-sm">{row.name}</div>
                             <div className="text-slate-500 text-xs">Mesa: {row.tableNumber || '-'}</div>
                           </div>
                         </div>
@@ -276,6 +276,10 @@ export default function MatchPlayPage() {
                   </div>
                 )}
               </div>
+
+              <p className="text-slate-600 text-[10px] text-center mt-3">
+                Se actualiza automáticamente cada 30 segundos
+              </p>
             </div>
           </>
         )}

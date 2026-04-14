@@ -6,6 +6,7 @@ import { useLeague } from '@/shared/hooks/useLeague';
 import { useAppStore } from '@/store/useAppStore';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
 import { Timer } from 'lucide-react';
+import { DashboardClient } from '@/components/DashboardClient';
 
 // 1. IMPORTACIÓN DINÁMICA (Lazy Loading) con Named Exports
 const SocialLeagueView = dynamic(
@@ -56,6 +57,16 @@ export default function LeagueDispatcherPage() {
     }
 
     // 3. EL DISPATCHER (Switch)
+
+    // MATCH MODE: Redirigir al DashboardClient con tabs simplificados (Home + Modo Match)
+    if (league.isMatchMode) {
+        return (
+            <div className="w-full min-h-screen bg-[#0F172A]">
+                <DashboardClient defaultLeagueId={leagueId} initialTab="home" />
+            </div>
+        );
+    }
+
     const isEnterprise = league.type === 'COMPANY' || league.isEnterprise;
     const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
@@ -66,3 +77,4 @@ export default function LeagueDispatcherPage() {
     // Default: SOCIAL
     return <SocialLeagueView leagueId={leagueId} />;
 }
+

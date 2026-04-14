@@ -116,6 +116,18 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
     (props.initialTab as any) || 'home'
   );
 
+  const getTournamentLogo = (tid?: string) => {
+    if (!tid) return null;
+    const t = tid.toUpperCase();
+    if (t.includes('UCL') || t.includes('CHAMPIONS')) {
+      return { src: '/images/ucl-logo.png', alt: 'Champions League', invert: true };
+    }
+    if (t.includes('WC') || t.includes('MUNDIAL') || t.includes('WORLD')) {
+      return { src: '/images/wc-logo.png', alt: 'FIFA World Cup', invert: false };
+    }
+    return null;
+  };
+
   const [mounted, setMounted] = useState(false);
   
   const [leaguesTab, setLeaguesTab] = useState<'social' | 'enterprise'>('social');
@@ -304,8 +316,24 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             tournamentId={currentLeague?.tournamentId}
             isEnterprise={false}
             backUrl={currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas'}
+            brandingLogoUrl={currentLeague?.brandingLogoUrl}
           />
         ) : null}
+
+        {/* FLOATING TOURNAMENT LOGO (Si el header principal ya ocupó el Brand Logo) */}
+        {currentLeague?.isMatchMode && currentLeague?.brandingLogoUrl && activeTab === 'home' && (() => {
+            const tLogo = getTournamentLogo(currentLeague.tournamentId);
+            if (!tLogo) return null;
+            return (
+                <div className="absolute right-4 top-20 z-30 p-1.5 rounded-full border border-white/10 bg-[#0F172A]/80 shadow-2xl backdrop-blur-md flex">
+                  <img
+                    src={tLogo.src}
+                    alt={tLogo.alt}
+                    className={`h-10 w-10 object-contain rounded-full shadow-inner ${tLogo.invert ? 'brightness-0 invert' : ''}`}
+                  />
+                </div>
+            )
+        })()}
 
         {/* IMPERSONATION BAR FOR SUPER ADMIN */}
         {isSuperAdminMode && currentLeague && (

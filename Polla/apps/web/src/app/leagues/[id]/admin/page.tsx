@@ -252,18 +252,6 @@ export default function AdminDashboardPage() {
             href: `/leagues/${params.id}/admin/advertising`,
             hidden: !isEnterprise,
         },
-        {
-            icon: <Calendar size={24} />,
-            title: '🎯 Modo Match',
-            description: 'Activa un partido en vivo tipo bar',
-            href: `/leagues/${params.id}/admin/match`,
-            hidden: !(
-                league?.type === 'MATCH' || 
-                league?.packageType?.toUpperCase() === 'MATCH' || 
-                league?.isMatchMode || 
-                (typeof window !== 'undefined' && window.location.hostname.includes('match.'))
-            ),
-            variant: 'primary' as const,
         },
     ];
 

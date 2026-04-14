@@ -317,11 +317,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             isEnterprise={false}
             backUrl={currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas'}
             brandingLogoUrl={currentLeague?.brandingLogoUrl}
+            hideTournamentLogo={currentLeague?.isMatchMode}
           />
         ) : null}
 
-        {/* FLOATING TOURNAMENT LOGO (Si el header principal ya ocupó el Brand Logo) */}
-        {currentLeague?.isMatchMode && currentLeague?.brandingLogoUrl && activeTab === 'home' && (() => {
+        {/* FLOATING TOURNAMENT LOGO (Match Mode) */}
+        {currentLeague?.isMatchMode && activeTab === 'home' && (() => {
             const tLogo = getTournamentLogo(currentLeague.tournamentId);
             if (!tLogo) return null;
             return (

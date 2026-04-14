@@ -45,6 +45,7 @@ import { RankingView } from './dashboard/views/RankingView';
 import { SmartLeagueHome } from './dashboard/home/SmartLeagueHome';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
+import { MatchAdminHome } from '@/components/admin/MatchAdminHome';
 
 interface Match {
   id: string;
@@ -528,8 +529,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                       : 'Bienvenido al Mundial 2026. ¡Predice, compite y gana!'}
                   </p>
                 </div>
+              ) : currentLeague?.isMatchMode ? (
+                // LIGA MATCH MODE: Dashboard Minimalista para el Admin
+                <ErrorBoundary>
+                  <MatchAdminHome currentLeague={currentLeague} matches={matches} />
+                </ErrorBoundary>
               ) : (
-                // Liga Social: Dashboard inteligente
+                // Liga Social o Empresarial: Dashboard inteligente
                 <ErrorBoundary>
                   <SmartLeagueHome
                     currentLeague={currentLeague as any}

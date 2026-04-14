@@ -57,18 +57,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
     }
   };
 
-  const handleToggleMatchMode = async (checked: boolean) => {
-    try {
-      setLoading(true);
-      await api.patch(`/leagues/${league.id}/match-mode/toggle`, { isMatchMode: checked });
-      toast.success(checked ? 'Polla Match Activado' : 'Polla Match Desactivado');
-      onUpdate();
-    } catch (e) {
-      toast.error('Error actualizando Polla Match');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleActivateMatch = async (matchId: string) => {
     try {
@@ -128,30 +117,6 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
 
   return (
     <div className="space-y-6">
-      {/* Toggle Match Mode */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
-        <div>
-          <h3 className="text-white font-bold uppercase mb-1">Activar Modo Polla Match</h3>
-          <p className="text-slate-400 text-xs">Ideal para bares. Un partido a la vez, escaneo por QR y TV en vivo.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {loading && <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />}
-          <button
-            onClick={() => handleToggleMatchMode(!league.isMatchMode)}
-            disabled={loading}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-              league.isMatchMode ? 'bg-emerald-500' : 'bg-slate-600'
-            } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-              league.isMatchMode ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </div>
-
-      {league.isMatchMode && (
-        <>
           {/* Active Match Selection */}
           <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
             <h3 className="text-white font-bold uppercase mb-4 text-xs">Seleccionar Partido Activo</h3>
@@ -261,8 +226,6 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
               </div>
             </div>
           )}
-        </>
-      )}
     </div>
   );
 }

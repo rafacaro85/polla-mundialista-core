@@ -296,16 +296,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 md:pb-0 overflow-x-hidden w-full md:pl-[68px]"
       >
-        {/* Header only shown in Global/Main dashboard, league pages have it in LeagueLayout */}
-        {!isEnterpriseMode && selectedLeagueId === 'global' && (
+        {/* Header only shown in Global/Main dashboard, league pages have it in LeagueLayout, but Match Mode skips layout and handles it here */}
+        {(!isEnterpriseMode && selectedLeagueId === 'global') || currentLeague?.isMatchMode ? (
           <Header
             userName={user?.nickname || 'Invitado'}
             leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}
             tournamentId={currentLeague?.tournamentId}
-            isEnterprise={isEnterpriseMode}
-            backUrl={isEnterpriseMode ? '/empresa/mis-pollas' : '/social/mis-pollas'}
+            isEnterprise={false}
+            backUrl={currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas'}
           />
-        )}
+        ) : null}
 
         {/* IMPERSONATION BAR FOR SUPER ADMIN */}
         {isSuperAdminMode && currentLeague && (

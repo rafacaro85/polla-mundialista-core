@@ -252,7 +252,6 @@ export default function AdminDashboardPage() {
             href: `/leagues/${params.id}/admin/advertising`,
             hidden: !isEnterprise,
         },
-        },
     ];
 
     const modules = allModules.filter(m => !m.hidden);

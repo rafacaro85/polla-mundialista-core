@@ -457,6 +457,7 @@ export const EnterpriseFixture = () => {
                                         match={match}
                                         showInputs={true}
                                         onSavePrediction={handlePredictionChange}
+                                        hideJoker={leagueMetadata?.isMatchMode}
                                     />
                                 ))
                             ) : (

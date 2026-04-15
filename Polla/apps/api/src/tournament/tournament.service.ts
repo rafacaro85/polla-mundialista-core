@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DEFAULT_TOURNAMENT_ID } from '../common/constants/tournament.constants';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Match } from '../database/entities/match.entity';
 import { StandingsService } from '../standings/standings.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -570,17 +570,17 @@ export class TournamentService {
       );
     }
 
-    const nextPhaseMap: Record<string, string> = {
-      ROUND_32: 'ROUND_16',
-      ROUND_16: 'QUARTER_FINAL',   // UCL uses QUARTER_FINAL
-      QUARTER: 'SEMI',             // Mundial 2026
-      QUARTER_FINAL: 'SEMI_FINAL', // UCL
-      SEMI: 'FINAL',               // Mundial 2026
-      SEMI_FINAL: 'FINAL',         // UCL
+    const nextPhaseMap: Record<string, string[]> = {
+      ROUND_32: ['ROUND_16'],
+      ROUND_16: ['QUARTER', 'QUARTER_FINAL'],
+      QUARTER: ['SEMI', 'SEMI_FINAL'],
+      QUARTER_FINAL: ['SEMI', 'SEMI_FINAL'],
+      SEMI: ['FINAL'],
+      SEMI_FINAL: ['FINAL'],
     };
 
-    const nextPhase = nextPhaseMap[match.phase];
-    if (!nextPhase || !match.bracketId) return;
+    const nextPhases = nextPhaseMap[match.phase];
+    if (!nextPhases || nextPhases.length === 0 || !match.bracketId) return;
 
     // Intentar encontrar el próximo partido por nextMatchId o por placeholder "Ganador X"
     let nextMatch: Match | null = null;
@@ -598,35 +598,38 @@ export class TournamentService {
       const searchPlaceholderAlt = `Winner ${match.bracketId}`;
       const searchNumber = `${match.bracketId}`;
 
+      const orConditions = [];
+      for (const nextPhase of nextPhases) {
+        orConditions.push({
+          homeTeamPlaceholder: searchPlaceholder,
+          phase: nextPhase,
+          tournamentId: match.tournamentId,
+        });
+        orConditions.push({
+          awayTeamPlaceholder: searchPlaceholder,
+          phase: nextPhase,
+          tournamentId: match.tournamentId,
+        });
+        orConditions.push({
+          homeTeamPlaceholder: searchPlaceholderAlt,
+          phase: nextPhase,
+          tournamentId: match.tournamentId,
+        });
+        orConditions.push({
+          awayTeamPlaceholder: searchPlaceholderAlt,
+          phase: nextPhase,
+          tournamentId: match.tournamentId,
+        });
+      }
+
       nextMatch = await this.matchesRepository.findOne({
-        where: [
-          {
-            homeTeamPlaceholder: searchPlaceholder,
-            phase: nextPhase,
-            tournamentId: match.tournamentId,
-          },
-          {
-            awayTeamPlaceholder: searchPlaceholder,
-            phase: nextPhase,
-            tournamentId: match.tournamentId,
-          },
-          {
-            homeTeamPlaceholder: searchPlaceholderAlt,
-            phase: nextPhase,
-            tournamentId: match.tournamentId,
-          },
-          {
-            awayTeamPlaceholder: searchPlaceholderAlt,
-            phase: nextPhase,
-            tournamentId: match.tournamentId,
-          },
-        ],
+        where: orConditions,
       });
 
       // Si aún no se encuentra, buscar por el número del partido (algunos calendarios usan "Ganador Match X")
       if (!nextMatch) {
         const matches = await this.matchesRepository.find({
-          where: { phase: nextPhase, tournamentId: match.tournamentId },
+          where: { phase: In(nextPhases), tournamentId: match.tournamentId },
         });
         nextMatch =
           matches.find(
@@ -640,12 +643,18 @@ export class TournamentService {
     // Fallback al cálculo matemático si no se encontró (solo si bracketId es pequeño, para evitar falsos positivos con IDs reales grandes)
     if (!nextMatch && match.bracketId < 50) {
       const nextBracketId = Math.ceil(match.bracketId / 2);
-      nextMatch = await this.matchesRepository.findOne({
-        where: {
+      
+      const orConditionsId = [];
+      for (const nextPhase of nextPhases) {
+          orConditionsId.push({
           phase: nextPhase,
           bracketId: nextBracketId,
           tournamentId: match.tournamentId,
-        },
+        });
+      }
+      
+      nextMatch = await this.matchesRepository.findOne({
+        where: orConditionsId,
       });
     }
 
@@ -710,7 +719,7 @@ export class TournamentService {
       await this.matchesRepository.update(nextMatch.id, updateData);
 
       this.logger.log(
-        `🚀 Promoted ${winnerTeam} to ${nextPhase} Match ${nextMatch.id} (${isHomeSlot ? 'Home' : 'Away'})`,
+        `🚀 Promoted ${winnerTeam} to NextPhase Match ${nextMatch.id} (${isHomeSlot ? 'Home' : 'Away'})`,
       );
 
       // Emit event for AI prediction generation if both teams are now present

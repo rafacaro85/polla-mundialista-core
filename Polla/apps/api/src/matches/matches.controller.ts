@@ -227,6 +227,18 @@ export class MatchesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @Post('repair-knockout')
+  async repairKnockout(
+    @Body() body: { tournamentId?: string },
+    @Request() req: any,
+  ) {
+    const tid =
+      body?.tournamentId || req.headers['x-tournament-id'] || 'UCL2526';
+    return this.matchesService.repairKnockoutBracket(tid);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post('repair-tournament')
   async repairTournament(
     @Body() body: { tournamentId?: string },

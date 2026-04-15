@@ -1333,6 +1333,101 @@ export class MatchesService {
   }
 
   /**
+   * 🔧 REPAIR: Re-procesa TODOS los partidos knockout terminados.
+   * - Re-promueve ganadores a la siguiente fase
+   * - Re-calcula bracket points
+   * Seguro de ejecutar múltiples veces (idempotente).
+   */
+  async repairKnockoutBracket(tid: string): Promise<any> {
+    this.logger.log(`🔧 [REPAIR] Starting knockout bracket repair for ${tid}...`);
+    const results: string[] = [];
+
+    // 1. Re-promote all finished knockout matches
+    const knockoutPhases = ['ROUND_16', 'QUARTER_FINAL', 'QUARTER', 'SEMI_FINAL', 'SEMI'];
+    
+    for (const phase of knockoutPhases) {
+      const finishedMatches = await this.matchesRepository.find({
+        where: { phase, tournamentId: tid, status: In(['FINISHED', 'COMPLETED']) },
+      });
+      
+      if (finishedMatches.length === 0) continue;
+      
+      this.logger.log(`🔧 [REPAIR] Processing ${finishedMatches.length} finished matches in ${phase}...`);
+      
+      for (const match of finishedMatches) {
+        try {
+          await this.tournamentService.promoteToNextRound(match);
+          results.push(`✅ Promoted winner from ${phase} bracket ${match.bracketId} (${match.homeTeam} vs ${match.awayTeam})`);
+        } catch (e: any) {
+          results.push(`❌ Error promoting ${phase} bracket ${match.bracketId}: ${e.message}`);
+        }
+      }
+    }
+
+    // 2. Re-calculate bracket points for all finished knockout matches
+    // For LEG matches: use LEG_1 id (where users saved their picks)
+    const allFinished = await this.matchesRepository.find({
+      where: { tournamentId: tid, status: In(['FINISHED', 'COMPLETED']) },
+    });
+
+    const knockoutFinished = allFinished.filter(m => 
+      m.phase && !['GROUP', 'PLAYOFF_1', 'PLAYOFF_2'].includes(m.phase)
+    );
+
+    // Group by bracketId+phase to handle LEG matches
+    const bracketGroups: Record<string, typeof knockoutFinished> = {};
+    for (const m of knockoutFinished) {
+      const key = `${m.phase}_${m.bracketId}`;
+      if (!bracketGroups[key]) bracketGroups[key] = [];
+      bracketGroups[key].push(m);
+    }
+
+    for (const [key, matches] of Object.entries(bracketGroups)) {
+      const leg1 = matches.find(m => m.group === 'LEG_1');
+      const leg2 = matches.find(m => m.group === 'LEG_2');
+      
+      if (leg1 && leg2) {
+        // UCL ida/vuelta — calculate aggregate winner
+        if (leg1.homeScore === null || leg2.homeScore === null) continue;
+        const teamAGoals = (leg1.homeScore ?? 0) + (leg2.awayScore ?? 0);
+        const teamBGoals = (leg1.awayScore ?? 0) + (leg2.homeScore ?? 0);
+        
+        let winner: string;
+        if (teamAGoals > teamBGoals) {
+          winner = leg1.homeTeam;
+        } else if (teamBGoals > teamAGoals) {
+          winner = leg1.awayTeam;
+        } else {
+          results.push(`⚠️ ${key}: Aggregate tie, cannot auto-determine winner`);
+          continue;
+        }
+        
+        try {
+          await this.bracketsService.calculateBracketPoints(leg1.id, winner);
+          results.push(`🏆 Bracket points recalculated for ${key} (winner: ${winner}) using LEG_1 id`);
+        } catch (e: any) {
+          results.push(`❌ Error calculating bracket points for ${key}: ${e.message}`);
+        }
+      } else if (matches.length === 1 && !matches[0].group?.startsWith('LEG_')) {
+        // Single match (WC or UCL final)
+        const m = matches[0];
+        if (m.homeScore === null || m.awayScore === null) continue;
+        const winner = (m.homeScore ?? 0) > (m.awayScore ?? 0) ? m.homeTeam : m.awayTeam;
+        
+        try {
+          await this.bracketsService.calculateBracketPoints(m.id, winner);
+          results.push(`🏆 Bracket points recalculated for ${key} (winner: ${winner})`);
+        } catch (e: any) {
+          results.push(`❌ Error calculating bracket points for ${key}: ${e.message}`);
+        }
+      }
+    }
+
+    this.logger.log(`🔧 [REPAIR] Complete. ${results.length} operations.`);
+    return { tournament: tid, operations: results.length, details: results };
+  }
+
+  /**
    * Checks if all knockout phases exist and have correct match counts.
    * If not, it recreates the missing phases and heals the links.
    * This is an IDEMPOTENT operation safe to run multiple times.

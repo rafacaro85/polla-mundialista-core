@@ -360,7 +360,7 @@ export class MatchSyncService {
             // 5. Knockout promotion (promoteToNextRound via LEG logic)
             this.eventEmitter.emit(
               'match.finished',
-              new MatchFinishedEvent(savedMatch, homeScore, awayScore),
+              new MatchFinishedEvent(savedMatch, homeScore ?? 0, awayScore ?? 0),
             );
           } else {
             // Partido ya estaba FINISHED pero el score cambió

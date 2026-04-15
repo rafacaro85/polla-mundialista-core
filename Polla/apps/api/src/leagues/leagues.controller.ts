@@ -583,6 +583,51 @@ export class LeaguesController {
     return this.leaguesService.getAllPendingMatchPurchases();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post('admin/run-match-migration')
+  async runMatchMigration() {
+    const dataSource = this.leaguesService['dataSource'];
+    const results: string[] = [];
+
+    try {
+      await dataSource.query(`
+        ALTER TABLE leagues ADD COLUMN IF NOT EXISTS "match_event_type" VARCHAR DEFAULT 'BAR'
+      `);
+      results.push('✅ Column match_event_type added to leagues');
+    } catch (e: any) {
+      results.push(`⚠️ Column: ${e.message}`);
+    }
+
+    try {
+      await dataSource.query(`
+        CREATE TABLE IF NOT EXISTS match_purchases (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          "leagueId" UUID NOT NULL,
+          "matchId" VARCHAR,
+          "packageId" VARCHAR,
+          amount INTEGER NOT NULL DEFAULT 0,
+          status VARCHAR DEFAULT 'PENDING',
+          "voucherUrl" VARCHAR,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ Table match_purchases created');
+    } catch (e: any) {
+      results.push(`⚠️ Table: ${e.message}`);
+    }
+
+    try {
+      await dataSource.query(`CREATE INDEX IF NOT EXISTS idx_match_purchases_league ON match_purchases("leagueId")`);
+      await dataSource.query(`CREATE INDEX IF NOT EXISTS idx_match_purchases_status ON match_purchases(status)`);
+      results.push('✅ Indexes created');
+    } catch (e: any) {
+      results.push(`⚠️ Indexes: ${e.message}`);
+    }
+
+    return { success: true, results };
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post(':id/match-purchases')
   async createMatchPurchase(

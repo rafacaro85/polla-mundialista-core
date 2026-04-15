@@ -50,6 +50,7 @@ import { Notification } from './database/entities/notification.entity';
 import { LeaguePrize } from './database/entities/league-prize.entity';
 import { LeagueBanner } from './database/entities/league-banner.entity';
 import { JokerConfig } from './database/entities/joker-config.entity';
+import { MatchPurchase } from './database/entities/match-purchase.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -122,6 +123,7 @@ import { HealthController } from './health/health.controller';
             LeaguePrize,
             LeagueBanner,
             JokerConfig,
+            MatchPurchase,
           ],
           synchronize: false,
           migrationsRun: true,

@@ -101,6 +101,11 @@ export class CreateLeagueDto {
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   @MaxLength(100)
   adminPassword?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['BAR', 'ENTERPRISE'], { message: 'matchEventType debe ser BAR o ENTERPRISE' })
+  matchEventType?: string;
 }
 
 

@@ -6,7 +6,7 @@ import {
     X, Building2, Zap, Trophy, Check, Plus, 
     Loader2, Phone, Briefcase, ChevronRight, 
     ChevronLeft, FileText, Star, Gem, Medal, 
-    CreditCard, ShieldCheck, LayoutDashboard 
+    CreditCard, ShieldCheck, LayoutDashboard, Store 
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -121,6 +121,7 @@ export const CreateBusinessLeagueDialog = ({
     const [countryCode, setCountryCode] = useState('+57');
     const [adminPhone, setAdminPhone] = useState('');
     const [selectedPlanId, setSelectedPlanId] = useState('bronce');
+    const [matchEventType, setMatchEventType] = useState<string | null>(null); // null = Enterprise, 'BAR' | 'ENTERPRISE' = Match Mode
 
     // Business Plans Logic (Champions specific promo)
     const availableBusinessPlans = React.useMemo(() => {
@@ -175,6 +176,7 @@ export const CreateBusinessLeagueDialog = ({
             setCreatedLeagueId(null);
             setIsPaymentSubmitted(false);
             setSelectedTournamentId(hookTournamentId || 'WC2026');
+            setMatchEventType(null);
         }, 300);
     };
 
@@ -188,7 +190,12 @@ export const CreateBusinessLeagueDialog = ({
                 toast.error('Nombre y Teléfono son obligatorios');
                 return;
             }
-            setStep(3);
+            // If Match mode, skip plan selection and create directly
+            if (matchEventType) {
+                handleCreateLeague();
+            } else {
+                setStep(3);
+            }
         } else if (step === 3) {
             handleCreateLeague();
         }
@@ -201,24 +208,35 @@ export const CreateBusinessLeagueDialog = ({
         setLoading(true);
         try {
             const finalPhone = adminPhone.trim();
+
+            // Match mode: create without plan/payment
+            const isMatchMode = !!matchEventType;
+
             const payload = {
                 name: leagueName,
                 adminName: adminName || 'Admin',
                 adminPhone: finalPhone,
                 type: 'COMPANY',
                 isEnterprise: true,
-                packageType: selectedPlan.packageType,
-                maxParticipants: parseInt(selectedPlan.capacity) || 25,
+                packageType: isMatchMode ? 'MATCH' : selectedPlan.packageType,
+                maxParticipants: isMatchMode ? 500 : (parseInt(selectedPlan.capacity) || 25),
                 tournamentId: selectedTournamentId,
                 companyName: companyName || leagueName,
+                ...(matchEventType && { matchEventType }),
             };
 
             const { data } = await api.post('/leagues', payload);
             setCreatedLeagueId(data.id);
             
-            // Si es plan gratis de lanzamiento, redirigir directo
-            if (selectedPlan.price === 'GRATIS') {
-                toast.success('¡Polla Creada!', { description: 'Redirigiendo al Studio...' });
+            // Match mode OR free plan: redirect immediately
+            if (matchEventType || selectedPlan.price === 'GRATIS') {
+                const successMsg = matchEventType 
+                    ? '¡Polla Match Creada!' 
+                    : '¡Polla Creada!';
+                const successDesc = matchEventType
+                    ? 'Ve al panel de admin para comprar y activar partidos.'
+                    : 'Redirigiendo al Studio...';
+                toast.success(successMsg, { description: successDesc });
                 setTimeout(() => {
                     router.push(`/leagues/${data.id}/studio`);
                     closeDialog();
@@ -269,7 +287,7 @@ export const CreateBusinessLeagueDialog = ({
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#0F172A]">
                     <div 
                         className="h-full bg-[#00E676] transition-all duration-500"
-                        style={{ width: `${(step / 4) * 100}%` }}
+                        style={{ width: `${(step / (matchEventType ? 2 : 4)) * 100}%` }}
                     />
                 </div>
 
@@ -293,7 +311,7 @@ export const CreateBusinessLeagueDialog = ({
                                 )}
                             </h2>
                             <p className="text-[#94A3B8] text-[10px] font-bold uppercase tracking-widest mt-1">
-                                {isPaymentSubmitted ? "Procesando Activación" : `Paso ${step} de 4`}
+                                {isPaymentSubmitted ? "Procesando Activación" : matchEventType ? `Paso ${step} de 2` : `Paso ${step} de 4`}
                             </p>
                         </div>
                     </div>
@@ -349,6 +367,55 @@ export const CreateBusinessLeagueDialog = ({
                                     </div>
                                 )}
                             </div>
+
+                            {/* SEPARATOR */}
+                            <div className="border-t border-[#334155] my-2" />
+                            <label className={STYLES.label}>¿Qué tipo de evento es?</label>
+
+                            {/* BAR / RESTAURANTE */}
+                            <div 
+                                onClick={() => setMatchEventType(matchEventType === 'BAR' ? null : 'BAR')}
+                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 overflow-hidden ${
+                                    matchEventType === 'BAR' ? 'bg-[#FACC15]/5 border-[#FACC15]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
+                                }`}
+                            >
+                                <div className="text-3xl">🍺</div>
+                                <div className="flex-1">
+                                    <h4 className="text-white font-russo uppercase text-sm">Bar / Restaurante</h4>
+                                    <p className="text-[#94A3B8] text-[10px] font-bold uppercase tracking-widest mt-1">Polla Match — Un partido a la vez con QR</p>
+                                </div>
+                                {matchEventType === 'BAR' && (
+                                    <div className="bg-[#FACC15] text-[#0F172A] p-1 rounded-full">
+                                        <Check size={14} strokeWidth={4} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* EVENTO EMPRESARIAL */}
+                            <div 
+                                onClick={() => setMatchEventType(matchEventType === 'ENTERPRISE' ? null : 'ENTERPRISE')}
+                                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 overflow-hidden ${
+                                    matchEventType === 'ENTERPRISE' ? 'bg-[#38BDF8]/5 border-[#38BDF8]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
+                                }`}
+                            >
+                                <div className="text-3xl">🏢</div>
+                                <div className="flex-1">
+                                    <h4 className="text-white font-russo uppercase text-sm">Evento Empresarial</h4>
+                                    <p className="text-[#94A3B8] text-[10px] font-bold uppercase tracking-widest mt-1">Polla Match empresarial — Sin mesas</p>
+                                </div>
+                                {matchEventType === 'ENTERPRISE' && (
+                                    <div className="bg-[#38BDF8] text-[#0F172A] p-1 rounded-full">
+                                        <Check size={14} strokeWidth={4} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {matchEventType && (
+                                <div className="bg-[#00E676]/5 border border-[#00E676]/20 p-4 rounded-2xl text-center">
+                                    <p className="text-[#00E676] text-xs font-bold">✅ Polla Match seleccionada</p>
+                                    <p className="text-[#94A3B8] text-[10px] mt-1">Se creará sin costo inicial. Compra partidos después en el panel de admin.</p>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -547,7 +614,7 @@ export const CreateBusinessLeagueDialog = ({
                                 <Loader2 className="animate-spin" size={20} />
                             ) : (
                                 <>
-                                    {step === 3 ? "Confirmar Plan" : "Continuar"}
+                                {step === 3 ? "Confirmar Plan" : matchEventType && step === 2 ? "Crear Polla Match" : "Continuar"}
                                     <ChevronRight size={18} />
                                 </>
                             )}

@@ -246,4 +246,20 @@ export const superAdminService = {
             };
         }
     },
+
+    // --- MATCH PURCHASES ---
+    getMatchPurchasesPending: async () => {
+        const response = await api.get('/leagues/admin/match-purchases/pending');
+        return response;
+    },
+
+    approveMatchPurchase: async (leagueId: string, purchaseId: string) => {
+        const response = await api.patch(`/leagues/${leagueId}/match-purchases/${purchaseId}/approve`);
+        return response.data;
+    },
+
+    rejectMatchPurchase: async (leagueId: string, purchaseId: string) => {
+        const response = await api.patch(`/leagues/${leagueId}/match-purchases/${purchaseId}/reject`);
+        return response.data;
+    },
 };

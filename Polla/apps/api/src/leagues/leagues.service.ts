@@ -22,6 +22,7 @@ import { UserBracket } from '../database/entities/user-bracket.entity';
 import { AccessCode } from '../database/entities/access-code.entity';
 import { Transaction } from '../database/entities/transaction.entity';
 import { Match } from '../database/entities/match.entity';
+import { MatchPurchase } from '../database/entities/match-purchase.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueComment } from '../database/entities/league-comment.entity';
 import { SystemConfig } from '../database/entities/system-config.entity';
@@ -62,8 +63,38 @@ export class LeaguesService {
     @InjectDataSource() private dataSource: DataSource,
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
+    @InjectRepository(MatchPurchase)
+    private matchPurchaseRepository: Repository<MatchPurchase>,
     private scoringService: ScoringService,
   ) {}
+
+  // --- MATCH PURCHASE PRICES & PACKAGES ---
+  static readonly MATCH_PRICES: Record<string, number> = {
+    regular: 15000,
+    colombia: 25000,
+    knockout: 35000,
+  };
+
+  static readonly MATCH_PACKAGES: Record<string, { label: string; price: number; description: string; matchFilter: string }> = {
+    pack_colombia_grupos: {
+      label: 'Pack Colombia Grupos',
+      price: 60000,
+      description: 'Todos los partidos de Colombia en fase de grupos',
+      matchFilter: 'COLOMBIA_GROUP',
+    },
+    pack_knockouts: {
+      label: 'Pack Eliminatorias',
+      price: 90000,
+      description: 'Cuartos + Semis + Final',
+      matchFilter: 'KNOCKOUT',
+    },
+    pack_mundial_completo: {
+      label: 'Pack Mundial Completo',
+      price: 150000,
+      description: 'Todos los 104 partidos',
+      matchFilter: 'ALL',
+    },
+  };
 
   private rankingInFlight = new Map<string, Promise<any>>();
 
@@ -92,6 +123,7 @@ export class LeaguesService {
         adminEmail,
         adminPassword,
         tournamentId,
+        matchEventType,
       } = createLeagueDto;
 
       this.logger.log('Creating league', { userId, packageType });
@@ -163,21 +195,28 @@ export class LeaguesService {
       const isActuallyPaid = ['starter', 'FREE', 'launch_promo', 'ENTERPRISE_LAUNCH'].includes(packageType);
 
       // 2. Operación: Guardar la liga
+      // Match mode: crear como ACTIVE y con matchMode habilitado
+      const isMatchModePolla = packageType === 'MATCH' || matchEventType === 'BAR' || matchEventType === 'ENTERPRISE';
+      const matchCode = isMatchModePolla ? this.generateCode() : undefined;
+
       const league = queryRunner.manager.create(League, {
         name,
         type,
         maxParticipants,
         creator,
         accessCodePrefix: code,
-        isPaid: isActuallyPaid,
-        status: isActuallyPaid ? LeagueStatus.ACTIVE : LeagueStatus.PENDING,
-        packageType,
+        isPaid: isActuallyPaid || isMatchModePolla,
+        status: (isActuallyPaid || isMatchModePolla) ? LeagueStatus.ACTIVE : LeagueStatus.PENDING,
+        packageType: isMatchModePolla ? 'MATCH' : packageType,
         isEnterprise: !!isEnterprise,
         isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH',
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,
         tournamentId: targetTournamentId,
+        isMatchMode: isMatchModePolla,
+        matchEventType: matchEventType || 'BAR',
+        matchCode: matchCode,
       });
 
       savedLeague = await queryRunner.manager.save(league);
@@ -208,7 +247,7 @@ export class LeaguesService {
         user: creator,
         league: savedLeague,
         isAdmin: true,
-        status: isActuallyPaid ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING_PAYMENT,
+        status: (isActuallyPaid || isMatchModePolla) ? LeagueParticipantStatus.ACTIVE : LeagueParticipantStatus.PENDING_PAYMENT,
         isPaid: false,
         totalPoints: 0,
         triviaPoints: 0,
@@ -2396,6 +2435,109 @@ export class LeaguesService {
       brandingLogoUrl: league.brandingLogoUrl,
       activeMatchId: league.activeMatchId,
       ranking: ranking.slice(0, 20) // Top 20
+    };
+  }
+
+  // ═══════════════════════════════════════════
+  // MATCH PURCHASE SYSTEM
+  // ═══════════════════════════════════════════
+
+  async createMatchPurchase(leagueId: string, userId: string, body: { matchId?: string; packageId?: string; amount: number; voucherUrl?: string }) {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
+    if (!league) throw new NotFoundException('Liga no encontrada');
+    if (league.creator?.id !== userId) throw new ForbiddenException('Solo el admin de la liga puede comprar partidos');
+
+    const purchase = this.matchPurchaseRepository.create({
+      leagueId,
+      matchId: body.matchId || undefined,
+      packageId: body.packageId || undefined,
+      amount: body.amount,
+      status: 'PENDING',
+      voucherUrl: body.voucherUrl || undefined,
+    } as Partial<MatchPurchase>);
+
+    const saved = await this.matchPurchaseRepository.save(purchase);
+
+    // Notificar por Telegram
+    try {
+      const matchInfo = body.matchId ? `Partido: ${body.matchId}` : `Paquete: ${body.packageId}`;
+      await this.telegramService.sendMessage(
+        `🛒 *NUEVA COMPRA MATCH*\n` +
+        `Liga: ${league.name}\n` +
+        `${matchInfo}\n` +
+        `Monto: $${body.amount.toLocaleString('es-CO')}\n` +
+        `Admin: ${league.adminName || 'N/A'} (${league.adminPhone || 'N/A'})\n` +
+        `Estado: ⏳ PENDIENTE`
+      );
+    } catch (e) {
+      this.logger.warn('Telegram notification failed for match purchase');
+    }
+
+    return saved;
+  }
+
+  async approveMatchPurchase(leagueId: string, purchaseId: string) {
+    const purchase = await this.matchPurchaseRepository.findOne({ where: { id: purchaseId, leagueId } });
+    if (!purchase) throw new NotFoundException('Compra no encontrada');
+    if (purchase.status === 'APPROVED') throw new BadRequestException('Esta compra ya fue aprobada');
+
+    purchase.status = 'APPROVED';
+    await this.matchPurchaseRepository.save(purchase);
+
+    this.logger.log(`✅ Match purchase approved: ${purchaseId} for league ${leagueId}`);
+    return { message: 'Compra aprobada exitosamente', purchase };
+  }
+
+  async rejectMatchPurchase(leagueId: string, purchaseId: string) {
+    const purchase = await this.matchPurchaseRepository.findOne({ where: { id: purchaseId, leagueId } });
+    if (!purchase) throw new NotFoundException('Compra no encontrada');
+
+    purchase.status = 'REJECTED';
+    await this.matchPurchaseRepository.save(purchase);
+
+    this.logger.log(`❌ Match purchase rejected: ${purchaseId} for league ${leagueId}`);
+    return { message: 'Compra rechazada', purchase };
+  }
+
+  async getMatchPurchases(leagueId: string) {
+    return this.matchPurchaseRepository.find({
+      where: { leagueId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getAllPendingMatchPurchases() {
+    const purchases = await this.matchPurchaseRepository.find({
+      where: { status: 'PENDING' },
+      order: { createdAt: 'ASC' },
+    });
+
+    // Enrich with league info
+    const leagueIds = [...new Set(purchases.map(p => p.leagueId))];
+    const leagues = leagueIds.length > 0
+      ? await this.leaguesRepository.find({ where: { id: In(leagueIds) } })
+      : [];
+    const leagueMap = new Map(leagues.map(l => [l.id, l]));
+
+    return purchases.map(p => {
+      const league = leagueMap.get(p.leagueId);
+      return {
+        ...p,
+        league: league ? {
+          name: league.name,
+          companyName: league.companyName,
+          adminName: league.adminName,
+          adminPhone: league.adminPhone,
+          matchEventType: league.matchEventType,
+        } : null,
+      };
+    });
+  }
+
+  getMatchPricesAndPackages() {
+    return {
+      prices: LeaguesService.MATCH_PRICES,
+      packages: LeaguesService.MATCH_PACKAGES,
     };
   }
 }

@@ -174,7 +174,9 @@ export default function MatchTvPage() {
                         {player.isJoker && <span className="text-amber-500 text-sm animate-pulse">⭐</span>}
                       </div>
                       <div className="text-white/40 text-sm font-medium uppercase tracking-widest flex items-center gap-2">
-                        <span>{player.tableNumber ? `MESA ${player.tableNumber}` : 'SIN MESA'}</span>
+                        {league.matchEventType === 'BAR' && (
+                          <span>{player.tableNumber ? `MESA ${player.tableNumber}` : 'SIN MESA'}</span>
+                        )}
                         {player.sharedPrize && <span className="text-amber-400 text-xs bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">EMPATE EXACTO</span>}
                       </div>
                     </div>

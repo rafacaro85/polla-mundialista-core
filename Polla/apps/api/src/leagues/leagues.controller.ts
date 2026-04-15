@@ -571,4 +571,52 @@ export class LeaguesController {
   async getMatchTvRanking(@Param('id') leagueId: string) {
     return this.leaguesService.getMatchTvRanking(leagueId);
   }
+
+  // ═══════════════════════════════════════════
+  // MATCH PURCHASE SYSTEM (Static routes first)
+  // ═══════════════════════════════════════════
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('admin/match-purchases/pending')
+  async getAllPendingMatchPurchases() {
+    return this.leaguesService.getAllPendingMatchPurchases();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/match-purchases')
+  async createMatchPurchase(
+    @Param('id') leagueId: string,
+    @Body() body: { matchId?: string; packageId?: string; amount: number; voucherUrl?: string },
+    @Req() req: Request,
+  ) {
+    const userPayload = req.user as { id: string };
+    return this.leaguesService.createMatchPurchase(leagueId, userPayload.id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/match-purchases')
+  async getMatchPurchases(@Param('id') leagueId: string) {
+    return this.leaguesService.getMatchPurchases(leagueId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch(':id/match-purchases/:purchaseId/approve')
+  async approveMatchPurchase(
+    @Param('id') leagueId: string,
+    @Param('purchaseId') purchaseId: string,
+  ) {
+    return this.leaguesService.approveMatchPurchase(leagueId, purchaseId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch(':id/match-purchases/:purchaseId/reject')
+  async rejectMatchPurchase(
+    @Param('id') leagueId: string,
+    @Param('purchaseId') purchaseId: string,
+  ) {
+    return this.leaguesService.rejectMatchPurchase(leagueId, purchaseId);
+  }
 }

@@ -106,6 +106,9 @@ export class League {
   @Column({ name: 'is_match_mode', default: false })
   isMatchMode: boolean;
 
+  @Column({ name: 'match_event_type', nullable: true, default: 'BAR' })
+  matchEventType: string; // 'BAR' o 'ENTERPRISE'
+
   @Column({ name: 'enable_department_war', default: false })
   enableDepartmentWar: boolean;
 

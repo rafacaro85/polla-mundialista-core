@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import api from '@/lib/api';
@@ -16,10 +16,29 @@ export default function MatchLoginPage() {
   const [phone, setPhone] = useState('');
   const [tableNumber, setTableNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [matchEventType, setMatchEventType] = useState<string>('BAR');
+  const [leagueLoading, setLeagueLoading] = useState(true);
+
+  // Fetch league info to get matchEventType
+  useEffect(() => {
+    const fetchLeague = async () => {
+      try {
+        const { data } = await api.get(`/leagues/match-code/${matchCode}`);
+        setMatchEventType(data.matchEventType || 'BAR');
+      } catch (e) {
+        console.error('Error fetching league info', e);
+      } finally {
+        setLeagueLoading(false);
+      }
+    };
+    fetchLeague();
+  }, [matchCode]);
+
+  const isBarMode = matchEventType === 'BAR';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !tableNumber) {
+    if (!name || !phone || (isBarMode && !tableNumber)) {
       toast.error('Por favor completa todos los campos.');
       return;
     }
@@ -31,7 +50,7 @@ export default function MatchLoginPage() {
 
     try {
       setIsLoading(true);
-      const res = await api.post('/auth/match-login', { name, phone, tableNumber, matchCode });
+      const res = await api.post('/auth/match-login', { name, phone, tableNumber: isBarMode ? tableNumber : 'N/A', matchCode });
       // If using localStorage for cross-domain auth
       if (res.data.access_token) {
         localStorage.setItem('auth_token', res.data.access_token);
@@ -55,6 +74,14 @@ export default function MatchLoginPage() {
     }
   };
 
+  if (leagueLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
@@ -77,7 +104,7 @@ export default function MatchLoginPage() {
             ¡ENTRA AL JUEGO! <span className="text-emerald-500">⚽</span>
           </h1>
           <p className="text-slate-400 text-center mb-8 text-sm">
-            Un partido. Un QR. Toda la emoción.
+            {isBarMode ? 'Un partido. Un QR. Toda la emoción.' : 'Demuestra quién sabe más de fútbol.'}
           </p>
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">
@@ -114,19 +141,21 @@ export default function MatchLoginPage() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">
-                🪑 Número de Mesa
-              </label>
-              <input
-                type="text"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                placeholder="Ej. Mesa 4"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium placeholder-slate-700"
-                required
-              />
-            </div>
+            {isBarMode && (
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">
+                  🪑 Número de Mesa
+                </label>
+                <input
+                  type="text"
+                  value={tableNumber}
+                  onChange={(e) => setTableNumber(e.target.value)}
+                  placeholder="Ej. Mesa 4"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium placeholder-slate-700"
+                  required
+                />
+              </div>
+            )}
 
             <button
               type="submit"
@@ -141,3 +170,4 @@ export default function MatchLoginPage() {
     </div>
   );
 }
+

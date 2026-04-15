@@ -11,7 +11,7 @@ import {
     CheckCircle, ChevronRight, LayoutDashboard, Shield, Download,
     Share2, Instagram, Facebook, MessageCircle, Music2, Mail, Save, HelpCircle, Eye, FileText,
     Building2, Rocket, Gift, Calendar, Filter, Search, X, Image as ImageIcon,
-    ListOrdered, CreditCard, Tv, Store
+    ListOrdered, CreditCard, Tv, Store, ShoppingCart, Clock
 } from 'lucide-react';
 import { superAdminService } from '@/services/superAdminService';
 import { BonusQuestionsTable } from '@/components/admin/BonusQuestionsTable';
@@ -361,7 +361,8 @@ export default function SuperAdminDashboard() {
                     { id: 'mp-payments', label: 'Pagos MP', icon: <CreditCard size={14} />, badge: pendingMPCount },
                     { id: 'communication', label: 'Difusión', icon: <Megaphone size={14} /> },
                     // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
-                    { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> }
+                    { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> },
+                    { id: 'match-purchases', label: 'Compras Match', icon: <ShoppingCart size={14} /> }
                 ].map(tab => (
                     <button
                         key={tab.id}
@@ -774,6 +775,9 @@ export default function SuperAdminDashboard() {
             {/* J. PESTAÑA COMUNICACIÓN */}
             {activeTab === 'communication' && <BroadcastTab tournamentId={tournamentId} />}
 
+            {/* K. PESTAÑA COMPRAS MATCH */}
+            {activeTab === 'match-purchases' && <MatchPurchasesAdminTab />}
+
             {/* Image Modal for Transactions */}
             {selectedImage && (
                 <div
@@ -845,6 +849,138 @@ function MatchAdminTab({ leagues, onRefresh }: { leagues: any[], onRefresh: () =
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+/* =============================================================================
+   MATCH PURCHASES ADMIN TAB
+   ============================================================================= */
+function MatchPurchasesAdminTab() {
+    const [purchases, setPurchases] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchPurchases();
+    }, []);
+
+    const fetchPurchases = async () => {
+        setLoading(true);
+        try {
+            const { data } = await superAdminService.getMatchPurchasesPending();
+            setPurchases(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching match purchases:', error);
+            setPurchases([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleApprove = async (leagueId: string, purchaseId: string) => {
+        if (!confirm('¿Aprobar esta compra y habilitar el partido/paquete?')) return;
+        try {
+            await superAdminService.approveMatchPurchase(leagueId, purchaseId);
+            alert('Compra aprobada exitosamente');
+            fetchPurchases();
+        } catch (e) {
+            alert('Error al aprobar la compra');
+        }
+    };
+
+    const handleReject = async (leagueId: string, purchaseId: string) => {
+        if (!confirm('¿Rechazar esta compra?')) return;
+        try {
+            await superAdminService.rejectMatchPurchase(leagueId, purchaseId);
+            alert('Compra rechazada');
+            fetchPurchases();
+        } catch (e) {
+            alert('Error al rechazar la compra');
+        }
+    };
+
+    if (loading) {
+        return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500" /></div>;
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-[#1E293B] border border-slate-700 p-6 rounded-xl shadow-lg">
+                <h2 className="text-xl font-russo uppercase text-white mb-2 flex items-center gap-2">
+                    <ShoppingCart className="text-emerald-500" size={20} /> Compras Match Pendientes
+                </h2>
+                <p className="text-slate-400 text-sm">Aprueba o rechaza compras de partidos individuales y paquetes.</p>
+            </div>
+
+            {purchases.length === 0 ? (
+                <div className="text-center py-16 bg-[#1E293B] border border-slate-700 rounded-xl">
+                    <ShoppingCart size={48} className="mx-auto text-slate-600 mb-4" />
+                    <p className="text-slate-400 font-bold">No hay compras pendientes</p>
+                    <p className="text-slate-500 text-sm mt-1">Todas las compras han sido procesadas</p>
+                </div>
+            ) : (
+                purchases.map((purchase: any) => (
+                    <div key={purchase.id} className="bg-[#1E293B] border border-yellow-500/30 rounded-xl p-5 space-y-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-white font-bold text-sm uppercase">
+                                    {purchase.league?.companyName || purchase.league?.name || 'Liga Desconocida'}
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                    {purchase.league?.matchEventType === 'BAR' ? '🍺 Bar' : '🏢 Empresa'}
+                                    {purchase.league?.adminName && ` • Admin: ${purchase.league.adminName}`}
+                                    {purchase.league?.adminPhone && ` • ${purchase.league.adminPhone}`}
+                                </p>
+                                <p className="text-slate-500 text-[10px] mt-1">
+                                    {purchase.matchId ? `Partido: ${purchase.matchId.substring(0, 8)}...` : `Paquete: ${purchase.packageId}`}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-emerald-400 font-russo text-lg">${Number(purchase.amount).toLocaleString('es-CO')}</p>
+                                <p className="text-yellow-500 text-[10px] font-bold uppercase flex items-center justify-end gap-1">
+                                    <Clock size={10} /> PENDIENTE
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleApprove(purchase.leagueId, purchase.id)}
+                                className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <CheckCircle size={16} /> Aprobar
+                            </button>
+                            <button
+                                onClick={() => handleReject(purchase.leagueId, purchase.id)}
+                                className="flex-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <X size={16} /> Rechazar
+                            </button>
+                            {purchase.voucherUrl && (
+                                <button
+                                    onClick={() => setSelectedImage(purchase.voucherUrl)}
+                                    className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 font-bold text-sm py-2.5 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                                >
+                                    <Eye size={16} /> Ver
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))
+            )}
+
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-5"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <button className="absolute top-5 right-5 text-white" onClick={() => setSelectedImage(null)}>
+                        <X size={32} />
+                    </button>
+                    <img src={selectedImage} alt="Comprobante" className="max-w-full max-h-[90vh] rounded-xl" onClick={e => e.stopPropagation()} />
+                </div>
+            )}
         </div>
     );
 }

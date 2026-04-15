@@ -155,6 +155,28 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
                     </button>
                 </div>
             )}
+
+            {/* Tie Breaker Button */}
+            {activeTab === 'users' && (
+                <div className="flex justify-center mb-4 mt-2">
+                    <button
+                        onClick={() => setIsTieBreakerOpen(true)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all
+                            ${ranking.find(u => u.isUser)?.tieBreakerGuess != null
+                                ? 'text-slate-400 border border-white/10'
+                                : 'text-yellow-500 border border-yellow-500/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
+                            }`}
+                        style={{ 
+                            backgroundColor: ranking.find(u => u.isUser)?.tieBreakerGuess != null ? 'var(--brand-secondary, #1E293B)' : 'rgba(250,204,21,0.1)'
+                        }}
+                    >
+                        {ranking.find(u => u.isUser)?.tieBreakerGuess != null
+                            ? `Tie-Breaker: ${ranking.find(u => u.isUser)?.tieBreakerGuess} Goles`
+                            : '⚠️ Configurar Desempate'}
+                    </button>
+                </div>
+            )}
+
             <div className="bg-brand-secondary/50 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-xl">
                 <div className="flex justify-between p-4 bg-black/20 border-b border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span>Posición / {activeTab === 'departments' ? 'Área' : 'Usuario'}</span>
@@ -285,6 +307,16 @@ export const EnterpriseRankingTable = ({ leagueId, enableDepartmentWar }: Enterp
             <div className="mt-4 text-center opacity-40 text-[10px] text-slate-400 uppercase">
                 Ranking Actualizado
             </div>
+
+            {isTieBreakerOpen && (
+                <TieBreakerDialog
+                    isOpen={isTieBreakerOpen}
+                    onClose={() => setIsTieBreakerOpen(false)}
+                    leagueId={leagueId}
+                    currentGuess={ranking.find(u => u.isUser)?.tieBreakerGuess}
+                    onSuccess={() => window.location.reload()}
+                />
+            )}
         </div>
     );
 };

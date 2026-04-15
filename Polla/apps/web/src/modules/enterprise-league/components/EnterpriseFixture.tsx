@@ -184,7 +184,13 @@ export const EnterpriseFixture = () => {
 
             // Update selected date if currently invalid
             if (!selectedDate || !uniqueDates.includes(selectedDate)) {
-                setSelectedDate(uniqueDates[0]);
+                // Seleccionar por defecto la primera fecha con un partido no finalizado
+                let initialDate = uniqueDates[0];
+                const firstUnplayedMatch = finalMatches.find((m: any) => m.status !== 'FINISHED' && m.status !== 'COMPLETED');
+                if (firstUnplayedMatch) {
+                    initialDate = firstUnplayedMatch.displayDate;
+                }
+                setSelectedDate(initialDate);
             }
         }
     }, [finalMatches.length, finalMatches[0]?.id]); // Use primitive triggers instead of array reference

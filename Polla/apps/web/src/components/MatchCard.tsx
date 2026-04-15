@@ -444,9 +444,16 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction, hideJok
 
         {/* HEADER */}
         <div style={STYLES.header}>
-          <div style={STYLES.infoBtn} onClick={(e) => { e.stopPropagation(); onOpenInfo?.(); }}>
-            <Info size={18} />
-          </div>
+          {isMatchActive ? (
+            <div style={{ color: '#00E676', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+              +{points} PTS
+            </div>
+          ) : (
+            <div style={STYLES.infoBtn} onClick={(e) => { e.stopPropagation(); onOpenInfo?.(); }}>
+              <Info size={18} />
+            </div>
+          )}
           <div style={STYLES.metaData}>
             <div style={{ color: '#00E676' }}>
               {(() => {

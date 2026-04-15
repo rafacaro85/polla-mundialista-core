@@ -61,8 +61,8 @@ export class LeagueParticipant {
   department?: string;
 
   @Column({
-    type: 'enum',
-    enum: LeagueParticipantStatus,
+    type: 'varchar',
+    length: 50,
     default: LeagueParticipantStatus.ACTIVE,
   })
   status: LeagueParticipantStatus;

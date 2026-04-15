@@ -357,22 +357,25 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
                 </div>
             </div>
 
-            <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex-1 overflow-x-auto min-w-[200px]">
-                    <DateFilter
-                        dates={dates}
-                        selectedDate={selectedDate}
-                        onSelect={setSelectedDate}
-                    />
-                </div>
-                {currentPhaseJokerStatus && (
-                    <div className="flex items-center gap-1.5 bg-slate-800/80 rounded border border-slate-700/50 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
-                        <span className="text-base sm:text-lg leading-none">🃏</span>
-                        <span className="font-medium text-slate-300 tracking-tight">
-                            Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
-                        </span>
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <div className="flex-1 overflow-x-auto min-w-[200px]">
+                        <DateFilter
+                            dates={dates}
+                            selectedDate={selectedDate}
+                            onSelect={setSelectedDate}
+                        />
                     </div>
-                )}
+                    {currentPhaseJokerStatus && (
+                        <div className="flex items-center gap-1.5 bg-[#1E293B]/80 rounded border border-white/10 px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap shadow-inner">
+                            <span className="text-base sm:text-lg leading-none">🃏</span>
+                            <span className="font-medium text-slate-300 tracking-tight">
+                                Comodines: <span className={currentPhaseJokerStatus.used >= currentPhaseJokerStatus.max ? 'text-amber-500 font-bold' : 'text-white'}>{currentPhaseJokerStatus.used}</span> / {currentPhaseJokerStatus.max} usados
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+            <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
                 <Button
                     onClick={handleRefresh}
                     variant="outline"

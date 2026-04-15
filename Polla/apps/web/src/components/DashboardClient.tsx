@@ -44,6 +44,8 @@ import { PredictionsView } from './dashboard/views/PredictionsView';
 import { RankingView } from './dashboard/views/RankingView';
 import { SmartLeagueHome } from './dashboard/home/SmartLeagueHome';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { MatchAdminPanel } from '@/components/admin/MatchAdminPanel';
+import { MatchAdminHome } from '@/components/admin/MatchAdminHome';
 
 interface Match {
   id: string;
@@ -81,7 +83,7 @@ interface Prediction {
 
 interface DashboardClientProps {
   defaultLeagueId?: string;
-  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall';
+  initialTab?: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin';
 }
 
 const getPlanLevel = (type?: string) => {
@@ -110,10 +112,22 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
   const { user, selectedLeagueId, setSelectedLeague, syncUserFromServer } = useAppStore();
   const { predictions } = useMyPredictions(selectedLeagueId === 'global' ? undefined : selectedLeagueId);
 
-  // New Navigation State (6 Tabs)
-  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall'>(
+  // New Navigation State (6 Tabs + matchAdmin)
+  const [activeTab, setActiveTab] = useState<'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin'>(
     (props.initialTab as any) || 'home'
   );
+
+  const getTournamentLogo = (tid?: string) => {
+    if (!tid) return null;
+    const t = tid.toUpperCase();
+    if (t.includes('UCL') || t.includes('CHAMPIONS')) {
+      return { src: '/images/ucl-logo.png', alt: 'Champions League', invert: true };
+    }
+    if (t.includes('WC') || t.includes('MUNDIAL') || t.includes('WORLD')) {
+      return { src: '/images/wc-logo.png', alt: 'FIFA World Cup', invert: false };
+    }
+    return null;
+  };
 
   const [mounted, setMounted] = useState(false);
   
@@ -295,16 +309,33 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
       <div
         className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans relative pb-24 md:pb-0 overflow-x-hidden w-full md:pl-[68px]"
       >
-        {/* Header only shown in Global/Main dashboard, league pages have it in LeagueLayout */}
-        {!isEnterpriseMode && selectedLeagueId === 'global' && (
+        {/* Header only shown in Global/Main dashboard, league pages have it in LeagueLayout, but Match Mode skips layout and handles it here */}
+        {(!isEnterpriseMode && selectedLeagueId === 'global') || currentLeague?.isMatchMode ? (
           <Header
             userName={user?.nickname || 'Invitado'}
             leagueName={selectedLeagueId !== 'global' ? currentLeague?.name : undefined}
             tournamentId={currentLeague?.tournamentId}
-            isEnterprise={isEnterpriseMode}
-            backUrl={isEnterpriseMode ? '/empresa/mis-pollas' : '/social/mis-pollas'}
+            isEnterprise={false}
+            backUrl={currentLeague?.isEnterprise ? '/empresa/mis-pollas' : '/social/mis-pollas'}
+            brandingLogoUrl={currentLeague?.brandingLogoUrl}
+            hideTournamentLogo={currentLeague?.isMatchMode}
           />
-        )}
+        ) : null}
+
+        {/* FLOATING TOURNAMENT LOGO (Match Mode) */}
+        {currentLeague?.isMatchMode && activeTab === 'home' && (() => {
+            const tLogo = getTournamentLogo(currentLeague.tournamentId);
+            if (!tLogo) return null;
+            return (
+                <div className="absolute right-4 top-20 z-30 p-1.5 rounded-full border border-white/10 bg-[#0F172A]/80 shadow-2xl backdrop-blur-md flex">
+                  <img
+                    src={tLogo.src}
+                    alt={tLogo.alt}
+                    className={`h-10 w-10 object-contain rounded-full shadow-inner ${tLogo.invert ? 'brightness-0 invert' : ''}`}
+                  />
+                </div>
+            )
+        })()}
 
         {/* IMPERSONATION BAR FOR SUPER ADMIN */}
         {isSuperAdminMode && currentLeague && (
@@ -498,8 +529,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                       : 'Bienvenido al Mundial 2026. ¡Predice, compite y gana!'}
                   </p>
                 </div>
+              ) : currentLeague?.isMatchMode ? (
+                // LIGA MATCH MODE: Dashboard Minimalista para el Admin
+                <ErrorBoundary>
+                  <MatchAdminHome currentLeague={currentLeague} matches={matches} />
+                </ErrorBoundary>
               ) : (
-                // Liga Social: Dashboard inteligente
+                // Liga Social o Empresarial: Dashboard inteligente
                 <ErrorBoundary>
                   <SmartLeagueHome
                     currentLeague={currentLeague as any}
@@ -562,6 +598,18 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
                 </ErrorBoundary>
               </div>
           )}
+
+          {/* 7. MATCH ADMIN (only for Match Mode leagues) */}
+          {activeTab === 'matchAdmin' && currentLeague && (
+              <div className="mt-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <ErrorBoundary>
+                  <MatchAdminPanel
+                    league={currentLeague}
+                    onUpdate={() => window.location.reload()}
+                  />
+                </ErrorBoundary>
+              </div>
+          )}
           
         </main >
 
@@ -583,6 +631,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
             leagueId={selectedLeagueId === 'global' ? undefined : selectedLeagueId}
             tournamentId={leagueTournamentId || tournamentId}
             planLevel={currentLeague ? getPlanLevel(currentLeague.packageType) : 0}
+            isMatchMode={!!currentLeague?.isMatchMode}
           />
         )}
 

@@ -1,25 +1,32 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle, MessageSquare } from 'lucide-react';
+import { Home, Trophy, ClipboardPen, BarChartBig, Star, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Crosshair } from 'lucide-react';
 import { useBonusNotification } from '@/hooks/useBonusNotification';
 
 interface BottomNavProps {
-    activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall';
-    onTabChange: (tab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall') => void;
+    activeTab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin';
+    onTabChange: (tab: 'home' | 'leagues' | 'predictions' | 'ranking' | 'bonus' | 'wall' | 'matchAdmin') => void;
     showLeaguesTab?: boolean;
     leagueId?: string;
     tournamentId?: string;
     planLevel?: number;
+    isMatchMode?: boolean;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, leagueId, tournamentId, planLevel = 0 }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, showLeaguesTab = true, leagueId, tournamentId, planLevel = 0, isMatchMode = false }) => {
     const [collapsed, setCollapsed] = useState(false);
     
     // Obtenemos el conteo de la liga/torneo específico
     const { unansweredCount } = useBonusNotification(leagueId, tournamentId);
 
-    const tabs = [
+    // Match Mode: solo Home + Modo Match
+    const matchTabs = [
+        { id: 'home' as const, label: 'Inicio', icon: Home },
+        { id: 'matchAdmin' as const, label: 'Modo Match', icon: Crosshair },
+    ];
+
+    const regularTabs = [
         { id: 'home' as const, label: 'Inicio', icon: Home },
         ...(showLeaguesTab ? [{ id: 'leagues' as const, label: 'Pollas', icon: Trophy }] : []),
         { id: 'predictions' as const, label: 'Predicciones', icon: ClipboardPen },
@@ -27,6 +34,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, sh
         { id: 'bonus' as const, label: 'Bonus', icon: HelpCircle },
         ...(planLevel >= 3 ? [{ id: 'wall' as const, label: 'Muro', icon: MessageSquare }] : []),
     ];
+
+    const tabs = isMatchMode ? matchTabs : regularTabs;
 
     return (
         <>

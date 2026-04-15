@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import {
@@ -46,24 +47,28 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuth(@Req() req: any) {
-    // Inicia el flujo, Passport se encarga de la redirección a Google
+    // GoogleAuthGuard inyecta el parámetro 'redirect' como 'state' en la URL de Google.
+    // Google nos devuelve ese state intacto en el callback.
   }
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: { user: User; query: any }, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
     try {
       const { access_token } = await this.authService.googleLogin(req.user);
       const isProduction = process.env.NODE_ENV === 'production';
 
       // Limpiar cookie de sesión de OAuth y setear token como httpOnly
       res.clearCookie('connect.sid');
+      // Cookie del backend (funciona para same-domain, fallback)
       res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
 
       // --- LÓGICA DE REDIRECCIÓN DINÁMICA (SECURE) ---
-      const originParam = req.query.state;
+      // Prioridad: 1) state de Google (inyectado por GoogleAuthGuard)
+      //            2) FRONTEND_URL como último recurso
+      const stateParam = req.query?.state;
       const defaultFrontend = process.env.FRONTEND_URL || 'http://localhost:3001';
       
       const WHITELIST = [
@@ -74,12 +79,19 @@ export class AuthController {
         'http://localhost:3001',
       ];
 
-      // Validar que el origen esté en la whitelist para prevenir Open Redirect
-      const isValidOrigin = originParam && WHITELIST.some(domain => originParam.startsWith(domain));
-      const finalRedirectUrl = isValidOrigin ? originParam : defaultFrontend;
+      let candidateOrigin = stateParam || '';
+      if (!candidateOrigin || !WHITELIST.some(d => candidateOrigin.startsWith(d))) {
+        candidateOrigin = '';
+      }
 
-      console.log('🔄 Redirigiendo a frontend:', `${finalRedirectUrl}/auth/success`);
-      return res.redirect(`${finalRedirectUrl}/auth/success`);
+      const isValidOrigin = candidateOrigin && WHITELIST.some(domain => candidateOrigin.startsWith(domain));
+      const finalRedirectUrl = isValidOrigin ? candidateOrigin : defaultFrontend;
+
+      // Pasar JWT en URL para resolver cookies cross-domain (Chrome 120+)
+      // El frontend leerá este token y creará la cookie en su propio dominio
+      console.log('🔄 [OAuth Redirect] state:', stateParam);
+      console.log('🔄 [OAuth Redirect] finalRedirectUrl:', finalRedirectUrl);
+      return res.redirect(`${finalRedirectUrl}/auth/success?token=${access_token}`);
     } catch (error) {
       console.error('❌ [AuthController Google Redirect] Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -118,7 +130,7 @@ export class AuthController {
     const { access_token, user } = await this.authService.matchLogin(loginDto);
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('auth_token', access_token, COOKIE_OPTIONS(isProduction));
-    return { user };
+    return { user, access_token };
   }
 
   @Post('forgot-password')

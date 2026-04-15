@@ -15,7 +15,7 @@ import axios from 'axios';
 import { TelegramService } from '../telegram/telegram.service';
 
 // ── Plan Configuration (centralized) ──────────────────────────────────────────
-export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' }> = {
+export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: number; type: 'SOCIAL' | 'ENTERPRISE' | 'MATCH' }> = {
   // Social
   'familia':    { maxParticipants: 5,   price: 0,       type: 'SOCIAL' },
   'parche':     { maxParticipants: 15,  price: 30000,   type: 'SOCIAL' },
@@ -28,6 +28,11 @@ export const PLAN_CONFIG: Record<string, { maxParticipants: number; price: numbe
   'oro':        { maxParticipants: 150, price: 450000,  type: 'ENTERPRISE' },
   'platino':    { maxParticipants: 300, price: 750000,  type: 'ENTERPRISE' },
   'diamante':   { maxParticipants: 500, price: 1000000, type: 'ENTERPRISE' },
+  // Match
+  'match_basico': { maxParticipants: 20, price: 15000, type: 'MATCH' },
+  'match_pro': { maxParticipants: 50, price: 25000, type: 'MATCH' },
+  'match_premium': { maxParticipants: 100, price: 35000, type: 'MATCH' },
+  'match_evento': { maxParticipants: 300, price: 60000, type: 'MATCH' },
   // Legacy
   'starter': { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },
   'FREE':    { maxParticipants: 5,   price: 0,      type: 'SOCIAL' },

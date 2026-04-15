@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function MatchLoginPage() {
   const router = useRouter();
@@ -23,13 +24,30 @@ export default function MatchLoginPage() {
       return;
     }
 
+    if (phone.length < 10) {
+      toast.error('El celular debe tener 10 dígitos.');
+      return;
+    }
+
     try {
       setIsLoading(true);
       const res = await api.post('/auth/match-login', { name, phone, tableNumber, matchCode });
-      // The backend returns a cookie, so we can just redirect 
+      // If using localStorage for cross-domain auth
+      if (res.data.access_token) {
+        localStorage.setItem('auth_token', res.data.access_token);
+      }
+      
+      // IMPORTANT: Update Zustand store immediately
+      if (res.data.user) {
+        useAppStore.getState().setUser(res.data.user);
+      }
+
       toast.success('¡Bienvenido a la Polla Match!');
       // Force reload to update auth context correctly
-      window.location.href = `/match/${matchCode}/play`;
+      // Delay it just a bit to ensure storage sets correctly across renders/hooks
+      setTimeout(() => {
+        window.location.href = `/match/${matchCode}/play`;
+      }, 100);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al ingresar. Intenta nuevamente.');
     } finally {
@@ -79,16 +97,21 @@ export default function MatchLoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">
-                📱 Tu Teléfono
+                📱 Tu Teléfono (Identificación Única)
               </label>
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 placeholder="Ej. 3001234567"
+                pattern="[0-9]{10}"
+                title="Debe ser un número de 10 dígitos"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium placeholder-slate-700"
                 required
               />
+              <p className="text-[10px] text-emerald-400/80 mt-1 pl-1">
+                * Este número es tu llave única en el juego.
+              </p>
             </div>
 
             <div>

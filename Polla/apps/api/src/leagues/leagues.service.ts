@@ -399,6 +399,9 @@ export class LeaguesService {
       brandColorHeading: league.brandColorHeading,
       brandColorBars: league.brandColorBars,
       welcomeMessage: league.welcomeMessage,
+      isMatchMode: league.isMatchMode,
+      matchCode: league.matchCode,
+      activeMatchId: league.activeMatchId,
       prizeImageUrl: league.prizeImageUrl,
       prizeDetails: league.prizeDetails,
       prizeType: league.prizeType,
@@ -820,6 +823,9 @@ export class LeaguesService {
           packageType: participant.league.packageType,
           brandColorHeading: participant.league.brandColorHeading,
           brandColorBars: participant.league.brandColorBars,
+          isMatchMode: participant.league.isMatchMode,
+          matchCode: participant.league.matchCode,
+          activeMatchId: participant.league.activeMatchId,
           // Missing fields essential for Admin Panels Hydration
           enableDepartmentWar: participant.league.enableDepartmentWar,
           socialInstagram: participant.league.socialInstagram,
@@ -896,6 +902,9 @@ export class LeaguesService {
             packageType: league.packageType,
             brandColorHeading: league.brandColorHeading,
             brandColorBars: league.brandColorBars,
+            isMatchMode: league.isMatchMode,
+            matchCode: league.matchCode,
+            activeMatchId: league.activeMatchId,
             // Missing fields essential for Admin Panels Hydration
             enableDepartmentWar: league.enableDepartmentWar,
             socialInstagram: league.socialInstagram,
@@ -1978,12 +1987,21 @@ export class LeaguesService {
     const currentPrice = PLAN_CONFIG[currentKey]?.price || 0;
     const isEnterprise =
       league.isEnterprise || league.type === LeagueType.COMPANY;
-    const currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+    let currentType = isEnterprise ? 'ENTERPRISE' : 'SOCIAL';
+    
+    if (league.isMatchMode) {
+      currentType = 'MATCH';
+    }
 
     const availablePlans = Object.entries(PLAN_CONFIG)
       .filter(([key, cfg]) => {
+        // MATCH plans only go to Match mode leagues, and viceversa
+        if (league.isMatchMode && cfg.type !== 'MATCH') return false;
+        if (!league.isMatchMode && cfg.type === 'MATCH') return false;
+        
         // Only same type (Social/Social, Ent/Ent)
-        if (cfg.type !== currentType) return false;
+        if (!league.isMatchMode && cfg.type !== currentType) return false;
+        
         // Only plans with higher price (no downgrades)
         if (cfg.price <= currentPrice) return false;
         // Exclude legacy/alias keys
@@ -2235,12 +2253,12 @@ export class LeaguesService {
     };
   }
 
-  async toggleMatchMode(leagueId: string, isMatchMode: boolean, adminId: string): Promise<League> {
+  async toggleMatchMode(leagueId: string, isMatchMode: boolean, adminId: string, userRole?: string): Promise<League> {
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league) throw new NotFoundException('League not found');
 
     // Authentication: Check if admin/creator
-    if (league.creator.id !== adminId) {
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
       const participant = await this.leagueParticipantsRepository.findOne({
         where: { league: { id: leagueId }, user: { id: adminId } }
       });
@@ -2258,33 +2276,64 @@ export class LeaguesService {
     return this.leaguesRepository.save(league);
   }
 
-  async activateActiveMatch(leagueId: string, matchId: string, adminId: string): Promise<League> {
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+  async activateActiveMatch(leagueId: string, matchId: string, adminId: string, userRole: string): Promise<League> {
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league) throw new NotFoundException('League not found');
     
+    // Auth Check
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: adminId } }
+      });
+      if (!participant || !participant.isAdmin) {
+        throw new ForbiddenException('Only league admins can perform this action');
+      }
+    }
+
     league.activeMatchId = matchId;
     return this.leaguesRepository.save(league);
   }
 
-  async resetMatchModeRanking(leagueId: string, adminId: string, confirm: boolean): Promise<{ message: string }> {
+  async resetMatchModeRanking(leagueId: string, adminId: string, confirm: boolean, userRole: string): Promise<{ message: string }> {
     if (!confirm) throw new BadRequestException('Confirmation required to reset rankings');
     
-    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league || !league.isMatchMode) {
       throw new BadRequestException('League is not in match mode');
     }
 
-    // Reset prediction points for this league
-    await this.predictionRepository.update(
-      { leagueId: leagueId },
-      { points: 0 }
-    );
+    // Auth Check
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN' && league.creator.id !== adminId) {
+      const participant = await this.leagueParticipantsRepository.findOne({
+        where: { league: { id: leagueId }, user: { id: adminId } }
+      });
+      if (!participant || !participant.isAdmin) {
+        throw new ForbiddenException('Only league admins can perform this action');
+      }
+    }
 
-    // Reset total points for participants
+    // 1. Resetear TODOS los puntajes (para usuarios normales que se quedan)
     await this.leagueParticipantsRepository.update(
       { league: { id: leagueId } },
       { totalPoints: 0, predictionPoints: 0, jokerPoints: 0 }
     );
+
+    // 2. Borrar las predicciones existentes
+    await this.predictionRepository.delete({ leagueId: leagueId });
+
+    // 3. Buscar y expulsar a los invitados de bar (MATCH_GUEST)
+    const participants = await this.leagueParticipantsRepository.find({
+      where: { league: { id: leagueId } },
+      relations: ['user']
+    });
+
+    const guestIds = participants
+      .filter(p => p.user && p.user.role === 'MATCH_GUEST')
+      .map(p => p.id);
+
+    if (guestIds.length > 0) {
+      await this.leagueParticipantsRepository.delete(guestIds);
+    }
 
     await this.cacheManager.del(`ranking:league:${leagueId}`);
     return { message: 'Ranking successfully reset to zero.' };

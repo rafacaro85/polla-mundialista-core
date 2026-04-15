@@ -54,7 +54,7 @@ const getVisualCode = (name: string) => {
   return name.substring(0, 3).toUpperCase();
 };
 
-export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) {
+export default function MatchCard({ match, onOpenInfo, onSavePrediction, hideJoker = false }: any) {
   // 1. EXTRAER DATOS DEL PARTIDO
   // Fallback a snake_case por si la API cambió serialización
   const homeTeamName = match.homeTeam || match.home_team || match.homeTeamPlaceholder || 'LOC';
@@ -602,17 +602,19 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction }: any) 
                   />
                 </div>
 
-                {/* JOKER BUTTON */}
-                {!isInputLocked ? (
-                  <button style={STYLES.jokerBtn} onClick={toggleJoker} title="Usar Comodín (x2 Puntos)">
-                    <Star size={12} fill={isJoker ? "#0F172A" : "none"} strokeWidth={isJoker ? 0 : 2} />
-                    {isJoker ? 'COMODÍN ACTIVO' : 'COMODÍN'}
-                  </button>
-                ) : (
-                  isJoker && (
-                    <div style={{ ...STYLES.jokerBtn, cursor: 'default', opacity: 1 }}>
-                      <Star size={12} fill="#0F172A" strokeWidth={0} /> x2
-                    </div>
+                {/* JOKER BUTTON (hidden in Match Mode) */}
+                {!hideJoker && (
+                  !isInputLocked ? (
+                    <button style={STYLES.jokerBtn} onClick={toggleJoker} title="Usar Comodín (x2 Puntos)">
+                      <Star size={12} fill={isJoker ? "#0F172A" : "none"} strokeWidth={isJoker ? 0 : 2} />
+                      {isJoker ? 'COMODÍN ACTIVO' : 'COMODÍN'}
+                    </button>
+                  ) : (
+                    isJoker && (
+                      <div style={{ ...STYLES.jokerBtn, cursor: 'default', opacity: 1 }}>
+                        <Star size={12} fill="#0F172A" strokeWidth={0} /> x2
+                      </div>
+                    )
                   )
                 )}
               </>

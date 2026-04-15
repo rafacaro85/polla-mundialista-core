@@ -121,7 +121,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     }
 
     // 3. THEME INJECTION - Usar BrandThemeProvider
-    const isEnterprise = (league.type === 'COMPANY' || league.isEnterprise);
+    const isEnterprise = (league.type === 'COMPANY' || league.isEnterprise) && !league.isMatchMode;
     const primaryColor = isEnterprise ? (league.brandColorPrimary || '#00E676') : '#00E676';
     const secondaryColor = isEnterprise ? (league.brandColorSecondary || '#1E293B') : '#1E293B';
     const bgColor = isEnterprise ? (league.brandColorBg || '#0F172A') : '#0F172A';
@@ -140,7 +140,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     const isAdminRoute = pathname?.includes('/admin')
         || pathname?.includes('/settings')
         || pathname?.includes('/studio');
-    const showLayoutNav = showLayoutUI && !isDashboardRoot && !isAdminRoute;
+    const showLayoutNav = showLayoutUI && !isDashboardRoot && !isAdminRoute && !league.isMatchMode;
 
     // 3b. Check if user has REJECTED or PENDING status
     const userStatus = league.userStatus;
@@ -444,7 +444,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     }`}>
                     
                     {/* ENTERPRISE HEADER — MOVED FROM PAGE TO LAYOUT FOR CONSISTENCY */}
-                    {isEnterprise && showLayoutUI && (
+                    {isEnterprise && showLayoutUI && !league.isMatchMode && (
                         <EnterpriseHeader 
                             league={league} 
                             myDepartment={league.userDepartment} 
@@ -452,7 +452,7 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
                     )}
 
                     {/* SOCIAL HEADER — Standard UI for non-enterprise leagues */}
-                    {!isEnterprise && showLayoutUI && (
+                    {!isEnterprise && showLayoutUI && !league.isMatchMode && (
                         <EnterpriseHeader
                             league={league}
                             isEnterprise={false}

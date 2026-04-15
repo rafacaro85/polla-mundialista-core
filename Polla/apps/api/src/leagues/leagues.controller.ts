@@ -534,39 +534,36 @@ export class LeaguesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Patch(':id/match-mode/toggle')
   async toggleMatchMode(
     @Param('id') leagueId: string,
     @Body() body: { isMatchMode: boolean },
     @Req() req: Request,
   ) {
-    const userPayload = req.user as { id: string };
-    return this.leaguesService.toggleMatchMode(leagueId, body.isMatchMode, userPayload.id);
+    const userPayload = req.user as { id: string; role?: string };
+    return this.leaguesService.toggleMatchMode(leagueId, body.isMatchMode, userPayload.id, userPayload.role);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Patch(':id/match-mode/activate-match')
   async activateActiveMatch(
     @Param('id') leagueId: string,
     @Body() body: { matchId: string },
     @Req() req: Request,
   ) {
-    const userPayload = req.user as { id: string };
-    return this.leaguesService.activateActiveMatch(leagueId, body.matchId, userPayload.id);
+    const userPayload = req.user as { id: string; role: string };
+    return this.leaguesService.activateActiveMatch(leagueId, body.matchId, userPayload.id, userPayload.role);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post(':id/match-mode/reset-ranking')
   async resetMatchModeRanking(
     @Param('id') leagueId: string,
     @Body() body: { confirm: boolean },
     @Req() req: Request,
   ) {
-    const userPayload = req.user as { id: string };
-    return this.leaguesService.resetMatchModeRanking(leagueId, userPayload.id, body.confirm);
+    const userPayload = req.user as { id: string; role: string };
+    return this.leaguesService.resetMatchModeRanking(leagueId, userPayload.id, body.confirm, userPayload.role);
   }
 
   @Public()

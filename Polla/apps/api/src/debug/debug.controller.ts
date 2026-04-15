@@ -105,16 +105,112 @@ export class DebugController {
   @Get('db-repair')
   async repairDb() {
     const queryRunner = this.dataSource.createQueryRunner();
+    const results: string[] = [];
     try {
-      console.log('--- Intentando reparación de emergencia desde el API ---');
-      await queryRunner.query(
-        "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT '#FFFFFF'",
-      );
-      await queryRunner.query(
-        "ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'",
-      );
+      console.log('--- [DB-REPAIR] Ejecutando reparación completa de esquema ---');
 
-      // EMERGENCY: Create missing tables for prizes and banners with correct schema
+      // ====== 1. SOLUCIÓN DEFINITIVA: CONVERTIR ENUMS A VARCHAR ======
+      // PostgreSQL bloquea ALTER TYPE ADD VALUE dentro de transacciones.
+      // Solución: convertir columnas enum a VARCHAR para eliminar la restricción.
+      // TypeORM sigue validando los valores desde el código TypeScript.
+
+      // Convertir league_participants.status a VARCHAR
+      try {
+        await queryRunner.query(`ALTER TABLE league_participants ALTER COLUMN status TYPE VARCHAR(50) USING status::text`);
+        await queryRunner.query(`ALTER TABLE league_participants ALTER COLUMN status SET DEFAULT 'ACTIVE'`);
+        results.push('✅ league_participants.status → VARCHAR(50)');
+      } catch (e) { results.push(`⚠️ league_participants.status: ${e.message}`); }
+
+      // Convertir leagues.status a VARCHAR (si es enum)
+      try {
+        await queryRunner.query(`ALTER TABLE leagues ALTER COLUMN status TYPE VARCHAR(50) USING status::text`);
+        await queryRunner.query(`ALTER TABLE leagues ALTER COLUMN status SET DEFAULT 'ACTIVE'`);
+        results.push('✅ leagues.status → VARCHAR(50)');
+      } catch (e) { results.push(`⚠️ leagues.status: ${e.message}`); }
+
+      // Convertir leagues.type a VARCHAR (si es enum)
+      try {
+        await queryRunner.query(`ALTER TABLE leagues ALTER COLUMN type TYPE VARCHAR(50) USING type::text`);
+        results.push('✅ leagues.type → VARCHAR(50)');
+      } catch (e) { results.push(`⚠️ leagues.type: ${e.message}`); }
+
+      // Verificar/crear tabla transactions con status VARCHAR
+      try {
+        await queryRunner.query(`
+          CREATE TABLE IF NOT EXISTS transactions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            league_id UUID,
+            amount DECIMAL(15,2) DEFAULT 0,
+            package_id VARCHAR(100),
+            status VARCHAR(50) DEFAULT 'PENDING',
+            reference_code VARCHAR(255),
+            proof_url TEXT,
+            "tournamentId" VARCHAR(50),
+            original_package_id VARCHAR(100),
+            upgrade_amount DECIMAL(15,2),
+            created_at TIMESTAMP DEFAULT now(),
+            updated_at TIMESTAMP DEFAULT now(),
+            CONSTRAINT fk_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          )
+        `);
+        results.push('✅ TABLE transactions verificada/creada');
+      } catch (e) { results.push(`⚠️ TABLE transactions: ${e.message}`); }
+
+      // Si la tabla transactions ya existe, convertir su status a VARCHAR
+      try {
+        await queryRunner.query(`ALTER TABLE transactions ALTER COLUMN status TYPE VARCHAR(50) USING status::text`);
+        await queryRunner.query(`ALTER TABLE transactions ALTER COLUMN status SET DEFAULT 'PENDING'`);
+        results.push('✅ transactions.status → VARCHAR(50)');
+      } catch (e) { results.push(`⚠️ transactions.status: ${e.message}`); }
+
+      // ====== 2. COLUMNAS FALTANTES EN LEAGUES ======
+      const leagueColumns = [
+        ["brand_color_heading", "VARCHAR(255) DEFAULT '#FFFFFF'"],
+        ["brand_color_bars", "VARCHAR(255) DEFAULT '#00E676'"],
+        ["match_code", "VARCHAR(255)"],
+        ["active_match_id", "VARCHAR(255)"],
+        ["is_match_mode", "BOOLEAN DEFAULT false"],
+        ["brand_cover_url", "VARCHAR(255)"],
+        ["brand_font_family", "VARCHAR(255) DEFAULT '\"Russo One\", sans-serif'"],
+        ["enable_department_war", "BOOLEAN DEFAULT false"],
+        ["brand_color_primary", "VARCHAR(255) DEFAULT '#00E676'"],
+        ["brand_color_secondary", "VARCHAR(255) DEFAULT '#1E293B'"],
+        ["brand_color_bg", "VARCHAR(255) DEFAULT '#0F172A'"],
+        ["brand_color_text", "VARCHAR(255) DEFAULT '#F8FAFC'"],
+        ["show_ads", "BOOLEAN DEFAULT false"],
+        ["ad_images", "TEXT"],
+        ["created_at", "TIMESTAMP DEFAULT now()"],
+        ["deleted_at", "TIMESTAMP"],
+      ];
+
+      for (const [col, type] of leagueColumns) {
+        try {
+          await queryRunner.query(`ALTER TABLE leagues ADD COLUMN IF NOT EXISTS "${col}" ${type}`);
+          results.push(`✅ COLUMN leagues.${col}`);
+        } catch (e) { results.push(`⚠️ COLUMN leagues.${col}: ${e.message}`); }
+      }
+
+      // ====== 3. COLUMNAS FALTANTES EN USERS ======
+      const userColumns = [
+        ["table_number", "VARCHAR(255)"],
+        ["welcome_email_sent", "BOOLEAN DEFAULT false"],
+      ];
+
+      for (const [col, type] of userColumns) {
+        try {
+          await queryRunner.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "${col}" ${type}`);
+          results.push(`✅ COLUMN users.${col}`);
+        } catch (e) { results.push(`⚠️ COLUMN users.${col}: ${e.message}`); }
+      }
+
+      // ====== 4. COLUMNAS FALTANTES EN PREDICTIONS ======
+      try {
+        await queryRunner.query(`ALTER TABLE predictions ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP WITH TIME ZONE DEFAULT now()`);
+        results.push('✅ COLUMN predictions.created_at');
+      } catch (e) { results.push(`⚠️ COLUMN predictions.created_at: ${e.message}`); }
+
+      // ====== 5. TABLAS FALTANTES (PRIZES / BANNERS) ======
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS league_prizes (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -132,6 +228,7 @@ export class DebugController {
           CONSTRAINT fk_league_prize FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
         )
       `);
+      results.push('✅ TABLE league_prizes');
 
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS league_banners (
@@ -149,36 +246,29 @@ export class DebugController {
           CONSTRAINT fk_league_banner FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
         )
       `);
+      results.push('✅ TABLE league_banners');
 
-      // Add missing columns to leagues if they don't exist (from previous fix)
-      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_heading VARCHAR(255) DEFAULT '#FFFFFF'");
-      await queryRunner.query("ALTER TABLE leagues ADD COLUMN IF NOT EXISTS brand_color_bars VARCHAR(255) DEFAULT '#00E676'");
-
-      // ALSO: Alter existing tables if they were created with the wrong schema
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'image'");
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS badge VARCHAR(255)");
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS amount DECIMAL(15,2)");
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS top_label VARCHAR(255)");
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS bottom_label VARCHAR(255)");
-      await queryRunner.query("ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS \"order\" INT DEFAULT 0");
-      
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS title VARCHAR(255)");
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS description TEXT");
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS tag VARCHAR(100)");
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS button_text VARCHAR(100)");
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS button_url TEXT");
-      await queryRunner.query("ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS \"order\" INT DEFAULT 0");
+      // ====== 6. COLUMNAS EXTRA EN TABLAS EXISTENTES ======
+      const prizeExtras = ["type VARCHAR(50) DEFAULT 'image'", "badge VARCHAR(255)", "amount DECIMAL(15,2)", "top_label VARCHAR(255)", "bottom_label VARCHAR(255)", '"order" INT DEFAULT 0'];
+      for (const def of prizeExtras) {
+        try { await queryRunner.query(`ALTER TABLE league_prizes ADD COLUMN IF NOT EXISTS ${def}`); } catch (e) { /* ya existe */ }
+      }
+      const bannerExtras = ["title VARCHAR(255)", "description TEXT", "tag VARCHAR(100)", "button_text VARCHAR(100)", "button_url TEXT", '"order" INT DEFAULT 0'];
+      for (const def of bannerExtras) {
+        try { await queryRunner.query(`ALTER TABLE league_banners ADD COLUMN IF NOT EXISTS ${def}`); } catch (e) { /* ya existe */ }
+      }
+      results.push('✅ EXTRA COLUMNS en prizes y banners');
 
       return {
         success: true,
-        message:
-          'Columnas y tablas (prizes/banners) verificadas/reparadas con éxito.',
+        message: 'Reparación completa ejecutada.',
+        details: results,
       };
     } catch (e) {
       return {
         success: false,
         error: e.message,
-        hint: 'Es posible que el usuario de la DB no tenga permisos de ALTER TABLE, pero usualmente en Railway el usuario postgres tiene todo.',
+        partialResults: results,
       };
     } finally {
       await queryRunner.release();

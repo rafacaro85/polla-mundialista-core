@@ -8,6 +8,8 @@ import { TournamentService } from '../tournament/tournament.service';
 import axios from 'axios';
 import * as https from 'https';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MatchFinishedEvent } from './listeners/match.listener';
 
 @Injectable()
 export class MatchSyncService {
@@ -21,6 +23,7 @@ export class MatchSyncService {
     private scoringService: ScoringService,
     private tournamentService: TournamentService,
     private configService: ConfigService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   // 🕒 CRON: Run every 1 minute but use intelligent skipping
@@ -43,8 +46,8 @@ export class MatchSyncService {
     try {
       // 1. Intelligent Time Window check
       const now = new Date();
-      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-      const oneHourFromNow = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+      const hoursBeforeWindow = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+      const hoursAfterWindow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       // FIX: Usar UTC explícito para evitar problemas de timezone en Railway
       const startOfDay = new Date(now);
@@ -52,16 +55,7 @@ export class MatchSyncService {
       const endOfDay = new Date(now);
       endOfDay.setUTCHours(23, 59, 59, 999);
 
-      // --- DIAGNÓSTICO PROFUNDO ---
-      const debugMatches = await this.matchesRepository.find({
-        order: { date: 'ASC' },
-        take: 20
-      });
-      this.logger.log(`🔍 [DEEP-DIAG] Total matches in DB: ${debugMatches.length}`);
-      debugMatches.forEach(m => {
-        this.logger.log(`   ID: ${m.id} | ${m.homeTeam} vs ${m.awayTeam} | Date: ${m.date?.toISOString?.()} | ExtId: ${m.externalId}`);
-      });
-      // ----------------------------
+      // DEEP-DIAG deleted — was logging 20 matches every cycle causing excessive noise
 
       // DIAGNÓSTICO: Log para depuración
       this.logger.log(`📅 [DIAG] Server now: ${now.toISOString()} | Range: ${startOfDay.toISOString()} → ${endOfDay.toISOString()}`);
@@ -140,7 +134,7 @@ export class MatchSyncService {
 
       const filteredMatches = matchesToday.filter(m => {
         const matchDate = new Date(m.date);
-        return matchDate >= threeHoursAgo && matchDate <= oneHourFromNow;
+        return matchDate >= hoursBeforeWindow && matchDate <= hoursAfterWindow;
       });
 
       if (filteredMatches.length > 0) {
@@ -218,7 +212,7 @@ export class MatchSyncService {
           this.logger.error(`❌ Error bulk syncing LIVE for ${tournamentId}: ${innerError.message}`);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 6100)); // Throttle
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Throttle (reduced from 6.1s to 2s for lower latency)
 
         // 2. Request All FINISHED today
         try {
@@ -235,7 +229,7 @@ export class MatchSyncService {
           this.logger.error(`❌ Error bulk syncing FINISHED for ${tournamentId}: ${innerError.message}`);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 6100)); // Throttle
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Throttle (reduced from 6.1s to 2s for lower latency)
       }
     } catch (error) {
       this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);
@@ -308,6 +302,21 @@ export class MatchSyncService {
         match.status !== targetStatus ||
         (elapsed !== null && match.minute !== elapsed);
 
+      // ============================================================
+      // FIX #4: Detección de goles anulados / score reversal
+      // Si la API devuelve un score MENOR que el de la BD, es un gol anulado.
+      // Siempre confiar en la API como fuente de verdad.
+      // ============================================================
+      if (homeScore !== null && awayScore !== null) {
+        if ((match.homeScore ?? 0) > (homeScore ?? 0) || (match.awayScore ?? 0) > (awayScore ?? 0)) {
+          this.logger.warn(
+            `🔄 [GOL ANULADO] Match ${match.id} (${match.homeTeam} vs ${match.awayTeam}) | ` +
+            `BD: ${match.homeScore}-${match.awayScore} → API: ${homeScore}-${awayScore} | ` +
+            `¡Score DISMINUYÓ! Aceptando valor de la API como fuente de verdad.`
+          );
+        }
+      }
+
       // LOG DE DIAGNÓSTICO (solo cuando hay cambios o partido activo)
       if (['IN_PLAY', 'PAUSED', 'FINISHED'].includes(statusShort)) {
         this.logger.log(
@@ -335,15 +344,39 @@ export class MatchSyncService {
         if (FINISHED_STATUSES.includes(statusShort)) {
           if (match.status !== 'FINISHED') {
             match.status = 'FINISHED';
-            await this.matchesRepository.save(match);
+            match.homeScore = homeScore;
+            match.awayScore = awayScore;
+            const savedMatch = await this.matchesRepository.save(match);
 
             this.logger.log(
-              `🏁 Match ${match.id} FINISHED (${homeScore}-${awayScore}). Calculating points...`,
+              `🏁 Match ${match.id} FINISHED (${homeScore}-${awayScore}). Emitting event for scoring + promotion...`,
             );
-            await this.scoringService.calculatePointsForMatch(match.id);
-            await this.tournamentService.promoteToNextRound(match);
+            
+            // Emit async event — the MatchListener handles:
+            // 1. Scoring (calculatePointsForMatch)
+            // 2. Bracket points (calculateBracketPoints)
+            // 3. Phase unlock (checkAndUnlockNextPhase)
+            // 4. Group promotion (promoteFromGroup)
+            // 5. Knockout promotion (promoteToNextRound via LEG logic)
+            this.eventEmitter.emit(
+              'match.finished',
+              new MatchFinishedEvent(savedMatch, homeScore, awayScore),
+            );
           } else {
-            await this.matchesRepository.save(match);
+            // Partido ya estaba FINISHED pero el score cambió
+            // (corrección post-partido por la API)
+            if (hasChanged) {
+              this.logger.warn(
+                `🔧 [POST-FINISH CORRECTION] Match ${match.id} already FINISHED but score changed: ` +
+                `${match.homeScore}-${match.awayScore} → ${homeScore}-${awayScore}. Re-calculating...`
+              );
+              match.homeScore = homeScore;
+              match.awayScore = awayScore;
+              await this.matchesRepository.save(match);
+              await this.scoringService.calculatePointsForMatch(match.id);
+            } else {
+              await this.matchesRepository.save(match);
+            }
           }
         } else if (PAUSED_STATUSES.includes(statusShort)) {
           match.status = 'PAUSED';

@@ -12,13 +12,15 @@ interface HeaderProps {
   tournamentId?: string;
   isEnterprise?: boolean;
   backUrl?: string;
+  brandingLogoUrl?: string;
+  hideTournamentLogo?: boolean;
 }
 
 /**
  * Header unificado para ligas sociales.
  * Layout: [ ← ] [ Logo Torneo ] [ nombre liga ] [espacio] [ 🔔 ] [ 👤 foto ]
  */
-export function Header({ userName, leagueName, tournamentId, isEnterprise, backUrl }: HeaderProps) {
+export function Header({ userName, leagueName, tournamentId, isEnterprise, backUrl, brandingLogoUrl, hideTournamentLogo }: HeaderProps) {
   const { selectedLeagueId } = useAppStore();
 
   // Determinar logo del torneo basado en el tournamentId de la liga específica
@@ -54,8 +56,16 @@ export function Header({ userName, leagueName, tournamentId, isEnterprise, backU
             </Link>
           )}
 
-          {/* Logo torneo */}
-          {tournamentLogo && (
+          {/* Logo Empresa / Bar o Logo Torneo */}
+          {brandingLogoUrl ? (
+            <div className="shrink-0 flex items-center justify-center h-10 md:h-12 mr-2">
+              <img
+                src={brandingLogoUrl}
+                alt="Brand Logo"
+                className="h-full w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+              />
+            </div>
+          ) : tournamentLogo && !hideTournamentLogo ? (
             <div className="shrink-0 flex items-center justify-center p-1 rounded-full border border-white/10 bg-white/5 shadow-xl">
               <img
                 src={tournamentLogo.src}
@@ -63,7 +73,7 @@ export function Header({ userName, leagueName, tournamentId, isEnterprise, backU
                 className={`h-11 md:h-14 w-11 md:w-14 object-contain rounded-full shadow-inner ${tournamentLogo.invert ? 'brightness-0 invert' : ''}`}
               />
             </div>
-          )}
+          ) : null}
 
           {/* Nombre de la liga */}
           {leagueName && (

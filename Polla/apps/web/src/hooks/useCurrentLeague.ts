@@ -86,7 +86,7 @@ export const useCurrentLeague = (selectedLeagueId: string | undefined, activeTab
         return () => controller.abort();
     }, [activeTab, selectedLeagueId]);
 
-    const isEnterpriseMode = currentLeague && (currentLeague.type === 'COMPANY' || currentLeague.isEnterprise);
+    const isEnterpriseMode = currentLeague && (currentLeague.type === 'COMPANY' || currentLeague.isEnterprise) && !currentLeague.isMatchMode;
     const isWallEnabled = currentLeague && ['lider', 'influencer', 'pro', 'elite', 'legend', 'plata', 'oro', 'platino', 'diamante', 'enterprise_silver', 'enterprise_gold', 'enterprise_platinum', 'enterprise_diamond'].includes((currentLeague.packageType || '').toLowerCase());
 
     return {

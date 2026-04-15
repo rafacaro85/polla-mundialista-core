@@ -30,8 +30,8 @@ export class Transaction {
 
   @Index()
   @Column({
-    type: 'enum',
-    enum: TransactionStatus,
+    type: 'varchar',
+    length: 50,
     default: TransactionStatus.PENDING,
   })
   status: TransactionStatus;

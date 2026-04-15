@@ -161,10 +161,10 @@ export default function MatchCard({ match, onOpenInfo, onSavePrediction, hideJok
 
   // 3. LÓGICA DE PUNTOS Y COLORES (OPTIMISTIC UI)
   const calculateOptimisticPoints = () => {
-    // Si no está finalizado, mostramos lo que venga de BD (o 0)
-    if (!isFinished) return match.prediction?.points ?? match.points ?? 0;
+    // Si no ha empezado y no ha finalizado, mostramos lo que venga de BD (o 0)
+    if (!isFinished && !isMatchActive) return match.prediction?.points ?? match.points ?? 0;
 
-    // Si está finalizado, calculamos localmente para evitar lag visual
+    // Si está en vivo o finalizado, calculamos localmente para mostrar puntos parciales/finales
     // Usamos los valores de la predicción guardada vs el score del partido
     const mH = Number(match.scoreH);
     const mA = Number(match.scoreA);

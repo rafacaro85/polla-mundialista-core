@@ -173,22 +173,24 @@ export class MatchSyncService {
           continue;
         }
 
-        const dateTodayStr = new Date().toISOString().split('T')[0];
+        const nowMs = new Date().getTime();
+        const yesterdayStr = new Date(nowMs - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const tomorrowStr = new Date(nowMs + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
         const fetchWithRetry = async (url: string) => {
-          let retries = 3;
+          let retries = 2; // Reduce to 2 retries to prevent long hangs
           while (retries > 0) {
             try {
               return await axios.get(url, {
                 headers: { 'X-Auth-Token': apiKey },
-                timeout: 30000,
+                timeout: 10000, // Reduced from 30s to 10s
                 httpsAgent: new https.Agent({ rejectUnauthorized: false })
               });
             } catch (error: any) {
-              if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+              if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED' || !error.response) {
                 retries--;
                 if (retries === 0) throw error;
-                await new Promise(r => setTimeout(r, 3000));
+                await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
               } else {
                 throw error;
               }
@@ -197,39 +199,22 @@ export class MatchSyncService {
           throw new Error('Max retries reached');
         };
 
-        // 1. Request All IN_PLAY & PAUSED
         try {
-          this.logger.log(`🔄 BULK Syncing LIVE matches for ${tournamentId} (target: API bulk)...`);
-          const inPlayRes = await fetchWithRetry(
-            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=IN_PLAY,PAUSED`
+          this.logger.log(`🔄 BULK Syncing ALL matches (3-day window) for ${tournamentId}...`);
+          const res = await fetchWithRetry(
+            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?dateFrom=${yesterdayStr}&dateTo=${tomorrowStr}`
           );
           
-          const inPlayMatches = inPlayRes.data?.matches || [];
-          for (const apiMatch of inPlayMatches) {
+          const apiMatches = res.data?.matches || [];
+          for (const apiMatch of apiMatches) {
+             // Process everything; internal logic will ignore if there are no changes
              await this.processFixtureData(apiMatch);
           }
         } catch (innerError: any) {
-          this.logger.error(`❌ Error bulk syncing LIVE for ${tournamentId}: ${innerError.message}`);
+          this.logger.error(`❌ Error bulk syncing for ${tournamentId}: ${innerError.message}`);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Throttle (reduced from 6.1s to 2s for lower latency)
-
-        // 2. Request All FINISHED today
-        try {
-          this.logger.log(`🔄 BULK Syncing FINISHED matches today for ${tournamentId}...`);
-          const finRes = await fetchWithRetry(
-            `https://api.football-data.org/v4/competitions/${tMap.competition}/matches?status=FINISHED&dateFrom=${dateTodayStr}&dateTo=${dateTodayStr}`
-          );
-          
-          const finMatches = finRes.data?.matches || [];
-          for (const apiMatch of finMatches) {
-             await this.processFixtureData(apiMatch);
-          }
-        } catch (innerError) {
-          this.logger.error(`❌ Error bulk syncing FINISHED for ${tournamentId}: ${innerError.message}`);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Throttle (reduced from 6.1s to 2s for lower latency)
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Throttle between tournaments
       }
     } catch (error) {
       this.logger.error('❌ CRITICAL ERROR in syncLiveMatches:', error);

@@ -63,7 +63,7 @@ export function SmartLeagueHome({ currentLeague, matches, onNavigate }: SmartLea
 
   // Invitation handlers
   const shareUrl = typeof window !== 'undefined' && currentLeague?.code
-    ? `${window.location.origin}/leagues/join?code=${currentLeague.code}`
+    ? `${window.location.origin}/invite/${currentLeague.code}`
     : '';
 
   const handleWhatsApp = () => {

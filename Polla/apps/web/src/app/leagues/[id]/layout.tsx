@@ -52,6 +52,18 @@ export default function LeagueLayout({ children }: { children: React.ReactNode }
     useEffect(() => {
         const init = async () => {
             if (!params.id) return;
+            
+            // Backward compatibility for old invite links: /leagues/join?code=XYZ
+            if (params.id === 'join') {
+                const searchParams = new URLSearchParams(window.location.search);
+                const code = searchParams.get('code');
+                if (code) {
+                    window.location.href = `/invite/${code}`;
+                } else {
+                    router.push('/dashboard');
+                }
+                return;
+            }
 
             // Ensure user data is fresh (crucial for permissions)
             await useAppStore.getState().syncUserFromServer();

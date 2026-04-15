@@ -24,6 +24,7 @@ import { GlobalHome } from '@/modules/core-dashboard/components/GlobalHome';
 import { GlobalRankingTable } from '@/modules/core-dashboard/components/GlobalRankingTable';
 import { SocialLeagueHome } from '@/modules/social-league/components/SocialLeagueHome';
 import { SocialRankingTable } from '@/modules/social-league/components/SocialRankingTable';
+import { JoinLeagueDialog } from '@/components/JoinLeagueDialog';
 import { SocialFixture } from '@/modules/social-league/components/SocialFixture';
 import { useMyPredictions } from '@/shared/hooks/useMyPredictions';
 import { toast } from 'sonner';
@@ -615,11 +616,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = (props) => {
 
         {!isEnterpriseMode && activeTab === 'leagues' && (
           <div className="fixed bottom-24 right-6 z-40">
-            <Button className="rounded-full p-4 shadow-lg bg-[var(--brand-primary,#00E676)] text-[#0F172A] hover:bg-white transition-transform hover:scale-110" size="icon" asChild>
-              <Link href="/leagues/join">
+            <JoinLeagueDialog onLeagueJoined={() => refreshLeagues()}>
+              <Button className="rounded-full p-4 shadow-lg bg-[var(--brand-primary,#00E676)] text-[#0F172A] hover:bg-white transition-transform hover:scale-110 cursor-pointer" size="icon">
                 <PlusIcon className="h-6 w-6" /><span className="sr-only">Unirse a Liga</span>
-              </Link>
-            </Button>
+              </Button>
+            </JoinLeagueDialog>
           </div>
         )}
 

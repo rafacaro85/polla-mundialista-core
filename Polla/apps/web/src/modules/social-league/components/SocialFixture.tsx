@@ -79,6 +79,7 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
                     timeout: 15000, // 15s max per request
                 });
                 setRawMatches(data || []);
+                setLoadingMatches(false);
                 return; // Success — exit retry loop
             } catch (error: any) {
                 lastError = error;

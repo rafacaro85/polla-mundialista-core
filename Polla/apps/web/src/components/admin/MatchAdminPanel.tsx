@@ -607,7 +607,6 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                 >
                   <RefreshCcw size={16} /> Resetear Ranking (Nuevo Partido)
                 </Button>
-                </Button>
                 <p className="text-slate-500 text-[10px] text-center mt-2">Borrará todos los puntos de la liga actual.</p>
               </div>
 

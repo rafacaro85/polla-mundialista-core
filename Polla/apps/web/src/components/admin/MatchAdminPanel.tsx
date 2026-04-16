@@ -340,9 +340,9 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   }, [matches]);
 
   const TABS = [
-    { id: 'matches' as const, label: '⚽ Partidos', icon: <Gamepad2 size={14} /> },
-    { id: 'packages' as const, label: '📦 Paquetes', icon: <Package size={14} /> },
-    { id: 'control' as const, label: '🎮 Control', icon: <Tv size={14} /> },
+    { id: 'matches' as const, label: 'Partidos' },
+    { id: 'packages' as const, label: 'Paquetes' },
+    { id: 'control' as const, label: 'Control' },
   ];
 
   return (
@@ -353,13 +353,13 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase flex items-center justify-center transition-all ${
               activeTab === tab.id
                 ? 'bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-700'
             }`}
           >
-            {tab.icon} {tab.label}
+            {tab.label}
           </button>
         ))}
       </div>

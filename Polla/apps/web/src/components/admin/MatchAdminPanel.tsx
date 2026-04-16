@@ -188,6 +188,7 @@ function PaymentModal({ isOpen, onClose, item, leagueId, onSuccess }: {
 export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'matches' | 'packages' | 'control'>('control');
+  const [localShowTableNumbers, setLocalShowTableNumbers] = useState<boolean>(league?.showTableNumbers ?? true);
   const [matches, setMatches] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
@@ -258,10 +259,10 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   const toggleTableNumbers = async () => {
     try {
       setLoading(true);
-      const newStatus = !league.showTableNumbers;
+      const newStatus = !localShowTableNumbers;
       await api.patch(`/leagues/${league.id}`, { showTableNumbers: newStatus });
+      setLocalShowTableNumbers(newStatus);
       toast.success(newStatus ? 'Modo Mesas: ON' : 'Modo Mesas: OFF');
-      onUpdate();
     } catch (e) {
       toast.error('Error al actualizar config de mesas');
     } finally {
@@ -618,9 +619,9 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                  </div>
                  <Button 
                     onClick={toggleTableNumbers}
-                    className={`font-black uppercase py-2 px-4 rounded-xl shadow-lg text-sm ${league.showTableNumbers ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-900' : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-600'}`}
+                    className={`font-black uppercase py-2 px-4 rounded-xl shadow-lg text-sm ${localShowTableNumbers ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-900' : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-600'}`}
                  >
-                    {league.showTableNumbers ? 'ON 🟢' : 'OFF ⚪'}
+                    {localShowTableNumbers ? 'ON 🟢' : 'OFF ⚪'}
                  </Button>
               </div>
             </div>
@@ -628,7 +629,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
             {/* QR Code */}
             <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex flex-col items-center justify-center space-y-4">
               <h3 className="text-white font-bold uppercase text-xs text-center">
-                Código QR {league.showTableNumbers ? 'para Mesas' : 'de Acceso'}
+                Código QR {localShowTableNumbers ? 'para Mesas' : 'de Acceso'}
               </h3>
               <div className="bg-white p-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                 <QRCodeSVG

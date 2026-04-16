@@ -208,7 +208,7 @@ export class LeaguesService {
         status: (isActuallyPaid || isMatchModePolla) ? LeagueStatus.ACTIVE : LeagueStatus.PENDING,
         packageType: isMatchModePolla ? 'MATCH' : packageType,
         isEnterprise: !!isEnterprise,
-        isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH',
+        isEnterpriseActive: packageType === 'ENTERPRISE_LAUNCH' || isMatchModePolla,
         companyName: companyName,
         adminName: adminName,
         adminPhone: adminPhone,

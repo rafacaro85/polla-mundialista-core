@@ -42,18 +42,32 @@ export const EnterpriseFixture = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [jokerStatusList, setJokerStatusList] = useState<any[]>([]);
 
-    const fetchMatches = async () => {
-        try {
-            const { data } = await api.get(`/leagues/${leagueId}/matches`);
-            // Frontend safeguard filter (same as Social)
-            // const filteredData = (data || []).filter((m: any) => new Date(m.date) <= new Date('2026-06-28T12:00:00Z'));
-            setRawMatches(data || []);
-        } catch (error) {
-            console.error('Error fetching matches:', error);
-            toast.error('Error al cargar los partidos');
-        } finally {
-            setLoadingMatches(false);
+    const fetchMatches = async (isPolling = false) => {
+        const maxRetries = isPolling ? 1 : 3;
+        let lastError: any = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const { data } = await api.get(`/leagues/${leagueId}/matches`, {
+                    timeout: 15000,
+                });
+                setRawMatches(data || []);
+                if (!isPolling) setLoadingMatches(false);
+                return;
+            } catch (error: any) {
+                lastError = error;
+                if (error?.response?.status === 401) break;
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, 2000 * attempt));
+                }
+            }
         }
+        
+        if (!isPolling && lastError?.response?.status !== 401) {
+            console.error('Error fetching matches:', lastError);
+            toast.error('Error al cargar los partidos');
+        }
+        setLoadingMatches(false);
     };
 
     const fetchLeagueMetadata = async () => {

@@ -64,22 +64,39 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     // │  condition where tournamentId was undefined at first render  │
     // │  causing a fallback to WC2026 on the global endpoint.       │
     // └─────────────────────────────────────────────────────────────┘
-    const fetchMatches = async () => {
+    const fetchMatches = async (isPolling = false) => {
         if (!leagueId || leagueId === 'global') {
             setLoadingMatches(false);
             return;
         }
-        try {
-            // /leagues/:id/matches → backend reads league.tournamentId directly
-            // No need to pass tournamentId — the backend extracts it from the league record
-            const { data } = await api.get(`/leagues/${leagueId}/matches`);
-            setRawMatches(data || []);
-        } catch (error) {
-            console.error('Error fetching matches for league:', leagueId, error);
-            toast.error('Error al cargar los partidos');
-        } finally {
-            setLoadingMatches(false);
+        
+        const maxRetries = isPolling ? 1 : 3; // Polling silencioso solo 1 intento
+        let lastError: any = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const { data } = await api.get(`/leagues/${leagueId}/matches`, {
+                    timeout: 15000, // 15s max per request
+                });
+                setRawMatches(data || []);
+                return; // Success — exit retry loop
+            } catch (error: any) {
+                lastError = error;
+                // Si es 401 (token expirado), no reintentar
+                if (error?.response?.status === 401) break;
+                // Esperar antes de reintentar (solo si no es el último intento)
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, 2000 * attempt));
+                }
+            }
         }
+        
+        // Solo mostrar error si NO es polling silencioso
+        if (!isPolling && lastError?.response?.status !== 401) {
+            console.error('Error fetching matches for league:', leagueId, lastError);
+            toast.error('Error al cargar los partidos');
+        }
+        setLoadingMatches(false);
     };
 
     const handleRefresh = async () => {
@@ -94,9 +111,9 @@ export const SocialFixture: React.FC<SocialFixtureProps> = ({
     useEffect(() => {
         fetchMatches();
 
-        // 🔄 Polling automático cada 30 segundos
+        // 🔄 Polling automático cada 30 segundos (silencioso — sin toast de error)
         const timer = setInterval(() => {
-            fetchMatches();
+            fetchMatches(true);
         }, 30000);
 
         return () => clearInterval(timer);

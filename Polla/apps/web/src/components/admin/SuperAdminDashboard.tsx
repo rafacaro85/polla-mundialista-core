@@ -215,6 +215,7 @@ export default function SuperAdminDashboard() {
     const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
     const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, PENDING, PAID
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [pendingMatchPurchasesCount, setPendingMatchPurchasesCount] = useState(0);
 
     // Real Data State
     const [stats, setStats] = useState({
@@ -246,16 +247,21 @@ export default function SuperAdminDashboard() {
         try {
             if (!isBackground) setLoading(true);
             
-            // Only fetch settings on initial load (not on background refresh)
-            const promises: any[] = [superAdminService.getDashboardStats(tournamentId)];
+            const promises: any[] = [
+                superAdminService.getDashboardStats(tournamentId),
+                superAdminService.getMatchPurchasesPending()
+            ];
             if (!isBackground) {
                 promises.push(superAdminService.getSettings());
                 promises.push(superAdminService.getSystemConfig(`override_tie_breaker_goals_${tournamentId}`));
             }
 
-            const [dashboardData, settingsData, overrideData] = await Promise.all(promises);
+            const [dashboardData, matchPurchasesRes, settingsData, overrideData] = await Promise.all(promises);
             
             setStats(dashboardData as any);
+            if (matchPurchasesRes?.data) {
+                setPendingMatchPurchasesCount(Array.isArray(matchPurchasesRes.data) ? matchPurchasesRes.data.length : 0);
+            }
             
             // Only update settings form if we fetched it (initial load)
             if (settingsData) {
@@ -362,7 +368,7 @@ export default function SuperAdminDashboard() {
                     { id: 'communication', label: 'Difusión', icon: <Megaphone size={14} /> },
                     // { id: 'enterprise', label: 'Empresas B2B', icon: <Building2 size={14} /> },
                     { id: 'settings', label: 'Redes Sociales', icon: <Share2 size={14} /> },
-                    { id: 'match-purchases', label: 'Compras Match', icon: <ShoppingCart size={14} /> }
+                    { id: 'match-purchases', label: 'Compras Match', icon: <ShoppingCart size={14} />, badge: pendingMatchPurchasesCount }
                 ].map(tab => (
                     <button
                         key={tab.id}

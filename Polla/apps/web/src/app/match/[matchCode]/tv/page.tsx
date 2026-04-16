@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import api from '@/lib/api';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function MatchTvPage() {
   const params = useParams();
@@ -81,6 +82,11 @@ export default function MatchTvPage() {
   const isLive = activeMatch.status === 'IN_PLAY' || activeMatch.status === 'PAUSED';
   const isFinished = activeMatch.status === 'FINISHED';
 
+  const matchDate = new Date(activeMatch.date).getTime();
+  const now = Date.now();
+  const hideQR = isLive || isFinished || (matchDate - now <= 2 * 60 * 1000);
+  const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/match/${league.matchCode}` : '';
+
   return (
     <div className="min-h-screen bg-[#0F172A] flex flex-col overflow-hidden relative">
       {/* Dynamic Background */}
@@ -146,62 +152,75 @@ export default function MatchTvPage() {
 
         <div className="grid grid-cols-2 gap-x-12 gap-y-4 auto-rows-max overflow-hidden">
           {ranking.length > 0 ? (
-            ranking.map((player: any, idx: number) => {
-              const isTop = player.rank === 1;
-              return (
-                <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl relative overflow-hidden transition-all duration-500 ${
-                  isTop 
-                  ? 'bg-gradient-to-r from-emerald-500/20 to-transparent border-l-4 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.1)]' 
-                  : player.sharedPrize
-                    ? 'bg-amber-500/10 border-l-4 border-amber-500'
-                    : 'bg-white/5 border border-white/5'
-                }`}>
-                  <div className="flex items-center gap-4 z-10 relative">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black ${
-                      player.rank === 1 ? 'bg-emerald-500 text-slate-900 shadow-[0_0_15px_rgba(16,185,129,0.5)]' :
-                      player.rank === 2 ? 'bg-slate-300 text-slate-900' :
-                      player.rank === 3 ? 'bg-[#cd7f32] text-white' :
-                      'bg-white/10 text-white/50'
-                    }`}>
-                      {player.rank}
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className={`text-xl font-bold uppercase truncate max-w-[200px] ${isTop ? 'text-emerald-400' : 'text-white'}`}>
-                          {player.name}
-                        </h3>
-                        {player.isJoker && <span className="text-amber-500 text-sm animate-pulse">⭐</span>}
+            <>
+              {ranking.map((player: any, idx: number) => {
+                const isTop = player.rank === 1;
+                return (
+                  <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl relative overflow-hidden transition-all duration-500 ${
+                    isTop 
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-transparent border-l-4 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.1)]' 
+                    : player.sharedPrize
+                      ? 'bg-amber-500/10 border-l-4 border-amber-500'
+                      : 'bg-white/5 border border-white/5'
+                  }`}>
+                    <div className="flex items-center gap-4 z-10 relative">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black ${
+                        player.rank === 1 ? 'bg-emerald-500 text-slate-900 shadow-[0_0_15px_rgba(16,185,129,0.5)]' :
+                        player.rank === 2 ? 'bg-slate-300 text-slate-900' :
+                        player.rank === 3 ? 'bg-[#cd7f32] text-white' :
+                        'bg-white/10 text-white/50'
+                      }`}>
+                        {player.rank}
                       </div>
-                      <div className="text-white/40 text-sm font-medium uppercase tracking-widest flex items-center gap-2">
-                        {league.showTableNumbers && (
-                          <span>{player.tableNumber ? `MESA ${player.tableNumber}` : 'SIN MESA'}</span>
-                        )}
-                        {player.sharedPrize && <span className="text-amber-400 text-xs bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">EMPATE EXACTO</span>}
+                      
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className={`text-xl font-bold uppercase truncate max-w-[200px] ${isTop ? 'text-emerald-400' : 'text-white'}`}>
+                            {player.name}
+                          </h3>
+                          {player.isJoker && <span className="text-amber-500 text-sm animate-pulse">⭐</span>}
+                        </div>
+                        <div className="text-white/40 text-sm font-medium uppercase tracking-widest flex items-center gap-2">
+                          {league.showTableNumbers && (
+                            <span>{player.tableNumber ? `MESA ${player.tableNumber}` : 'SIN MESA'}</span>
+                          )}
+                          {player.sharedPrize && <span className="text-amber-400 text-xs bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">EMPATE EXACTO</span>}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-6 z-10 relative">
-                    <div className="bg-black/50 px-4 py-2 rounded-xl border border-white/5 hidden xl:block">
-                      <span className="text-white/50 text-xs font-bold mr-2 uppercase tracking-widest">PRONÓSTICO</span>
-                      <span className="text-xl font-black text-white font-mono">{player.prediction.home}-{player.prediction.away}</span>
-                    </div>
-                    
-                    <div className="text-right w-24">
-                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mb-1">PUNTOS</div>
-                      <div className={`text-3xl font-black ${isTop ? 'text-emerald-400' : 'text-white'}`}>
-                        {player.points}
+                    <div className="flex items-center gap-6 z-10 relative">
+                      <div className="bg-black/50 px-4 py-2 rounded-xl border border-white/5 hidden xl:block">
+                        <span className="text-white/50 text-xs font-bold mr-2 uppercase tracking-widest">PRONÓSTICO</span>
+                        <span className="text-xl font-black text-white font-mono">{player.prediction.home}-{player.prediction.away}</span>
+                      </div>
+                      
+                      <div className="text-right w-24">
+                        <div className="text-white/50 text-xs font-bold uppercase tracking-widest mb-1">PUNTOS</div>
+                        <div className={`text-3xl font-black ${isTop ? 'text-emerald-400' : 'text-white'}`}>
+                          {player.points}
+                        </div>
                       </div>
                     </div>
                   </div>
+                )
+              })}
+
+              {!hideQR && (
+                <div className="fixed bottom-10 right-10 z-50 bg-white p-6 rounded-[32px] shadow-[0_0_50px_rgba(16,185,129,0.4)] flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-700 border-4 border-emerald-500">
+                  <p className="text-slate-900 font-black uppercase tracking-widest mb-4 text-center text-xl">¿AÚN NO JUEGAS?</p>
+                  <QRCodeSVG value={joinUrl} size={150} level="Q" />
+                  <p className="text-emerald-600 font-bold uppercase tracking-wider mt-4 text-sm bg-emerald-50 px-4 py-2 rounded-full">¡ESCANEA Y ÚNETE!</p>
                 </div>
-              )
-            })
+              )}
+            </>
           ) : (
-            <div className="col-span-2 py-20 text-center">
-              <span className="text-6xl block mb-6 opacity-50">📱</span>
-              <p className="text-2xl text-white/50 font-bold italic">Nadie ha predicho aún. ¡Escanea el QR e ingresa!</p>
+            <div className="col-span-2 flex flex-col items-center justify-center py-10 text-center animate-in zoom-in fade-in duration-1000">
+              <div className="bg-white p-8 rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] mb-8 border-8 border-emerald-500">
+                <QRCodeSVG value={joinUrl} size={300} level="H" />
+              </div>
+              <h2 className="text-5xl text-white font-black uppercase mb-4 drop-shadow-lg">¡ESCANEA PARA INGRESAR!</h2>
+              <p className="text-3xl text-emerald-400 font-bold italic">Sé el primero en predecir</p>
             </div>
           )}
         </div>

@@ -363,7 +363,7 @@ export class AdminService {
       await this.dataSource.query(`
         DELETE FROM matches 
         WHERE "tournamentId" = 'UCL2526' 
-        AND phase IN ('ROUND_16','QUARTER_FINAL','SEMI_FINAL','FINAL', 'QUARTER', 'SEMI')
+        AND phase IN ('ROUND_16','QUARTER','SEMI','FINAL')
       `);
 
       const getLogo = (team: string): string => {
@@ -427,7 +427,7 @@ export class AdminService {
       }
 
       // ===========================================
-      // QUARTER_FINAL — 6/8 abr (ida) & 13/15 abr (vuelta)
+      // QUARTER — 6/8 abr (ida) & 13/15 abr (vuelta)
       // ===========================================
       const QF_MATCHES = [
         // LEG_1 (Ida) — 1 y 2 de abril
@@ -445,7 +445,7 @@ export class AdminService {
         const match = this.matchRepository.create({
           tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
           homeTeamPlaceholder: m.homePh, awayTeamPlaceholder: m.awayPh,
-          date: new Date(m.date), phase: 'QUARTER_FINAL', bracketId: m.bracketId,
+          date: new Date(m.date), phase: 'QUARTER', bracketId: m.bracketId,
           group: m.leg, stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
@@ -467,7 +467,7 @@ export class AdminService {
         const match = this.matchRepository.create({
           tournamentId: 'UCL2526', homeTeam: '', awayTeam: '',
           homeTeamPlaceholder: m.homePh, awayTeamPlaceholder: m.awayPh,
-          date: new Date(m.date), phase: 'SEMI_FINAL', bracketId: m.bracketId,
+          date: new Date(m.date), phase: 'SEMI', bracketId: m.bracketId,
           group: m.leg, stadium: 'TBD', status: 'PENDING', isManuallyLocked: false
         });
         await this.matchRepository.save(match);
@@ -489,8 +489,8 @@ export class AdminService {
       // ===========================================
       // ENLACE DE LLAVES (PROGRESIÓN DEL BRACKET)
       // ===========================================
-      const qf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'QUARTER_FINAL' AND "group" = 'LEG_1'`);
-      const sf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'SEMI_FINAL' AND "group" = 'LEG_1'`);
+      const qf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'QUARTER' AND "group" = 'LEG_1'`);
+      const sf = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'SEMI' AND "group" = 'LEG_1'`);
       const final = await this.dataSource.query(`SELECT id, "bracketId" FROM matches WHERE "tournamentId" = 'UCL2526' AND phase = 'FINAL'`);
 
       const linkPhase = async (targetMatches: any[], links: {src: number[], tgt: number}[], phaseParam: string) => {
@@ -514,12 +514,12 @@ export class AdminService {
       // Quarters -> Semis
       await linkPhase(sf, [
         { src: [9, 10], tgt: 13 }, { src: [11, 12], tgt: 14 }
-      ], 'QUARTER_FINAL');
+      ], 'QUARTER');
 
       // Semis -> Final
       await linkPhase(final, [
         { src: [13, 14], tgt: 15 }
-      ], 'SEMI_FINAL');
+      ], 'SEMI');
 
       return { success: true, message: `Reseeded ${insertedCount} knockout matches for UCL2526 (Official Draw) con enlazado activo.` };
     } catch (error) {

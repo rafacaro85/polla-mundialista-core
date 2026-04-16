@@ -864,7 +864,7 @@ export class MatchesService {
         // Orden real de las fases (Merged order is OK, filtering handles isolation)
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -899,8 +899,8 @@ export class MatchesService {
         );
         await this.tournamentService.promotePhaseWinners('ROUND_16', tid);
         if (tid === 'UCL2526') {
-            await this.tournamentService.promotePhaseWinners('QUARTER_FINAL', tid);
-            await this.tournamentService.promotePhaseWinners('SEMI_FINAL', tid);
+            await this.tournamentService.promotePhaseWinners('QUARTER', tid);
+            await this.tournamentService.promotePhaseWinners('SEMI', tid);
         } else {
             await this.tournamentService.promotePhaseWinners('QUARTER', tid);
             await this.tournamentService.promotePhaseWinners('SEMI', tid);
@@ -916,7 +916,7 @@ export class MatchesService {
       ) {
         const phaseOrder =
           tid === 'UCL2526'
-            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
+            ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
             : [
                 'GROUP',
                 'ROUND_32',
@@ -1343,7 +1343,7 @@ export class MatchesService {
     const results: string[] = [];
 
     // 1. Re-promote all finished knockout matches
-    const knockoutPhases = ['ROUND_16', 'QUARTER_FINAL', 'QUARTER', 'SEMI_FINAL', 'SEMI'];
+    const knockoutPhases = ['ROUND_16', 'QUARTER', 'QUARTER', 'SEMI', 'SEMI'];
     
     for (const phase of knockoutPhases) {
       const finishedMatches = await this.matchesRepository.find({
@@ -1772,7 +1772,7 @@ export class MatchesService {
   async getAllPhaseStatus(tournamentId: string = DEFAULT_TOURNAMENT_ID) {
     const phases =
       tournamentId === 'UCL2526'
-        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'FINAL']
+        ? ['PLAYOFF_1', 'PLAYOFF_2', 'ROUND_16', 'QUARTER', 'SEMI', 'FINAL']
         : ['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI', '3RD_PLACE', 'FINAL'];
 
     // Ensure we filter by tournamentId

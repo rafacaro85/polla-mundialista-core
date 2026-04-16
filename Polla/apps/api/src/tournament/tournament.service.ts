@@ -431,7 +431,7 @@ export class TournamentService {
       )
     )
       return;
-    if (!['ROUND_32', 'ROUND_16', 'QUARTER', 'QUARTER_FINAL', 'SEMI', 'SEMI_FINAL'].includes(match.phase))
+    if (!['ROUND_32', 'ROUND_16', 'QUARTER', 'SEMI'].includes(match.phase))
       return;
 
     // 1. Obtener todos los partidos de esta llave en esta fase (Ida/Vuelta o único)
@@ -572,11 +572,9 @@ export class TournamentService {
 
     const nextPhaseMap: Record<string, string[]> = {
       ROUND_32: ['ROUND_16'],
-      ROUND_16: ['QUARTER', 'QUARTER_FINAL'],
-      QUARTER: ['SEMI', 'SEMI_FINAL'],
-      QUARTER_FINAL: ['SEMI', 'SEMI_FINAL'],
+      ROUND_16: ['QUARTER'],
+      QUARTER: ['SEMI'],
       SEMI: ['FINAL'],
-      SEMI_FINAL: ['FINAL'],
     };
 
     const nextPhases = nextPhaseMap[match.phase];

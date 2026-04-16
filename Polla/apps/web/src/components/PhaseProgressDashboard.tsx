@@ -55,10 +55,28 @@ export function PhaseProgressDashboard({ onPhaseClick, tournamentId }: PhaseProg
         );
     }
 
-    // Para UCL, ocultar fases que no aplican (GROUP, ROUND_32)
-    const visiblePhases = tournamentId === 'UCL2526'
-        ? phases.filter(p => p.phase !== 'GROUP' && p.phase !== 'ROUND_32')
-        : phases;
+    const PHASE_ORDER_UI = [
+        'GROUP',
+        'PLAYOFF',
+        'PLAYOFF_1',
+        'PLAYOFF_2',
+        'ROUND_32',
+        'ROUND_16',
+        'QUARTER',
+        'SEMI',
+        '3RD_PLACE',
+        'FINAL',
+    ];
+
+    // Para UCL, ocultar fases que no aplican (GROUP, ROUND_32) y ORDENAR cronológicamente
+    let visiblePhases = phases;
+    if (tournamentId === 'UCL2526') {
+        visiblePhases = phases.filter(p => p.phase !== 'GROUP' && p.phase !== 'ROUND_32');
+    }
+    
+    // Forzar ordenamiento estricto siempre
+    visiblePhases.sort((a, b) => PHASE_ORDER_UI.indexOf(a.phase) - PHASE_ORDER_UI.indexOf(b.phase));
+
 
     // Count unlocked and completed phases (usando fases visibles)
     const unlockedCount = visiblePhases.filter(p => p.isUnlocked).length;

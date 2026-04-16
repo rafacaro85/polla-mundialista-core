@@ -11,12 +11,40 @@ interface MatchAdminHomeProps {
 export function MatchAdminHome({ currentLeague, matches }: MatchAdminHomeProps) {
   const { user } = useAppStore();
 
-  // Filtrar los partidos destacados (próximos o en vivo) 
-  // Para la demo, tomamos 3 próximos de "Colombia" u otros relevantes.
-  const featuredMatches = matches
-    .filter(m => m.status === 'SCHEDULED' || m.status === 'PENDING' || m.status === 'LIVE')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
+  const mockFeaturedMatches = [
+    {
+      id: 'mock-1',
+      date: '2026-06-11T14:00:00Z',
+      homeTeam: 'México',
+      awayTeam: 'Sudáfrica',
+      homeFlag: 'https://flagcdn.com/h80/mx.png',
+      awayFlag: 'https://flagcdn.com/h80/za.png',
+    },
+    {
+      id: 'mock-2',
+      date: '2026-06-13T16:00:00Z',
+      homeTeam: 'Colombia',
+      awayTeam: 'Portugal',
+      homeFlag: 'https://flagcdn.com/h80/co.png',
+      awayFlag: 'https://flagcdn.com/h80/pt.png',
+    },
+    {
+      id: 'mock-3',
+      date: '2026-06-14T20:00:00Z',
+      homeTeam: 'Uruguay',
+      awayTeam: 'España',
+      homeFlag: 'https://flagcdn.com/h80/uy.png',
+      awayFlag: 'https://flagcdn.com/h80/es.png',
+    },
+    {
+      id: 'mock-4',
+      date: '2026-06-15T18:00:00Z',
+      homeTeam: 'Escocia',
+      awayTeam: 'Brasil',
+      homeFlag: 'https://flagcdn.com/h80/gb-sct.png',
+      awayFlag: 'https://flagcdn.com/h80/br.png',
+    }
+  ];
 
   return (
     <div className="relative min-h-[600px] w-full rounded-[2.5rem] overflow-hidden bg-[#0A0A0A] border border-[#1A1A1A] p-8 md:p-12 shadow-2xl flex flex-col justify-center">
@@ -57,32 +85,53 @@ export function MatchAdminHome({ currentLeague, matches }: MatchAdminHomeProps) 
             <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
             Partidos Destacados
           </h2>
-          {featuredMatches.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {featuredMatches.map(match => (
-                <div key={match.id} className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#00E676]/30 transition-colors group relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-[#00E676]/5 rounded-bl-full transition-transform group-hover:scale-150" />
-                  <div className="relative z-10">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">
-                      {new Date(match.date).toLocaleDateString('es-CO', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-white font-bold text-sm uppercase truncate pr-2">{match.homeTeam}</span>
-                      {match.homeFlag && <img src={match.homeFlag} className="w-5 h-5 rounded-full object-cover shrink-0" />}
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white font-bold text-sm uppercase truncate pr-2">{match.awayTeam}</span>
-                      {match.awayFlag && <img src={match.awayFlag} className="w-5 h-5 rounded-full object-cover shrink-0" />}
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {mockFeaturedMatches.map(match => (
+              <div key={match.id} className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#00E676]/30 transition-colors group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-[#00E676]/5 rounded-bl-full transition-transform group-hover:scale-150" />
+                <div className="relative z-10">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">
+                    {new Date(match.date).toLocaleDateString('es-CO', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white font-bold text-sm uppercase truncate pr-2">{match.homeTeam}</span>
+                    {match.homeFlag && <img src={match.homeFlag} className="w-5 h-5 rounded-full object-cover shrink-0" />}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-bold text-sm uppercase truncate pr-2">{match.awayTeam}</span>
+                    {match.awayFlag && <img src={match.awayFlag} className="w-5 h-5 rounded-full object-cover shrink-0" />}
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Widget del Paquete Colombia (CTA Dinámico) */}
+        <div className="mt-2 text-left bg-gradient-to-r from-[#111111] to-[#1A1A1A] border border-yellow-500/20 rounded-3xl p-6 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-yellow-500/40 transition-colors">
+          <div className="absolute -right-20 top-0 w-64 h-full bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent skew-x-12 cursor-pointer group-hover:translate-x-full duration-1000 transition-transform"></div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
+            <div className="w-20 h-20 rounded-full bg-slate-900 border-2 border-yellow-500 flex items-center justify-center p-1 shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.3)] group-hover:scale-105 transition-transform">
+              <img src="https://flagcdn.com/h80/co.png" alt="Colombia" className="w-full h-full object-cover rounded-full" />
             </div>
-          ) : (
-            <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 text-center">
-              <p className="text-slate-500 text-sm">No hay partidos destacados por el momento.</p>
+            <div className="flex flex-col justify-center">
+              <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-2 justify-center md:justify-start">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-blue-400 to-red-400">Pack Selección Colombia</span> 🇨🇴
+              </h3>
+              <p className="text-slate-400 text-sm mt-1 max-w-md font-medium">Lleva todo el tráfico posible a tu establecimiento garantizando la transmisión oficial de los partidos de la tricolor.</p>
             </div>
-          )}
+          </div>
+          
+          <div className="relative z-10 shrink-0 w-full md:w-auto flex flex-col items-center gap-3">
+            <p className="text-[10px] text-yellow-500 uppercase tracking-[0.2em] font-black">Especial</p>
+            <span className="text-3xl font-mono font-black text-white">$60.000</span>
+            <button 
+              className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-slate-900 font-black uppercase tracking-widest text-xs px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:-translate-y-1 transition-all"
+            >
+              Comprar Paquete
+            </button>
+          </div>
         </div>
 
       </div>

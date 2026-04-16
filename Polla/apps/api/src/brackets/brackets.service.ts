@@ -74,10 +74,7 @@ export class BracketsService {
     tournamentId = tournamentId || 'WC2026'; // Final fallback
 
     try {
-      // Validate bracket is not locked (manual or automatic)
-      await this.validateBracketNotLocked(dto.picks, tournamentId);
-
-      // Find existing bracket or create new one
+      // Find existing bracket first so we can diff the picks
       const whereClause: any = { userId, tournamentId };
       if (targetLeagueId) {
         whereClause.leagueId = targetLeagueId;
@@ -88,6 +85,11 @@ export class BracketsService {
       let bracket = await this.userBracketRepository.findOne({
         where: whereClause,
       });
+
+      const oldPicks = bracket?.picks || {};
+
+      // Validate bracket is not locked (only checks matches that CHANGED)
+      await this.validateBracketNotLocked(dto.picks, oldPicks, tournamentId);
 
       if (bracket) {
         // Update existing bracket
@@ -115,17 +117,31 @@ export class BracketsService {
    * Checks all phases that have picks in the bracket
    */
   private async validateBracketNotLocked(
-    picks: Record<string, string>,
+    newPicks: Record<string, string>,
+    oldPicks: Record<string, string>,
     tournamentId: string,
   ): Promise<void> {
-    if (!picks || Object.keys(picks).length === 0) {
+    if (!newPicks || Object.keys(newPicks).length === 0) {
       return; // Empty bracket, nothing to validate
     }
 
-    // Get all match IDs from picks
-    const rawIds = Object.keys(picks);
+    // Determine WHICH matches actually changed
+    const changedMatchIds: string[] = [];
+    for (const matchId of Object.keys(newPicks)) {
+      if (oldPicks[matchId] !== newPicks[matchId]) {
+        changedMatchIds.push(matchId);
+      }
+    }
+
+    // If the user hasn't changed any picks from their last save, allow it immediately
+    if (changedMatchIds.length === 0) {
+      return;
+    }
+
+    // Use only matches where predictions changed
+    const rawIds = changedMatchIds;
     this.logger.log(
-      `[DEBUG] SaveBracket - Raw Keys (${rawIds.length}):`,
+      `[DEBUG] SaveBracket - Changed Keys (${rawIds.length}):`,
       rawIds.slice(0, 3),
     ); // Log first 3
 

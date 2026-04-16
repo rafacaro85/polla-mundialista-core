@@ -68,17 +68,16 @@ export const CreateBusinessLeagueDialog = ({
                 maxParticipants: 500,
                 companyName: leagueName
             };
-
             const { data } = await api.post('/leagues', payload);
             
-            toast.success('¡Polla Match Creada!', { description: 'Redirigiendo al Panel...' });
+            toast.success('¡Polla Match Creada!', { description: 'Redirigiendo a la Polla...' });
             
             if (onLeagueCreated) {
                 onLeagueCreated();
             }
 
             setTimeout(() => {
-                router.push(`/leagues/${data.id}/admin/match`);
+                router.push(`/leagues/${data.id}`);
                 closeDialog();
             }, 1000);
             

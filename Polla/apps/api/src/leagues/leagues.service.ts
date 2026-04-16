@@ -1383,6 +1383,11 @@ export class LeaguesService {
     if (updateLeagueDto.adImages !== undefined)
       league.adImages = updateLeagueDto.adImages;
 
+    // --- MATCH MODE ---
+    if (updateLeagueDto.showTableNumbers !== undefined) {
+      league.showTableNumbers = updateLeagueDto.showTableNumbers;
+    }
+
     // --- TOURNAMENT (SUPER_ADMIN only to prevent abuse) ---
     if (updateLeagueDto.tournamentId !== undefined) {
       if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {

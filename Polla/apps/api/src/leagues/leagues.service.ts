@@ -2489,6 +2489,22 @@ export class LeaguesService {
     purchase.status = 'APPROVED';
     await this.matchPurchaseRepository.save(purchase);
 
+    // Activar la liga si es su primera compra o si estaba pendiente
+    const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
+    if (league && (!league.isEnterpriseActive || !league.isPaid || league.status !== LeagueStatus.ACTIVE)) {
+      league.isEnterpriseActive = true;
+      league.isPaid = true;
+      league.status = LeagueStatus.ACTIVE;
+      await this.leaguesRepository.save(league);
+      
+      // Activar también a los admins de la liga
+      await this.leagueParticipantsRepository.update(
+        { league: { id: league.id }, isAdmin: true },
+        { status: LeagueParticipantStatus.ACTIVE, isPaid: true }
+      );
+      this.logger.log(`🌟 Liga Match ${league.id} activada por primera compra.`);
+    }
+
     this.logger.log(`✅ Match purchase approved: ${purchaseId} for league ${leagueId}`);
     return { message: 'Compra aprobada exitosamente', purchase };
   }

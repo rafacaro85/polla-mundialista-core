@@ -71,14 +71,14 @@ export const CreateBusinessLeagueDialog = ({
 
             const { data } = await api.post('/leagues', payload);
             
-            toast.success('¡Polla Match Creada!', { description: 'Redirigiendo al Studio...' });
+            toast.success('¡Polla Match Creada!', { description: 'Redirigiendo al Panel...' });
             
             if (onLeagueCreated) {
                 onLeagueCreated();
             }
 
             setTimeout(() => {
-                router.push(`/leagues/${data.id}/studio`);
+                router.push(`/leagues/${data.id}/admin/match`);
                 closeDialog();
             }, 1000);
             

@@ -26,7 +26,6 @@ export const CreateBusinessLeagueDialog = ({
     const router = useRouter();
     const [internalOpen, setInternalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [selectedTournamentId, setSelectedTournamentId] = useState<string>(hookTournamentId || 'WC2026');
 
     // Form State
     const [leagueName, setLeagueName] = useState('');
@@ -48,7 +47,6 @@ export const CreateBusinessLeagueDialog = ({
         setTimeout(() => {
             setLoading(false);
             setLeagueName('');
-            setSelectedTournamentId(hookTournamentId || 'WC2026');
         }, 300);
     };
 
@@ -68,9 +66,7 @@ export const CreateBusinessLeagueDialog = ({
                 isEnterprise: true,
                 packageType: 'MATCH',
                 maxParticipants: 500,
-                tournamentId: selectedTournamentId,
-                companyName: leagueName,
-                status: 'ACTIVE' // Activo directo
+                companyName: leagueName
             };
 
             const { data } = await api.post('/leagues', payload);
@@ -137,55 +133,6 @@ export const CreateBusinessLeagueDialog = ({
 
                 <div className={STYLES.body}>
                     <div className="space-y-6">
-                        {/* TORNEO */}
-                        <div>
-                            <label className={STYLES.label}>¿En qué torneo quieres tu polla?</label>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                {/* MUNDIAL */}
-                                <div 
-                                    onClick={() => setSelectedTournamentId('WC2026')}
-                                    className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center gap-3 text-center overflow-hidden ${
-                                        selectedTournamentId === 'WC2026' ? 'bg-[#00E676]/5 border-[#00E676]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
-                                    }`}
-                                >
-                                    <div className="bg-[#00E676]/10 rounded-xl text-[#00E676] w-16 h-16 flex items-center justify-center overflow-hidden">
-                                         <img src="/images/wc-logo.png" alt="Mundial" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.4)' }} />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-white font-russo uppercase text-sm">Mundial 2026</h4>
-                                    </div>
-                                    {selectedTournamentId === 'WC2026' && (
-                                        <div className="absolute top-2 right-2 bg-[#00E676] text-[#0F172A] p-1 rounded-full">
-                                            <Check size={14} strokeWidth={4} />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* CHAMPIONS */}
-                                <div 
-                                    onClick={() => setSelectedTournamentId('UCL2526')}
-                                    className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center gap-3 text-center overflow-hidden ${
-                                        selectedTournamentId === 'UCL2526' ? 'bg-[#6366F1]/5 border-[#6366F1]' : 'bg-[#0F172A] border-[#334155] hover:border-[#475569]'
-                                    }`}
-                                >
-                                    <div className="bg-[#6366F1]/10 p-2 rounded-xl text-[#6366F1] w-16 h-16 flex items-center justify-center overflow-hidden">
-                                        <img src="/images/ucl-logo.png" alt="Champions" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-white font-russo uppercase text-sm">Champions</h4>
-                                    </div>
-                                    {selectedTournamentId === 'UCL2526' && (
-                                        <div className="absolute top-2 right-2 bg-[#6366F1] text-white p-1 rounded-full">
-                                            <Check size={14} strokeWidth={4} />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-[#334155] my-2" />
-
                         {/* DATOS */}
                         <div>
                             <label className={STYLES.label}>Nombre de tu Polla Match</label>

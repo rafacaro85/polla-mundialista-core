@@ -2293,6 +2293,7 @@ export class LeaguesService {
       activeMatchId: league.activeMatchId,
       matchCode: league.matchCode,
       isMatchMode: league.isMatchMode,
+      showTableNumbers: league.showTableNumbers,
     };
   }
 

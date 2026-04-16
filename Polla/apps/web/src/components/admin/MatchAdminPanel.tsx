@@ -660,8 +660,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
           </div>
 
           {/* Estadísticas del Partido */}
-          {league.activeMatchId && (
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 mt-6">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 mt-6">
               <h3 className="text-white font-bold uppercase mb-4 text-xs flex items-center gap-2">
                 <BarChart3 size={16} className="text-emerald-500" /> Estadísticas del Partido Actual
               </h3>
@@ -677,7 +676,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                   <Tv size={20} className="text-purple-400 mb-2" />
                   <span className="text-lg font-black text-white">{stats.activeTable}</span>
                   <div className="text-slate-400 uppercase tracking-widest text-[10px] font-bold">
-                    {league.showTableNumbers ? 'Mesa Más Activa' : 'Más Activo'}
+                    {localShowTableNumbers ? 'Mesa Más Activa' : 'Más Activo'}
                   </div>
                 </div>
 
@@ -700,7 +699,6 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                 </div>
               </div>
             </div>
-          )}
         </div>
       )}
 

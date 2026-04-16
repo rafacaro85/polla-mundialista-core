@@ -1834,4 +1834,47 @@ export class MatchesService {
 
     return '✅ Test matches updated: 9:30 PM & Phase Unlocked.';
   }
+
+  async fixUCLSemis() {
+    this.logger.log('🔧 [FIX] Running manual fix for UCL Semis injected schedule...');
+    const tournamentId = 'UCL2526';
+    const currentPhase = 'SEMI';
+
+    const SEMI_MATCHES = [
+      { date: '2026-04-28T19:00:00Z', homeTeam: 'PSG', awayTeam: 'Bayern Munich', homeFlag: 'https://crests.football-data.org/524.svg', awayFlag: 'https://crests.football-data.org/5.svg', group: 'LEG_1', bracketId: 101 },
+      { date: '2026-04-29T19:00:00Z', homeTeam: 'Atletico Madrid', awayTeam: 'Arsenal', homeFlag: 'https://crests.football-data.org/78.svg', awayFlag: 'https://crests.football-data.org/57.svg', group: 'LEG_1', bracketId: 102 },
+      { date: '2026-05-05T19:00:00Z', homeTeam: 'Arsenal', awayTeam: 'Atletico Madrid', homeFlag: 'https://crests.football-data.org/57.svg', awayFlag: 'https://crests.football-data.org/78.svg', group: 'LEG_2', bracketId: 102 },
+      { date: '2026-05-06T19:00:00Z', homeTeam: 'Bayern Munich', awayTeam: 'PSG', homeFlag: 'https://crests.football-data.org/5.svg', awayFlag: 'https://crests.football-data.org/524.svg', group: 'LEG_2', bracketId: 101 }
+    ];
+
+    // 1. Force QUARTER and SEMI unlock
+    await this.phaseStatusRepository.upsert(
+      { phase: 'QUARTER', tournamentId, isUnlocked: true, allMatchesCompleted: true },
+      ['phase', 'tournamentId']
+    );
+    await this.phaseStatusRepository.upsert(
+      { phase: 'SEMI', tournamentId, isUnlocked: true, unlockedAt: new Date(), allMatchesCompleted: false },
+      ['phase', 'tournamentId']
+    );
+
+    let inserted = 0;
+    for (const matchData of SEMI_MATCHES) {
+      const exists = await this.matchesRepository.findOne({
+        where: { homeTeam: matchData.homeTeam, awayTeam: matchData.awayTeam, phase: currentPhase, tournamentId }
+      });
+      if (!exists) {
+        const match = this.matchesRepository.create({
+          ...matchData,
+          date: new Date(matchData.date),
+          phase: currentPhase,
+          tournamentId,
+          status: 'SCHEDULED'
+        });
+        await this.matchesRepository.save(match);
+        inserted++;
+      }
+    }
+
+    return { message: `✅ Fases arregladas y ${inserted} partidos de las semifinales insertados.` };
+  }
 }

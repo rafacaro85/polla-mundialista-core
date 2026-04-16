@@ -264,6 +264,12 @@ export class MatchesController {
     return this.matchSyncService.autoAssignExternalIds(tid);
   }
 
+  // PUBLIC endpoint para solucionar los partidos de forma sencilla (o puede ser ADMIN si prefieres)
+  @Get('fix-ucl-semis')
+  async fixUCLSemis() {
+    return this.matchesService.fixUCLSemis();
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post('fix-empty-teams')

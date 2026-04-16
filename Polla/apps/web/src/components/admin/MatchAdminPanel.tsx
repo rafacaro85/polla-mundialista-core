@@ -192,6 +192,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const { tournamentId } = useTournament();
+  const [localTournamentId, setLocalTournamentId] = useState<string>(league?.tournamentId || tournamentId || 'WC2026');
 
   // Payment modal state
   const [paymentModal, setPaymentModal] = useState<{
@@ -212,7 +213,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
     if (league?.activeMatchId) {
        fetchStats();
     }
-  }, [tournamentId, league?.activeMatchId]);
+  }, [localTournamentId, league?.activeMatchId]);
 
   const fetchStats = async () => {
     try {
@@ -225,7 +226,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
 
   const fetchMatches = async () => {
     try {
-      const { data } = await api.get(`/matches?tournamentId=${tournamentId}`);
+      const { data } = await api.get(`/matches?tournamentId=${localTournamentId}`);
       setMatches(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
@@ -249,6 +250,20 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
       onUpdate();
     } catch (e) {
       toast.error('Error al configurar partido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleTableNumbers = async () => {
+    try {
+      setLoading(true);
+      const newStatus = !league.showTableNumbers;
+      await api.patch(`/leagues/${league.id}`, { showTableNumbers: newStatus });
+      toast.success(newStatus ? 'Modo Mesas: ON' : 'Modo Mesas: OFF');
+      onUpdate();
+    } catch (e) {
+      toast.error('Error al actualizar config de mesas');
     } finally {
       setLoading(false);
     }
@@ -369,6 +384,22 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
       {/* ═══════════════════════════════════════════ */}
       {activeTab === 'matches' && (
         <div className="space-y-3">
+          {/* SELECTOR DE TORNEO EN PARTIDOS */}
+          <div className="flex gap-2">
+              <button 
+                onClick={() => setLocalTournamentId('WC2026')}
+                className={`flex-1 p-3 rounded-lg border-2 text-xs font-bold uppercase transition-all ${localTournamentId === 'WC2026' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+              >
+                  Mundial 2026
+              </button>
+              <button 
+                onClick={() => setLocalTournamentId('UCL2526')}
+                className={`flex-1 p-3 rounded-lg border-2 text-xs font-bold uppercase transition-all ${localTournamentId === 'UCL2526' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+              >
+                  Champions 25/26
+              </button>
+          </div>
+
           <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
             <h3 className="text-white font-bold uppercase text-xs mb-1 flex items-center gap-2">
               <Gamepad2 size={14} className="text-emerald-500" /> Comprar Partidos Individuales
@@ -576,14 +607,29 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                 >
                   <RefreshCcw size={16} /> Resetear Ranking (Nuevo Partido)
                 </Button>
+                </Button>
                 <p className="text-slate-500 text-[10px] text-center mt-2">Borrará todos los puntos de la liga actual.</p>
+              </div>
+
+              {/* NEW TOGGLE for Modo Mesas */}
+              <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex justify-between items-center">
+                 <div>
+                    <h3 className="text-white font-bold text-sm">🪑 Modo Mesas</h3>
+                    <p className="text-slate-500 text-[10px] mt-1">Pedir de mesa a los jugadores</p>
+                 </div>
+                 <Button 
+                    onClick={toggleTableNumbers}
+                    className={`font-black uppercase py-2 px-4 rounded-xl shadow-lg text-sm ${league.showTableNumbers ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-900' : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-600'}`}
+                 >
+                    {league.showTableNumbers ? 'ON 🟢' : 'OFF ⚪'}
+                 </Button>
               </div>
             </div>
 
             {/* QR Code */}
             <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex flex-col items-center justify-center space-y-4">
               <h3 className="text-white font-bold uppercase text-xs text-center">
-                Código QR {league.matchEventType === 'BAR' ? 'para Mesas' : 'de Acceso'}
+                Código QR {league.showTableNumbers ? 'para Mesas' : 'de Acceso'}
               </h3>
               <div className="bg-white p-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                 <QRCodeSVG
@@ -630,9 +676,9 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                 <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">
                   <Tv size={20} className="text-purple-400 mb-2" />
                   <span className="text-lg font-black text-white">{stats.activeTable}</span>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold mt-1">
-                    {league.matchEventType === 'BAR' ? 'Mesa Más Activa' : 'Más Activo'}
-                  </span>
+                  <div className="text-slate-400 uppercase tracking-widest text-[10px] font-bold">
+                    {league.showTableNumbers ? 'Mesa Más Activa' : 'Más Activo'}
+                  </div>
                 </div>
 
                 <div className="bg-slate-800 p-4 rounded-lg flex flex-col items-center justify-center text-center">

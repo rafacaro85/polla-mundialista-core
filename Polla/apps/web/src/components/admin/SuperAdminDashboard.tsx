@@ -928,7 +928,7 @@ function MatchPurchasesAdminTab() {
                                     {purchase.league?.companyName || purchase.league?.name || 'Liga Desconocida'}
                                 </p>
                                 <p className="text-slate-400 text-xs mt-1">
-                                    {purchase.league?.matchEventType === 'BAR' ? '🍺 Bar' : '🏢 Empresa'}
+                                    {purchase.league?.showTableNumbers ? '🪑 Mesas (ON)' : '🚫 Mesas (OFF)'}
                                     {purchase.league?.adminName && ` • Admin: ${purchase.league.adminName}`}
                                     {purchase.league?.adminPhone && ` • ${purchase.league.adminPhone}`}
                                 </p>

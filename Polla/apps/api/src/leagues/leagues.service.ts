@@ -123,11 +123,10 @@ export class LeaguesService {
         adminEmail,
         adminPassword,
         tournamentId,
-        matchEventType,
+        showTableNumbers,
       } = createLeagueDto;
 
       this.logger.log('Creating league', { userId, packageType });
-
 
       if (type === LeagueType.VIP && maxParticipants > 5) {
         throw new BadRequestException('Las ligas VIP no pueden tener más de 5 participantes.');
@@ -196,7 +195,7 @@ export class LeaguesService {
 
       // 2. Operación: Guardar la liga
       // Match mode: crear como ACTIVE y con matchMode habilitado
-      const isMatchModePolla = packageType === 'MATCH' || matchEventType === 'BAR' || matchEventType === 'ENTERPRISE';
+      const isMatchModePolla = packageType === 'MATCH';
       const matchCode = isMatchModePolla ? this.generateCode() : undefined;
 
       const league = queryRunner.manager.create(League, {
@@ -215,7 +214,7 @@ export class LeaguesService {
         adminPhone: adminPhone,
         tournamentId: targetTournamentId,
         isMatchMode: isMatchModePolla,
-        matchEventType: matchEventType || 'BAR',
+        showTableNumbers: showTableNumbers !== undefined ? showTableNumbers : true,
         matchCode: matchCode,
       });
 
@@ -2528,7 +2527,7 @@ export class LeaguesService {
           companyName: league.companyName,
           adminName: league.adminName,
           adminPhone: league.adminPhone,
-          matchEventType: league.matchEventType,
+          showTableNumbers: league.showTableNumbers,
         } : null,
       };
     });

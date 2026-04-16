@@ -122,4 +122,8 @@ export class UpdateLeagueDto {
   @IsString()
   @IsOptional()
   packageType?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  showTableNumbers?: boolean;
 }

@@ -16,7 +16,7 @@ export default function MatchLoginPage() {
   const [phone, setPhone] = useState('');
   const [tableNumber, setTableNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [matchEventType, setMatchEventType] = useState<string>('BAR');
+  const [showTableNumbers, setShowTableNumbers] = useState<boolean>(true);
   const [leagueLoading, setLeagueLoading] = useState(true);
 
   // Fetch league info to get matchEventType
@@ -24,7 +24,7 @@ export default function MatchLoginPage() {
     const fetchLeague = async () => {
       try {
         const { data } = await api.get(`/leagues/match-code/${matchCode}`);
-        setMatchEventType(data.matchEventType || 'BAR');
+        setShowTableNumbers(data.showTableNumbers !== undefined ? data.showTableNumbers : true);
       } catch (e) {
         console.error('Error fetching league info', e);
       } finally {
@@ -34,11 +34,9 @@ export default function MatchLoginPage() {
     fetchLeague();
   }, [matchCode]);
 
-  const isBarMode = matchEventType === 'BAR';
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || (isBarMode && !tableNumber)) {
+    if (!name || !phone || (showTableNumbers && !tableNumber)) {
       toast.error('Por favor completa todos los campos.');
       return;
     }
@@ -50,7 +48,7 @@ export default function MatchLoginPage() {
 
     try {
       setIsLoading(true);
-      const res = await api.post('/auth/match-login', { name, phone, tableNumber: isBarMode ? tableNumber : 'N/A', matchCode });
+      const res = await api.post('/auth/match-login', { name, phone, tableNumber: showTableNumbers ? tableNumber : 'N/A', matchCode });
       // If using localStorage for cross-domain auth
       if (res.data.access_token) {
         localStorage.setItem('auth_token', res.data.access_token);
@@ -104,7 +102,7 @@ export default function MatchLoginPage() {
             ¡ENTRA AL JUEGO! <span className="text-emerald-500">⚽</span>
           </h1>
           <p className="text-slate-400 text-center mb-8 text-sm">
-            {isBarMode ? 'Un partido. Un QR. Toda la emoción.' : 'Demuestra quién sabe más de fútbol.'}
+            {showTableNumbers ? 'Un partido. Un QR. Toda la emoción.' : 'Demuestra quién sabe más de fútbol.'}
           </p>
 
           <form onSubmit={handleSubmit} className="w-full space-y-4">
@@ -141,7 +139,7 @@ export default function MatchLoginPage() {
               </p>
             </div>
 
-            {isBarMode && (
+            {showTableNumbers && (
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">
                   🪑 Número de Mesa

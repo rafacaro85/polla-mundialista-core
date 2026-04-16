@@ -102,10 +102,9 @@ export class CreateLeagueDto {
   @MaxLength(100)
   adminPassword?: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  @IsIn(['BAR', 'ENTERPRISE'], { message: 'matchEventType debe ser BAR o ENTERPRISE' })
-  matchEventType?: string;
+  showTableNumbers?: boolean;
 }
 
 

@@ -273,6 +273,20 @@ export default function AdminDashboardPage() {
         <div className="min-h-screen bg-brand-bg text-brand-text">
             <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
 
+                {/* Header Actions */}
+                <div className="mb-8 border-b border-slate-700/50 pb-6 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-russo uppercase tracking-wider text-white mb-1">Panel de Control</h2>
+                        <p className="text-slate-400 text-sm">Gestiona todos los aspectos de tu torneo</p>
+                    </div>
+                    <button
+                        onClick={() => router.push(`/leagues/${params.id}`)}
+                        className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#334155] hover:border-emerald-500 hover:text-emerald-400 border border-slate-700 text-slate-300 px-4 py-2 rounded-xl transition-all font-bold text-sm uppercase tracking-widest shadow-lg"
+                    >
+                        <ArrowLeft size={16} /> Volver a la Polla
+                    </button>
+                </div>
+
                 {/* Dashboard Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {modules.map((module, index) => (

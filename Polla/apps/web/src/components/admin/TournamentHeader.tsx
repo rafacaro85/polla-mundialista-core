@@ -124,7 +124,14 @@ export function TournamentHeader({ tournamentId }: TournamentHeaderProps) {
                 flexWrap: 'wrap' // Wrap buttons on very small screens
             }}>
                 <button
-                    onClick={() => router.push('/social/mis-pollas')}
+                    onClick={() => {
+                        // Navega hacia atrás en la historia y no saca de su entorno
+                        if (window.history.length > 2) {
+                            router.back();
+                        } else {
+                            router.push('/empresa/mis-pollas');
+                        }
+                    }}
                     style={{
                         backgroundColor: 'transparent',
                         color: '#94A3B8',

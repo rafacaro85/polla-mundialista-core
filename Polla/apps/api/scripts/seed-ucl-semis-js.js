@@ -1,6 +1,7 @@
 const { Client } = require('pg');
 
-const DATABASE_URL = process.env.DATABASE_URL;
+// Se usa la IP directa en lugar del dominio proxy de Railway para saltar el problema de DNS de tu operadora!
+const DATABASE_URL = "postgresql://postgres:avGqbrYAATosnLtZRocccAERatFrfyEw@66.33.22.244:13451/railway";
 
 const SEMI_MATCHES = [
   // Ida
@@ -81,13 +82,13 @@ async function seed() {
 
     for (const match of SEMI_MATCHES) {
       const res = await client.query(`
-        SELECT id FROM match 
+        SELECT id FROM matches 
         WHERE "homeTeam" = $1 AND "awayTeam" = $2 AND phase = $3 AND "tournamentId" = $4
       `, [match.homeTeam, match.awayTeam, currentPhase, tournamentId]);
 
       if (res.rowCount === 0) {
         await client.query(`
-          INSERT INTO match (
+          INSERT INTO matches (
             "homeTeam", "awayTeam", "homeFlag", "awayFlag", 
             date, "group", phase, "bracketId", "tournamentId", status
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'SCHEDULED')

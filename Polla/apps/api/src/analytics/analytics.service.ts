@@ -8,8 +8,9 @@ import { RankingSnapshot } from '../database/entities/ranking-snapshot.entity';
 import { UserSession } from '../database/entities/user-session.entity';
 import { League } from '../database/entities/league.entity';
 import { Prediction } from '../database/entities/prediction.entity';
-import { UserLeague } from '../database/entities/user-league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { Match } from '../database/entities/match.entity';
+import { LeagueStatus } from '../enums/league-status.enum';
 
 @Injectable()
 export class AnalyticsService {
@@ -22,13 +23,13 @@ export class AnalyticsService {
     @InjectRepository(UserSession) private sessionsRepo: Repository<UserSession>,
     @InjectRepository(League) private leaguesRepo: Repository<League>,
     @InjectRepository(Prediction) private predictionsRepo: Repository<Prediction>,
-    @InjectRepository(UserLeague) private userLeaguesRepo: Repository<UserLeague>,
+    @InjectRepository(LeagueParticipant) private leagueParticipantsRepo: Repository<LeagueParticipant>,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async computeNightlyAnalytics() {
     this.logger.log('Starting nightly analytics cron job');
-    const activeLeagues = await this.leaguesRepo.find({ where: { status: 'ACTIVE' } });
+    const activeLeagues = await this.leaguesRepo.find({ where: { status: LeagueStatus.ACTIVE } });
     
     for (const league of activeLeagues) {
       try {
@@ -85,8 +86,10 @@ export class AnalyticsService {
     }
     
     // Total participates
-    const totalParticipants = await this.userLeaguesRepo.count({ where: { leagueId } });
-    const totalPredictions = await this.predictionsRepo.count({ where: { user: { userLeagues: { leagueId }  } } });
+    const totalParticipants = await this.leagueParticipantsRepo.count({ where: { league: { id: leagueId } } });
+    const totalPredictions = await this.predictionsRepo.count({ 
+      where: { user: { leagueParticipants: { league: { id: leagueId } } } } 
+    });
     
     const data = {
       totalParticipants,
@@ -105,8 +108,8 @@ export class AnalyticsService {
       if (cache) return cache;
     }
     
-    const participants = await this.userLeaguesRepo.find({ 
-      where: { leagueId, status: 'APPROVED' },
+    const participants = await this.leagueParticipantsRepo.find({ 
+      where: { league: { id: leagueId }, status: 'APPROVED' as any },
       relations: ['user'],
       order: { totalPoints: 'DESC' },
       take: 10

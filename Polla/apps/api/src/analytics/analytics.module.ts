@@ -7,7 +7,7 @@ import { UserSession } from '../database/entities/user-session.entity';
 import { AnalyticsCache } from '../database/entities/analytics-cache.entity';
 import { League } from '../database/entities/league.entity';
 import { Prediction } from '../database/entities/prediction.entity';
-import { UserLeague } from '../database/entities/user-league.entity';
+import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { Match } from '../database/entities/match.entity';
 
 @Module({
@@ -18,7 +18,7 @@ import { Match } from '../database/entities/match.entity';
       AnalyticsCache,
       League,
       Prediction,
-      UserLeague,
+      LeagueParticipant,
       Match
     ])
   ],

@@ -137,7 +137,7 @@ export default function LeagueAdminAnalyticsPage() {
             <div className="sticky top-0 z-10 p-6 border-b backdrop-blur-md bg-opacity-90" style={{ backgroundColor: 'var(--brand-secondary, rgba(30,41,59,0.95))', borderColor: 'rgba(255,255,255,0.05)' }}>
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => router.back()} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                        <button onClick={() => router.push(`/leagues/${leagueId}/admin`)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>

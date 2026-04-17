@@ -95,11 +95,17 @@ export class AnalyticsService {
       .where('league.id = :leagueId', { leagueId })
       .getCount();
     
+    const winnerData = await this.leagueParticipantsRepo.findOne({
+      where: { league: { id: leagueId }, status: LeagueParticipantStatus.ACTIVE },
+      relations: ['user'],
+      order: { totalPoints: 'DESC' }
+    });
+
     const data = {
       totalParticipants,
       totalPredictions,
-      winner: { name: 'Juan Pérez', points: 145, avatar: null }, // Mocked
-      topMatch: { homeTeam: 'Colombia', awayTeam: 'Brasil', predictions: 85 } // Mocked
+      winner: winnerData ? { name: winnerData.user?.fullName || 'Anon', points: winnerData.totalPoints, avatar: winnerData.user?.avatarUrl } : { name: 'Sin ganador', points: 0, avatar: null },
+      topMatch: { homeTeam: '...', awayTeam: '...', predictions: 0 } // Requiere agregacion mas compleja, se omite de forma temporal real
     };
     
     if (!forceRealtime) await this.saveCache(leagueId, 'executive-summary', data);
@@ -139,12 +145,21 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'department-participation');
       if (cache) return cache;
     }
-    const data = [
-      { department: 'Ventas', percentage: 45 },
-      { department: 'Tecnología', percentage: 30 },
-      { department: 'Recursos Humanos', percentage: 15 },
-      { department: 'Operaciones', percentage: 10 },
-    ];
+    const participants = await this.leagueParticipantsRepo.find({
+      where: { league: { id: leagueId }, status: LeagueParticipantStatus.ACTIVE }
+    });
+    
+    const depts: Record<string, number> = {};
+    for (const p of participants) {
+      const d = p.department || 'Sin Área';
+      depts[d] = (depts[d] || 0) + 1;
+    }
+    
+    const total = participants.length || 1;
+    const data = Object.keys(depts).map(d => ({
+      department: d,
+      percentage: Math.round((depts[d] / total) * 100)
+    })).sort((a,b) => b.percentage - a.percentage);
     if (!forceRealtime) await this.saveCache(leagueId, 'department-participation', data);
     return data;
   }
@@ -154,10 +169,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'activity-by-matchday');
       if (cache) return cache;
     }
-    const data = Array.from({ length: 15 }, (_, i) => ({
-      day: `Día ${i + 1}`,
-      predictions: Math.floor(Math.random() * 100) + 20
-    }));
+    const data = []; // Actividad dinámica requiere historial en la BD. Desabilitado mientras hay datos reales.
     if (!forceRealtime) await this.saveCache(leagueId, 'activity-by-matchday', data);
     return data;
   }
@@ -168,9 +180,9 @@ export class AnalyticsService {
       if (cache) return cache;
     }
     const data = {
-      mostExact: { match: 'Argentina vs México', exacts: 42 },
-      mostFailed: { match: 'Alemania vs Japón', exacts: 0 },
-      accuracy: { exact: 15, partial: 35, wrong: 50 }
+      mostExact: { match: '-', exacts: 0 },
+      mostFailed: { match: '-', exacts: 0 },
+      accuracy: { exact: 0, partial: 0, wrong: 0 }
     };
     if (!forceRealtime) await this.saveCache(leagueId, 'predictions-analysis', data);
     return data;
@@ -181,11 +193,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'joker-usage');
       if (cache) return cache;
     }
-    const data = [
-      { name: 'Ana Gómez', points: 14, match: 'Francia vs España', avatar: null },
-      { name: 'Carlos Ruíz', points: 10, match: 'Brasil vs Uruguay', avatar: null },
-      { name: 'Luis Silva', points: 8, match: 'Colombia vs Perú', avatar: null },
-    ];
+    const data = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'joker-usage', data);
     return data;
   }
@@ -195,10 +203,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'bonus-questions');
       if (cache) return cache;
     }
-    const data = [
-      { question: '¿Equipo en recibir la primera roja?', accuracy: 12 },
-      { question: '¿Goleador del torneo?', accuracy: 45 },
-    ];
+    const data = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'bonus-questions', data);
     return data;
   }
@@ -208,13 +213,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'individual-evolution');
       if (cache) return cache;
     }
-    const matchdays = ['J1', 'J2', 'J3', 'Oct', 'Cua', 'Sem', 'Fin'];
-    const data = matchdays.map((m, i) => ({
-      name: m,
-      'Juan Pérez': 10 + i * 15 + Math.random() * 5,
-      'Ana Gómez': 8 + i * 14 + Math.random() * 5,
-      'Carlos Ruíz': 12 + i * 13 + Math.random() * 5,
-    }));
+    const data = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'individual-evolution', data);
     return data;
   }
@@ -224,12 +223,16 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'top-players');
       if (cache) return cache;
     }
-    const data = [
-      { badge: '🏆 Campeón', name: 'Juan Pérez', detail: '145 pts', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-      { badge: '⚡ Más activo', name: 'Laura Gómez', detail: '64 pred.', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-      { badge: '🎯 Más preciso', name: 'Carlos Ruíz', detail: '12 plenos', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-      { badge: '🃏 Mejor comodín', name: 'Ana Silva', detail: '14 pts', color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    ];
+    const leader = await this.leagueParticipantsRepo.findOne({
+      where: { league: { id: leagueId }, status: LeagueParticipantStatus.ACTIVE },
+      order: { totalPoints: 'DESC' },
+      relations: ['user']
+    });
+
+    const data = [];
+    if (leader) {
+      data.push({ badge: '🏆 Campeón actual', name: leader.user?.fullName, detail: `${leader.totalPoints} pts`, color: 'text-yellow-500', bg: 'bg-yellow-500/10' });
+    }
     if (!forceRealtime) await this.saveCache(leagueId, 'top-players', data);
     return data;
   }
@@ -240,13 +243,10 @@ export class AnalyticsService {
       if (cache) return cache;
     }
     const data = {
-      totalHours: 1250,
-      avgSessionsPerUser: 14.5,
-      activeDays: 30,
-      activityData: Array.from({ length: 30 }, (_, i) => ({
-        day: `Día ${i + 1}`,
-        sessions: Math.floor(Math.random() * 50) + 10
-      }))
+      totalHours: 0,
+      avgSessionsPerUser: 0,
+      activeDays: 0,
+      activityData: []
     };
     if (!forceRealtime) await this.saveCache(leagueId, 'engagement', data);
     return data;

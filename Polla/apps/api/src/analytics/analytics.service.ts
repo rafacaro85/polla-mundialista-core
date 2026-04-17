@@ -10,7 +10,7 @@ import { League } from '../database/entities/league.entity';
 import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { Match } from '../database/entities/match.entity';
-import { LeagueStatus } from '../enums/league-status.enum';
+import { LeagueStatus } from '../database/enums/league-status.enum';
 
 @Injectable()
 export class AnalyticsService {
@@ -117,9 +117,9 @@ export class AnalyticsService {
 
     const data = participants.map((p, idx) => ({
       position: idx + 1,
-      userId: p.userId,
+      userId: p.user?.id,
       avatar: p.user?.avatarUrl,
-      name: p.user?.displayName || p.user?.email,
+      name: p.user?.fullName || p.user?.email,
       total: p.totalPoints,
       regular: p.totalPoints, // TODO distribute correctly
       joker: 0,

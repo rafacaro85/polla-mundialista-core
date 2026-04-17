@@ -169,7 +169,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'activity-by-matchday');
       if (cache) return cache;
     }
-    const data = []; // Actividad dinámica requiere historial en la BD. Desabilitado mientras hay datos reales.
+    const data: any[] = []; // Actividad dinámica requiere historial en la BD. Desabilitado mientras hay datos reales.
     if (!forceRealtime) await this.saveCache(leagueId, 'activity-by-matchday', data);
     return data;
   }
@@ -193,7 +193,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'joker-usage');
       if (cache) return cache;
     }
-    const data = [];
+    const data: any[] = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'joker-usage', data);
     return data;
   }
@@ -203,7 +203,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'bonus-questions');
       if (cache) return cache;
     }
-    const data = [];
+    const data: any[] = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'bonus-questions', data);
     return data;
   }
@@ -213,7 +213,7 @@ export class AnalyticsService {
       const cache = await this.getCache(leagueId, 'individual-evolution');
       if (cache) return cache;
     }
-    const data = [];
+    const data: any[] = [];
     if (!forceRealtime) await this.saveCache(leagueId, 'individual-evolution', data);
     return data;
   }
@@ -229,7 +229,7 @@ export class AnalyticsService {
       relations: ['user']
     });
 
-    const data = [];
+    const data: any[] = [];
     if (leader) {
       data.push({ badge: '🏆 Campeón actual', name: leader.user?.fullName, detail: `${leader.totalPoints} pts`, color: 'text-yellow-500', bg: 'bg-yellow-500/10' });
     }

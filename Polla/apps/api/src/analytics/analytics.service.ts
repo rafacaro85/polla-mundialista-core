@@ -11,6 +11,7 @@ import { Prediction } from '../database/entities/prediction.entity';
 import { LeagueParticipant } from '../database/entities/league-participant.entity';
 import { Match } from '../database/entities/match.entity';
 import { LeagueStatus } from '../database/enums/league-status.enum';
+import { LeagueParticipantStatus } from '../database/enums/league-participant-status.enum';
 
 @Injectable()
 export class AnalyticsService {
@@ -63,7 +64,7 @@ export class AnalyticsService {
 
   private async getCache(leagueId: string, type: string) {
     const cached = await this.cacheRepo.findOne({ where: { leagueId, reportType: type } });
-    if (cached && (Date.now() - cached.computedAt.getTime()) < 24 * 60 * 60 * 1000) {
+    if (cached && (Date.now() - new Date(cached.computedAt).getTime()) < 24 * 60 * 60 * 1000) {
       return cached.data;
     }
     return null;
@@ -87,9 +88,12 @@ export class AnalyticsService {
     
     // Total participates
     const totalParticipants = await this.leagueParticipantsRepo.count({ where: { league: { id: leagueId } } });
-    const totalPredictions = await this.predictionsRepo.count({ 
-      where: { user: { leagueParticipants: { league: { id: leagueId } } } } 
-    });
+    const totalPredictions = await this.predictionsRepo.createQueryBuilder('pred')
+      .innerJoin('pred.user', 'user')
+      .innerJoin('user.leagueParticipants', 'lp')
+      .innerJoin('lp.league', 'league')
+      .where('league.id = :leagueId', { leagueId })
+      .getCount();
     
     const data = {
       totalParticipants,
@@ -109,7 +113,7 @@ export class AnalyticsService {
     }
     
     const participants = await this.leagueParticipantsRepo.find({ 
-      where: { league: { id: leagueId }, status: 'APPROVED' as any },
+      where: { league: { id: leagueId }, status: LeagueParticipantStatus.ACTIVE },
       relations: ['user'],
       order: { totalPoints: 'DESC' },
       take: 10

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Loader2, Tv, RefreshCcw, Download, Copy, BarChart3, Users, Star, PieChart, ShoppingCart, Package, Gamepad2, Lock, Clock, CheckCircle, Zap, Upload, X, ChevronDown, Minus, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Tv, RefreshCcw, Download, Copy, BarChart3, Users, Star, PieChart, ShoppingCart, Package, Gamepad2, Lock, Clock, CheckCircle, Zap, Upload, X, ChevronDown, Minus, Plus, Trash2, Search } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTournament } from '@/hooks/useTournament';
 
@@ -495,6 +495,7 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'matches' | 'control'>('control');
   const [matchMode, setMatchMode] = useState<'individual' | 'packages'>('individual');
+  const [searchTerm, setSearchTerm] = useState('');
   const [localShowTableNumbers, setLocalShowTableNumbers] = useState<boolean>(league?.showTableNumbers ?? true);
   const [matches, setMatches] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
@@ -570,9 +571,19 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
 
   const matchesByDate = useMemo(() => {
     const g: Record<string, any[]> = {};
-    matches.forEach(m => { const d = new Date(m.date).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', month: 'short', day: 'numeric' }); if (!g[d]) g[d] = []; g[d].push(m); });
+    matches.forEach(m => { 
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        if (!m.homeTeam.toLowerCase().includes(term) && !m.awayTeam.toLowerCase().includes(term)) {
+          return;
+        }
+      }
+      const d = new Date(m.date).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', month: 'short', day: 'numeric' }); 
+      if (!g[d]) g[d] = []; 
+      g[d].push(m); 
+    });
     return g;
-  }, [matches]);
+  }, [matches, searchTerm]);
 
   const TABS = [
     { id: 'matches' as const, label: 'Comprar' },
@@ -615,9 +626,26 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
             <button onClick={() => setLocalTournamentId('UCL2526')} className={`flex-1 p-3 rounded-lg border-2 text-xs font-bold uppercase transition-all ${localTournamentId === 'UCL2526' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-700 bg-slate-900 text-slate-400'}`}>Champions 25/26</button>
           </div>
 
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-            <h3 className="text-white font-bold uppercase text-xs mb-1 flex items-center gap-2"><Gamepad2 size={14} className="text-emerald-500" /> Comprar Partidos</h3>
-            <p className="text-slate-500 text-[10px]">Selecciona partidos, elige participantes y agrégalos al carrito.</p>
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-white font-bold uppercase text-xs mb-1 flex items-center gap-2"><Gamepad2 size={14} className="text-emerald-500" /> Comprar Partidos</h3>
+              <p className="text-slate-500 text-[10px]">Selecciona partidos, elige participantes y agrégalos al carrito.</p>
+            </div>
+            <div className="relative w-full md:w-64 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+              <input 
+                type="text" 
+                placeholder="Buscar por equipo..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2 text-xs text-white outline-none transition-colors placeholder:text-slate-500"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-3 px-1">
@@ -634,10 +662,10 @@ export function MatchAdminPanel({ league, onUpdate }: MatchAdminPanelProps) {
                 <span className="text-white font-bold text-xs uppercase">{date}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500 text-[10px]">{dateMatches.length} partidos</span>
-                  <ChevronDown size={14} className={`text-slate-500 transition-transform ${expandedDate === date ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-slate-500 transition-transform ${expandedDate === date || !!searchTerm ? 'rotate-180' : ''}`} />
                 </div>
               </button>
-              {expandedDate === date && (
+              {(expandedDate === date || !!searchTerm) && (
                 <div className="divide-y divide-slate-700/50">
                   {dateMatches.map((m: any) => {
                     const status = getMatchStatus(m.id);

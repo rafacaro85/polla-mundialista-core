@@ -111,7 +111,7 @@ export class LeaguesController {
     @Query('basePrice') basePrice?: string,
   ) {
     const p = parseInt(participants, 10) || 20;
-    const bp = parseInt(basePrice, 10) || 15000;
+    const bp = parseInt(basePrice || '', 10) || 15000;
     return this.leaguesService.getMatchPriceQuote(p, bp);
   }
 

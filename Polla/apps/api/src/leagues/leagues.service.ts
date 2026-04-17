@@ -2486,7 +2486,7 @@ export class LeaguesService {
   // ═══════════════════════════════════════════
 
   async createMatchPurchase(leagueId: string, userId: string, body: {
-    items: { matchId: string; homeTeam: string; awayTeam: string; date: string; participants: number; pricePerPerson: number; subtotal: number }[];
+    items: { matchId: string; homeTeam: string; awayTeam: string; date: string; participants: number; matchBasePrice?: number; pricePerPerson: number; subtotal: number; packageId?: string }[];
     totalAmount: number;
     voucherUrl?: string;
   }) {

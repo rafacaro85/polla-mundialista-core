@@ -28,6 +28,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { DemoModule } from './demo/demo.module';
 import { ChatAssistantModule } from './chat-assistant/chat-assistant.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 // Import all entities
 import { Organization } from './database/entities/organization.entity';
@@ -50,6 +51,9 @@ import { Notification } from './database/entities/notification.entity';
 import { LeaguePrize } from './database/entities/league-prize.entity';
 import { LeagueBanner } from './database/entities/league-banner.entity';
 import { JokerConfig } from './database/entities/joker-config.entity';
+import { RankingSnapshot } from './database/entities/ranking-snapshot.entity';
+import { UserSession } from './database/entities/user-session.entity';
+import { AnalyticsCache } from './database/entities/analytics-cache.entity';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -122,6 +126,9 @@ import { HealthController } from './health/health.controller';
             LeaguePrize,
             LeagueBanner,
             JokerConfig,
+            RankingSnapshot,
+            UserSession,
+            AnalyticsCache,
           ],
           synchronize: false,
           migrationsRun: true,
@@ -171,6 +178,7 @@ import { HealthController } from './health/health.controller';
     AdminModule,
     DemoModule,
     ChatAssistantModule,
+    AnalyticsModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

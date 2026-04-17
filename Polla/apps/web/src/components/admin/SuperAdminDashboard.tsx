@@ -885,7 +885,7 @@ function MatchPurchasesAdminTab() {
     };
 
     const handleApprove = async (leagueId: string, purchaseId: string) => {
-        if (!confirm('¿Aprobar esta compra y habilitar el partido/paquete?')) return;
+        if (!confirm('¿Aprobar esta compra y habilitar TODOS los partidos del carrito?')) return;
         try {
             await superAdminService.approveMatchPurchase(leagueId, purchaseId);
             alert('Compra aprobada exitosamente');
@@ -916,7 +916,7 @@ function MatchPurchasesAdminTab() {
                 <h2 className="text-xl font-russo uppercase text-white mb-2 flex items-center gap-2">
                     <ShoppingCart className="text-emerald-500" size={20} /> Compras Match Pendientes
                 </h2>
-                <p className="text-slate-400 text-sm">Aprueba o rechaza compras de partidos individuales y paquetes.</p>
+                <p className="text-slate-400 text-sm">Aprueba o rechaza compras de partidos. Cada compra puede contener múltiples partidos.</p>
             </div>
 
             {purchases.length === 0 ? (
@@ -928,6 +928,7 @@ function MatchPurchasesAdminTab() {
             ) : (
                 purchases.map((purchase: any) => (
                     <div key={purchase.id} className="bg-[#1E293B] border border-yellow-500/30 rounded-xl p-5 space-y-4">
+                        {/* Header: Liga info */}
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-white font-bold text-sm uppercase">
@@ -938,9 +939,11 @@ function MatchPurchasesAdminTab() {
                                     {purchase.league?.adminName && ` • Admin: ${purchase.league.adminName}`}
                                     {purchase.league?.adminPhone && ` • ${purchase.league.adminPhone}`}
                                 </p>
-                                <p className="text-slate-500 text-[10px] mt-1">
-                                    {purchase.matchId ? `Partido: ${purchase.matchId.substring(0, 8)}...` : `Paquete: ${purchase.packageId}`}
-                                </p>
+                                {purchase.participants && (
+                                    <p className="text-blue-400 text-[10px] mt-1 font-bold">
+                                        👥 Máx. {purchase.participants} participantes
+                                    </p>
+                                )}
                             </div>
                             <div className="text-right">
                                 <p className="text-emerald-400 font-russo text-lg">${Number(purchase.amount).toLocaleString('es-CO')}</p>
@@ -950,12 +953,41 @@ function MatchPurchasesAdminTab() {
                             </div>
                         </div>
 
+                        {/* Items del carrito (detalle de partidos) */}
+                        {purchase.items && Array.isArray(purchase.items) && purchase.items.length > 0 && (
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">
+                                    Partidos comprados ({purchase.items.length}):
+                                </p>
+                                {purchase.items.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-800 last:border-b-0">
+                                        <div>
+                                            <p className="text-white text-xs font-bold uppercase">⚽ {item.homeTeam} vs {item.awayTeam}</p>
+                                            <p className="text-slate-500 text-[10px]">
+                                                {new Date(item.date).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', timeZone: 'America/Bogota' })}
+                                                {' · '}{item.participants} personas · ${item.pricePerPerson?.toLocaleString('es-CO')} c/u
+                                            </p>
+                                        </div>
+                                        <span className="text-emerald-400 font-bold text-sm">${item.subtotal?.toLocaleString('es-CO')}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Si no tiene items JSONB, mostrar info legacy */}
+                        {(!purchase.items || purchase.items.length === 0) && (
+                            <p className="text-slate-500 text-[10px]">
+                                {purchase.matchId ? `Partido: ${purchase.matchId.substring(0, 8)}...` : `Paquete: ${purchase.packageId || 'N/A'}`}
+                            </p>
+                        )}
+
+                        {/* Action buttons */}
                         <div className="flex gap-2">
                             <button
                                 onClick={() => handleApprove(purchase.leagueId, purchase.id)}
                                 className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors"
                             >
-                                <CheckCircle size={16} /> Aprobar
+                                <CheckCircle size={16} /> Aprobar Todo
                             </button>
                             <button
                                 onClick={() => handleReject(purchase.leagueId, purchase.id)}

@@ -68,33 +68,34 @@ export class LeaguesService {
     private scoringService: ScoringService,
   ) {}
 
-  // --- MATCH PURCHASE PRICES & PACKAGES ---
-  static readonly MATCH_PRICES: Record<string, number> = {
-    regular: 15000,
-    colombia: 25000,
-    knockout: 35000,
-  };
+  // --- MATCH PURCHASE: PRECIO POR PARTICIPANTES ---
+  static readonly PARTICIPANT_PRICING = [
+    { min: 20, max: 50,  pricePerPerson: 600, tier: 'Estándar' },
+    { min: 51, max: 100, pricePerPerson: 500, tier: 'Pro' },
+    { min: 101, max: 300, pricePerPerson: 400, tier: 'Premium' },
+  ];
 
-  static readonly MATCH_PACKAGES: Record<string, { label: string; price: number; description: string; matchFilter: string }> = {
-    pack_colombia_grupos: {
-      label: 'Pack Colombia Grupos',
-      price: 60000,
-      description: 'Todos los partidos de Colombia en fase de grupos',
-      matchFilter: 'COLOMBIA_GROUP',
-    },
-    pack_knockouts: {
-      label: 'Pack Eliminatorias',
-      price: 90000,
-      description: 'Cuartos + Semis + Final',
-      matchFilter: 'KNOCKOUT',
-    },
-    pack_mundial_completo: {
-      label: 'Pack Mundial Completo',
-      price: 150000,
-      description: 'Todos los 104 partidos',
-      matchFilter: 'ALL',
-    },
-  };
+  static readonly MINIMUM_PARTICIPANTS = 20;
+  static readonly MAXIMUM_PARTICIPANTS = 300;
+
+  static calculateMatchPrice(participants: number): { participants: number; pricePerPerson: number; totalPrice: number; tier: string } {
+    if (participants < LeaguesService.MINIMUM_PARTICIPANTS) {
+      participants = LeaguesService.MINIMUM_PARTICIPANTS;
+    }
+    if (participants > LeaguesService.MAXIMUM_PARTICIPANTS) {
+      participants = LeaguesService.MAXIMUM_PARTICIPANTS;
+    }
+    const tier = LeaguesService.PARTICIPANT_PRICING.find(
+      t => participants >= t.min && participants <= t.max
+    );
+    const pricePerPerson = tier?.pricePerPerson || 400;
+    return {
+      participants,
+      pricePerPerson,
+      totalPrice: participants * pricePerPerson,
+      tier: tier?.tier || 'Premium',
+    };
+  }
 
   private rankingInFlight = new Map<string, Promise<any>>();
 
@@ -2447,16 +2448,45 @@ export class LeaguesService {
   // MATCH PURCHASE SYSTEM
   // ═══════════════════════════════════════════
 
-  async createMatchPurchase(leagueId: string, userId: string, body: { matchId?: string; packageId?: string; amount: number; voucherUrl?: string }) {
+  async createMatchPurchase(leagueId: string, userId: string, body: {
+    items: { matchId: string; homeTeam: string; awayTeam: string; date: string; participants: number; pricePerPerson: number; subtotal: number }[];
+    totalAmount: number;
+    voucherUrl?: string;
+  }) {
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId }, relations: ['creator'] });
     if (!league) throw new NotFoundException('Liga no encontrada');
     if (league.creator?.id !== userId) throw new ForbiddenException('Solo el admin de la liga puede comprar partidos');
 
+    if (!body.items || body.items.length === 0) {
+      throw new BadRequestException('Debe incluir al menos un partido en el carrito');
+    }
+
+    // Validar y recalcular cada item en backend (no confiar en frontend)
+    let calculatedTotal = 0;
+    let maxParticipants = 0;
+    const validatedItems = body.items.map(item => {
+      if (item.participants < LeaguesService.MINIMUM_PARTICIPANTS) {
+        throw new BadRequestException(`Mínimo ${LeaguesService.MINIMUM_PARTICIPANTS} participantes por partido`);
+      }
+      if (item.participants > LeaguesService.MAXIMUM_PARTICIPANTS) {
+        throw new BadRequestException(`Máximo ${LeaguesService.MAXIMUM_PARTICIPANTS} participantes por partido`);
+      }
+      const calc = LeaguesService.calculateMatchPrice(item.participants);
+      calculatedTotal += calc.totalPrice;
+      if (item.participants > maxParticipants) maxParticipants = item.participants;
+      return {
+        ...item,
+        pricePerPerson: calc.pricePerPerson,
+        subtotal: calc.totalPrice,
+      };
+    });
+
     const purchase = this.matchPurchaseRepository.create({
       leagueId,
-      matchId: body.matchId || undefined,
-      packageId: body.packageId || undefined,
-      amount: body.amount,
+      matchId: validatedItems.length === 1 ? validatedItems[0].matchId : undefined,
+      amount: calculatedTotal,
+      participants: maxParticipants,
+      items: validatedItems,
       status: 'PENDING',
       voucherUrl: body.voucherUrl || undefined,
     } as Partial<MatchPurchase>);
@@ -2465,12 +2495,12 @@ export class LeaguesService {
 
     // Notificar por Telegram
     try {
-      const matchInfo = body.matchId ? `Partido: ${body.matchId}` : `Paquete: ${body.packageId}`;
+      const matchesList = validatedItems.map(i => `  ⚽ ${i.homeTeam} vs ${i.awayTeam} (${i.participants} pers.) $${i.subtotal.toLocaleString('es-CO')}`).join('\n');
       await this.telegramService.sendMessage(
-        `🛒 *NUEVA COMPRA MATCH*\n` +
+        `🛒 *NUEVA COMPRA MATCH (CARRITO)*\n` +
         `Liga: ${league.name}\n` +
-        `${matchInfo}\n` +
-        `Monto: $${body.amount.toLocaleString('es-CO')}\n` +
+        `Partidos (${validatedItems.length}):\n${matchesList}\n` +
+        `💰 Total: $${calculatedTotal.toLocaleString('es-CO')}\n` +
         `Admin: ${league.adminName || 'N/A'} (${league.adminPhone || 'N/A'})\n` +
         `Estado: ⏳ PENDIENTE`
       );
@@ -2479,6 +2509,10 @@ export class LeaguesService {
     }
 
     return saved;
+  }
+
+  getMatchPriceQuote(participants: number) {
+    return LeaguesService.calculateMatchPrice(participants);
   }
 
   async approveMatchPurchase(leagueId: string, purchaseId: string) {
@@ -2491,21 +2525,29 @@ export class LeaguesService {
 
     // Activar la liga si es su primera compra o si estaba pendiente
     const league = await this.leaguesRepository.findOne({ where: { id: leagueId } });
-    if (league && (!league.isEnterpriseActive || !league.isPaid || league.status !== LeagueStatus.ACTIVE)) {
-      league.isEnterpriseActive = true;
-      league.isPaid = true;
-      league.status = LeagueStatus.ACTIVE;
+    if (league) {
+      // Actualizar maxParticipants con el máximo del carrito
+      if (purchase.participants && purchase.participants > (league.maxParticipants || 0)) {
+        league.maxParticipants = purchase.participants;
+      }
+
+      if (!league.isEnterpriseActive || !league.isPaid || league.status !== LeagueStatus.ACTIVE) {
+        league.isEnterpriseActive = true;
+        league.isPaid = true;
+        league.status = LeagueStatus.ACTIVE;
+
+        // Activar también a los admins de la liga
+        await this.leagueParticipantsRepository.update(
+          { league: { id: league.id }, isAdmin: true },
+          { status: LeagueParticipantStatus.ACTIVE, isPaid: true }
+        );
+        this.logger.log(`🌟 Liga Match ${league.id} activada por compra.`);
+      }
+
       await this.leaguesRepository.save(league);
-      
-      // Activar también a los admins de la liga
-      await this.leagueParticipantsRepository.update(
-        { league: { id: league.id }, isAdmin: true },
-        { status: LeagueParticipantStatus.ACTIVE, isPaid: true }
-      );
-      this.logger.log(`🌟 Liga Match ${league.id} activada por primera compra.`);
     }
 
-    this.logger.log(`✅ Match purchase approved: ${purchaseId} for league ${leagueId}`);
+    this.logger.log(`✅ Match purchase approved: ${purchaseId} for league ${leagueId} (${purchase.items?.length || 1} partidos)`);
     return { message: 'Compra aprobada exitosamente', purchase };
   }
 
@@ -2557,8 +2599,9 @@ export class LeaguesService {
 
   getMatchPricesAndPackages() {
     return {
-      prices: LeaguesService.MATCH_PRICES,
-      packages: LeaguesService.MATCH_PACKAGES,
+      pricing: LeaguesService.PARTICIPANT_PRICING,
+      minimumParticipants: LeaguesService.MINIMUM_PARTICIPANTS,
+      maximumParticipants: LeaguesService.MAXIMUM_PARTICIPANTS,
     };
   }
 }

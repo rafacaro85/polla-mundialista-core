@@ -28,6 +28,20 @@ export class MatchPurchase {
   @Column({ name: 'voucherUrl', nullable: true })
   voucherUrl?: string;
 
+  @Column({ default: 20 })
+  participants: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  items?: {
+    matchId: string;
+    homeTeam: string;
+    awayTeam: string;
+    date: string;
+    participants: number;
+    pricePerPerson: number;
+    subtotal: number;
+  }[];
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

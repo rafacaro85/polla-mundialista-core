@@ -104,6 +104,13 @@ export class LeaguesController {
     return this.leaguesService.getAllLeagues(tournamentId, page, limit);
   }
 
+  @Public()
+  @Get('match-price')
+  async getMatchPriceQuote(@Query('participants') participants: string) {
+    const p = parseInt(participants, 10) || 20;
+    return this.leaguesService.getMatchPriceQuote(p);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':id/upgrade-options')
   async getUpgradeOptions(@Param('id') leagueId: string) {
@@ -609,10 +616,15 @@ export class LeaguesController {
           amount INTEGER NOT NULL DEFAULT 0,
           status VARCHAR DEFAULT 'PENDING',
           "voucherUrl" VARCHAR,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT NOW(),
+          participants INTEGER DEFAULT 20,
+          items JSONB
         )
       `);
-      results.push('✅ Table match_purchases created');
+      // Ensure new columns exist on old tables
+      await dataSource.query(`ALTER TABLE match_purchases ADD COLUMN IF NOT EXISTS participants INTEGER DEFAULT 20`);
+      await dataSource.query(`ALTER TABLE match_purchases ADD COLUMN IF NOT EXISTS items JSONB`);
+      results.push('✅ Table match_purchases created/updated');
     } catch (e: any) {
       results.push(`⚠️ Table: ${e.message}`);
     }
@@ -628,11 +640,16 @@ export class LeaguesController {
     return { success: true, results };
   }
 
+
   @UseGuards(JwtAuthGuard)
   @Post(':id/match-purchases')
   async createMatchPurchase(
     @Param('id') leagueId: string,
-    @Body() body: { matchId?: string; packageId?: string; amount: number; voucherUrl?: string },
+    @Body() body: {
+      items: { matchId: string; homeTeam: string; awayTeam: string; date: string; participants: number; pricePerPerson: number; subtotal: number }[];
+      totalAmount: number;
+      voucherUrl?: string;
+    },
     @Req() req: Request,
   ) {
     const userPayload = req.user as { id: string };

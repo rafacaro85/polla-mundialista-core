@@ -68,17 +68,52 @@ export class LeaguesService {
     private scoringService: ScoringService,
   ) {}
 
-  // --- MATCH PURCHASE: PRECIO POR PARTICIPANTES ---
+  // --- MATCH PURCHASE: PRECIO BASE + PARTICIPANTES ---
+  static readonly MATCH_BASE_PRICES = {
+    regular: 15000,    // Partido regular
+    premium: 25000,    // Colombia o instancias finales
+  };
+
   static readonly PARTICIPANT_PRICING = [
-    { min: 20, max: 50,  pricePerPerson: 600, tier: 'Estándar' },
-    { min: 51, max: 100, pricePerPerson: 500, tier: 'Pro' },
-    { min: 101, max: 300, pricePerPerson: 400, tier: 'Premium' },
+    { min: 20, max: 50,  pricePerPerson: 600 },
+    { min: 51, max: 100, pricePerPerson: 500 },
+    { min: 101, max: 300, pricePerPerson: 400 },
+  ];
+
+  static readonly MATCH_PACKAGES = [
+    {
+      id: 'pack_colombia_grupos',
+      label: 'Pack Colombia Grupos',
+      basePrice: 60000,
+      description: 'Todos los partidos de Colombia en fase de grupos',
+      emoji: '🇨🇴',
+      color: '#FACC15',
+    },
+    {
+      id: 'pack_knockouts',
+      label: 'Pack Eliminatorias',
+      basePrice: 90000,
+      description: 'Cuartos de final + Semis + Final',
+      emoji: '🏆',
+      color: '#00E676',
+    },
+    {
+      id: 'pack_mundial_completo',
+      label: 'Pack Mundial Completo',
+      basePrice: 150000,
+      description: 'Los 104 partidos del Mundial 2026',
+      emoji: '🌍',
+      color: '#6366F1',
+    },
   ];
 
   static readonly MINIMUM_PARTICIPANTS = 20;
   static readonly MAXIMUM_PARTICIPANTS = 300;
 
-  static calculateMatchPrice(participants: number): { participants: number; pricePerPerson: number; totalPrice: number; tier: string } {
+  static calculateMatchPrice(participants: number, matchBasePrice: number = 15000): {
+    participants: number; pricePerPerson: number; participantsCost: number;
+    matchBasePrice: number; totalPrice: number;
+  } {
     if (participants < LeaguesService.MINIMUM_PARTICIPANTS) {
       participants = LeaguesService.MINIMUM_PARTICIPANTS;
     }
@@ -89,11 +124,13 @@ export class LeaguesService {
       t => participants >= t.min && participants <= t.max
     );
     const pricePerPerson = tier?.pricePerPerson || 400;
+    const participantsCost = participants * pricePerPerson;
     return {
       participants,
       pricePerPerson,
-      totalPrice: participants * pricePerPerson,
-      tier: tier?.tier || 'Premium',
+      participantsCost,
+      matchBasePrice,
+      totalPrice: matchBasePrice + participantsCost,
     };
   }
 
@@ -2471,12 +2508,15 @@ export class LeaguesService {
       if (item.participants > LeaguesService.MAXIMUM_PARTICIPANTS) {
         throw new BadRequestException(`Máximo ${LeaguesService.MAXIMUM_PARTICIPANTS} participantes por partido`);
       }
-      const calc = LeaguesService.calculateMatchPrice(item.participants);
+      const basePrice = item.matchBasePrice || LeaguesService.MATCH_BASE_PRICES.regular;
+      const calc = LeaguesService.calculateMatchPrice(item.participants, basePrice);
       calculatedTotal += calc.totalPrice;
       if (item.participants > maxParticipants) maxParticipants = item.participants;
       return {
         ...item,
+        matchBasePrice: basePrice,
         pricePerPerson: calc.pricePerPerson,
+        participantsCost: calc.participantsCost,
         subtotal: calc.totalPrice,
       };
     });
@@ -2511,8 +2551,8 @@ export class LeaguesService {
     return saved;
   }
 
-  getMatchPriceQuote(participants: number) {
-    return LeaguesService.calculateMatchPrice(participants);
+  getMatchPriceQuote(participants: number, matchBasePrice: number = 15000) {
+    return LeaguesService.calculateMatchPrice(participants, matchBasePrice);
   }
 
   async approveMatchPurchase(leagueId: string, purchaseId: string) {
@@ -2600,6 +2640,8 @@ export class LeaguesService {
   getMatchPricesAndPackages() {
     return {
       pricing: LeaguesService.PARTICIPANT_PRICING,
+      basePrices: LeaguesService.MATCH_BASE_PRICES,
+      packages: LeaguesService.MATCH_PACKAGES,
       minimumParticipants: LeaguesService.MINIMUM_PARTICIPANTS,
       maximumParticipants: LeaguesService.MAXIMUM_PARTICIPANTS,
     };

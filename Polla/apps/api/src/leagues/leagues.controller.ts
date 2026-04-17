@@ -106,9 +106,13 @@ export class LeaguesController {
 
   @Public()
   @Get('match-price')
-  async getMatchPriceQuote(@Query('participants') participants: string) {
+  async getMatchPriceQuote(
+    @Query('participants') participants: string,
+    @Query('basePrice') basePrice?: string,
+  ) {
     const p = parseInt(participants, 10) || 20;
-    return this.leaguesService.getMatchPriceQuote(p);
+    const bp = parseInt(basePrice, 10) || 15000;
+    return this.leaguesService.getMatchPriceQuote(p, bp);
   }
 
   @UseGuards(JwtAuthGuard)
